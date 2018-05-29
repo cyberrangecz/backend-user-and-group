@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.dbmodel.userandgroup;
+package cz.muni.ics.kypo.userandgroup.dbmodel;
 
 public enum RoleType {
 

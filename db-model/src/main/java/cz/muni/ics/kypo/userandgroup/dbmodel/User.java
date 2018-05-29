@@ -17,7 +17,7 @@
  *  license, feel free to contact Technology transfer office of the Masaryk university
  *  in order to negotiate ad-hoc license agreement.
  */
-package cz.muni.ics.kypo.dbmodel.userandgroup;
+package cz.muni.ics.kypo.userandgroup.dbmodel;
 
 import javax.persistence.*;
 import java.util.*;
