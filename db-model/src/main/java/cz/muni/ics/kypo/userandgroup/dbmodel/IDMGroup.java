@@ -19,6 +19,8 @@
  */
 package cz.muni.ics.kypo.userandgroup.dbmodel;
 
+import org.springframework.util.Assert;
+
 import javax.persistence.*;
 import java.util.*;
 
@@ -54,7 +56,16 @@ public class IDMGroup {
     @JoinTable(name = "IDM_GROUP_ROLE", joinColumns = @JoinColumn(name = "IDM_GROUP_ID"), inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
     private Set<Role> roles = new HashSet<>();
 
-    public IDMGroup() {
+    protected IDMGroup() {
+    }
+
+    public IDMGroup(String name, UserAndGroupStatus status, String description) {
+        Assert.hasLength(name, "Name of group must not be empty");
+        Assert.notNull(status, "Status of group must not be null");
+        Assert.hasLength(name, "Description of group must not be empty");
+        this.name = name;
+        this.status = status;
+        this.description = description;
     }
 
     public IDMGroup(String name) {

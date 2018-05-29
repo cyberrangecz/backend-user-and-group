@@ -19,7 +19,10 @@
  */
 package cz.muni.ics.kypo.userandgroup.dbmodel;
 
+import org.springframework.util.Assert;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -52,6 +55,14 @@ public class User {
     @JoinTable(name = "USER_IDM_GROUP", joinColumns = {@JoinColumn(name = "USER_ID")}, 
             inverseJoinColumns = {@JoinColumn(name = "IDM_GROUP_ID")})
     private List<IDMGroup> groups = new ArrayList<>();
+
+    protected User(){
+    }
+
+    public User(String screenName) {
+        Assert.hasLength(screenName, "Screen name must not be empty");
+        this.screenName = screenName;
+    }
 
     public Long getId() {
         return id;

@@ -19,6 +19,8 @@
  */
 package cz.muni.ics.kypo.userandgroup.dbmodel;
 
+import org.springframework.util.Assert;
+
 import javax.persistence.*;
 
 import static javax.persistence.GenerationType.IDENTITY;
