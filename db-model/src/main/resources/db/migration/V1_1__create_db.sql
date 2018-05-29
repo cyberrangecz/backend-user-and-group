@@ -25,16 +25,16 @@ CREATE TABLE idm_group (
    PRIMARY KEY (id));
 
 CREATE TABLE user_role (
-   roleid      int8 NOT NULL,
-   userid      int8 NOT NULL,
-   PRIMARY KEY (roleid, userid));
+   role_id      int8 NOT NULL,
+   user_id      int8 NOT NULL,
+   PRIMARY KEY (role_id, user_id));
 
 
 ALTER TABLE user_idm_group ADD CONSTRAINT FKuser_idm_g172082 FOREIGN KEY (user_id) REFERENCES users (id);
 ALTER TABLE user_idm_group ADD CONSTRAINT FKuser_idm_g351385 FOREIGN KEY (idm_group_id) REFERENCES idm_group (id);
 
-ALTER TABLE user_role ADD CONSTRAINT FKuser_role432826 FOREIGN KEY (roleid) REFERENCES role (id);
-ALTER TABLE user_role ADD CONSTRAINT FKuser_role954230 FOREIGN KEY (userid) REFERENCES users (id);
+ALTER TABLE user_role ADD CONSTRAINT FKuser_role432826 FOREIGN KEY (role_id) REFERENCES role (id);
+ALTER TABLE user_role ADD CONSTRAINT FKuser_role954230 FOREIGN KEY (user_id) REFERENCES users (id);
 
 
 -- assign roles of a default admin account accorgind to Liferay roles: 
