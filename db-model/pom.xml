@@ -12,30 +12,6 @@
     <artifactId>kypo2-db-model-user-and-group</artifactId>
     <packaging>jar</packaging>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway.version}</version>
-                <configuration>
-                    <sqlMigrationSeparator>__</sqlMigrationSeparator>
-                    <url>${jdbc.url}</url>
-                    <user>${jdbc.username}</user>
-                    <password>${jdbc.password}</password>
-                    <table>schema_version</table>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgresql.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

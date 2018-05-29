@@ -3,7 +3,7 @@
  *
  *  Tool      : Identity Management Service
  *
- *  Author(s) : Filip Bogyai 395959@mail.muni.cz
+ *  Author(s) : Filip Bogyai 395959@mail.muni.cz, Jan Duda 394179@mail.muni.cz
  *
  *  Date      : 31.5.2016
  *
@@ -20,23 +20,13 @@
 package cz.muni.ics.kypo.userandgroup.dbmodel;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "IDM_GROUP")
 public class IDMGroup {
-
-    public static final String ADMINISTRATORS = "Administrators";
-    public static final String SCENARISTS = "Scenarists";
-    public static final String SCENARIOS = "Scenarios";
-    public static final String KYPO_ORGANIZERS = "Scenarists"; //"%:Organizers"; //"KYPO-Organizers";
-    public static final String ORGANIZERS = "Organizers"; // Prefix
-    public static final String SUPERVISORS = "Supervisors"; // Prefix
-    public static final String PARTICIPANTS = "Participants"; // Prefix
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -45,34 +35,24 @@ public class IDMGroup {
     @Column(name = "NAME", nullable = false)
     private String name;
     
-    @Column(name = "STATUS")
-    private String status;
+    @Column(name = "STATUS", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserAndGroupStatus status;
 
     @Column(name = "EXTERNAL_ID", unique = true)
     private Long externalId;
 
-    @Column(name ="DESCRIPTION")
+    @Column(name ="DESCRIPTION", nullable = false)
     private String description;
 
     @ManyToMany
     @JoinTable(name = "USER_IDM_GROUP", joinColumns = {@JoinColumn(name = "IDM_GROUP_ID")}, 
             inverseJoinColumns = {@JoinColumn(name = "USER_ID")})
     private List<User> users = new ArrayList<>();
-    
-    @ManyToMany
-    @JoinTable(name = "ORGANIZER", joinColumns = {@JoinColumn(name = "GROUP_ID")}, 
-            inverseJoinColumns = {@JoinColumn(name = "SCENARIO_ID")})
-    private List<Long> scenarios = new ArrayList<>();
-    
-    @ManyToMany
-    @JoinTable(name = "SUPERVISOR", joinColumns = {@JoinColumn(name = "GROUP_ID")}, 
-            inverseJoinColumns = {@JoinColumn(name = "SCENARIO_INSTANCE_ID")})
-    private List<Long> scenarioInstancesOfSupervisors = new ArrayList<>();
-    
-    @ManyToMany
-    @JoinTable(name = "PARTICIPANT", joinColumns = {@JoinColumn(name = "GROUP_ID")}, 
-            inverseJoinColumns = {@JoinColumn(name = "SCENARIO_INSTANCE_ID")})
-    private List<Long> scenarioInstancesOfParticipants = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "IDM_GROUP_ROLE", joinColumns = @JoinColumn(name = "IDM_GROUP_ID"), inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
+    private Set<Role> roles = new HashSet<>();
 
     public IDMGroup() {
     }
@@ -97,11 +77,11 @@ public class IDMGroup {
         return name;
     }
 
-    public String getStatus() {
+    public UserAndGroupStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(UserAndGroupStatus status) {
         this.status = status;
     }
 
@@ -125,54 +105,6 @@ public class IDMGroup {
         users.remove(user);
     }
 
-    public List<Long> getScenarios() {
-        return scenarios;
-    }
-
-    public void setScenarios(List<Long> scenarios) {
-        this.scenarios = scenarios;
-    }
-    
-    public void addScenario(Long scenario){
-        scenarios.add(scenario);
-    }
-    
-    public void removeScenario(Long scenario){
-        scenarios.remove(scenario);
-    }
-
-    public List<Long> getScenarioInstancesOfSupervisors() {
-        return scenarioInstancesOfSupervisors;
-    }
-
-    public void setScenarioInstancesOfSupervisors(List<Long> scenarioInstancesOfSupervisors) {
-        this.scenarioInstancesOfSupervisors = scenarioInstancesOfSupervisors;
-    }
-    
-    public void addScenarioInstancesOfSupervisors(Long scenarioInstanceId) {
-        scenarioInstancesOfSupervisors.add(scenarioInstanceId);
-    }
-    
-    public void removeScenarioInstancesOfSupervisors(Long scenarioInstanceId) {
-        scenarioInstancesOfSupervisors.remove(scenarioInstanceId);
-    }
-    
-    public List<Long> getScenarioInstancesOfParticipants() {
-        return scenarioInstancesOfParticipants;
-    }
-
-    public void setScenarioInstancesOfParticipants(List<Long> scenarioInstancesOfParticipants) {
-        this.scenarioInstancesOfParticipants = scenarioInstancesOfParticipants;
-    }
-    
-    public void addScenarioInstancesOfParticipants(Long scenarioInstanceId) {
-        scenarioInstancesOfParticipants.add(scenarioInstanceId);
-    }
-    
-    public void removeScenarioInstancesOfParticipants(Long scenarioInstanceId) {
-        scenarioInstancesOfParticipants.remove(scenarioInstanceId);
-    }
-
     public String getDescription() {
         return description;
     }
@@ -181,9 +113,25 @@ public class IDMGroup {
         this.description = description;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
     @Override
     public String toString() {
-        return "IDM Group [id=" + id + ",name=" + name + "]";
+        return "IDM Group [id=" + id + ",name=" + name + ",descritpion=" + description + "]";
     }
 
     @Override

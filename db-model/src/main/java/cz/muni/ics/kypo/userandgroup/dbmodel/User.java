@@ -3,7 +3,7 @@
  *
  *  Tool      : Identity Management Service
  *
- *  Author(s) : Filip Bogyai 395959@mail.muni.cz
+ *  Author(s) : Filip Bogyai 395959@mail.muni.cz, Jan Duda 394179@mail.muni.cz
  *
  *  Date      : 31.5.2016
  *
@@ -32,11 +32,11 @@ public class User {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Column(name = "LIFERAY_SN", unique = true, nullable = false)
-    private String liferayScreenName;
+    @Column(name = "SCREEN_NAME", unique = true, nullable = false)
+    private String screenName;
 
-    @Column(name = "DISPLAY_NAME") //, nullable = false)
-    private String displayName;
+    @Column(name = "DISPLAY_NAME")
+    private String fullName;
 
     @Column(name = "EXTERNAL_ID", unique = true)
     private Long externalId;
@@ -45,19 +45,13 @@ public class User {
     private String mail;
 
     @Column(name = "STATUS")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private UserAndGroupStatus status;
 
     @ManyToMany
     @JoinTable(name = "USER_IDM_GROUP", joinColumns = {@JoinColumn(name = "USER_ID")}, 
             inverseJoinColumns = {@JoinColumn(name = "IDM_GROUP_ID")})
     private List<IDMGroup> groups = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user")
-    private List<Long> participants = new ArrayList<>();
-
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "USER_ROLE", joinColumns = @JoinColumn(name = "USER_ID"), inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
-    private Set<Role> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -67,20 +61,20 @@ public class User {
         this.id = id;
     }
 
-    public String getLiferayScreenName() {
-        return liferayScreenName;
+    public String getScreenName() {
+        return screenName;
     }
 
-    public void setLiferayScreenName(String liferayScreenName) {
-        this.liferayScreenName = liferayScreenName;
+    public void setScreenName(String screenName) {
+        this.screenName = screenName;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public Long getExternalId() {
@@ -99,11 +93,11 @@ public class User {
         this.mail = mail;
     }
 
-    public String getStatus() {
+    public UserAndGroupStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(UserAndGroupStatus status) {
         this.status = status;
     }
 
@@ -119,41 +113,9 @@ public class User {
         groups.remove(group);
     }
 
-    public List<Long> getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(List<Long> participants) {
-        this.participants = participants;
-    }
-
-    public void addParticipant(Long participant) {
-        this.participants.add(participant);
-    }
-
-    public void removeParicipants(Long participant) {
-        this.participants.remove(participant);
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
-    public void addRole(Role role) {
-        this.roles.add(role);
-    }
-
-    public void removeRole(Role role) {
-        this.roles.remove(role);
-    }
-
     @Override
     public String toString() {
-        return "User [id=" + id + ", liferayScreenName=" + liferayScreenName + "]";
+        return "User [id=" + id + ", screenName=" + screenName + "]";
     }
 
     @Override
@@ -167,7 +129,7 @@ public class User {
             return false;
         }
         User other = (User) object;
-        if (!Objects.equals(this.id, other.id)) {
+        if (!Objects.equals(this.screenName, other.screenName)) {
             return false;
         }
         return true;
