@@ -62,14 +62,10 @@ public class IDMGroup {
     public IDMGroup(String name, UserAndGroupStatus status, String description) {
         Assert.hasLength(name, "Name of group must not be empty");
         Assert.notNull(status, "Status of group must not be null");
-        Assert.hasLength(name, "Description of group must not be empty");
+        Assert.hasLength(description, "Description of group must not be empty");
         this.name = name;
         this.status = status;
         this.description = description;
-    }
-
-    public IDMGroup(String name) {
-        this.name = name;
     }
 
     public Long getId() {
