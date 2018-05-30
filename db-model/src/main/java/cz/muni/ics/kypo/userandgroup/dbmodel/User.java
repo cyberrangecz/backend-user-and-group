@@ -56,12 +56,13 @@ public class User {
             inverseJoinColumns = {@JoinColumn(name = "IDM_GROUP_ID")})
     private List<IDMGroup> groups = new ArrayList<>();
 
-    protected User(){
+    public User(){
     }
 
     public User(String screenName) {
         Assert.hasLength(screenName, "Screen name must not be empty");
         this.screenName = screenName;
+        this.status = UserAndGroupStatus.VALID;
     }
 
     public Long getId() {

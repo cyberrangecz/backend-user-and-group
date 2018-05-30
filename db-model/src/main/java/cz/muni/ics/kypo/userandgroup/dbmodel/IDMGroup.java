@@ -56,15 +56,14 @@ public class IDMGroup {
     @JoinTable(name = "IDM_GROUP_ROLE", joinColumns = @JoinColumn(name = "IDM_GROUP_ID"), inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
     private Set<Role> roles = new HashSet<>();
 
-    protected IDMGroup() {
+    public IDMGroup() {
     }
 
-    public IDMGroup(String name, UserAndGroupStatus status, String description) {
+    public IDMGroup(String name, String description) {
         Assert.hasLength(name, "Name of group must not be empty");
-        Assert.notNull(status, "Status of group must not be null");
         Assert.hasLength(description, "Description of group must not be empty");
         this.name = name;
-        this.status = status;
+        this.status = UserAndGroupStatus.VALID;
         this.description = description;
     }
 
