@@ -31,8 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -41,7 +39,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -243,7 +240,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void deleteUsersWithNullIds() {
+    public void deleteUsersWithNullIdsShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input ids of users must not be null");
         userService.deleteUsers(null);
@@ -391,6 +388,6 @@ public class UserServiceTest {
 
     @After
     public void afterMethod() {
-        reset(userRepository);
+        reset(userRepository, groupRepository);
     }
 }

@@ -156,11 +156,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public IDMGroup getIDMGroupWithUsers(String name) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
         List<IDMGroup> groups = getIDMGroupsByName(name);
-        if (groups == null) throw new IdentityManagementException("No group \"" + name + "\"");
-        if (groups.size() != 1) throw new IdentityManagementException("Multiple groups: " + groups);
-        return getIDMGroupWithUsers(groups.get(0).getId());
-        //IDMGroup group = getIDMGroupByName(name);
-        //return getIDMGroupWithUsers(group.getId());
+        IDMGroup g = groups.get(0);
+        g.getUsers().size();
+        return g;
     }
 
     @Override
@@ -170,7 +168,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
-        if (group.getExternalId() != null && group.getStatus().equals(UserAndGroupStatus.VALID.name())) {
+        if (group.getExternalId() != null && group.getStatus().equals(UserAndGroupStatus.VALID)) {
             return GroupDeletionStatus.EXTERNAL_VALID;
         }
         return GroupDeletionStatus.SUCCESS;
