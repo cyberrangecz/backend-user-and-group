@@ -96,7 +96,7 @@ public interface UserService {
      * @return user with given user identity
      * @throws IdentityManagementException if user with given screen name could not be found
      */
-    User getUserByLiferayScreenName(String screenName) throws IdentityManagementException;
+    User getUserByScreenName(String screenName) throws IdentityManagementException;
 
     /**
      * Returns all users from database.

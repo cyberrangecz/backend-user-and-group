@@ -47,9 +47,6 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private IDMGroupRepository groupRepository;
 
     @Override
@@ -138,11 +135,11 @@ public class UserServiceImpl implements UserService {
         IDMGroup administratorGroup = groupRepository.findAdministratorGroup();
 
         if (user.getGroups().contains(administratorGroup)) {
-            administratorGroup.addUser(user);
+            user.removeGroup(administratorGroup);
         } else {
-            administratorGroup.removeUser(user);
+            user.addGroup(administratorGroup);
         }
-        groupRepository.save(administratorGroup);
+        userRepository.save(user);
     }
 
     @Override
@@ -157,7 +154,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public User getUserByLiferayScreenName(String screenName) throws IdentityManagementException {
+    public User getUserByScreenName(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
         User user = userRepository.findByScreenName(screenName);
         if (user != null) {
@@ -190,7 +187,9 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public User getUserWithGroups(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
-        return getUserWithGroups(getUserByLiferayScreenName(screenName).getId());
+        User user = getUserByScreenName(screenName);
+        user.getGroups().size();
+        return user;
     }
 
     @Override
@@ -201,7 +200,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserDeletionStatus checkKypoUserBeforeDelete(User user) {
-        if (user.getExternalId() != null && user.getStatus().equals(UserAndGroupStatus.VALID.name())) {
+        if (user.getExternalId() != null && user.getStatus().equals(UserAndGroupStatus.VALID)) {
             return UserDeletionStatus.EXTERNAL_VALID;
         }
 

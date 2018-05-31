@@ -20,5 +20,5 @@
 package cz.muni.ics.kypo.userandgroup.util;
 
 public enum UserDeletionStatus {
-    SUCCESS, IS_PARTICIPANT, EXTERNAL_VALID, DISK_IMAGE_OWNER, ERROR, NOT_FOUND
+    SUCCESS, EXTERNAL_VALID, ERROR, NOT_FOUND
 }
