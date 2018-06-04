@@ -38,7 +38,7 @@ public class User {
     @Column(name = "SCREEN_NAME", unique = true, nullable = false)
     private String screenName;
 
-    @Column(name = "DISPLAY_NAME")
+    @Column(name = "FULL_NAME")
     private String fullName;
 
     @Column(name = "EXTERNAL_ID", unique = true)
