@@ -43,11 +43,15 @@ public class UserServiceImpl implements UserService {
 
     private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class.getName());
 
-    @Autowired
     private UserRepository userRepository;
 
-    @Autowired
     private IDMGroupRepository groupRepository;
+
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, IDMGroupRepository groupRepository) {
+        this.userRepository = userRepository;
+        this.groupRepository = groupRepository;
+    }
 
     @Override
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")

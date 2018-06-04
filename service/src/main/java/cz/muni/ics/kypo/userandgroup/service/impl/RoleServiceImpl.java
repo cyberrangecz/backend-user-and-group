@@ -19,8 +19,12 @@ public class RoleServiceImpl implements RoleService {
 
     private static Logger log = LoggerFactory.getLogger(RoleServiceImpl.class.getName());
 
-    @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    public RoleServiceImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
     @Override
     public Role create(Role role) {

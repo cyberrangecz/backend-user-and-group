@@ -41,8 +41,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     private static Logger log = LoggerFactory.getLogger(IDMGroupServiceImpl.class.getName());
 
+    private final IDMGroupRepository groupRepository;
+
     @Autowired
-    private IDMGroupRepository groupRepository;
+    public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository) {
+        this.groupRepository = idmGroupRepository;
+    }
 
     @Override
     public IDMGroup get(Long id) throws IdentityManagementException {
