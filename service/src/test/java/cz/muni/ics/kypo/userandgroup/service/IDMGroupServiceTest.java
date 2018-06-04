@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -46,6 +47,7 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
+@SpringBootTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.dbmodel"})
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.persistence"})
 public class IDMGroupServiceTest {
