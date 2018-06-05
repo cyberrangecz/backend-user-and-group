@@ -8,6 +8,8 @@ public class ApiEndpointsUserAndGroup {
 
     public static final String GROUPS_URL = BASE_URN + "/groups";
 
+    public static final String ROLES_URL = BASE_URN + "/roles";
+
     public ApiEndpointsUserAndGroup() {
     }
 }
