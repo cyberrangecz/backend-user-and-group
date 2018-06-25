@@ -69,7 +69,7 @@ public class RoleRestController {
 
             role = roleService.create(role);
             RoleDTO r = convertToRoleDTO(role);
-            return new ResponseEntity<>(r, HttpStatus.OK);
+            return new ResponseEntity<>(r, HttpStatus.CREATED);
         } catch (IdentityManagementException e) {
             throw new ResourceNotCreatedException("Invalid role's information or could not be created.");
         }
