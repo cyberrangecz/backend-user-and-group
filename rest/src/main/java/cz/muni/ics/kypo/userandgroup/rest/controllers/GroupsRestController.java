@@ -36,12 +36,11 @@ public class GroupsRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(GroupsRestController.class);
 
-    @Autowired
     private IDMGroupService groupService;
 
-    @Autowired
     private UserService userService;
 
+    @Autowired
     public GroupsRestController(IDMGroupService groupService, UserService userService) {
         this.groupService = groupService;
         this.userService = userService;
@@ -268,6 +267,9 @@ public class GroupsRestController {
 
     private GroupDTO convertToGroupDTO(IDMGroup g) {
         GroupDTO groupDTO = new GroupDTO();
+        groupDTO.setId(g.getId());
+        groupDTO.setName(g.getName());
+        groupDTO.setDescription(g.getDescription());
         groupDTO.convertExternalIdToSource(g.getExternalId());
         groupDTO.convertStatusToCanBeDeleted(g.getStatus());
 
