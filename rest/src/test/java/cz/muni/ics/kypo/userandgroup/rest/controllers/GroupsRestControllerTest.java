@@ -24,7 +24,6 @@ import org.mapstruct.BeanMapping;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -34,18 +33,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 public class GroupsRestControllerTest  {
@@ -59,9 +53,6 @@ public class GroupsRestControllerTest  {
     @Mock
     private UserService userService;
 
-    @Mock
-    private BeanMapping dtoMapper;
-
     private MockMvc mockMvc;
 
     @Before
@@ -72,16 +63,16 @@ public class GroupsRestControllerTest  {
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        when(groupService.getAllIDMGroups()).thenReturn(Arrays.asList(getGroup()));
-        when(groupService.getIDMGroupWithUsers(anyLong())).thenReturn(getGroup());
-        when(groupService.getIDMGroupWithUsers(anyString())).thenReturn(getGroup());
-        when(groupService.update(any(IDMGroup.class))).thenReturn(getGroup());
-        when(groupService.create(any(IDMGroup.class))).thenReturn(getGroup());
-        when(groupService.isGroupInternal(anyLong())).thenReturn(true);
-        when(groupService.getIDMGroupWithUsers(anyString())).thenReturn(getGroup());
-        when(groupService.get(anyLong())).thenReturn(getGroup());
-        when(groupService.delete(any(IDMGroup.class))).thenReturn(GroupDeletionStatus.SUCCESS);
-        when(groupService.deleteGroups(anyList())).thenReturn(ImmutableMap.of(getGroup(),GroupDeletionStatus.SUCCESS));
+        given(groupService.getAllIDMGroups()).willReturn(Arrays.asList(getGroup()));
+        given(groupService.getIDMGroupWithUsers(anyLong())).willReturn(getGroup());
+        given(groupService.getIDMGroupWithUsers(anyString())).willReturn(getGroup());
+        given(groupService.update(any(IDMGroup.class))).willReturn(getGroup());
+        given(groupService.create(any(IDMGroup.class))).willReturn(getGroup());
+        given(groupService.isGroupInternal(anyLong())).willReturn(true);
+        given(groupService.getIDMGroupWithUsers(anyString())).willReturn(getGroup());
+        given(groupService.get(anyLong())).willReturn(getGroup());
+        given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
+        given(groupService.deleteGroups(anyList())).willReturn(ImmutableMap.of(getGroup(),GroupDeletionStatus.SUCCESS));
     }
 
     @Test
@@ -102,7 +93,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testCreateGroupCouldNotBeCreated() throws Exception {
-        when(groupService.create(any(IDMGroup.class))).thenThrow( new IdentityManagementException());
+        given(groupService.create(any(IDMGroup.class))).willThrow( new IdentityManagementException());
         Exception ex = mockMvc.perform(post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getNewGroupDTO())))
@@ -113,7 +104,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testCreateGroupWithUserNotInDB() throws Exception {
-        when(userService.getUserByScreenName(anyString())).thenThrow(new IdentityManagementException());
+        given(userService.getUserByScreenName(anyString())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getNewGroupDTO())))
@@ -142,7 +133,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void  testUpdateExternalGroup () throws Exception {
-        when(groupService.isGroupInternal(anyLong())).thenReturn(false);
+        given(groupService.isGroupInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getGroupDTO())))
@@ -153,7 +144,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void  testUpdateGroupNotInDB () throws Exception {
-        when(groupService.getIDMGroupWithUsers(anyLong())).thenThrow(new IdentityManagementException());
+        given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getGroupDTO())))
@@ -164,7 +155,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void  testUpdateGroupWithUpdateError () throws Exception {
-        when(groupService.update(any(IDMGroup.class))).thenThrow(new IdentityManagementException());
+        given(groupService.update(any(IDMGroup.class))).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getGroupDTO())))
@@ -197,7 +188,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void  testRemoveMembersFromGroupNotInDB () throws Exception {
-        when(groupService.getIDMGroupWithUsers(anyString())).thenThrow(new IdentityManagementException());
+        given(groupService.getIDMGroupWithUsers(anyString())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(Arrays.asList(1L))))
@@ -208,7 +199,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void  testRemoveMembersWithUpdateError () throws Exception {
-        when(groupService.update(any(IDMGroup.class))).thenThrow(new IdentityManagementException());
+        given(groupService.update(any(IDMGroup.class))).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(Arrays.asList(1L))))
@@ -227,7 +218,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void  testRemoveMembersFromExternalGroup () throws Exception {
-        when(groupService.isGroupInternal(anyLong())).thenReturn(false);
+        given(groupService.isGroupInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(Arrays.asList(1L))))
@@ -248,7 +239,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testAddMembersToGroupNotInDB() throws Exception {
-        when(groupService.getIDMGroupWithUsers(anyString())).thenThrow(new IdentityManagementException());
+        given(groupService.getIDMGroupWithUsers(anyString())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
@@ -259,7 +250,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testAddMembersWithMemberNotInDB() throws Exception {
-        when(userService.get(anyLong())).thenThrow(new IdentityManagementException());
+        given(userService.get(anyLong())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
@@ -270,7 +261,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testAddMembersWithUpdateError() throws Exception {
-        when(groupService.update(any(IDMGroup.class))).thenThrow(new IdentityManagementException());
+        given(groupService.update(any(IDMGroup.class))).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
@@ -289,7 +280,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testAddMembersToExternalGroup() throws Exception {
-        when(groupService.isGroupInternal(anyLong())).thenReturn(false);
+        given(groupService.isGroupInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
@@ -309,7 +300,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testDeleteGroupNotInDB() throws  Exception {
-        when(groupService.get(anyLong())).thenThrow(new IdentityManagementException());
+        given(groupService.get(anyLong())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -319,7 +310,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testDeleteGroupWithDeleteError() throws  Exception {
-        when(groupService.delete(any(IDMGroup.class))).thenThrow(new IdentityManagementException());
+        given(groupService.delete(any(IDMGroup.class))).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isServiceUnavailable())
@@ -329,7 +320,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testDeleteExternalGroup() throws  Exception {
-        when(groupService.delete(any(IDMGroup.class))).thenReturn(GroupDeletionStatus.EXTERNAL_VALID);
+        given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.EXTERNAL_VALID);
         Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
@@ -366,7 +357,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testGetGroupsWithErrorWhileLoading() throws Exception {
-        when(groupService.getAllIDMGroups()).thenThrow( new IdentityManagementException());
+        given(groupService.getAllIDMGroups()).willThrow( new IdentityManagementException());
         Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/"))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
