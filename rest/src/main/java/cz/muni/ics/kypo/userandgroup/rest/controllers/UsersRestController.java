@@ -99,7 +99,7 @@ public class UsersRestController {
 
             user = userService.create(user);
             UserDTO s = convertToUserDTO(user);
-            return new ResponseEntity<>(s, HttpStatus.OK);
+            return new ResponseEntity<>(s, HttpStatus.CREATED);
         } catch (IdentityManagementException e) {
             throw new ResourceNotCreatedException("Invalid user's information or could not be created.");
         }

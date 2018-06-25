@@ -129,7 +129,7 @@ public class UsersRestControllerTest {
         mockMvc.perform(post(ApiEndpointsUserAndGroup.USERS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(getNewUserDTO())))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getUserDTO())));
     }
