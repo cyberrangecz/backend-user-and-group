@@ -263,7 +263,7 @@ public class UsersRestControllerTest {
         return mapper.writeValueAsString(object);
     }
 
-    public User getUser() {
+    private User getUser() {
         User user = new User();
         user.setId(1L);
         user.setFullName("kypo");
@@ -274,7 +274,7 @@ public class UsersRestControllerTest {
         return user;
     }
 
-    public UserDTO getUserDTO() {
+    private UserDTO getUserDTO() {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(1L);
         userDTO.setMail("kypo@mail.cz");
@@ -283,7 +283,7 @@ public class UsersRestControllerTest {
         return userDTO;
     }
 
-    public NewUserDTO getNewUserDTO() {
+    private NewUserDTO getNewUserDTO() {
         NewUserDTO newUserDTO = new NewUserDTO();
         newUserDTO.setFullName("kypo");
         newUserDTO.setLogin("KYPO LOCAL ADMIN");
@@ -291,7 +291,7 @@ public class UsersRestControllerTest {
         return newUserDTO;
     }
 
-    public UpdateUserDTO getUpdateUserDTO() {
+    private UpdateUserDTO getUpdateUserDTO() {
         UpdateUserDTO updateUserDTO = new UpdateUserDTO();
         updateUserDTO.setId(1L);
         updateUserDTO.setLogin("KYPO LOCAL ADMIN");
@@ -299,7 +299,7 @@ public class UsersRestControllerTest {
         return updateUserDTO;
     }
 
-    public IDMGroup getGroup() {
+    private IDMGroup getGroup() {
         IDMGroup group = new IDMGroup();
         group.setId(1L);
         group.setExternalId(2L);
@@ -309,49 +309,18 @@ public class UsersRestControllerTest {
         return group;
     }
 
-    public IDMGroup getGroupWithUsers() {
+    private IDMGroup getGroupWithUsers() {
         IDMGroup group = new IDMGroup();
         group.setId(1L);
         group.addUser(getUser());
         return group;
     }
 
-    public UserDeletionResponseDTO getUserDeletionResponseDTO() {
+    private UserDeletionResponseDTO getUserDeletionResponseDTO() {
         UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
         deletionResponseDTO.setUser(getUserDTO());
         deletionResponseDTO.setStatus(UserDeletionStatus.SUCCESS);
         return deletionResponseDTO;
-    }
-
-    public GroupForUsersDTO mapIDMGroupToGroupDTO () {
-        GroupForUsersDTO group = new GroupForUsersDTO();
-        group.setId(1L);
-        group.setName("Testing group 1");
-        group.setStatus(UserAndGroupStatus.VALID.name());
-        group.setExternalId(2L);
-
-        return group;
-    }
-
-    public UserDTO mapUserToUserDTO() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
-        userDTO.setMail("kypo@mail.cz");
-        userDTO.setFullName("kypo");
-        return userDTO;
-    }
-
-    public User mapNewUserDTOToUser() {
-        User user = new User();
-        user.setMail("kypo@mail.cz");
-        return user;
-    }
-
-    public User mapUpdateUserDTOToUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setMail("kypo@mail.cz");
-        return user;
     }
 
 }

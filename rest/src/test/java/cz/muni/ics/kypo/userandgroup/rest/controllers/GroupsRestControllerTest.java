@@ -20,7 +20,6 @@ import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mapstruct.BeanMapping;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -369,7 +368,7 @@ public class GroupsRestControllerTest  {
         return mapper.writeValueAsString(object);
     }
 
-    public AddMembersToGroupDTO getAddMembersToGroupDTO() {
+    private AddMembersToGroupDTO getAddMembersToGroupDTO() {
         AddMembersToGroupDTO groupDTO = new AddMembersToGroupDTO();
         groupDTO.setGroupId(1L);
         groupDTO.setIdsOfGroupsOfImportedUsers(Arrays.asList(2L));
@@ -379,7 +378,8 @@ public class GroupsRestControllerTest  {
 
 
     }
-    public GroupDTO getGroupDTO() {
+
+    private GroupDTO getGroupDTO() {
         GroupDTO group = new GroupDTO();
         group.setId(1L);
         group.setDescription("Testing group 1");
@@ -392,7 +392,7 @@ public class GroupsRestControllerTest  {
         return group;
     }
 
-    public NewGroupDTO getNewGroupDTO() {
+    private NewGroupDTO getNewGroupDTO() {
         NewGroupDTO newGroupDTO = new NewGroupDTO();
         newGroupDTO.setName("New group");
         newGroupDTO.setDescription("New testing group");
@@ -404,7 +404,7 @@ public class GroupsRestControllerTest  {
     }
 
 
-    public GroupDeletionResponseDTO getGroupDeletionResponse() {
+    private GroupDeletionResponseDTO getGroupDeletionResponse() {
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         groupDeletionResponseDTO.setId(1L);
         groupDeletionResponseDTO.setStatus(GroupDeletionStatus.SUCCESS);
@@ -414,7 +414,7 @@ public class GroupsRestControllerTest  {
     }
 
 
-    public IDMGroup getGroup() {
+    private IDMGroup getGroup() {
         IDMGroup group = new IDMGroup();
         group.setId(1L);
         group.setDescription("Testing group 1");
@@ -425,7 +425,7 @@ public class GroupsRestControllerTest  {
         return group;
     }
 
-    public User getUser() {
+    private User getUser() {
         User user = new User();
         user.setId(1L);
         user.setScreenName("kypo");
@@ -436,7 +436,7 @@ public class GroupsRestControllerTest  {
         return user;
     }
 
-    public UserForGroupsDTO getUserForGroupsDTO() {
+    private UserForGroupsDTO getUserForGroupsDTO() {
         UserForGroupsDTO userDTO = new UserForGroupsDTO();
         userDTO.setId(1L);
         userDTO.setMail("kypo@mail.cz");
