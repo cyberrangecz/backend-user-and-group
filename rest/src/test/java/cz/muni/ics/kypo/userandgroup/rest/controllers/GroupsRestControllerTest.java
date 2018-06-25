@@ -363,6 +363,16 @@ public class GroupsRestControllerTest  {
         assertEquals("Error while loading all groups from database.", ex.getMessage());
     }
 
+    @Test
+    public void testGetGroup() throws Exception {
+        IDMGroup group = getGroup();
+        given(groupService.get(group.getId())).willReturn(group);
+        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", group.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
+    }
+
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);

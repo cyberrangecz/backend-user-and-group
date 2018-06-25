@@ -254,6 +254,19 @@ public class GroupsRestController {
         return new ResponseEntity<>(groupDTOs, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(httpMethod = "GET", value = "Get group with given id", produces = "application/json")
+    public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.",
+            required = true) @PathVariable("id") Long id) {
+        try {
+            GroupDTO groupDTO = convertToGroupDTO(groupService.get(id));
+
+            return new ResponseEntity<>(groupDTO, HttpStatus.OK);
+        } catch (IdentityManagementException ex) {
+            throw new ServiceUnavailableException("Some error occurred while loading group with id: " + id + ". Please, try it later.");
+        }
+    }
+
     private UserForGroupsDTO convertToUserForGroupsDTO(User user) {
         UserForGroupsDTO userForGroup = new UserForGroupsDTO();
         userForGroup.setId(user.getId());
