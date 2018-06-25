@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
@@ -16,7 +15,6 @@ import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.mapstruct.BeanMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,7 @@ public class GroupsRestController {
     }
 
 
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "POST", value = "Creates new group.", consumes = "application/json")
     public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.",
             required = true) @RequestBody NewGroupDTO newGroupDTO) {
@@ -94,7 +92,7 @@ public class GroupsRestController {
 
     }
 
-    @RequestMapping(method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Updates input group.")
     public ResponseEntity<GroupDTO> updateGroup(
             @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO groupDTO) {
@@ -120,7 +118,7 @@ public class GroupsRestController {
         }
     }
 
-    @RequestMapping(path = "/{id}/removeMembers", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{id}/removeMembers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Remove members from input group.")
     public ResponseEntity<GroupDTO> removeMembers(
             @ApiParam(value = "Id of group to remove members.", required = true) @PathVariable("id") final Long id,
@@ -145,7 +143,7 @@ public class GroupsRestController {
         }
     }
 
-    @RequestMapping(path = "/addMembers", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/addMembers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Add members to group.")
     public ResponseEntity<GroupDTO> addMembers(
             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddMembersToGroupDTO addMembers) {
@@ -177,7 +175,7 @@ public class GroupsRestController {
         }
     }
 
-    @RequestMapping(path = "/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete group with given id and returns if it was successful. \n" +
             "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role \n" +
             "3) EXTERNAL_VALID - group is from external source and was not marked as deleted",
@@ -211,7 +209,7 @@ public class GroupsRestController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete groups with given ids and returns groups and statuses of their deletion. \n" +
             "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role\n" +
             "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
@@ -237,7 +235,7 @@ public class GroupsRestController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get groups.", produces = "application/json")
     public ResponseEntity<List<GroupDTO>> getGroups() {
         List<IDMGroup> groups = new ArrayList<>();
