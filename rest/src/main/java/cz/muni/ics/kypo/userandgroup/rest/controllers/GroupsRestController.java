@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup.GROUPS_URL;
 
@@ -265,6 +266,17 @@ public class GroupsRestController {
         } catch (IdentityManagementException ex) {
             throw new ServiceUnavailableException("Some error occurred while loading group with id: " + id + ". Please, try it later.");
         }
+    }
+
+    @GetMapping(path = "/{id}/roles")
+    @ApiOperation(httpMethod = "GET", value = "Returns all roles of group with given id.")
+    public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(
+            @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
+
+        Set<Role> roles = groupService.getRolesOfGroup(id);
+        Set<RoleDTO> roleDTOS = roles.stream().map(this::convertToRoleDTO)
+                .collect(Collectors.toSet());
+        return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
     }
 
     private UserForGroupsDTO convertToUserForGroupsDTO(User user) {

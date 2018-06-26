@@ -2,9 +2,7 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
@@ -13,6 +11,7 @@ import cz.muni.ics.kypo.userandgroup.rest.DTO.group.AddMembersToGroupDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.NewGroupDTO;
+import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
@@ -32,6 +31,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -373,6 +375,16 @@ public class GroupsRestControllerTest  {
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
     }
 
+    @Test
+    public void testGetRolesOfGroup() throws Exception {
+        IDMGroup g = getGroup();
+        given(groupService.getRolesOfGroup(g.getId())).willReturn(getRoles());
+        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", g.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
+    }
+
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
@@ -454,5 +466,27 @@ public class GroupsRestControllerTest  {
         userDTO.setLogin("kypo");
         return userDTO;
 
+    }
+
+    private Set<Role> getRoles() {
+        Role role1 = new Role();
+        role1.setId(1L);
+        role1.setRoleType(RoleType.ADMINISTRATOR);
+        Role role2 = new Role();
+        role2.setId(2L);
+        role2.setRoleType(RoleType.GUEST);
+
+        return Stream.of(role1, role2).collect(Collectors.toSet());
+    }
+
+    private Set<RoleDTO> getRolesDTO() {
+        RoleDTO role1 = new RoleDTO();
+        role1.setId(1L);
+        role1.setRoleType(RoleType.ADMINISTRATOR);
+        RoleDTO role2 = new RoleDTO();
+        role2.setId(2L);
+        role2.setRoleType(RoleType.GUEST);
+
+        return Stream.of(role1, role2).collect(Collectors.toSet());
     }
 }
