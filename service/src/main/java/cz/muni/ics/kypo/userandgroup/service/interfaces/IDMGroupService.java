@@ -20,11 +20,13 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface IDMGroupService {
     /**
@@ -123,4 +125,12 @@ public interface IDMGroupService {
      * @return statuses about deletion of groups
      */
     Map<IDMGroup, GroupDeletionStatus> deleteGroups(List<Long> idsOfGroups);
+
+    /**
+     * Returns all roles of group with given id
+     *
+     * @param id of group.
+     * @return all roles of group with given id
+     */
+    Set<Role> getRolesOfGroup(Long id);
 }

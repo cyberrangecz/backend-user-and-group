@@ -19,9 +19,7 @@
  */
 package cz.muni.ics.kypo.userandgroup.service;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -42,6 +40,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
@@ -63,6 +63,8 @@ public class IDMGroupServiceTest {
 
     private IDMGroup group1, group2;
 
+    private Role adminRole, guestRole;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
@@ -74,6 +76,14 @@ public class IDMGroupServiceTest {
 
         group2 = new IDMGroup("group2", "Great group2");
         group2.setId(2L);
+
+        adminRole = new Role();
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setId(1L);
+
+        guestRole = new Role();
+        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setId(2L);
     }
 
     @Test
@@ -312,6 +322,24 @@ public class IDMGroupServiceTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input id must not be null");
         groupService.isGroupInternal(null);
+    }
+
+    @Test
+    public void getRolesOfGroup() {
+        given(groupRepository.getRolesOfGroup(group1.getId()))
+                .willReturn(Stream.of(adminRole, guestRole).collect(Collectors.toSet()));
+        Set<Role> roles = groupService.getRolesOfGroup(group1.getId());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains(adminRole));
+        assertTrue(roles.contains(guestRole));
+        then(groupRepository).should().getRolesOfGroup(group1.getId());
+    }
+
+    @Test
+    public void getRolesOfGroupWithNullIdShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input id must not be null");
+        groupService.getRolesOfGroup(null);
     }
 
     private void deepEqruals(IDMGroup expectedGroup, IDMGroup actualGroup) {

@@ -20,6 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
@@ -35,6 +36,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class IDMGroupServiceImpl implements IDMGroupService {
@@ -169,6 +171,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public boolean isGroupInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return get(id).getExternalId() == null;
+    }
+
+    @Override
+    public Set<Role> getRolesOfGroup(Long id) {
+        Assert.notNull(id, "Input id must not be null");
+        return groupRepository.getRolesOfGroup(id);
     }
 
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
