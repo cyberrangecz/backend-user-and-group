@@ -1,13 +1,12 @@
 package cz.muni.ics.kypo.userandgroup;
 
+import cz.muni.ics.kypo.userandgroup.config.ServiceConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.dbmodel"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.persistence"})
+@Import({ServiceConfig.class})
 public class UserAndGroupApplication {
     public static void main(String[] args) {
         SpringApplication.run(UserAndGroupApplication.class, args);
