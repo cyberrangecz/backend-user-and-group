@@ -36,6 +36,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -200,6 +201,12 @@ public class UserServiceImpl implements UserService {
     public boolean isUserInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return userRepository.isUserInternal(id);
+    }
+
+    @Override
+    public Set<Role> getRolesOfUser(Long id) {
+        Assert.notNull(id, "Input id must not be null");
+        return userRepository.getRolesOfUser(id);
     }
 
     private UserDeletionStatus checkKypoUserBeforeDelete(User user) {

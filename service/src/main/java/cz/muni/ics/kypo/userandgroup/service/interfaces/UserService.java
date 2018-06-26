@@ -19,12 +19,14 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
+import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface UserService {
 
@@ -130,4 +132,12 @@ public interface UserService {
      * @return true if user is internal otherwise false
      */
     boolean isUserInternal(Long id);
+
+    /**
+     * Returns all roles of user with given id
+     *
+     * @param id of user.
+     * @return all roles of user with given id
+     */
+    Set<Role> getRolesOfUser(Long id);
 }

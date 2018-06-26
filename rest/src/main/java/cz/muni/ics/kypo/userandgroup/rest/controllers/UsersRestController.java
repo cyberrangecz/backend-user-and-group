@@ -2,10 +2,12 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.google.common.base.Preconditions;
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
+import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.*;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
@@ -76,8 +78,8 @@ public class UsersRestController {
         try {
             List<User> users = new ArrayList<>(userService.getAllUsers());
             IDMGroup group = groupService.getIDMGroupWithUsers(groupId);
-            for (User u: group.getUsers()) {
-                    users.remove(u);
+            for (User u : group.getUsers()) {
+                users.remove(u);
 
             }
             List<UserDTO> userDTOS = users.stream().map(user -> convertToUserDTO(user))
@@ -108,7 +110,7 @@ public class UsersRestController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Updates input internal user.", consumes = "application/json", produces = "application/json")
     public ResponseEntity<UserDTO> updateUser(@ApiParam(value = "User to be updated.", required = true)
-                                                          @RequestBody UpdateUserDTO updateUserDTO) {
+                                              @RequestBody UpdateUserDTO updateUserDTO) {
         Preconditions.checkNotNull(updateUserDTO);
 
         if (!userService.isUserInternal(updateUserDTO.getId())) {
@@ -152,7 +154,7 @@ public class UsersRestController {
                 default:
                     throw new MethodNotAllowedException("User with login " + user.getScreenName() + " cannot be deleted because is from external source and is valid user.");
             }
-        } catch (IdentityManagementException  e) {
+        } catch (IdentityManagementException e) {
             throw new ServiceUnavailableException("Some system error occurred while deleting user with login " + user.getScreenName() + ". Please, try it later.");
         }
     }
@@ -200,6 +202,17 @@ public class UsersRestController {
         }
     }
 
+    @GetMapping(path = "/{id}/roles")
+    @ApiOperation(httpMethod = "GET", value = "Returns all roles of user with given id.")
+    public ResponseEntity<Set<RoleDTO>> getRolesOfUser(
+            @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
+
+        Set<Role> roles = userService.getRolesOfUser(id);
+        Set<RoleDTO> roleDTOS = roles.stream().map(this::convertToRoleDTO)
+                .collect(Collectors.toSet());
+        return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
+    }
+
     private UserDTO convertToUserDTO(User user) {
         UserDTO u = new UserDTO();
         u.setId(user.getId());
@@ -224,5 +237,12 @@ public class UsersRestController {
         user.setMail(updateUserDTO.getMail());
         user.setStatus(userService.get(updateUserDTO.getId()).getStatus());
         return user;
+    }
+
+    private RoleDTO convertToRoleDTO(Role role) {
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(role.getId());
+        roleDTO.setRoleType(role.getRoleType());
+        return roleDTO;
     }
 }

@@ -2,13 +2,12 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupForUsersDTO;
+import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.NewUserDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UpdateUserDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserDTO;
@@ -31,6 +30,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -258,6 +260,16 @@ public class UsersRestControllerTest {
         assertEquals("User or role could not be found.", ex.getMessage());
     }
 
+    @Test
+    public void testGetRolesOfUser() throws Exception {
+        User u = getUser();
+        given(userService.getRolesOfUser(u.getId())).willReturn(getRoles());
+        mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", u.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
+    }
+
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
@@ -321,6 +333,28 @@ public class UsersRestControllerTest {
         deletionResponseDTO.setUser(getUserDTO());
         deletionResponseDTO.setStatus(UserDeletionStatus.SUCCESS);
         return deletionResponseDTO;
+    }
+
+    private Set<Role> getRoles() {
+        Role role1 = new Role();
+        role1.setId(1L);
+        role1.setRoleType(RoleType.ADMINISTRATOR);
+        Role role2 = new Role();
+        role2.setId(2L);
+        role2.setRoleType(RoleType.GUEST);
+
+        return Stream.of(role1, role2).collect(Collectors.toSet());
+    }
+
+    private Set<RoleDTO> getRolesDTO() {
+        RoleDTO role1 = new RoleDTO();
+        role1.setId(1L);
+        role1.setRoleType(RoleType.ADMINISTRATOR);
+        RoleDTO role2 = new RoleDTO();
+        role2.setId(2L);
+        role2.setRoleType(RoleType.GUEST);
+
+        return Stream.of(role1, role2).collect(Collectors.toSet());
     }
 
 }

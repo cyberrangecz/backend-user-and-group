@@ -22,6 +22,7 @@ package cz.muni.ics.kypo.userandgroup.service;
 import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
@@ -37,13 +38,15 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
@@ -70,6 +73,8 @@ public class UserServiceTest {
 
     private IDMGroup adminGroup;
 
+    private Role adminRole, guestRole;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
@@ -91,6 +96,14 @@ public class UserServiceTest {
 
         adminGroup = new IDMGroup("adminGroup", "Administrator group");
         adminGroup.setId(1L);
+
+        adminRole = new Role();
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setId(1L);
+
+        guestRole = new Role();
+        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setId(2L);
     }
 
     @Test
@@ -387,6 +400,24 @@ public class UserServiceTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input id must not be null");
         userService.isUserInternal(null);
+    }
+
+    @Test
+    public void getRolesOfUser() {
+        given(userRepository.getRolesOfUser(user1.getId()))
+                .willReturn(Stream.of(adminRole, guestRole).collect(Collectors.toSet()));
+        Set<Role> roles = userService.getRolesOfUser(user1.getId());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains(adminRole));
+        assertTrue(roles.contains(guestRole));
+        then(userRepository).should().getRolesOfUser(user1.getId());
+    }
+
+    @Test
+    public void getRolesOfUserWithNullIdShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input id must not be null");
+        userService.getRolesOfUser(null);
     }
 
     @After
