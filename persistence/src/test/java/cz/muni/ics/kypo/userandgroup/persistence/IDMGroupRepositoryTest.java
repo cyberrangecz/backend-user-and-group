@@ -15,6 +15,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -34,29 +37,24 @@ public class IDMGroupRepositoryTest {
 
     private IDMGroup group;
 
+    private Role adminRole, userRole, guestRole;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
 
     @Before
     public void init() {
-        Role adminRole = new Role();
+        adminRole = new Role();
         adminRole.setRoleType(RoleType.ADMINISTRATOR);
-        entityManager.persistFlushFind(adminRole);
 
-        Role userRole = new Role();
+        userRole = new Role();
         userRole.setRoleType(RoleType.USER);
-        entityManager.persistFlushFind(userRole);
 
-        Role guestRole = new Role();
+        guestRole = new Role();
         guestRole.setRoleType(RoleType.GUEST);
-        entityManager.persistFlushFind(guestRole);
 
         group = new IDMGroup("groupWithRoles", "Group with roles");
-        group.addRole(adminRole);
-        group.addRole(userRole);
-        group.addRole(guestRole);
-        entityManager.persistFlushFind(group);
     }
 
     @Test
@@ -100,6 +98,10 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findAdministratorGroup() {
+        entityManager.persistFlushFind(adminRole);
+        group.addRole(adminRole);
+        entityManager.persistFlushFind(group);
+
         IDMGroup group = groupRepository.findAdministratorGroup();
         assertEquals(this.group, group);
         assertEquals(this.group.getName(), group.getName());
@@ -108,6 +110,10 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findUserGroup() {
+        entityManager.persistFlushFind(userRole);
+        group.addRole(userRole);
+        entityManager.persistFlushFind(group);
+
         IDMGroup group = groupRepository.findUserGroup();
         assertEquals(this.group, group);
         assertEquals(this.group.getName(), group.getName());
@@ -116,9 +122,28 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findGuestGroup() {
+        entityManager.persistFlushFind(guestRole);
+        group.addRole(guestRole);
+        entityManager.persistFlushFind(group);
+
         IDMGroup group = groupRepository.findGuestGroup();
         assertEquals(this.group, group);
         assertEquals(this.group.getName(), group.getName());
         assertEquals(this.group.getDescription(), group.getDescription());
+    }
+
+    @Test
+    public void getRolesOfGroup() {
+        entityManager.persistFlushFind(adminRole);
+        entityManager.persistFlushFind(userRole);
+        entityManager.persistFlushFind(guestRole);
+        group.setRoles(Stream.of(adminRole, userRole).collect(Collectors.toSet()));
+        entityManager.persistFlushFind(group);
+
+        Set<Role> rolesOfGroup = groupRepository.getRolesOfGroup(group.getId());
+        assertEquals(2, rolesOfGroup.size());
+        assertTrue(rolesOfGroup.contains(adminRole));
+        assertTrue(rolesOfGroup.contains(userRole));
+        assertFalse(rolesOfGroup.contains(guestRole));
     }
 }

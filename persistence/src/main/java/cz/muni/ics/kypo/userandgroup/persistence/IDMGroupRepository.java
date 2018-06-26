@@ -4,9 +4,11 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long> {
@@ -23,5 +25,8 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long> {
 
     @Query("SELECT g FROM IDMGroup AS g LEFT JOIN g.roles AS r WHERE r.roleType = 'GUEST'")
     IDMGroup findGuestGroup();
+
+    @Query("SELECT r FROM IDMGroup g LEFT JOIN g.roles r WHERE g.id = :groupId")
+    Set<Role> getRolesOfGroup(@Param("groupId") Long id);
 
 }
