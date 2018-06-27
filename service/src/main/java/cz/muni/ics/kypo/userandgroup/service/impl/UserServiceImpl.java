@@ -29,10 +29,12 @@ import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.persistence.EntityNotFoundException;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-//    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public User get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         try {

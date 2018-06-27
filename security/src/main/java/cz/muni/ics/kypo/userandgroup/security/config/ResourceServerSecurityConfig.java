@@ -1,13 +1,16 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
+import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter;
 import org.mitre.oauth2.introspectingfilter.service.impl.StaticIntrospectionConfigurationService;
 import org.mitre.oauth2.model.RegisteredClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
@@ -19,7 +22,7 @@ import java.util.Set;
 @Configuration
 @EnableResourceServer
 @PropertySource("file:${path-to-config-file}")
-public class SecurityConfig extends ResourceServerConfigurerAdapter {
+public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
     @Value("${kypo.idp.4oauth.introspectionURI}")
     private String introspectionURI;
@@ -32,6 +35,9 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
 
     @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
+
+    @Autowired
+    private CustomAuthorityGranter customAuthorityGranter;
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
@@ -49,13 +55,8 @@ public class SecurityConfig extends ResourceServerConfigurerAdapter {
     public ResourceServerTokenServices tokenServices() {
         IntrospectingTokenService tokenService = new IntrospectingTokenService();
         tokenService.setIntrospectionConfigurationService(introspectionConfigurationService());
-        tokenService.setIntrospectionAuthorityGranter(introspectionAuthorityGranter());
+        tokenService.setIntrospectionAuthorityGranter(customAuthorityGranter);
         return tokenService;
-    }
-
-    @Bean
-    public SimpleIntrospectionAuthorityGranter introspectionAuthorityGranter() {
-        return new SimpleIntrospectionAuthorityGranter();
     }
 
     @Bean
