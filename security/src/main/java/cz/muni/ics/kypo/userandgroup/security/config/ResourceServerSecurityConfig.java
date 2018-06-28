@@ -1,8 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
-import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
-import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter;
 import org.mitre.oauth2.introspectingfilter.service.impl.StaticIntrospectionConfigurationService;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import java.util.Set;
 
 @Configuration
 @EnableResourceServer
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @PropertySource("file:${path-to-config-file}")
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
@@ -72,5 +71,6 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
 
         return introspectionService;
     }
+
 
 }
