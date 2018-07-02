@@ -57,7 +57,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+            "or @securityService.hasLoggedInUserSameId(#id)")
     public User get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         try {
@@ -151,7 +152,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+            "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserAdmin(Long id) {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
@@ -161,8 +163,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("@securityService.hasLoggedInUserSameScreenName(#screenName, authentication) OR hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public User getUserByScreenName(@P("screenName") String screenName) throws IdentityManagementException {
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+            "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
+    public User getUserByScreenName(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
         User user = userRepository.findByScreenName(screenName);
         if (user != null) {
@@ -175,7 +178,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public List<User> getAllUsers() {
         List<User> users = userRepository.findAll();
         log.info("All Users loaded");
@@ -183,7 +186,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+            "or @securityService.hasLoggedInUserSameId(#id)")
     public User getUserWithGroups(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
@@ -192,7 +196,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+            "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
     public User getUserWithGroups(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
         User user = getUserByScreenName(screenName);
@@ -201,13 +206,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+            "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return userRepository.isUserInternal(id);
     }
 
     @Override
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+            "or @securityService.hasLoggedInUserSameId(#id)")
     public Set<Role> getRolesOfUser(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return userRepository.getRolesOfUser(id);
