@@ -8,6 +8,7 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -27,6 +28,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role create(Role role) {
         Assert.notNull(role, "Input role must not be null");
         Assert.notNull(role.getRoleType(), "Role type of input role must not be null");
@@ -37,6 +39,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public void delete(Role role) {
         Assert.notNull(role, "Input role must not be null");
         roleRepository.delete(role);
@@ -44,6 +47,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role getById(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         try {
@@ -57,6 +61,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role getByRoleType(RoleType roleType) {
         Assert.notNull(roleType, "Input role type must not be null");
         Role r = roleRepository.findByRoleType(roleType);
@@ -65,6 +70,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public List<Role> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
         log.info("All Roles loaded");
