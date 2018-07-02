@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -213,6 +216,17 @@ public class UsersRestController {
         return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/info")
+    @ApiOperation(httpMethod = "GET", value = "Returns details of user who is logged in")
+    public ResponseEntity<UserInfoDTO> getUserInfo(OAuth2Authentication authentication) {
+        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
+        String sub = credentials.get("sub").getAsString();
+        User loggedInUser = userService.getUserByScreenName(sub);
+        Set<Role> rolesOfUser = userService.getRolesOfUser(loggedInUser.getId());
+
+        return new ResponseEntity<>(convertToUserInfoDTO(loggedInUser, rolesOfUser), HttpStatus.OK);
+    }
+
     private UserDTO convertToUserDTO(User user) {
         UserDTO u = new UserDTO();
         u.setId(user.getId());
@@ -244,5 +258,18 @@ public class UsersRestController {
         roleDTO.setId(role.getId());
         roleDTO.setRoleType(role.getRoleType());
         return roleDTO;
+    }
+
+    private UserInfoDTO convertToUserInfoDTO(User user, Set<Role> roles) {
+        UserInfoDTO u = new UserInfoDTO();
+        u.setId(user.getId());
+        u.setLogin(user.getScreenName());
+        u.setFullName(user.getFullName());
+        u.setMail(user.getMail());
+
+        Set<RoleDTO> rolesDTOs = roles.stream().map(this::convertToRoleDTO).collect(Collectors.toSet());
+        u.setRoles(rolesDTOs);
+
+        return u;
     }
 }

@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -160,8 +161,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public User getUserByScreenName(String screenName) throws IdentityManagementException {
+    @PreAuthorize("@securityService.hasLoggedInUserSameScreenName(#screenName, authentication) OR hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    public User getUserByScreenName(@P("screenName") String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
         User user = userRepository.findByScreenName(screenName);
         if (user != null) {
