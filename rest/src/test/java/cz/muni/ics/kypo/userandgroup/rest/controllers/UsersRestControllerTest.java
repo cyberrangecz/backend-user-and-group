@@ -6,12 +6,12 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupForUsersDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.NewUserDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UpdateUserDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserDeletionResponseDTO;
+import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -55,6 +56,9 @@ public class UsersRestControllerTest {
     @InjectMocks
     private UsersRestController usersRestController;
 
+    @MockBean
+    private BeanMapping beanMapping;
+
     private MockMvc mockMvc;
 
     @Before
@@ -75,6 +79,13 @@ public class UsersRestControllerTest {
         given(userService.deleteUsers(anyList())).willReturn(ImmutableMap.of(getUser(), UserDeletionStatus.SUCCESS));
 
         given(groupService.getIDMGroupWithUsers(anyLong())).willReturn(getGroupWithUsers());
+
+        given(beanMapping.mapTo(any(User.class), eq(UserDTO.class))).willReturn(getUserDTO());
+        given(beanMapping.mapTo(any(NewUserDTO.class), eq(User.class))).willReturn(getUser());
+        given(beanMapping.mapTo(any(UpdateUserDTO.class), eq(User.class))).willReturn(getUser());
+
+        given(beanMapping.mapTo(getAdminRole(), RoleDTO.class)).willReturn(getAdminRoleDTO());
+        given(beanMapping.mapTo(getGuestRole(), RoleDTO.class)).willReturn(getGuestRoleDTO());
     }
 
     @Test
@@ -335,26 +346,40 @@ public class UsersRestControllerTest {
         return deletionResponseDTO;
     }
 
-    private Set<Role> getRoles() {
-        Role role1 = new Role();
-        role1.setId(1L);
-        role1.setRoleType(RoleType.ADMINISTRATOR);
-        Role role2 = new Role();
-        role2.setId(2L);
-        role2.setRoleType(RoleType.GUEST);
+    private Role getAdminRole() {
+        Role adminRole = new Role();
+        adminRole.setId(1L);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        return adminRole;
+    }
 
-        return Stream.of(role1, role2).collect(Collectors.toSet());
+    private RoleDTO getAdminRoleDTO() {
+        RoleDTO adminRole = new RoleDTO();
+        adminRole.setId(1L);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        return adminRole;
+    }
+
+    private Role getGuestRole() {
+        Role guestRole = new Role();
+        guestRole.setId(2L);
+        guestRole.setRoleType(RoleType.GUEST);
+        return guestRole;
+    }
+
+    private RoleDTO getGuestRoleDTO() {
+        RoleDTO guestRole = new RoleDTO();
+        guestRole.setId(2L);
+        guestRole.setRoleType(RoleType.GUEST);
+        return guestRole;
+    }
+
+    private Set<Role> getRoles() {
+        return Stream.of(getAdminRole(), getGuestRole()).collect(Collectors.toSet());
     }
 
     private Set<RoleDTO> getRolesDTO() {
-        RoleDTO role1 = new RoleDTO();
-        role1.setId(1L);
-        role1.setRoleType(RoleType.ADMINISTRATOR);
-        RoleDTO role2 = new RoleDTO();
-        role2.setId(2L);
-        role2.setRoleType(RoleType.GUEST);
-
-        return Stream.of(role1, role2).collect(Collectors.toSet());
+        return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
     }
 
 }

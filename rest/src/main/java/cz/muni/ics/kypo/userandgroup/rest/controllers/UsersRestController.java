@@ -11,6 +11,7 @@ import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.*;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
+import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +41,13 @@ public class UsersRestController {
 
     private UserService userService;
 
+    private BeanMapping beanMapping;
+
     @Autowired
-    public UsersRestController(UserService userService, IDMGroupService groupService) {
+    public UsersRestController(UserService userService, IDMGroupService groupService, BeanMapping beanMapping) {
         this.userService = userService;
         this.groupService = groupService;
+        this.beanMapping = beanMapping;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -101,6 +104,7 @@ public class UsersRestController {
         Preconditions.checkNotNull(newUserDTO);
         try {
             User user = convertToUser(newUserDTO);
+            user.setStatus(UserAndGroupStatus.VALID);
 
             user = userService.create(user);
             UserDTO s = convertToUserDTO(user);
@@ -122,6 +126,7 @@ public class UsersRestController {
 
         try {
             User updateUser = convertToUser(updateUserDTO);
+            updateUser.setStatus(userService.get(updateUserDTO.getId()).getStatus());
             User u = userService.update(updateUser);
             UserDTO s = convertToUserDTO(u);
             return new ResponseEntity<>(s, HttpStatus.OK);
@@ -211,7 +216,7 @@ public class UsersRestController {
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
 
         Set<Role> roles = userService.getRolesOfUser(id);
-        Set<RoleDTO> roleDTOS = roles.stream().map(this::convertToRoleDTO)
+        Set<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class))
                 .collect(Collectors.toSet());
         return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
     }
@@ -228,46 +233,28 @@ public class UsersRestController {
     }
 
     private UserDTO convertToUserDTO(User user) {
-        UserDTO u = new UserDTO();
-        u.setId(user.getId());
-        u.setLogin(user.getScreenName());
-        u.setFullName(user.getFullName());
-        u.setMail(user.getMail());
+        UserDTO u = beanMapping.mapTo(user, UserDTO.class);
+        u.convertScreenNameToLogin(user.getScreenName());
         return u;
     }
 
     private User convertToUser(NewUserDTO newUserDTO) {
-        User user = new User(newUserDTO.getLogin());
-        user.setFullName(newUserDTO.getFullName());
-        user.setMail(newUserDTO.getMail());
-        user.setStatus(UserAndGroupStatus.VALID);
+        User user = beanMapping.mapTo(newUserDTO, User.class);
+        user.setScreenName(newUserDTO.getLogin());
         return user;
     }
 
     private User convertToUser(UpdateUserDTO updateUserDTO) {
-        User user = new User(updateUserDTO.getLogin());
-        user.setId(updateUserDTO.getId());
-        user.setFullName(updateUserDTO.getFullName());
-        user.setMail(updateUserDTO.getMail());
-        user.setStatus(userService.get(updateUserDTO.getId()).getStatus());
+        User user = beanMapping.mapTo(updateUserDTO, User.class);
+        user.setScreenName(updateUserDTO.getLogin());
         return user;
     }
 
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO = new RoleDTO();
-        roleDTO.setId(role.getId());
-        roleDTO.setRoleType(role.getRoleType());
-        return roleDTO;
-    }
-
     private UserInfoDTO convertToUserInfoDTO(User user, Set<Role> roles) {
-        UserInfoDTO u = new UserInfoDTO();
-        u.setId(user.getId());
-        u.setLogin(user.getScreenName());
-        u.setFullName(user.getFullName());
-        u.setMail(user.getMail());
+        UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
+        u.convertScreenNameToLogin(user.getScreenName());
 
-        Set<RoleDTO> rolesDTOs = roles.stream().map(this::convertToRoleDTO).collect(Collectors.toSet());
+        Set<RoleDTO> rolesDTOs = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toSet());
         u.setRoles(rolesDTOs);
 
         return u;

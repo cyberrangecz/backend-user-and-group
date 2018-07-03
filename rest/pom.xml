@@ -12,6 +12,10 @@
     <artifactId>kypo2-rest-user-and-group</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <modelmapper.version>0.7.5</modelmapper.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
@@ -54,6 +58,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>${modelmapper.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

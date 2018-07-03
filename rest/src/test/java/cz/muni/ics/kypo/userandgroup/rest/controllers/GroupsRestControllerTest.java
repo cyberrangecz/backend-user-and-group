@@ -13,6 +13,7 @@ import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -20,8 +21,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -48,11 +49,14 @@ public class GroupsRestControllerTest  {
     @InjectMocks
     private GroupsRestController groupsRestController;
 
-    @Mock
+    @MockBean
     private IDMGroupService groupService;
 
-    @Mock
+    @MockBean
     private UserService userService;
+
+    @MockBean
+    private BeanMapping beanMapping;
 
     private MockMvc mockMvc;
 
@@ -74,6 +78,15 @@ public class GroupsRestControllerTest  {
         given(groupService.get(anyLong())).willReturn(getGroup());
         given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
         given(groupService.deleteGroups(anyList())).willReturn(ImmutableMap.of(getGroup(),GroupDeletionStatus.SUCCESS));
+
+        given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
+        given(beanMapping.mapTo(any(NewGroupDTO.class), eq(IDMGroup.class))).willReturn(getGroup());
+        given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDeletionResponseDTO.class))).willReturn(getGroupDeletionResponse());
+
+        given(beanMapping.mapTo(any(User.class), eq(UserForGroupsDTO.class))).willReturn(getUserForGroupsDTO());
+
+        given(beanMapping.mapTo(getAdminRole(), RoleDTO.class)).willReturn(getAdminRoleDTO());
+        given(beanMapping.mapTo(getGuestRole(), RoleDTO.class)).willReturn(getGuestRoleDTO());
     }
 
     @Test
@@ -468,25 +481,39 @@ public class GroupsRestControllerTest  {
 
     }
 
-    private Set<Role> getRoles() {
-        Role role1 = new Role();
-        role1.setId(1L);
-        role1.setRoleType(RoleType.ADMINISTRATOR);
-        Role role2 = new Role();
-        role2.setId(2L);
-        role2.setRoleType(RoleType.GUEST);
+    private Role getAdminRole() {
+        Role adminRole = new Role();
+        adminRole.setId(1L);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        return adminRole;
+    }
 
-        return Stream.of(role1, role2).collect(Collectors.toSet());
+    private RoleDTO getAdminRoleDTO() {
+        RoleDTO adminRole = new RoleDTO();
+        adminRole.setId(1L);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        return adminRole;
+    }
+
+    private Role getGuestRole() {
+        Role guestRole = new Role();
+        guestRole.setId(2L);
+        guestRole.setRoleType(RoleType.GUEST);
+        return guestRole;
+    }
+
+    private RoleDTO getGuestRoleDTO() {
+        RoleDTO guestRole = new RoleDTO();
+        guestRole.setId(2L);
+        guestRole.setRoleType(RoleType.GUEST);
+        return guestRole;
+    }
+
+    private Set<Role> getRoles() {
+        return Stream.of(getAdminRole(), getGuestRole()).collect(Collectors.toSet());
     }
 
     private Set<RoleDTO> getRolesDTO() {
-        RoleDTO role1 = new RoleDTO();
-        role1.setId(1L);
-        role1.setRoleType(RoleType.ADMINISTRATOR);
-        RoleDTO role2 = new RoleDTO();
-        role2.setId(2L);
-        role2.setRoleType(RoleType.GUEST);
-
-        return Stream.of(role1, role2).collect(Collectors.toSet());
+        return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
     }
 }
