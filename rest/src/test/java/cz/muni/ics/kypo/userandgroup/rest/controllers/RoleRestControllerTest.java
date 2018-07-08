@@ -7,6 +7,7 @@ import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +40,9 @@ public class RoleRestControllerTest {
     @Mock
     private RoleService roleService;
 
+    @Mock
+    private BeanMapping beanMapping;
+
     private MockMvc mockMvc;
 
     private Role adminRole, userRole;
@@ -68,6 +72,9 @@ public class RoleRestControllerTest {
         userRoleDTO = new RoleDTO();
         userRoleDTO.setId(2L);
         userRoleDTO.setRoleType(RoleType.USER);
+
+        given(beanMapping.mapTo(adminRole, RoleDTO.class)).willReturn(adminRoleDTO);
+        given(beanMapping.mapTo(userRole, RoleDTO.class)).willReturn(userRoleDTO);
     }
 
     @Test
@@ -100,41 +107,6 @@ public class RoleRestControllerTest {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("Role with given id could not be found", ex.getMessage());
-    }
-
-    @Test
-    public void createNewRole() throws Exception {
-        Role newRole = new Role();
-        newRole.setRoleType(RoleType.ADMINISTRATOR);
-        RoleDTO newRoleDTO = new RoleDTO();
-        newRoleDTO.setRoleType(RoleType.ADMINISTRATOR);
-
-        given(roleService.create(newRole)).willReturn(adminRole);
-        mockMvc.perform(post(ApiEndpointsUserAndGroup.ROLES_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(convertObjectToJsonBytes(newRoleDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(adminRoleDTO)));
-    }
-
-    @Test
-    public void createNewRoleWithNullBodyShouldThrowException() throws Exception {
-        mockMvc.perform(post(ApiEndpointsUserAndGroup.ROLES_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(convertObjectToJsonBytes(null)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void createNewRoleWithNullRoleTypeShouldThrowException() throws Exception {
-        given(roleService.create(any(Role.class))).willThrow(IdentityManagementException.class);
-        Exception ex = mockMvc.perform(post(ApiEndpointsUserAndGroup.ROLES_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(convertObjectToJsonBytes(new RoleDTO())))
-                .andExpect(status().isNotAcceptable())
-                .andReturn().getResolvedException();
-        assertEquals("Invalid role's information or could not be created.", ex.getMessage());
     }
 
     private static String convertObjectToJsonBytes(Object object) throws IOException {

@@ -9,6 +9,7 @@ import cz.muni.ics.kypo.userandgroup.rest.DTO.group.*;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
+import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -39,10 +40,13 @@ public class GroupsRestController {
 
     private UserService userService;
 
+    private BeanMapping beanMapping;
+
     @Autowired
-    public GroupsRestController(IDMGroupService groupService, UserService userService) {
+    public GroupsRestController(IDMGroupService groupService, UserService userService, BeanMapping beanMapping) {
         this.groupService = groupService;
         this.userService = userService;
+        this.beanMapping = beanMapping;
     }
 
 
@@ -63,7 +67,7 @@ public class GroupsRestController {
 
 
     private IDMGroup convertToGroup(NewGroupDTO newGroupDTO) {
-        IDMGroup group = new IDMGroup(newGroupDTO.getName(), newGroupDTO.getDescription());
+        IDMGroup group = beanMapping.mapTo(newGroupDTO, IDMGroup.class);
         if (newGroupDTO.getMembers() != null) {
 
             newGroupDTO.getMembers().forEach(userForGroupsDTO -> {
@@ -193,10 +197,8 @@ public class GroupsRestController {
 
         try {
             GroupDeletionStatus deletionStatus = groupService.delete(group);
-            GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
-            groupDeletionResponseDTO.setName(group.getName());
+            GroupDeletionResponseDTO groupDeletionResponseDTO = beanMapping.mapTo(group, GroupDeletionResponseDTO.class);
             groupDeletionResponseDTO.setStatus(deletionStatus);
-            groupDeletionResponseDTO.setId(group.getId());
 
             switch (deletionStatus) {
                 case SUCCESS:
@@ -274,43 +276,30 @@ public class GroupsRestController {
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
 
         Set<Role> roles = groupService.getRolesOfGroup(id);
-        Set<RoleDTO> roleDTOS = roles.stream().map(this::convertToRoleDTO)
+        Set<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class))
                 .collect(Collectors.toSet());
         return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
     }
 
     private UserForGroupsDTO convertToUserForGroupsDTO(User user) {
-        UserForGroupsDTO userForGroup = new UserForGroupsDTO();
-        userForGroup.setId(user.getId());
-        userForGroup.setLogin(user.getScreenName());
-        userForGroup.setFullName(user.getFullName());
-        userForGroup.setMail(user.getMail());
+        UserForGroupsDTO userForGroup = beanMapping.mapTo(user, UserForGroupsDTO.class);
+        userForGroup.convertScreenNameToLogin(user.getScreenName());
         return userForGroup;
     }
 
     private GroupDTO convertToGroupDTO(IDMGroup g) {
-        GroupDTO groupDTO = new GroupDTO();
-        groupDTO.setId(g.getId());
-        groupDTO.setName(g.getName());
-        groupDTO.setDescription(g.getDescription());
+        GroupDTO groupDTO = beanMapping.mapTo(g, GroupDTO.class);
         groupDTO.convertExternalIdToSource(g.getExternalId());
         groupDTO.convertStatusToCanBeDeleted(g.getStatus());
 
-        List<UserForGroupsDTO> users = new ArrayList<>();
-        g.getUsers().forEach(user -> users.add(convertToUserForGroupsDTO(user)));
+        List<UserForGroupsDTO> users = g.getUsers().stream().map(user -> convertToUserForGroupsDTO(user))
+                .collect(Collectors.toList());
         groupDTO.setMembers(users);
 
-        Set<RoleDTO> roles = new HashSet<>();
-        g.getRoles().forEach(role -> roles.add(convertToRoleDTO(role)));
-        groupDTO.setRoles(roles);
+        Set<RoleDTO> roleDTOS = g.getRoles().stream().map(role -> beanMapping.mapTo(role, RoleDTO.class))
+                .collect(Collectors.toSet());
+        groupDTO.setRoles(roleDTOS);
 
         return groupDTO;
-    }
-
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO = new RoleDTO();
-        roleDTO.setId(role.getId());
-        roleDTO.setRoleType(role.getRoleType());
-        return roleDTO;
     }
 }

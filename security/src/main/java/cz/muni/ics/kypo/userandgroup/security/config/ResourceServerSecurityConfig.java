@@ -6,6 +6,7 @@ import org.mitre.oauth2.model.RegisteredClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -20,6 +21,7 @@ import java.util.Set;
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.security"})
 @PropertySource("file:${path-to-config-file}")
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
