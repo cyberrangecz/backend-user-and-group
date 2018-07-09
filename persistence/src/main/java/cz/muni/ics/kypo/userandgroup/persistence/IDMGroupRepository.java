@@ -29,4 +29,8 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long> {
     @Query("SELECT r FROM IDMGroup g LEFT JOIN g.roles r WHERE g.id = :groupId")
     Set<Role> getRolesOfGroup(@Param("groupId") Long id);
 
+    @Query("SELECT g FROM IDMGroup g JOIN FETCH g.users u WHERE g.name = :name")
+    IDMGroup findByNameWithUsers(String name);
+
+
 }
