@@ -19,7 +19,7 @@ CREATE TABLE user_idm_group (
 
 CREATE TABLE idm_group (
    id             BIGSERIAL NOT NULL,
-   fullName           varchar(255) NOT NULL,
+   name           varchar(255) NOT NULL,
    external_id    int8 UNIQUE,
    status         varchar(255) NOT NULL,
    description    varchar(4096) NOT NULL,
