@@ -28,6 +28,8 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "IDM_GROUP")
+@NamedEntityGraph(name = "IDMGroup.users",
+        attributeNodes = @NamedAttributeNode("users"))
 public class IDMGroup {
 
     @Id

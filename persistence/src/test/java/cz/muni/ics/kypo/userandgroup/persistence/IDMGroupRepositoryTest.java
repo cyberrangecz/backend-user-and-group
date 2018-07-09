@@ -1,9 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.persistence;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -146,5 +144,34 @@ public class IDMGroupRepositoryTest {
         assertTrue(rolesOfGroup.contains(adminRole));
         assertTrue(rolesOfGroup.contains(userRole));
         assertFalse(rolesOfGroup.contains(guestRole));
+    }
+
+    @Test
+    public void getIDMGroupByNameWithUsers() throws Exception {
+        User user = new User("TestUser");
+        this.entityManager.persist(user);
+
+        String expectedName = "group";
+        String expectedDescription = "Cool group";
+        IDMGroup expectedGroup = new IDMGroup(expectedName, expectedDescription);
+        expectedGroup.addUser(user);
+        this.entityManager.persist(expectedGroup);
+
+        Optional<IDMGroup> group = this.groupRepository.getIDMGroupByNameWithUsers(expectedName);
+        IDMGroup g = group.orElseThrow(Exception::new);
+
+        assertEquals(expectedGroup, g);
+        assertEquals(expectedName, g.getName());
+        assertEquals(expectedDescription, g.getDescription());
+        assertEquals(1, g.getUsers().size());
+        assertEquals(user, g.getUsers().get(0));
+    }
+
+    @Test
+    public void getIDMGroupByNameWithUsersNotFound() throws Exception {
+        Optional<IDMGroup> group = this.groupRepository.getIDMGroupByNameWithUsers("group");
+        if (group.isPresent()) {
+            throw new Exception("Group with name 'group' should not be found");
+        }
     }
 }
