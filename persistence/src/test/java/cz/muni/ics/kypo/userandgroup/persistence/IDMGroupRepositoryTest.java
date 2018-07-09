@@ -46,13 +46,13 @@ public class IDMGroupRepositoryTest {
     @Before
     public void init() {
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
 
         userRole = new Role();
-        userRole.setRoleType(RoleType.USER);
+        userRole.setRoleType(RoleType.USER.name());
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.GUEST.name());
 
         group = new IDMGroup("groupWithRoles", "Group with roles");
     }
@@ -141,6 +141,7 @@ public class IDMGroupRepositoryTest {
         entityManager.persistFlushFind(group);
 
         Set<Role> rolesOfGroup = groupRepository.getRolesOfGroup(group.getId());
+        rolesOfGroup.forEach(role -> System.out.println(role.getRoleType()));
         assertEquals(2, rolesOfGroup.size());
         assertTrue(rolesOfGroup.contains(adminRole));
         assertTrue(rolesOfGroup.contains(userRole));

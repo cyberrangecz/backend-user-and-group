@@ -34,8 +34,7 @@ public class Role {
     private Long id;
 
     @Column(name = "ROLE_TYPE", unique = true, nullable = false)
-    @Enumerated(EnumType.STRING)
-    private RoleType roleType;
+    private String roleType;
 
     public Long getId() {
         return id;
@@ -45,11 +44,11 @@ public class Role {
         this.id = id;
     }
 
-    public RoleType getRoleType() {
+    public String getRoleType() {
         return roleType;
     }
 
-    public void setRoleType(RoleType name) {
+    public void setRoleType(String name) {
         this.roleType = name;
     }
 
@@ -60,7 +59,7 @@ public class Role {
 
         Role role = (Role) o;
 
-        return roleType == role.roleType;
+        return roleType.equals(role.roleType);
     }
 
     @Override

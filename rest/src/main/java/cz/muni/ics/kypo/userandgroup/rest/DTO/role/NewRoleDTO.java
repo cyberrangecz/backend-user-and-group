@@ -4,13 +4,13 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
 
 public class NewRoleDTO {
 
-    private RoleType roleType;
+    private String roleType;
 
-    public RoleType getRoleType() {
+    public String getRoleType() {
         return roleType;
     }
 
-    public void setRoleType(RoleType roleType) {
+    public void setRoleType(String roleType) {
         this.roleType = roleType;
     }
 
@@ -21,7 +21,7 @@ public class NewRoleDTO {
 
         NewRoleDTO roleDTO = (NewRoleDTO) o;
 
-        return roleType == roleDTO.roleType;
+        return roleType.equals(roleDTO.roleType);
     }
 
     @Override

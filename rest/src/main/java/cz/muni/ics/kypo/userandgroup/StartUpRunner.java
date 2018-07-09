@@ -61,7 +61,7 @@ public class StartUpRunner implements ApplicationRunner {
             jsonNode.fields().forEachRemaining(stringJsonNodeEntry -> LOGGER.info(stringJsonNodeEntry.toString()));
             jsonNode.fields().forEachRemaining(stringJsonNodeEntry -> {
                 if(stringJsonNodeEntry.getKey().toUpperCase().equals(RoleType.ADMINISTRATOR.name())) {
-                    Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR);
+                    Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name());
                 }
             });
 

@@ -37,7 +37,7 @@ public interface RoleService {
      * @param roleType of role
      * @return role with given roleType
      */
-    Role getByRoleType(RoleType roleType);
+    Role getByRoleType(String roleType);
 
     /**
      * Returns all roles

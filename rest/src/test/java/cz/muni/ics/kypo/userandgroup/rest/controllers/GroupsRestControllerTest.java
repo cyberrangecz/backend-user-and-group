@@ -484,28 +484,28 @@ public class GroupsRestControllerTest  {
     private Role getAdminRole() {
         Role adminRole = new Role();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
         return adminRole;
     }
 
     private RoleDTO getAdminRoleDTO() {
         RoleDTO adminRole = new RoleDTO();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
         return adminRole;
     }
 
     private Role getGuestRole() {
         Role guestRole = new Role();
         guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.GUEST.name());
         return guestRole;
     }
 
     private RoleDTO getGuestRoleDTO() {
         RoleDTO guestRole = new RoleDTO();
         guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.GUEST.name());
         return guestRole;
     }
 

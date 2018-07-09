@@ -39,10 +39,10 @@ public class UserRepositoryTest {
     @Before
     public void setup() {
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.GUEST.name());
 
         group = new IDMGroup("group1", "group 1");
         group.setStatus(UserAndGroupStatus.VALID);

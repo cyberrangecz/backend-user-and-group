@@ -59,19 +59,19 @@ public class RoleRestControllerTest {
 
         adminRole = new Role();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
 
         userRole = new Role();
         userRole.setId(2L);
-        userRole.setRoleType(RoleType.USER);
+        userRole.setRoleType(RoleType.USER.name());
 
         adminRoleDTO = new RoleDTO();
         adminRoleDTO.setId(1L);
-        adminRoleDTO.setRoleType(RoleType.ADMINISTRATOR);
+        adminRoleDTO.setRoleType(RoleType.ADMINISTRATOR.name());
 
         userRoleDTO = new RoleDTO();
         userRoleDTO.setId(2L);
-        userRoleDTO.setRoleType(RoleType.USER);
+        userRoleDTO.setRoleType(RoleType.USER.name());
 
         given(beanMapping.mapTo(adminRole, RoleDTO.class)).willReturn(adminRoleDTO);
         given(beanMapping.mapTo(userRole, RoleDTO.class)).willReturn(userRoleDTO);

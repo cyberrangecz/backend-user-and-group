@@ -62,7 +62,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
-    public Role getByRoleType(RoleType roleType) {
+    public Role getByRoleType(String roleType) {
         Assert.notNull(roleType, "Input role type must not be null");
         Role r = roleRepository.findByRoleType(roleType);
         log.info(r + " loaded");

@@ -31,24 +31,24 @@ public class RoleRepositoryTest {
     @Test
     public void findByRoleType() {
         Role role = new Role();
-        role.setRoleType(RoleType.ADMINISTRATOR);
+        role.setRoleType(RoleType.ADMINISTRATOR.name());
         this.entityManager.persist(role);
-        Role r = this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR);
+        Role r = this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name());
         assertEquals(role, r);
-        assertEquals(RoleType.ADMINISTRATOR, r.getRoleType());
+        assertEquals(RoleType.ADMINISTRATOR.name(), r.getRoleType());
     }
 
     @Test
     public void findByRoleTypeNotFound() {
-        assertNull(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR));
+        assertNull(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name()));
     }
 
     @Test
     public void existByRoleType() {
         Role role = new Role();
-        role.setRoleType(RoleType.ADMINISTRATOR);
+        role.setRoleType(RoleType.ADMINISTRATOR.name());
         this.entityManager.persist(role);
-        assertTrue(roleRepository.existsByRoleType(RoleType.ADMINISTRATOR));
-        assertFalse(roleRepository.existsByRoleType(RoleType.USER));
+        assertTrue(roleRepository.existsByRoleType(RoleType.ADMINISTRATOR.name()));
+        assertFalse(roleRepository.existsByRoleType(RoleType.USER.name()));
     }
 }

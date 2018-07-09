@@ -98,11 +98,11 @@ public class UserServiceTest {
         adminGroup.setId(1L);
 
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
         adminRole.setId(1L);
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.GUEST.name());
         guestRole.setId(2L);
     }
 

@@ -52,10 +52,10 @@ public class RoleServiceTest {
     public void init() {
         adminRole = new Role();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
 
         userRole = new Role();
-        userRole.setRoleType(RoleType.USER);
+        userRole.setRoleType(RoleType.USER.name());
         userRole.setId(2L);
     }
 
@@ -147,7 +147,7 @@ public class RoleServiceTest {
         given(roleRepository.findAll()).willReturn(Arrays.asList(adminRole, userRole));
 
         Role role = new Role();
-        role.setRoleType(RoleType.GUEST);
+        role.setRoleType(RoleType.GUEST.name());
 
         List<Role> roles = roleService.getAllRoles();
         assertEquals(2, roles.size());

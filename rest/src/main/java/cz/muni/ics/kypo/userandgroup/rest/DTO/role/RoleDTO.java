@@ -5,7 +5,7 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
 public class RoleDTO {
     private Long id;
 
-    private RoleType roleType;
+    private String roleType;
 
     public Long getId() {
         return id;
@@ -15,11 +15,11 @@ public class RoleDTO {
         this.id = id;
     }
 
-    public RoleType getRoleType() {
+    public String getRoleType() {
         return roleType;
     }
 
-    public void setRoleType(RoleType roleType) {
+    public void setRoleType(String roleType) {
         this.roleType = roleType;
     }
 
@@ -31,7 +31,7 @@ public class RoleDTO {
         RoleDTO roleDTO = (RoleDTO) o;
 
         if (!id.equals(roleDTO.id)) return false;
-        return roleType == roleDTO.roleType;
+        return roleType.equals(roleDTO.roleType);
     }
 
     @Override
