@@ -11,8 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -42,5 +41,14 @@ public class RoleRepositoryTest {
     @Test
     public void findByRoleTypeNotFound() {
         assertNull(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR));
+    }
+
+    @Test
+    public void existByRoleType() {
+        Role role = new Role();
+        role.setRoleType(RoleType.ADMINISTRATOR);
+        this.entityManager.persist(role);
+        assertTrue(roleRepository.existsByRoleType(RoleType.ADMINISTRATOR));
+        assertFalse(roleRepository.existsByRoleType(RoleType.USER));
     }
 }
