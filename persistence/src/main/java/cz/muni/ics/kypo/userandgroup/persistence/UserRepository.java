@@ -7,15 +7,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    User findByScreenName(String screenName);
+    Optional<User> findByScreenName(String screenName);
 
     @Query("SELECT u.screenName FROM User u WHERE u.id = :userId")
-    String getScreenName(@Param("userId") Long id);
+    Optional<String> getScreenName(@Param("userId") Long id);
 
     @Query("SELECT CASE WHEN u.externalId IS NULL THEN true ELSE false END FROM User u WHERE u.id = :userId")
     boolean isUserInternal(@Param("userId") Long id);

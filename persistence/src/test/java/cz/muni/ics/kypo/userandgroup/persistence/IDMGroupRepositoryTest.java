@@ -30,9 +30,6 @@ public class IDMGroupRepositoryTest {
     @Autowired
     private IDMGroupRepository groupRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
     private IDMGroup group;
 
     private Role adminRole, userRole, guestRole;
@@ -56,12 +53,13 @@ public class IDMGroupRepositoryTest {
     }
 
     @Test
-    public void findByName() {
+    public void findByName() throws Exception {
         String expectedName = "group";
         String expectedDescription = "Cool group";
         IDMGroup group = new IDMGroup(expectedName, expectedDescription);
         this.entityManager.persist(group);
-        IDMGroup g = this.groupRepository.findByName(expectedName);
+        Optional<IDMGroup> optionalGroup = this.groupRepository.findByName(expectedName);
+        IDMGroup g = optionalGroup.orElseThrow(() -> new Exception("Group should be found"));
         assertEquals(group, g);
         assertEquals(expectedName, g.getName());
         assertEquals(UserAndGroupStatus.VALID, g.getStatus());
@@ -70,7 +68,7 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findByNameNotFound() {
-        assertNull(this.groupRepository.findByName("group"));
+        assertFalse(this.groupRepository.findByName("group").isPresent());
     }
 
     @Test
@@ -95,39 +93,15 @@ public class IDMGroupRepositoryTest {
     }
 
     @Test
-    public void findAdministratorGroup() {
+    public void findAllByRoleType() {
         entityManager.persistFlushFind(adminRole);
         group.addRole(adminRole);
         entityManager.persistFlushFind(group);
 
-        IDMGroup group = groupRepository.findAdministratorGroup();
-        assertEquals(this.group, group);
-        assertEquals(this.group.getName(), group.getName());
-        assertEquals(this.group.getDescription(), group.getDescription());
-    }
-
-    @Test
-    public void findUserGroup() {
-        entityManager.persistFlushFind(userRole);
-        group.addRole(userRole);
-        entityManager.persistFlushFind(group);
-
-        IDMGroup group = groupRepository.findUserGroup();
-        assertEquals(this.group, group);
-        assertEquals(this.group.getName(), group.getName());
-        assertEquals(this.group.getDescription(), group.getDescription());
-    }
-
-    @Test
-    public void findGuestGroup() {
-        entityManager.persistFlushFind(guestRole);
-        group.addRole(guestRole);
-        entityManager.persistFlushFind(group);
-
-        IDMGroup group = groupRepository.findGuestGroup();
-        assertEquals(this.group, group);
-        assertEquals(this.group.getName(), group.getName());
-        assertEquals(this.group.getDescription(), group.getDescription());
+        List<IDMGroup> groups = groupRepository.findAllByRoleType(RoleType.ADMINISTRATOR.name());
+        assertEquals(1, groups.size());
+        assertEquals(this.group.getName(), groups.get(0).getName());
+        assertEquals(this.group.getDescription(), groups.get(0).getDescription());
     }
 
     @Test

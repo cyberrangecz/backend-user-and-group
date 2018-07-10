@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,29 +55,31 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void findByScreenName() {
+    public void findByScreenName() throws Exception {
         String expectedScreenName = "user1";
         this.entityManager.persist(new User(expectedScreenName));
-        User u = this.userRepository.findByScreenName(expectedScreenName);
+        Optional<User> optionalUser = this.userRepository.findByScreenName(expectedScreenName);
+        User u = optionalUser.orElseThrow(() -> new Exception("User should be found"));
         assertEquals(expectedScreenName, u.getScreenName());
     }
 
     @Test
     public void findByScreenNameNotFound() {
-        assertNull(this.userRepository.findByScreenName("user1"));
+        assertFalse(this.userRepository.findByScreenName("user1").isPresent());
     }
 
     @Test
-    public void getScreenName() {
+    public void getScreenName() throws Exception {
         String expectedScreenName = "user1";
         User u = this.entityManager.persistAndFlush(new User(expectedScreenName));
-        String screenName = this.userRepository.getScreenName(u.getId());
+        Optional<String> optionalScreenName = this.userRepository.getScreenName(u.getId());
+        String screenName = optionalScreenName.orElseThrow(() -> new Exception("User's screen name should be found"));
         assertEquals(expectedScreenName, screenName);
     }
 
     @Test
     public void getScreenNameUserNotFound() {
-        assertNull(this.userRepository.getScreenName(10L));
+        assertFalse(this.userRepository.getScreenName(10L).isPresent());
     }
 
     @Test

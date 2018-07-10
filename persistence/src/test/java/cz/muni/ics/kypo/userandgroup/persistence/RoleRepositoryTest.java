@@ -11,6 +11,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Optional;
+
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
@@ -29,18 +31,19 @@ public class RoleRepositoryTest {
     }
 
     @Test
-    public void findByRoleType() {
+    public void findByRoleType() throws Exception {
         Role role = new Role();
         role.setRoleType(RoleType.ADMINISTRATOR.name());
         this.entityManager.persist(role);
-        Role r = this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name());
+        Optional<Role> optionalRole = this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name());
+        Role r = optionalRole.orElseThrow(() -> new Exception("Role shoul be found"));
         assertEquals(role, r);
         assertEquals(RoleType.ADMINISTRATOR.name(), r.getRoleType());
     }
 
     @Test
     public void findByRoleTypeNotFound() {
-        assertNull(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name()));
+        assertFalse(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name()).isPresent());
     }
 
     @Test
