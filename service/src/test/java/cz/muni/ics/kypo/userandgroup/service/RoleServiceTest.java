@@ -23,6 +23,7 @@ import javax.persistence.EntityNotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
@@ -99,21 +100,21 @@ public class RoleServiceTest {
 
     @Test
     public void getById() {
-        given(roleRepository.getOne(adminRole.getId())).willReturn(adminRole);
+        given(roleRepository.findById(adminRole.getId())).willReturn(Optional.of(adminRole));
 
         Role r = roleService.getById(adminRole.getId());
         assertEquals(adminRole.getId(), r.getId());
         assertEquals(adminRole.getRoleType(), r.getRoleType());
 
-        then(roleRepository).should().getOne(adminRole.getId());
+        then(roleRepository).should().findById(adminRole.getId());
     }
 
     @Test
     public void getByIdNotFoundShouldThrowException() {
         Long id = 3L;
         thrown.expect(IdentityManagementException.class);
-        thrown.expectMessage("Role with id " + id + " not found");
-        willThrow(EntityNotFoundException.class).given(roleRepository).getOne(id);
+        thrown.expectMessage("Role with id " + id + " could not be found");
+        given(roleRepository.findById(id)).willReturn(Optional.empty());
         roleService.getById(id);
     }
 
@@ -126,7 +127,7 @@ public class RoleServiceTest {
 
     @Test
     public void getByRoleType() {
-        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(adminRole);
+        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.of(adminRole));
 
         Role r = roleService.getByRoleType(adminRole.getRoleType());
         assertEquals(adminRole.getId(), r.getId());

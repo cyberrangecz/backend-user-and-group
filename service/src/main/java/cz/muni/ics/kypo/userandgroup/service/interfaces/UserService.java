@@ -81,15 +81,17 @@ public interface UserService {
      * Add/Cancel admin role to user with given id.
      *
      * @param id of user to be changed their admin role.
+     * @throws IdentityManagementException when administrator group could not be  found
      */
-    void changeAdminRole(Long id);
+    void changeAdminRole(Long id) throws IdentityManagementException;
 
     /**
      * Returns true if user with given screen name has administrator role, false otherwise.
      *
      * @param id of user checked if they are administrator
+     * @throws IdentityManagementException when administrator group could not be  found
      */
-    boolean isUserAdmin(Long id);
+    boolean isUserAdmin(Long id) throws IdentityManagementException;
 
     /**
      * Gets user with given user identity from database.

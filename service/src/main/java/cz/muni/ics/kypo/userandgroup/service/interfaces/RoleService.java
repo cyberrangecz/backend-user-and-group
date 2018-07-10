@@ -27,7 +27,7 @@ public interface RoleService {
      *
      * @param id of role
      * @return role with given id
-     * @throws IdentityManagementException if role was not found
+     * @throws IdentityManagementException if role could not be found
      */
     Role getById(Long id) throws IdentityManagementException;
 
@@ -36,8 +36,9 @@ public interface RoleService {
      *
      * @param roleType of role
      * @return role with given roleType
+     * @throws IdentityManagementException when role with given role type could not be found
      */
-    Role getByRoleType(String roleType);
+    Role getByRoleType(String roleType) throws IdentityManagementException;
 
     /**
      * Returns all roles

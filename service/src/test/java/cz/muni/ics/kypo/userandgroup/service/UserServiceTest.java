@@ -41,10 +41,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -108,7 +105,7 @@ public class UserServiceTest {
 
     @Test
     public void getUser() {
-        given(userRepository.getOne(user1.getId())).willReturn(user1);
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
 
         User u = userService.get(user1.getId());
         assertEquals(user1.getId(), u.getId());
@@ -116,7 +113,7 @@ public class UserServiceTest {
         assertEquals(user1.getScreenName(), u.getScreenName());
         assertEquals(UserAndGroupStatus.VALID, u.getStatus());
 
-        then(userRepository).should().getOne(user1.getId());
+        then(userRepository).should().findById(user1.getId());
     }
 
     @Test
@@ -240,8 +237,8 @@ public class UserServiceTest {
 
         List<Long> idsOfUsers = Arrays.asList(user1.getId(), user2.getId(), user3.getId());
 
-        given(userRepository.getOne(user1.getId())).willReturn(user1);
-        given(userRepository.getOne(user2.getId())).willReturn(user2);
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
         willThrow(IdentityManagementException.class).given(userRepository).getOne(user3.getId());
 
         Map<User, UserDeletionStatus> response = userService.deleteUsers(idsOfUsers);
@@ -249,7 +246,7 @@ public class UserServiceTest {
         assertEquals(UserDeletionStatus.EXTERNAL_VALID, response.get(user2));
         assertEquals(UserDeletionStatus.NOT_FOUND, response.get(user3));
 
-        then(userRepository).should(times(3)).getOne(anyLong());
+        then(userRepository).should(times(3)).findById(anyLong());
         then(userRepository).should().delete(user1);
         then(userRepository).should(never()).delete(user2);
         then(userRepository).should(never()).delete(user3);
@@ -265,17 +262,17 @@ public class UserServiceTest {
     @Test
     public void changeAdminRoleToUser() {
         user1.addGroup(adminGroup);
-        given(userRepository.getOne(user1.getId())).willReturn(user1);
-        given(userRepository.getOne(user2.getId())).willReturn(user2);
-        given(groupRepository.findAdministratorGroup()).willReturn(adminGroup);
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
+        given(groupRepository.findAdministratorGroup()).willReturn(Optional.of(adminGroup));
 
         userService.changeAdminRole(user1.getId());
         assertFalse(user1.getGroups().contains(adminGroup));
         userService.changeAdminRole(user2.getId());
         assertTrue(user2.getGroups().contains(adminGroup));
 
-        then(userRepository).should().getOne(user1.getId());
-        then(userRepository).should().getOne(user2.getId());
+        then(userRepository).should().findById(user1.getId());
+        then(userRepository).should().findById(user2.getId());
         then(groupRepository).should(times(2)).findAdministratorGroup();
         then(userRepository).should().save(user1);
         then(userRepository).should().save(user2);
@@ -292,15 +289,15 @@ public class UserServiceTest {
     public void isUserAdmin() {
         adminGroup.addUser(user1);
         user1.addGroup(adminGroup);
-        given(userRepository.getOne(user1.getId())).willReturn(user1);
-        given(userRepository.getOne(user2.getId())).willReturn(user2);
-        given(groupRepository.findAdministratorGroup()).willReturn(adminGroup);
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
+        given(groupRepository.findAdministratorGroup()).willReturn(Optional.of(adminGroup));
 
         assertTrue(userService.isUserAdmin(user1.getId()));
         assertFalse(userService.isUserAdmin(user2.getId()));
 
-        then(userRepository).should().getOne(user1.getId());
-        then(userRepository).should().getOne(user2.getId());
+        then(userRepository).should().findById(user1.getId());
+        then(userRepository).should().findById(user2.getId());
         then(groupRepository).should(times(2)).findAdministratorGroup();
     }
 
@@ -313,7 +310,7 @@ public class UserServiceTest {
 
     @Test
     public void getUserByScreenName() {
-        given(userRepository.findByScreenName(user1.getScreenName())).willReturn(user1);
+        given(userRepository.findByScreenName(user1.getScreenName())).willReturn(Optional.of(user1));
 
         User u = userService.getUserByScreenName(user1.getScreenName());
         assertEquals(user1.getId(), u.getId());
@@ -327,8 +324,8 @@ public class UserServiceTest {
     @Test
     public void getUserByScreenNameNotFoundShouldThrowException() {
         thrown.expect(IdentityManagementException.class);
-        thrown.expectMessage("User with screen name " + user1.getScreenName() + " not found");
-        given(userRepository.findByScreenName(anyString())).willReturn(null);
+        thrown.expectMessage("User with screen name " + user1.getScreenName() + " could not be found");
+        given(userRepository.findByScreenName(anyString())).willReturn(Optional.empty());
         userService.getUserByScreenName(user1.getScreenName());
     }
 
@@ -357,15 +354,15 @@ public class UserServiceTest {
 
     @Test
     public void getUserWithGroups() {
-        given(userRepository.getOne(user1.getId())).willReturn(user1);
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         User u = userService.getUserWithGroups(user1.getId());
         assertEquals(user1, u);
-        then(userRepository).should().getOne(user1.getId());
+        then(userRepository).should().findById(user1.getId());
     }
 
     @Test
     public void getUserWithGroupsByScreenName() {
-        given(userRepository.findByScreenName(user1.getScreenName())).willReturn(user1);
+        given(userRepository.findByScreenName(user1.getScreenName())).willReturn(Optional.of(user1));
 
         User u = userService.getUserWithGroups(user1.getScreenName());
         assertEquals(user1, u);

@@ -34,10 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class IDMGroupServiceImpl implements IDMGroupService {
@@ -56,14 +53,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             "or @securityService.isLoggedInUserInGroup(#id)")
     public IDMGroup get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
-        try {
-            IDMGroup group = groupRepository.getOne(id);
-            log.info(group + " loaded.");
-            return group;
-        } catch (EntityNotFoundException ex) {
-            log.error("IDM group with id " + id + " not found");
-            throw new IdentityManagementException("IDM group with id " + id + " not found");
-        }
+        Optional<IDMGroup> optionalGroup = groupRepository.findById(id);
+        IDMGroup group = optionalGroup.orElseThrow(() -> new IdentityManagementException("IDM group with id " + id + " not found"));
+        log.info(group + " loaded.");
+        return group;
     }
 
     @Override
@@ -103,7 +96,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
         Map<IDMGroup, GroupDeletionStatus> response = new HashMap<>();
 
-        idsOfGroups.forEach( id -> {
+        idsOfGroups.forEach(id -> {
             IDMGroup g = null;
             try {
                 g = get(id);
@@ -137,13 +130,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             "or @securityService.isLoggedInUserInGroup(#name)")
     public IDMGroup getIDMGroupByName(String name) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
-        IDMGroup group = groupRepository.findByName(name);
-        if (group != null) {
-            log.info(group + " loaded.");
-        } else {
-            log.error("IDM Group with name " + name + " not found");
-            throw new IdentityManagementException("IDM Group with name " + name + " not found");
-        }
+        Optional<IDMGroup> optionalGroup = groupRepository.findByName(name);
+        IDMGroup group = optionalGroup.orElseThrow(() -> new IdentityManagementException("IDM Group with name " + name + " not found"));
+        log.info(group + " loaded.");
         return group;
     }
 

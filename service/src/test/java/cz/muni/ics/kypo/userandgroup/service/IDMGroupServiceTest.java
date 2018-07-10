@@ -88,12 +88,12 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getGroup() {
-        given(groupRepository.getOne(group1.getId())).willReturn(group1);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
 
         IDMGroup g = groupService.get(group1.getId());
         deepEqruals(group1, g);
 
-        then(groupRepository).should().getOne(group1.getId());
+        then(groupRepository).should().findById(group1.getId());
     }
 
     @Test
@@ -174,8 +174,8 @@ public class IDMGroupServiceTest {
 
         List<Long> idsOfGroups = Arrays.asList(group1.getId(), group2.getId(), group3.getId());
 
-        given(groupRepository.getOne(group1.getId())).willReturn(group1);
-        given(groupRepository.getOne(group2.getId())).willReturn(group2);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
         willThrow(IdentityManagementException.class).given(groupRepository).getOne(group3.getId());
 
         Map<IDMGroup, GroupDeletionStatus> response = groupService.deleteGroups(idsOfGroups);
@@ -183,7 +183,7 @@ public class IDMGroupServiceTest {
         assertEquals(GroupDeletionStatus.EXTERNAL_VALID, response.get(group2));
         assertEquals(GroupDeletionStatus.NOT_FOUND, response.get(group3));
 
-        then(groupRepository).should(times(3)).getOne(anyLong());
+        then(groupRepository).should(times(3)).findById(anyLong());
         then(groupRepository).should().delete(group1);
         then(groupRepository).should(never()).delete(group2);
         then(groupRepository).should(never()).delete(group3);
@@ -214,7 +214,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getIDMGroupByName() {
-        given(groupRepository.findByName(group1.getName())).willReturn(group1);
+        given(groupRepository.findByName(group1.getName())).willReturn(Optional.of(group1));
 
         IDMGroup group = groupService.getIDMGroupByName(group1.getName());
         deepEqruals(group1, group);
@@ -227,7 +227,7 @@ public class IDMGroupServiceTest {
     public void getIDMGroupByNameNotFoundShouldThrowException() {
         thrown.expect(IdentityManagementException.class);
         thrown.expectMessage("IDM Group with name " + group1.getName() + " not found");
-        given(groupRepository.findByName(group1.getName())).willReturn(null);
+        given(groupRepository.findByName(group1.getName())).willReturn(Optional.empty());
         groupService.getIDMGroupByName(group1.getName());
     }
 
@@ -281,10 +281,10 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getGroupsWithUsers() {
-        given(groupRepository.getOne(group1.getId())).willReturn(group1);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         IDMGroup g = groupService.getIDMGroupWithUsers(group1.getId());
         deepEqruals(group1, g);
-        then(groupRepository).should().getOne(group1.getId());
+        then(groupRepository).should().findById(group1.getId());
     }
 
     @Test
@@ -304,17 +304,17 @@ public class IDMGroupServiceTest {
 
     @Test
     public void isGroupInternal() {
-        given(groupRepository.getOne(group1.getId())).willReturn(group1);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         assertTrue(groupService.isGroupInternal(group1.getId()));
-        then(groupRepository).should().getOne(group1.getId());
+        then(groupRepository).should().findById(group1.getId());
     }
 
     @Test
     public void isGroupExternal() {
         group1.setExternalId(1L);
-        given(groupRepository.getOne(group1.getId())).willReturn(group1);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         assertFalse(groupService.isGroupInternal(group1.getId()));
-        then(groupRepository).should().getOne(group1.getId());
+        then(groupRepository).should().findById(group1.getId());
     }
 
     @Test

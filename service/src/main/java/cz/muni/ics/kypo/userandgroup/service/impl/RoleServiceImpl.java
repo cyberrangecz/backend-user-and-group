@@ -14,6 +14,7 @@ import org.springframework.util.Assert;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -50,21 +51,18 @@ public class RoleServiceImpl implements RoleService {
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role getById(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
-        try {
-            Role r = roleRepository.getOne(id);
-            log.info(r + " loaded");
-            return r;
-        } catch (EntityNotFoundException ex) {
-            log.error("Role with id " + id + " not found");
-            throw new IdentityManagementException("Role with id " + id + " not found");
-        }
+        Optional<Role> optionalRole = roleRepository.findById(id);
+        Role r = optionalRole.orElseThrow(() -> new IdentityManagementException("Role with id " + id + " could not be found"));
+        log.info(r + " loaded");
+        return r;
     }
 
     @Override
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
-    public Role getByRoleType(String roleType) {
+    public Role getByRoleType(String roleType) throws IdentityManagementException {
         Assert.notNull(roleType, "Input role type must not be null");
-        Role r = roleRepository.findByRoleType(roleType);
+        Optional<Role> optionalRole = roleRepository.findByRoleType(roleType);
+        Role r = optionalRole.orElseThrow(() -> new IdentityManagementException("Role with roleType " + roleType + " could not be found"));
         log.info(r + " loaded");
         return r;
     }

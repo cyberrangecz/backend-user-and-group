@@ -36,10 +36,7 @@ import org.springframework.util.Assert;
 
 import javax.persistence.EntityNotFoundException;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -61,14 +58,10 @@ public class UserServiceImpl implements UserService {
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
-        try {
-            User user = userRepository.getOne(id);
-            log.info(user + " loaded.");
-            return user;
-        } catch (EntityNotFoundException ex) {
-            log.error("User with id " + id + " not found");
-            throw new IdentityManagementException("User with id " + id + " not found");
-        }
+        Optional<User> optionalUser = userRepository.findById(id);
+        User user = optionalUser.orElseThrow(() -> new IdentityManagementException("User with id " + id + " not found"));
+        log.info(user + " loaded.");
+        return user;
     }
 
     @Override
@@ -138,11 +131,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public void changeAdminRole(Long id) {
+    public void changeAdminRole(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
-        IDMGroup administratorGroup = groupRepository.findAdministratorGroup();
-
+        Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
+        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new IdentityManagementException("Administrator group could not be  found."));
         if (user.getGroups().contains(administratorGroup)) {
             user.removeGroup(administratorGroup);
         } else {
@@ -154,10 +147,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public boolean isUserAdmin(Long id) {
+    public boolean isUserAdmin(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
-        IDMGroup administratorGroup = groupRepository.findAdministratorGroup();
+        Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
+        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new IdentityManagementException("Administrator group could not be found."));
 
         return user.getGroups().contains(administratorGroup);
     }
@@ -167,13 +161,9 @@ public class UserServiceImpl implements UserService {
             "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
     public User getUserByScreenName(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
-        User user = userRepository.findByScreenName(screenName);
-        if (user != null) {
-            log.info(user + " loaded.");
-        } else {
-            log.error("User with screen name " + screenName + " not found");
-            throw new IdentityManagementException("User with screen name " + screenName + " not found");
-        }
+        Optional<User> optionalUser = userRepository.findByScreenName(screenName);
+        User user = optionalUser.orElseThrow(() -> new IdentityManagementException("User with screen name " + screenName + " could not be found"));
+        log.info(user + " loaded.");
         return user;
     }
 
