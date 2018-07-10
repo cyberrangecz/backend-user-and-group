@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup;
+package cz.muni.ics.kypo.userandgroup.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,7 +7,6 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.persistence.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
-import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +16,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -61,16 +58,16 @@ public class StartUpRunner implements ApplicationRunner {
             Map.Entry<String, JsonNode> usersOfRole = rolesWithUsersIterator.next();
             if (roleRepository.existsByRoleType(usersOfRole.getKey())) {
                 LOGGER.info("Assigning role {} to users", usersOfRole.getKey());
-                Optional<IDMGroup> optioanlGroup = groupRepository.getIDMGroupByNameWithUsers(usersOfRole.getKey());
-                IDMGroup groupForRole = optioanlGroup.orElseThrow(IOException::new);
+                Optional<IDMGroup> optionalGroup = groupRepository.getIDMGroupByNameWithUsers(usersOfRole.getKey());
+                IDMGroup groupForRole = optionalGroup.orElseThrow(IOException::new);
                 JsonNode usersJson = usersOfRole.getValue();
 
                 Iterator<JsonNode> usersJsonIterator = usersJson.elements();
                 while (usersJsonIterator.hasNext()) {
                     JsonNode userJson = usersJsonIterator.next();
-                    User user = userRepository.findByScreenName(userJson.get("screenName").asText());
-                    if (user == null) {
-                        user = new User(userJson.get("screenName").asText());
+                    Optional<User> optionalUser = userRepository.findByScreenName(userJson.get("screenName").asText());
+                    if (!optionalUser.isPresent()) {
+                        User user = new User(userJson.get("screenName").asText());
                         user.setFullName(userJson.get("fullName").asText());
                         user.setMail(userJson.get("mail").asText());
                         user.setStatus(UserAndGroupStatus.VALID);
@@ -78,6 +75,7 @@ public class StartUpRunner implements ApplicationRunner {
                         LOGGER.warn("User with screeName {} was created and assigned role {}.", user.getScreenName(), usersOfRole.getKey());
                         groupForRole.addUser(user);
                     } else {
+                        User user = optionalUser.get();
                         if (!groupForRole.getUsers().contains(user)) {
                             groupForRole.addUser(user);
                             LOGGER.warn("User with screeName {} was assigned role {}.", user.getScreenName(), usersOfRole.getKey());
