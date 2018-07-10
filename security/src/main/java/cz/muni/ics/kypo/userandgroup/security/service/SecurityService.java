@@ -5,10 +5,13 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class SecurityService {
@@ -27,28 +30,31 @@ public class SecurityService {
         return screenName.equals(getSubOfLoggedInUser());
     }
 
-    public boolean hasLoggedInUserSameId(Long userId) {
+    public boolean hasLoggedInUserSameId(Long userId) throws SecurityException {
         User loggedInUser = getLoggedInUser();
 
         return userId.equals(loggedInUser.getId());
     }
 
-    public boolean isLoggedInUserInGroup(Long groupId) {
+    public boolean isLoggedInUserInGroup(Long groupId) throws SecurityException {
         User loggedInUser = getLoggedInUser();
         IDMGroup group = groupRepository.getOne(groupId);
 
         return group.getUsers().contains(loggedInUser);
     }
 
-    public boolean isLoggedInUserInGroup(String groupName) {
+    public boolean isLoggedInUserInGroup(String groupName) throws SecurityException {
         User loggedInUser = getLoggedInUser();
-        IDMGroup group = groupRepository.findByName(groupName);
+        Optional<IDMGroup> optionalGroup = groupRepository.findByName(groupName);
+        IDMGroup group = optionalGroup.orElseThrow(() -> new SecurityException("Group with name " + groupName + " could not be found"));
 
         return group.getUsers().contains(loggedInUser);
     }
 
-    private User getLoggedInUser() {
-        return userRepository.findByScreenName(getSubOfLoggedInUser());
+    private User getLoggedInUser() throws SecurityException {
+        String sub = getSubOfLoggedInUser();
+        Optional<User> optionalUser = userRepository.findByScreenName(sub);
+        return optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + sub + " could not be found in database"));
     }
 
     private String getSubOfLoggedInUser() {

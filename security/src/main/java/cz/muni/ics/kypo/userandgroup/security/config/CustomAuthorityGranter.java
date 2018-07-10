@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,7 +33,8 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
         String screenName = introspectionResponse.get("sub").getAsString();
-        User user = userRepository.findByScreenName(screenName);
+        Optional<User> optionalUser = userRepository.findByScreenName(screenName);
+        User user = optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + screenName + " could not be found in database"));
         Set<Role> roles = userRepository.getRolesOfUser(user.getId());
 
         return roles.stream()
