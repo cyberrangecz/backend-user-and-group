@@ -105,6 +105,20 @@ public class IDMGroupRepositoryTest {
     }
 
     @Test
+    public void findAdministratorGroup() throws Exception {
+        entityManager.persistFlushFind(adminRole);
+        group.addRole(adminRole);
+        entityManager.persistFlushFind(group);
+
+        Optional<IDMGroup> optionalGroup = groupRepository.findAdministratorGroup();
+        IDMGroup g = optionalGroup.orElseThrow(() -> new Exception("Administrator group should be found"));
+        assertEquals(this.group, g);
+        assertEquals(this.group.getName(), g.getName());
+        assertEquals(this.group.getDescription(), g.getDescription());
+    }
+
+
+    @Test
     public void getRolesOfGroup() {
         entityManager.persistFlushFind(adminRole);
         entityManager.persistFlushFind(userRole);
