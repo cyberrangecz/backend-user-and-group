@@ -499,6 +499,15 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     return new ResponseEntity<Object>("Access denied message here", new HttpHeaders(), HttpStatus.FORBIDDEN);
   }
 
+    @ExceptionHandler({org.springframework.security.access.AccessDeniedException.class})
+    public ResponseEntity<Object> handleSpringAccessDeniedException(org.springframework.security.access.AccessDeniedException ex, WebRequest request, HttpServletRequest req) {
+        LOGGER.info("handleAccessDeniedException({}, {})", ex, request);
+
+        final APIError apiError = new APIError.APIErrorBuilder(HttpStatus.FORBIDDEN, ex.getLocalizedMessage()).setError("Access denied")
+                .setPath(URLHELPER.getRequestUri(req)).build();
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.status);
+    }
+
   // handle illegal argument exceptions e.g. given payload is not valid against
   // draft-v4 schema
   @ExceptionHandler(IllegalArgumentException.class)
