@@ -41,38 +41,38 @@ import java.util.List;
  * Controllers See:
  * https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/ControllerAdvice.html
  * </p>
- * 
+ *
  * <p>
  * That is parent class for all REST API Kypo2 implementation. Following example suggest one of the
  * possible applications of this class in your REST API project:
  * </p>
- * 
+ *
  * <pre>
  * <code>
- * &#64;ControllerAdvice 
+ * &#64;ControllerAdvice
  * public class CustomRestExceptionHandlerMonitoring extends CustomRestExceptionHandler {
- * 
+ *
       // handle your own exception
       &#64;ExceptionHandler(YOUR_OWN_EXCEPTION_FROM_PERSISTENCE-SERVICE-FACADE_LAYER.class)
       public ResponseEntity<Object> handleYourException(final YOUR-EXCEPTION ex,
           final WebRequest request, HttpServletRequest req) {
         LOGGER.debug("handleYourException({}, {}, {})", ex, request, req);
-    
-        final ApiError apiError = new ApiError.ApiErrorBuilder(HttpStatus.NOT_ACCEPTABLE, ex.getLocalizedMessage())
+
+        final ApiError apiError = new ApiError.APIErrorBuilder(HttpStatus.NOT_ACCEPTABLE, ex.getLocalizedMessage())
         											.setError("Your error message")
         											.setPath(urlHelper.getRequestUri(req))
         											.build();
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
       }
-    
+
  * }
  * </code>
  * </pre>
- * 
+ *
  * @author Pavel Šeda
  *
  */
-@EnableWebMvc
+
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {

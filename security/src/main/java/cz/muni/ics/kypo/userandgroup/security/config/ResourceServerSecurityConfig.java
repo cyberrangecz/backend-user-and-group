@@ -1,14 +1,12 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
+import cz.muni.ics.kypo.userandgroup.config.PersistenceConfig;
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.impl.StaticIntrospectionConfigurationService;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -21,6 +19,7 @@ import java.util.Set;
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@Import({PersistenceConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.security"})
 @PropertySource("file:${path-to-config-file}")
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
@@ -49,6 +48,7 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     public void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
+                .antMatchers("/swagger-ui.html","/swagger-resources/**", "/v2/api-docs/**", "/webjars/**").permitAll()
                 .anyRequest().authenticated();
     }
 

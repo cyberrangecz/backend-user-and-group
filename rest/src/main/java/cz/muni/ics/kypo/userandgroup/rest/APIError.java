@@ -22,7 +22,7 @@ import java.util.Objects;
  * <code>
  * public class ApiErrorMonitoring extends ApiError {
  * 
- * 	public ApiErrorMonitoring(ApiErrorBuilder builder) {
+ * 	public ApiErrorMonitoring(APIErrorBuilder builder) {
  *		super(builder);
  * 	}
  * 
