@@ -27,11 +27,11 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     @Value("${kypo.idp.4oauth.introspectionURI}")
     private String introspectionURI;
 
-    @Value("${kypo.idp.4oauth.clientId}")
-    private String clientId;
+    @Value("${kypo.idp.4oauth.resource.clientId}")
+    private String clientIdOfResource;
 
-    @Value("${kypo.idp.4oauth.clientSecret}")
-    private String clientSecret;
+    @Value("${kypo.idp.4oauth.resource.clientSecret}")
+    private String clientSecretResource;
 
     @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
@@ -66,8 +66,8 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
         introspectionService.setIntrospectionUrl(introspectionURI);
 
         RegisteredClient client = new RegisteredClient();
-        client.setClientId(clientId);
-        client.setClientSecret(clientSecret);
+        client.setClientId(clientIdOfResource);
+        client.setClientSecret(clientSecretResource);
         client.setScope(scopes);
         introspectionService.setClientConfiguration(client);
 

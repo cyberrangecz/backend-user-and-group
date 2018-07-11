@@ -1,18 +1,36 @@
 package cz.muni.ics.kypo.userandgroup.rest.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
+import springfox.documentation.builders.*;
+import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger.web.SecurityConfiguration;
+import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.util.*;
 
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
+
+    @Value("${kypo.idp.4oauth.authorizationURI}")
+    private String authorizationURI;
+
+    @Value("${kypo.idp.4oauth.client.clientId}")
+    private String clientIdOfClient;
+
+    @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
+    private Set<String> scopes;
+
+    private static String NAME_OF_TOKEN = "bearer";
+
+    private static String NAME_OF_SECURITY_SCHEME = "KYPO";
+
     @Bean
     public Docket api() {
         // @formatter:off
@@ -22,7 +40,9 @@ public class SwaggerConfig {
                 .select()
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .securitySchemes(Arrays.asList(securityScheme()))
+                .securityContexts(Arrays.asList(securityContext()));
         // @formatter:on
     }
 
@@ -34,6 +54,47 @@ public class SwaggerConfig {
                 .termsOfServiceUrl("Licensed by CSIRT team")
                 .build();
         // @formatter:on
+    }
+
+    @Bean
+    public SecurityConfiguration security() {
+        Map<String, Object> additionlParams = new HashMap<>();
+        return SecurityConfigurationBuilder.builder()
+                .clientId(clientIdOfClient)
+                .scopeSeparator(" ")
+                .useBasicAuthenticationWithAccessCodeGrant(true)
+                .build();
+    }
+
+    private SecurityScheme securityScheme() {
+        GrantType grantType = new ImplicitGrantBuilder()
+                .loginEndpoint(new LoginEndpoint(authorizationURI))
+                .tokenName(NAME_OF_TOKEN)
+                .build();
+
+        SecurityScheme oauth = new OAuthBuilder().name(NAME_OF_SECURITY_SCHEME)
+                .grantTypes(Arrays.asList(grantType))
+                .scopes(Arrays.asList(scopes()))
+                .build();
+        return oauth;
+    }
+
+    private AuthorizationScope[] scopes() {
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[scopes.size()];
+        int i = 0;
+        for (String scope : scopes) {
+            authorizationScopes[i] = new AuthorizationScope(scope, "");
+            i++;
+        }
+        return authorizationScopes;
+    }
+
+    private SecurityContext securityContext() {
+        return SecurityContext.builder()
+                .securityReferences(
+                        Arrays.asList(new SecurityReference(NAME_OF_SECURITY_SCHEME, scopes())))
+                .forPaths(PathSelectors.any())
+                .build();
     }
 
 }
