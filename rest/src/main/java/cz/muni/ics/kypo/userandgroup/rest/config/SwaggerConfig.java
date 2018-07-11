@@ -35,7 +35,7 @@ public class SwaggerConfig {
     public Docket api() {
         // @formatter:off
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("api")
+                .groupName("user-and-group-api")
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.any())
@@ -58,11 +58,9 @@ public class SwaggerConfig {
 
     @Bean
     public SecurityConfiguration security() {
-        Map<String, Object> additionlParams = new HashMap<>();
         return SecurityConfigurationBuilder.builder()
                 .clientId(clientIdOfClient)
                 .scopeSeparator(" ")
-                .useBasicAuthenticationWithAccessCodeGrant(true)
                 .build();
     }
 
