@@ -49,7 +49,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public IDMGroup get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
@@ -60,7 +60,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public IDMGroup create(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
         IDMGroup g = groupRepository.save(group);
@@ -69,7 +69,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public IDMGroup update(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
         IDMGroup g = groupRepository.save(group);
@@ -78,7 +78,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public GroupDeletionStatus delete(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
         GroupDeletionStatus deletionStatus = checkKypoGroupBeforeDelete(group);
@@ -90,7 +90,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Map<IDMGroup, GroupDeletionStatus> deleteGroups(List<Long> idsOfGroups) {
         Assert.notNull(idsOfGroups, "Input ids of groups must not be null");
 
@@ -118,7 +118,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public List<IDMGroup> getAllIDMGroups() {
         List<IDMGroup> groups = groupRepository.findAll();
         log.info("All IDM Groups loaded");
@@ -126,7 +126,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
     public IDMGroup getIDMGroupByName(String name) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
@@ -137,7 +137,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
     public List<IDMGroup> getIDMGroupsByName(String name) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
@@ -152,7 +152,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public IDMGroup getIDMGroupWithUsers(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
@@ -162,7 +162,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
     public IDMGroup getIDMGroupWithUsers(String name) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
@@ -173,7 +173,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public boolean isGroupInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -181,7 +181,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public Set<Role> getRolesOfGroup(Long id) {
         Assert.notNull(id, "Input id must not be null");

@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public User create(User user) {
         Assert.notNull(user, "Input user must not be null");
         Assert.hasLength(user.getScreenName(), "Screen name of input user must not be empty");
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public User update(User updatedUser) throws IdentityManagementException {
         Assert.notNull(updatedUser, "Input user must not be null");
         Assert.hasLength(updatedUser.getScreenName(), "Screen name of input user must not be empty");
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public UserDeletionStatus delete(User user) {
         Assert.notNull(user, "Input user must not be null");
         UserDeletionStatus deletionCheck = checkKypoUserBeforeDelete(user);
@@ -104,7 +104,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public Map<User, UserDeletionStatus> deleteUsers(List<Long> idsOfUsers) {
         Assert.notNull(idsOfUsers, "Input ids of users must not be null");
         Map<User, UserDeletionStatus> response = new HashMap<>();
@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public void changeAdminRole(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
@@ -145,7 +145,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserAdmin(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
     public User getUserByScreenName(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
@@ -168,7 +168,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public List<User> getAllUsers() {
         List<User> users = userRepository.findAll();
         log.info("All Users loaded");
@@ -176,7 +176,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User getUserWithGroups(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
@@ -186,7 +186,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
     public User getUserWithGroups(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
@@ -196,7 +196,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -204,7 +204,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public Set<Role> getRolesOfUser(Long id) {
         Assert.notNull(id, "Input id must not be null");

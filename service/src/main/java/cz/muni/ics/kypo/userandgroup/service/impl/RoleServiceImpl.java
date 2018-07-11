@@ -29,7 +29,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role create(Role role) {
         Assert.notNull(role, "Input role must not be null");
         Assert.notNull(role.getRoleType(), "Role type of input role must not be null");
@@ -40,7 +40,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public void delete(Role role) {
         Assert.notNull(role, "Input role must not be null");
         roleRepository.delete(role);
@@ -48,7 +48,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role getById(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
         Optional<Role> optionalRole = roleRepository.findById(id);
@@ -58,7 +58,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public Role getByRoleType(String roleType) throws IdentityManagementException {
         Assert.notNull(roleType, "Input role type must not be null");
         Optional<Role> optionalRole = roleRepository.findByRoleType(roleType);
@@ -68,7 +68,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @PreAuthorize("hasRole(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public List<Role> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
         log.info("All Roles loaded");
