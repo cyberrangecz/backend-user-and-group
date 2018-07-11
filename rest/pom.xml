@@ -14,7 +14,6 @@
 
     <properties>
         <modelmapper.version>0.7.5</modelmapper.version>
-        <swagger>2.7.0</swagger>
     </properties>
 
     <dependencies>
