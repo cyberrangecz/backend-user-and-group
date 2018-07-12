@@ -103,6 +103,6 @@ cd rest/
 mvn spring-boot:run -Dpath-to-config-file={path to properties file from step 3}
 ```
 
-Then system will start the project. You can access the REST API with any REST client or use Swagger UI on address: 
+Then system will start the project. You can access the REST API with Swagger UI on address: 
 `~/{context path for service}/swagger-ui.html`. You can log in there and interact with the service.
 
