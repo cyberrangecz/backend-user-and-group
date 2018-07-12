@@ -1,7 +1,7 @@
 CREATE TABLE users (
    id             BIGSERIAL NOT NULL,
-   screen_name     varchar(255) NOT NULL UNIQUE,
-   full_name   varchar(255),
+   screen_name    varchar(255) NOT NULL UNIQUE,
+   full_name      varchar(255),
    mail           varchar(255),
    status         varchar(255) NOT NULL,
    external_id    int8 UNIQUE,
@@ -26,9 +26,14 @@ CREATE TABLE idm_group (
    PRIMARY KEY (id));
 
 CREATE TABLE idm_group_role (
-   role_id int8 NOT NULL,
-   idm_group_id int8 NOT NULL,
+   role_id        int8 NOT NULL,
+   idm_group_id   int8 NOT NULL,
    PRIMARY KEY (role_id, idm_group_id));
+
+CREATE TABLE hierarchy_of_roles (
+   parent_role_id  int8 NOT NULL,
+   child_role_id   int8 NOT NULL,
+   PRIMARY KEY (parent_role_id, child_role_id));
 
 
 ALTER TABLE user_idm_group ADD CONSTRAINT FKuser_idm_g172082 FOREIGN KEY (user_id) REFERENCES users (id);
@@ -37,6 +42,5 @@ ALTER TABLE user_idm_group ADD CONSTRAINT FKuser_idm_g351385 FOREIGN KEY (idm_gr
 ALTER TABLE idm_group_role ADD CONSTRAINT FKidm_group_284474 FOREIGN KEY (role_id) REFERENCES role (id);
 ALTER TABLE idm_group_role ADD CONSTRAINT FKidm_group_389301 FOREIGN KEY (idm_group_id) REFERENCES idm_group (id);
 
-
--- assign roles of a default admin account accorgind to Liferay roles: 
-INSERT INTO users (full_name, mail, status, screen_name) VALUES ('KYPO LOCAL ADMIN', 'info@kypo.cz', 'VALID', 'kypo');
+ALTER TABLE hierarchy_of_roles ADD CONSTRAINT FKhierarchy_50724 FOREIGN KEY (parent_role_id) REFERENCES role (id);
+ALTER TABLE hierarchy_of_roles ADD CONSTRAINT FKhierarchy_36714 FOREIGN KEY (child_role_id) REFERENCES role (id);

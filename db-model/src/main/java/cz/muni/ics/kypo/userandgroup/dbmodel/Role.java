@@ -23,6 +23,9 @@ import org.springframework.util.Assert;
 
 import javax.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -35,6 +38,10 @@ public class Role {
 
     @Column(name = "ROLE_TYPE", unique = true, nullable = false)
     private String roleType;
+
+    @ManyToMany
+    @JoinTable(name = "HIERARCHY_OF_ROLES", joinColumns = @JoinColumn(name = "PARENT_ROLE_ID"), inverseJoinColumns = @JoinColumn(name = "CHILD_ROLE_ID"))
+    private Set<Role> childrenRoles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -50,6 +57,22 @@ public class Role {
 
     public void setRoleType(String name) {
         this.roleType = name;
+    }
+
+    public Set<Role> getChildrenRoles() {
+        return childrenRoles;
+    }
+
+    public void setChildrenRoles(Set<Role> childrenRoles) {
+        this.childrenRoles = childrenRoles;
+    }
+
+    public void addChildRole(Role role) {
+        this.childrenRoles.add(role);
+    }
+
+    public void removeChildRole(Role role) {
+        this.childrenRoles.remove(role);
     }
 
     @Override

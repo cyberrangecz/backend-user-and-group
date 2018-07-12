@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.persistence.PersistenceException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -24,7 +25,8 @@ public class RoleEntityTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private String roleType = RoleType.ADMINISTRATOR.name();
+    private String roleType1 = RoleType.ADMINISTRATOR.name();
+    private String roleType2 = RoleType.USER.name();
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -39,9 +41,16 @@ public class RoleEntityTest {
 
     @Test
     public void saveShouldPersistData() {
-        Role role = new Role();
-        role.setRoleType(roleType);
-        Role r = this.entityManager.persistFlushFind(role);
-        assertEquals(roleType, r.getRoleType());
+        Role role2 = new Role();
+        role2.setRoleType(roleType2);
+        this.entityManager.persistAndFlush(role2);
+
+        Role role1 = new Role();
+        role1.setRoleType(roleType1);
+        role1.addChildRole(role2);
+        Role r = this.entityManager.persistFlushFind(role1);
+        assertEquals(roleType1, r.getRoleType());
+        assertEquals(role1.getChildrenRoles().size(), r.getChildrenRoles().size());
+        assertTrue(role1.getChildrenRoles().contains(role2));
     }
 }
