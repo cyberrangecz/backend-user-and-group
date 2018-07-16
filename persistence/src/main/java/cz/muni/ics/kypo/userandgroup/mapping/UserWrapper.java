@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.mapping.userswrappers;
+package cz.muni.ics.kypo.userandgroup.mapping;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;

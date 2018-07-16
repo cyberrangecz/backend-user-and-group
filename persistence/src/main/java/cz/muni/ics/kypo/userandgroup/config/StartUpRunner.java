@@ -5,8 +5,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exceptions.LoadingRolesAndUserException;
 import cz.muni.ics.kypo.userandgroup.mapping.UsersAndMicroservicesWrapper;
-import cz.muni.ics.kypo.userandgroup.mapping.userswrappers.UserWrapper;
+import cz.muni.ics.kypo.userandgroup.mapping.UserWrapper;
 import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.persistence.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.persistence.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
 import org.slf4j.Logger;
@@ -33,21 +34,19 @@ public class StartUpRunner implements ApplicationRunner {
     private UserRepository userRepository;
     private IDMGroupRepository groupRepository;
     private RoleRepository roleRepository;
+    private MicroserviceRepository microserviceRepository;
 
-    private Role adminRole;
-    private Role userRole;
-    private Role guestRole;
+    private Role adminRole, userRole, guestRole;
 
-    private IDMGroup adminGroup;
-    private IDMGroup userGroup;
-    private IDMGroup guestGroup;
+    private IDMGroup adminGroup, userGroup, guestGroup;
 
     @Autowired
     public StartUpRunner(UserRepository userRepository, IDMGroupRepository groupRepository,
-                         RoleRepository roleRepository) {
+                         RoleRepository roleRepository, MicroserviceRepository microserviceRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
         this.roleRepository = roleRepository;
+        this.microserviceRepository = microserviceRepository;
     }
 
     @Override
@@ -58,11 +57,21 @@ public class StartUpRunner implements ApplicationRunner {
 
         UsersAndMicroservicesWrapper usersAndMicroservicesWrapper =
                 mapper.readValue(new File(pathToFileWithInitialUsers), UsersAndMicroservicesWrapper.class);
-        usersAndMicroservicesWrapper.getUsers().forEach(userWrapper -> System.out.println(userWrapper.getUser().toString()));
 
+        loadMicroservices(usersAndMicroservicesWrapper.getMicroservices());
         loadUsers(usersAndMicroservicesWrapper.getUsers());
 
         LOGGER.info("Users from external file were loaded and created in DB");
+    }
+
+    private void loadMicroservices(List<Microservice> microservices) {
+        microserviceRepository.deleteAll();
+        LOGGER.info("All microservices managed by user-and-group service were deleted from database. (Only microservices which are in the file are active.)");
+
+        microservices.forEach(microservice -> {
+            microserviceRepository.save(microservice);
+            LOGGER.info("Microservice with name {} was registered", microservice.getName());
+        });
     }
 
     private void loadUsers(List<UserWrapper> users) {
