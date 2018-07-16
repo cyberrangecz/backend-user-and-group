@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.mapping.userswrappers;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 
