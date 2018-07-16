@@ -1,5 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.dbmodel;
 
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import javax.persistence.*;
 
 import java.util.Objects;
@@ -19,6 +22,17 @@ public class Microservice {
 
     @Column(name = "ENDPOINT", nullable = false)
     private String endpoint;
+
+    public Microservice() {
+    }
+
+    public Microservice(String name, String endpoint) {
+        Assert.hasLength(name, "Name of microservice must not be empty");
+        Assert.hasLength(endpoint, "Endpoint of microservice must not be empty");
+        Assert.isTrue(!StringUtils.containsWhitespace(endpoint), "Endpoint of microservice must not contain whitespace");
+        this.name = name;
+        this.endpoint = endpoint;
+    }
 
     public Long getId() {
         return id;

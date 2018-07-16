@@ -47,10 +47,7 @@ public class RoleEntityTest {
 
         Role role1 = new Role();
         role1.setRoleType(roleType1);
-        role1.addChildRole(role2);
         Role r = this.entityManager.persistFlushFind(role1);
         assertEquals(roleType1, r.getRoleType());
-        assertEquals(role1.getChildrenRoles().size(), r.getChildrenRoles().size());
-        assertTrue(role1.getChildrenRoles().contains(role2));
     }
 }
