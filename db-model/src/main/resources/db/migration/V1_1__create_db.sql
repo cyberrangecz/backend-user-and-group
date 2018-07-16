@@ -30,17 +30,8 @@ CREATE TABLE idm_group_role (
    idm_group_id   int8 NOT NULL,
    PRIMARY KEY (role_id, idm_group_id));
 
-CREATE TABLE hierarchy_of_roles (
-   parent_role_id  int8 NOT NULL,
-   child_role_id   int8 NOT NULL,
-   PRIMARY KEY (parent_role_id, child_role_id));
-
-
 ALTER TABLE user_idm_group ADD CONSTRAINT FKuser_idm_g172082 FOREIGN KEY (user_id) REFERENCES users (id);
 ALTER TABLE user_idm_group ADD CONSTRAINT FKuser_idm_g351385 FOREIGN KEY (idm_group_id) REFERENCES idm_group (id);
 
 ALTER TABLE idm_group_role ADD CONSTRAINT FKidm_group_284474 FOREIGN KEY (role_id) REFERENCES role (id);
 ALTER TABLE idm_group_role ADD CONSTRAINT FKidm_group_389301 FOREIGN KEY (idm_group_id) REFERENCES idm_group (id);
-
-ALTER TABLE hierarchy_of_roles ADD CONSTRAINT FKhierarchy_50724 FOREIGN KEY (parent_role_id) REFERENCES role (id);
-ALTER TABLE hierarchy_of_roles ADD CONSTRAINT FKhierarchy_36714 FOREIGN KEY (child_role_id) REFERENCES role (id);
