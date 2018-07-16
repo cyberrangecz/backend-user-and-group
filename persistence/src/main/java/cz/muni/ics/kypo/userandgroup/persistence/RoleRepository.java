@@ -11,7 +11,6 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
-    @EntityGraph(value = "Role.childrenRoles", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Role> findByRoleType(String roleType);
 
     boolean existsByRoleType(String roleType);
