@@ -5,7 +5,7 @@ import cz.muni.ics.kypo.userandgroup.mapping.userswrappers.UserWrapper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RolesAndUsersWrapper {
+public class UsersAndMicroservicesWrapper {
 
     private List<UserWrapper> users = new ArrayList<>();
 

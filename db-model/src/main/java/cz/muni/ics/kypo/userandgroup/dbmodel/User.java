@@ -29,6 +29,8 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "USERS")
+@NamedEntityGraph(name = "User.groups",
+        attributeNodes = @NamedAttributeNode("groups"))
 public class User {
 
     @Id

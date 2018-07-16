@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.persistence;
 
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,4 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT DISTINCT r FROM IDMGroup g INNER JOIN g.roles r INNER JOIN g.users u WHERE u.id = :userId")
     Set<Role> getRolesOfUser(@Param("userId") Long id);
+
+    @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.LOAD)
+    @Query("SELECT u FROM User u WHERE u.screenName = :screenName")
+    Optional<User> getUserByScreenNameWithUsers(@Param("screenName") String screenName);
 }
