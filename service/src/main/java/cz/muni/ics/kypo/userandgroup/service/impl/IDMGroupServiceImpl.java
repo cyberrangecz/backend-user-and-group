@@ -192,6 +192,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             "or @securityService.isLoggedInUserInGroup(#id)")
     public Set<Role> getRolesOfGroup(Long id) {
         Assert.notNull(id, "Input id must not be null");
+
+        RestTemplate restTemplate = new RestTemplate();
+
         return groupRepository.getRolesOfGroup(id);
     }
 
@@ -244,16 +247,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                         new IdentityManagementException("Group with id " + groupId + " could not be found."));
 
         final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
-        Map<String, String> params = new HashMap<>();
-        params.put("roleId", roleId.toString());
-        params.put("groupId", groupId.toString());
 
         RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
-        restTemplate.put(uri, entity, roleId, groupId);
+        restTemplate.put(uri, null, roleId, groupId);
         group.setRoles(getRolesOfGroup(group.getId()));
 
         return group;
