@@ -10,5 +10,8 @@ INSERT INTO idm_group (name, status, description) VALUES ('GUEST', 'VALID', 'Ini
 
 -- connecting main roles with groups
 INSERT INTO idm_group_role (role_id, idm_group_id) VALUES ((SELECT id FROM role WHERE role_type = 'ADMINISTRATOR'), (SELECT id FROM idm_group WHERE name = 'ADMINISTRATOR'));
+INSERT INTO idm_group_role (role_id, idm_group_id) VALUES ((SELECT id FROM role WHERE role_type = 'USER'), (SELECT id FROM idm_group WHERE name = 'ADMINISTRATOR'));
+INSERT INTO idm_group_role (role_id, idm_group_id) VALUES ((SELECT id FROM role WHERE role_type = 'GUEST'), (SELECT id FROM idm_group WHERE name = 'ADMINISTRATOR'));
 INSERT INTO idm_group_role (role_id, idm_group_id) VALUES ((SELECT id FROM role WHERE role_type = 'USER'), (SELECT id FROM idm_group WHERE name = 'USER'));
+INSERT INTO idm_group_role (role_id, idm_group_id) VALUES ((SELECT id FROM role WHERE role_type = 'GUEST'), (SELECT id FROM idm_group WHERE name = 'USER'));
 INSERT INTO idm_group_role (role_id, idm_group_id) VALUES ((SELECT id FROM role WHERE role_type = 'GUEST'), (SELECT id FROM idm_group WHERE name = 'GUEST'));
