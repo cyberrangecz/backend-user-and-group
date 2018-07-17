@@ -28,8 +28,8 @@ public class StartUpRunner implements ApplicationRunner {
 
     private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
 
-    @Value("${path.to.file.with.initial.users}")
-    private String pathToFileWithInitialUsers;
+    @Value("${path.to.file.with.initial.users.and.services}")
+    private String pathToFileWithInitialUsersAndServices;
 
     private UserRepository userRepository;
     private IDMGroupRepository groupRepository;
@@ -56,7 +56,7 @@ public class StartUpRunner implements ApplicationRunner {
         loadGroupsForMainRole();
 
         UsersAndMicroservicesWrapper usersAndMicroservicesWrapper =
-                mapper.readValue(new File(pathToFileWithInitialUsers), UsersAndMicroservicesWrapper.class);
+                mapper.readValue(new File(pathToFileWithInitialUsersAndServices), UsersAndMicroservicesWrapper.class);
 
         loadMicroservices(usersAndMicroservicesWrapper.getMicroservices());
         loadUsers(usersAndMicroservicesWrapper.getUsers());
