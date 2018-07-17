@@ -19,11 +19,9 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.persistence.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.persistence.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -31,11 +29,12 @@ import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.*;
 
 @Service
@@ -44,13 +43,15 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     private static Logger log = LoggerFactory.getLogger(IDMGroupServiceImpl.class.getName());
 
     private final IDMGroupRepository groupRepository;
-
     private final RoleRepository roleRepository;
+    private final MicroserviceRepository microserviceRepository;
 
     @Autowired
-    public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository) {
+    public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository,
+                               MicroserviceRepository microserviceRepository) {
         this.groupRepository = idmGroupRepository;
         this.roleRepository = roleRepository;
+        this.microserviceRepository = microserviceRepository;
     }
 
     @Override
@@ -223,7 +224,39 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                 group.addRole(guestRole);
                 log.info("GUEST");
         }
-        return groupRepository.save(group);
+        IDMGroup updatedGroup = groupRepository.save(group);
+        updatedGroup.setRoles(getRolesOfGroup(updatedGroup.getId()));
+        return updatedGroup;
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    public IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(roleId, "Input roleId must not be null");
+        Assert.notNull(microserviceId, "Input microserviceId must not be null");
+
+        Microservice microservice = microserviceRepository.findById(microserviceId)
+                .orElseThrow(() ->
+                        new IdentityManagementException("Microservice with id " + microserviceId + " could not be found."));
+        IDMGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() ->
+                        new IdentityManagementException("Group with id " + groupId + " could not be found."));
+
+        final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
+        Map<String, String> params = new HashMap<>();
+        params.put("roleId", roleId.toString());
+        params.put("groupId", groupId.toString());
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+
+        restTemplate.put(uri, entity, roleId, groupId);
+        group.setRoles(getRolesOfGroup(group.getId()));
+
+        return group;
     }
 
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {

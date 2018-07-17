@@ -143,4 +143,14 @@ public interface IDMGroupService {
      * @return group with assigned role with given role type
      */
     IDMGroup assignRole(Long groupId, RoleType roleType);
+
+    /**
+     * Assigns role to group with given groupId in microservice with given microserviceId
+     *
+     * @param groupId id of group which will get role with roleId in given microservice
+     * @param roleId id of assigning role
+     * @param microserviceId id of microservice in which will group get role with roleId
+     * @return group with assigned role
+     */
+    IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
 }

@@ -1,7 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.rest.DTO.role;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
-
 public class RoleDTO {
     private Long id;
 

@@ -289,6 +289,17 @@ public class GroupsRestController {
         return new ResponseEntity<>(convertToGroupDTO(updatedGroup), HttpStatus.OK);
     }
 
+    @PutMapping("/{groupId}/assign/{roleId}/in/microservice/{microserviceId}")
+    @ApiOperation(httpMethod = "PUT", value = "Assign role with given role ID to group with given ID in chosen microservice")
+    public ResponseEntity<GroupDTO> assignRoleInMicroservice(
+            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
+            @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
+            @ApiParam(value = "microserviceId", required = true) @PathVariable("microserviceId") Long microserviceId) {
+
+        IDMGroup updatedGroup = groupService.assignRoleInMicroservice(groupId, roleId, microserviceId);
+        return new ResponseEntity<>(convertToGroupDTO(updatedGroup), HttpStatus.OK);
+    }
+
     private UserForGroupsDTO convertToUserForGroupsDTO(User user) {
         UserForGroupsDTO userForGroup = beanMapping.mapTo(user, UserForGroupsDTO.class);
         userForGroup.convertScreenNameToLogin(user.getScreenName());
@@ -300,7 +311,7 @@ public class GroupsRestController {
         groupDTO.convertExternalIdToSource(g.getExternalId());
         groupDTO.convertStatusToCanBeDeleted(g.getStatus());
 
-        List<UserForGroupsDTO> users = g.getUsers().stream().map(user -> convertToUserForGroupsDTO(user))
+        List<UserForGroupsDTO> users = g.getUsers().stream().map(this::convertToUserForGroupsDTO)
                 .collect(Collectors.toList());
         groupDTO.setMembers(users);
 
