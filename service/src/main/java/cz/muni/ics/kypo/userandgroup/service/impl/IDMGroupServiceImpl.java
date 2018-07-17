@@ -45,13 +45,15 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     private final IDMGroupRepository groupRepository;
     private final RoleRepository roleRepository;
     private final MicroserviceRepository microserviceRepository;
+    private final RestTemplate restTemplate;
 
     @Autowired
     public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository,
-                               MicroserviceRepository microserviceRepository) {
+                               MicroserviceRepository microserviceRepository, RestTemplate restTemplate) {
         this.groupRepository = idmGroupRepository;
         this.roleRepository = roleRepository;
         this.microserviceRepository = microserviceRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -61,6 +63,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(id, "Input id must not be null");
         Optional<IDMGroup> optionalGroup = groupRepository.findById(id);
         IDMGroup group = optionalGroup.orElseThrow(() -> new IdentityManagementException("IDM group with id " + id + " not found"));
+        group.setRoles(getRolesOfGroup(group.getId()));
         log.info(group + " loaded.");
         return group;
     }
@@ -80,6 +83,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public IDMGroup update(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
         IDMGroup g = groupRepository.save(group);
+        g.setRoles(getRolesOfGroup(g.getId()));
         log.info(group + " updated.");
         return g;
     }
@@ -139,6 +143,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.hasLength(name, "Input name of group must not be empty");
         Optional<IDMGroup> optionalGroup = groupRepository.findByName(name);
         IDMGroup group = optionalGroup.orElseThrow(() -> new IdentityManagementException("IDM Group with name " + name + " not found"));
+        group.setRoles(getRolesOfGroup(group.getId()));
         log.info(group + " loaded.");
         return group;
     }
@@ -193,9 +198,17 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public Set<Role> getRolesOfGroup(Long id) {
         Assert.notNull(id, "Input id must not be null");
 
-        RestTemplate restTemplate = new RestTemplate();
+        Set<Role> roles = new HashSet<>(groupRepository.getRolesOfGroup(id));
 
-        return groupRepository.getRolesOfGroup(id);
+        List<Microservice> microservices = microserviceRepository.findAll();
+        for (Microservice microservice : microservices) {
+            String uri = microservice.getEndpoint() + "/of/{groupId}";
+
+            ResponseEntity<Role[]> responseEntity = restTemplate.getForEntity(uri, Role[].class, id);
+            roles.addAll(Arrays.asList(responseEntity.getBody()));
+        }
+
+        return roles;
     }
 
     @Override
@@ -247,8 +260,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                         new IdentityManagementException("Group with id " + groupId + " could not be found."));
 
         final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
-
-        RestTemplate restTemplate = new RestTemplate();
 
         restTemplate.put(uri, null, roleId, groupId);
         group.setRoles(getRolesOfGroup(group.getId()));
