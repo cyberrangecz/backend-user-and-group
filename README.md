@@ -23,33 +23,37 @@ This project represents back-end for managing users, groups and roles of KYPO pr
 
 ### 2. Creating YAML file with roles and initial users
 
-If you want to insert new roles to the system you have to specify them in external YAML file and then insert its path to 
-properties file which is describe in  next step. For each role you have to specify name of service for which it is and 
-name of the role. To the same YAML file you can also write down users who will be insert to the system during start up 
-of project. You have to also specify roles of the users in the file. Example of the YAML file can be seen below:
-```yaml
-roles:
-    services:
-        - name: service1
-          roles:
-            - ROLE1
-            - ROLE2
-        - name: service2
-          roles: 
-            - ROLE3
+If you want to insert initial users to the system you have to specify them in external YAML file and then insert its path to 
+properties file which is describe in  next step. For each user you have to specify their screen name, full name, email
+(these information has to be same as in OpenID Connect service) and last but not least their main roles. Roles are
+three main types - ADMINISTRATOR, USER and GUEST. Every user with role ADMINISTRATOR will also have two other roles 
+USER and GUEST. All users with role USER will have also role GUEST. Role GUEST is given to all user in KYPO.
+ 
+Below that you can specify all microservices and their endpoint. The service user-and-group will be managing 
+roles of the microservices.
 
+Example of the YAML file can be seen below:
+```yaml
 users:
-    ROLE1:
-        - screenName: userOne
-          fullName: User One
-          mail: user.one@mail.com
-        - screenName: userTwo
-          fullName: User Two
-          mail: user.two@mail.com
-    ROLE2:
-        - screenName: userOne
-          fullName: User One
-          mail: user.one@mail.com
+    - user:
+        screenName: userOne
+        fullName: User One
+        mail: user.one@mail.com
+      roles:
+        - ADMINISTRATOR
+        - USER
+    - user:
+        screenName: userTwo
+        fullName: User Two
+        mail: user.two@mail.com
+      roles:
+        - GUEST
+        
+microservices:
+  - name: service1
+    endpoint: /service1
+  - name: service2
+    endpoint: /service2
 ```
 
 ### 3. Properties file
@@ -70,7 +74,7 @@ kypo.idp.4oauth.authorizationURI=https://oidc.ics.muni.cz/oidc/authorize
 kypo.idp.4oauth.resource.clientId={your client ID from Self-service protected resource}
 kypo.idp.4oauth.resource.clientSecret={your client secret from Self-service protected resource}
 kypo.idp.4oauth.client.clientId={your client ID from Self-service client}
-kypo.idp.4oauth.scopes=openid, email 
+kypo.idp.4oauth.scopes=openid, email
 # you can add more scopes according to settings from step 1.
 
 # DATASOURCE
@@ -87,7 +91,7 @@ spring.flyway.user={user in DB}
 spring.flyway.password={password for user to DB}
 spring.flyway.table=schema_version
 
-path.to.file.with.initial.roles.and.users={path to YAML file from step 2}
+path.to.file.with.initial.users.and.service={path to YAML file from step 2}
 ```
 
 ## Start the project
