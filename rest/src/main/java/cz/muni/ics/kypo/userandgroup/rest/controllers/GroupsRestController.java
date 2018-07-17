@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 import com.google.common.base.Preconditions;
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
+import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.*;
@@ -91,10 +92,7 @@ public class GroupsRestController {
                     group.addUser(u);
                 }
             });
-
         }
-
-
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -279,6 +277,16 @@ public class GroupsRestController {
         Set<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class))
                 .collect(Collectors.toSet());
         return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/{groupId}/assign/{roleType}")
+    @ApiOperation(httpMethod = "PUT", value = "Assigns role to group with given groupId")
+    public ResponseEntity<GroupDTO> assignRole(
+            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
+            @ApiParam(value = "roleType", required = true) @PathVariable("roleType") RoleType roleType) {
+
+        IDMGroup updatedGroup = groupService.assignRole(groupId, roleType);
+        return new ResponseEntity<>(convertToGroupDTO(updatedGroup), HttpStatus.OK);
     }
 
     private UserForGroupsDTO convertToUserForGroupsDTO(User user) {

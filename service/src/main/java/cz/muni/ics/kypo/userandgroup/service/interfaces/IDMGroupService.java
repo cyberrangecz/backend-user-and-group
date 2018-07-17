@@ -21,6 +21,7 @@ package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
+import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 
@@ -133,4 +134,13 @@ public interface IDMGroupService {
      * @return all roles of group with given id
      */
     Set<Role> getRolesOfGroup(Long id);
+
+    /**
+     * Assigns role to group with given groupId
+     *
+     * @param groupId id of group which will get role with role type
+     * @param roleType type of assigning role
+     * @return group with assigned role with given role type
+     */
+    IDMGroup assignRole(Long groupId, RoleType roleType);
 }

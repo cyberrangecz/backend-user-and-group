@@ -21,8 +21,10 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
+import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
 import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.persistence.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
@@ -43,9 +45,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     private final IDMGroupRepository groupRepository;
 
+    private final RoleRepository roleRepository;
+
     @Autowired
-    public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository) {
+    public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository) {
         this.groupRepository = idmGroupRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -63,6 +68,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
     public IDMGroup create(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
+        group.setStatus(UserAndGroupStatus.VALID);
         IDMGroup g = groupRepository.save(group);
         log.info(group + " created.");
         return g;
@@ -186,6 +192,38 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public Set<Role> getRolesOfGroup(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return groupRepository.getRolesOfGroup(id);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    public IDMGroup assignRole(Long groupId, RoleType roleType) {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(roleType, "Input roleType must not be null");
+
+        IDMGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IdentityManagementException("Group with " + groupId + " could not be found."));
+
+        switch (roleType) {
+            case ADMINISTRATOR:
+                Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name())
+                        .orElseThrow(() ->
+                                new IdentityManagementException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                log.info("ADMINISTRATOR");
+                group.addRole(adminRole);
+            case USER:
+                Role userRole = roleRepository.findByRoleType(RoleType.USER.name())
+                        .orElseThrow(() ->
+                                new IdentityManagementException(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                group.addRole(userRole);
+                log.info("USER");
+            case GUEST:
+                Role guestRole = roleRepository.findByRoleType(RoleType.GUEST.name())
+                        .orElseThrow(() ->
+                                new IdentityManagementException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                group.addRole(guestRole);
+                log.info("GUEST");
+        }
+        return groupRepository.save(group);
     }
 
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
