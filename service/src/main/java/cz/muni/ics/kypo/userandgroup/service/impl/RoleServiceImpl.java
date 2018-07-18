@@ -8,6 +8,8 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -69,8 +71,8 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
-    public List<Role> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
+    public Page<Role> getAllRoles(Pageable pageable) {
+        Page<Role> roles = roleRepository.findAll(pageable);
         log.info("All Roles loaded");
         return roles;
     }

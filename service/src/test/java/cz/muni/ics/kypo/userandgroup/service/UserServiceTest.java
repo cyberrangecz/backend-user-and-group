@@ -22,7 +22,6 @@ package cz.muni.ics.kypo.userandgroup.service;
 import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
@@ -37,6 +36,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -76,6 +78,8 @@ public class UserServiceTest {
 
     private Role adminRole, guestRole;
 
+    private Pageable pageable;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
@@ -105,6 +109,8 @@ public class UserServiceTest {
         guestRole = new Role();
         guestRole.setRoleType(RoleType.GUEST.name());
         guestRole.setId(2L);
+
+        pageable = PageRequest.of(0, 10);
     }
 
     @Test
@@ -349,11 +355,12 @@ public class UserServiceTest {
 
     @Test
     public void getAllUsers() {
-        given(userRepository.findAll()).willReturn(Arrays.asList(user1, user2));
-        List<User> users = userService.getAllUsers();
+        given(userRepository.findAll(pageable))
+                .willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        List<User> users = userService.getAllUsers(pageable).getContent();
         assertTrue(users.contains(user1));
         assertTrue(users.contains(user2));
-        then(userRepository).should().findAll();
+        then(userRepository).should().findAll(pageable);
     }
 
     @Test

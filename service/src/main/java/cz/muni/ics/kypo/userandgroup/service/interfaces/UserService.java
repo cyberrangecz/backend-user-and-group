@@ -23,6 +23,8 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -107,7 +109,7 @@ public interface UserService {
      *
      * @return users in database
      */
-    List<User> getAllUsers();
+    Page<User> getAllUsers(Pageable pageable);
 
     /**
      * Returns user with IDM groups from database

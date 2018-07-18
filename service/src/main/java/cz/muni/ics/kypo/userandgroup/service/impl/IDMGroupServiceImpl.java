@@ -29,6 +29,8 @@ import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -130,8 +132,8 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
-    public List<IDMGroup> getAllIDMGroups() {
-        List<IDMGroup> groups = groupRepository.findAll();
+    public Page<IDMGroup> getAllIDMGroups(Pageable pageable) {
+        Page<IDMGroup> groups = groupRepository.findAll(pageable);
         log.info("All IDM Groups loaded");
         return groups;
     }
@@ -151,10 +153,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
-    public List<IDMGroup> getIDMGroupsByName(String name) throws IdentityManagementException {
+    public Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
-        List<IDMGroup> groups = groupRepository.findAllByName(name);
-        if (groups != null && !groups.isEmpty()) {
+        Page<IDMGroup> groups = groupRepository.findAllByName(name, pageable);
+        if (groups != null && groups.getTotalElements() != 0) {
             log.info(groups.toString() + " loaded.");
         } else {
             log.error("IDM Groups with name containing " + name + " not empty");
@@ -178,10 +180,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             "or @securityService.isLoggedInUserInGroup(#name)")
     public IDMGroup getIDMGroupWithUsers(String name) throws IdentityManagementException {
         Assert.hasLength(name, "Input name of group must not be empty");
-        List<IDMGroup> groups = getIDMGroupsByName(name);
-        IDMGroup g = groups.get(0);
-        g.getUsers().size();
-        return g;
+        IDMGroup group = getIDMGroupByName(name);
+        group.getUsers().size();
+        return group;
     }
 
     @Override

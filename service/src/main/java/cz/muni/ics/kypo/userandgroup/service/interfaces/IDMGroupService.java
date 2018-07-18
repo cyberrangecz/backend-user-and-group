@@ -24,6 +24,8 @@ import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
 import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -68,7 +70,7 @@ public interface IDMGroupService {
      *
      * @return IDM groups in database
      */
-    List<IDMGroup> getAllIDMGroups();
+    Page<IDMGroup> getAllIDMGroups(Pageable pageable);
 
     /**
      * Gets IDM group with given name from database.
@@ -86,7 +88,7 @@ public interface IDMGroupService {
      * @return IDM groups with given name
      * @throws IdentityManagementException
      */
-    List<IDMGroup> getIDMGroupsByName(String name) throws IdentityManagementException;
+    Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws IdentityManagementException;
 
     /**
      * Returns IDM group with assigned users from database

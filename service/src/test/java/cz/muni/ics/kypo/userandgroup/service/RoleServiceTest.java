@@ -16,11 +16,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
-
-import javax.persistence.EntityNotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +50,8 @@ public class RoleServiceTest {
 
     private Role adminRole, userRole;
 
+    private Pageable pageable;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
@@ -62,6 +65,8 @@ public class RoleServiceTest {
         userRole = new Role();
         userRole.setRoleType(RoleType.USER.name());
         userRole.setId(2L);
+
+        pageable = PageRequest.of(0, 10);
     }
 
     @Test
@@ -149,18 +154,19 @@ public class RoleServiceTest {
 
     @Test
     public void getAllRoles() {
-        given(roleRepository.findAll()).willReturn(Arrays.asList(adminRole, userRole));
+        given(roleRepository.findAll(pageable))
+                .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
 
         Role role = new Role();
         role.setRoleType(RoleType.GUEST.name());
 
-        List<Role> roles = roleService.getAllRoles();
+        List<Role> roles = roleService.getAllRoles(pageable).getContent();
         assertEquals(2, roles.size());
         assertTrue(roles.contains(adminRole));
         assertTrue(roles.contains(userRole));
         assertFalse(roles.contains(role));
 
-        then(roleRepository).should().findAll();
+        then(roleRepository).should().findAll(pageable);
     }
 
     @After

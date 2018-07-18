@@ -29,6 +29,8 @@ import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -169,8 +171,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
-    public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
         log.info("All Users loaded");
         return users;
     }

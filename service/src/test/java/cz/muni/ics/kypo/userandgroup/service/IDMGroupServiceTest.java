@@ -35,6 +35,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +74,8 @@ public class IDMGroupServiceTest {
 
     private Role adminRole, guestRole;
 
+    private Pageable pageable;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
@@ -93,6 +98,8 @@ public class IDMGroupServiceTest {
 
         ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(new Role[0], HttpStatus.OK);
         given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
+
+        pageable = PageRequest.of(0, 10);
     }
 
     @Test
@@ -207,18 +214,19 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getAllGroups() {
-        given(groupRepository.findAll()).willReturn(Arrays.asList(group1, group2));
+        given(groupRepository.findAll(pageable))
+                .willReturn(new PageImpl<>(Arrays.asList(group1, group2)));
 
         // do not create user3
         IDMGroup group3 = new IDMGroup("Participants", "thrird group");
 
-        List<IDMGroup> groups = groupService.getAllIDMGroups();
+        List<IDMGroup> groups = groupService.getAllIDMGroups(pageable).getContent();
         assertEquals(2, groups.size());
         assertTrue(groups.contains(group1));
         assertTrue(groups.contains(group2));
         assertFalse(groups.contains(group3));
 
-        then(groupRepository).should().findAll();
+        then(groupRepository).should().findAll(pageable);
     }
 
     @Test
@@ -257,35 +265,35 @@ public class IDMGroupServiceTest {
     @Test
     public void getIDMGroupsByName() {
         group2.setName(group1.getName());
-        given(groupRepository.findAllByName(group1.getName())).willReturn(Arrays.asList(group1, group2));
+        given(groupRepository.findAllByName(group1.getName(), pageable)).willReturn(new PageImpl<>(Arrays.asList(group1, group2)));
 
-        List<IDMGroup> groups = groupService.getIDMGroupsByName(group1.getName());
+        List<IDMGroup> groups = groupService.getIDMGroupsByName(group1.getName(), pageable).getContent();
         assertTrue(groups.contains(group1));
         assertTrue(groups.contains(group2));
 
-        then(groupRepository).should().findAllByName(group1.getName());
+        then(groupRepository).should().findAllByName(group1.getName(), pageable);
     }
 
     @Test
     public void getIDMGroupsByNameNotFoundShouldThrowException() {
         thrown.expect(IdentityManagementException.class);
         thrown.expectMessage("IDM Groups with name containing " + group1.getName() + " not found");
-        given(groupRepository.findAllByName(group1.getName())).willReturn(null);
-        groupService.getIDMGroupsByName(group1.getName());
+        given(groupRepository.findAllByName(group1.getName(), pageable)).willReturn(new PageImpl<>(new ArrayList<>()));
+        groupService.getIDMGroupsByName(group1.getName(), pageable);
     }
 
     @Test
     public void getGroupsByNameWithNullNameShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input name of group must not be empty");
-        groupService.getIDMGroupsByName(null);
+        groupService.getIDMGroupsByName(null, pageable);
     }
 
     @Test
     public void getGroupsByNameWithEmptyNameShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input name of group must not be empty");
-        groupService.getIDMGroupsByName("");
+        groupService.getIDMGroupsByName("", pageable);
     }
 
     @Test
@@ -298,10 +306,11 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getGroupsByNameWithUsers() {
-        given(groupRepository.findAllByName(group1.getName())).willReturn(Collections.singletonList(group1));
+        given(groupRepository.findByName(group1.getName()))
+                .willReturn(Optional.of(group1));
         IDMGroup g = groupService.getIDMGroupWithUsers(group1.getName());
         deepEqruals(group1, g);
-        then(groupRepository).should().findAllByName(group1.getName());
+        then(groupRepository).should().findByName(group1.getName());
     }
 
     @Test
