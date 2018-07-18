@@ -36,7 +36,10 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
@@ -61,6 +64,9 @@ public class IDMGroupServiceTest {
     @MockBean
     private IDMGroupRepository groupRepository;
 
+    @MockBean
+    private RestTemplate restTemplate;
+
     private IDMGroup group1, group2;
 
     private Role adminRole, guestRole;
@@ -84,6 +90,9 @@ public class IDMGroupServiceTest {
         guestRole = new Role();
         guestRole.setRoleType(RoleType.GUEST.name());
         guestRole.setId(2L);
+
+        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(new Role[0], HttpStatus.OK);
+        given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
     }
 
     @Test
