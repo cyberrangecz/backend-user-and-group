@@ -2,6 +2,8 @@ package cz.muni.ics.kypo.userandgroup.persistence;
 
 import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +19,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long> {
 
     Optional<IDMGroup> findByName(String name);
 
-    List<IDMGroup> findAllByName(String name);
+    Page<IDMGroup> findAllByName(String name, Pageable pageable);
 
     @Query("SELECT g FROM IDMGroup AS g INNER JOIN g.roles AS r WHERE r.roleType = :roleType")
     List<IDMGroup> findAllByRoleType(@Param("roleType") String roleType);

@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
@@ -34,6 +37,8 @@ public class IDMGroupRepositoryTest {
 
     private Role adminRole, userRole, guestRole;
 
+    private Pageable pageable;
+
     @SpringBootApplication
     static class TestConfiguration {
     }
@@ -50,6 +55,8 @@ public class IDMGroupRepositoryTest {
         guestRole.setRoleType(RoleType.GUEST.name());
 
         group = new IDMGroup("groupWithRoles", "Group with roles");
+
+        pageable = PageRequest.of(0, 10);
     }
 
     @Test
@@ -79,17 +86,17 @@ public class IDMGroupRepositoryTest {
         this.entityManager.persist(group1);
         this.entityManager.persist(group2);
 
-        List<IDMGroup> groups = this.groupRepository.findAllByName(expectedName);
-        assertEquals(2, groups.size());
-        assertTrue(groups.contains(group1));
-        assertTrue(groups.contains(group2));
+        Page<IDMGroup> groups = this.groupRepository.findAllByName(expectedName, pageable);
+        assertEquals(2, groups.getTotalElements());
+        assertTrue(groups.getContent().contains(group1));
+        assertTrue(groups.getContent().contains(group2));
     }
 
     @Test
     public void findAllByNameNotFound() {
-        List<IDMGroup> groups = this.groupRepository.findAllByName("group");
+        Page<IDMGroup> groups = this.groupRepository.findAllByName("group", pageable);
         assertNotNull(groups);
-        assertTrue(groups.isEmpty());
+        assertEquals(0, groups.getTotalElements());
     }
 
     @Test
