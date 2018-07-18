@@ -21,6 +21,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -60,15 +64,20 @@ public class UsersRestControllerTest {
 
     private MockMvc mockMvc;
 
+    private Pageable pageable;
+
     @Before
     public void setup() throws  RuntimeException {
+        pageable = PageRequest.of(0, 10);
+
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(usersRestController)
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        given(userService.getAllUsers()).willReturn(Arrays.asList(getUser()));
+        given(userService.getAllUsers(pageable)).willReturn(new PageImpl<>(Arrays.asList(getUser())));
         given(userService.getUserWithGroups(anyLong())).willReturn(getUser());
         given(userService.create(any(User.class))).willReturn(getUser());
         given(userService.isUserInternal(anyLong())).willReturn(true);
@@ -102,7 +111,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUsersWithErrorWhileLoading() throws Exception {
-        given(userService.getAllUsers()).willThrow(new IdentityManagementException());
+        given(userService.getAllUsers(pageable)).willThrow(new IdentityManagementException());
         Exception ex  = mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/"))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
@@ -119,7 +128,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingAllUsers() throws Exception {
-        given(userService.getAllUsers()).willThrow(new IdentityManagementException());
+        given(userService.getAllUsers(pageable)).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId()))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();

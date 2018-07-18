@@ -15,6 +15,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -49,11 +53,16 @@ public class RoleRestControllerTest {
 
     private RoleDTO adminRoleDTO, userRoleDTO;
 
+    private Pageable pageable;
+
     @Before
     public void setup() throws  RuntimeException {
+        pageable = PageRequest.of(0, 10);
+
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(roleRestController)
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
@@ -84,7 +93,7 @@ public class RoleRestControllerTest {
 
     @Test
     public void getRoles() throws Exception {
-        given(roleService.getAllRoles()).willReturn(Arrays.asList(adminRole, userRole));
+        given(roleService.getAllRoles(pageable)).willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
         mockMvc.perform(get(ApiEndpointsUserAndGroup.ROLES_URL + "/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))

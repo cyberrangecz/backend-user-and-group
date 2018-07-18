@@ -20,9 +20,13 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -238,18 +242,18 @@ public class GroupsRestController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get groups.", produces = "application/json")
-    public ResponseEntity<List<GroupDTO>> getGroups() {
-        List<IDMGroup> groups = new ArrayList<>();
+    public ResponseEntity<List<GroupDTO>> getGroups(@PageableDefault(size = 10) Pageable pageable) {
+        Page<IDMGroup> groups;
         try {
-            groups = groupService.getAllIDMGroups();
+            groups = groupService.getAllIDMGroups(pageable);
         } catch (IdentityManagementException e) {
             throw new ServiceUnavailableException("Error while loading all groups from database.");
         }
         List<GroupDTO> groupDTOs = new ArrayList<>();
 
-        groups.forEach(group -> {
-            IDMGroup g = groupService.getIDMGroupWithUsers(group.getId());
-            groupDTOs.add(convertToGroupDTO(g));
+        groups.getContent().forEach(group -> {
+//            IDMGroup g = groupService.getIDMGroupWithUsers(group.getId());
+            groupDTOs.add(convertToGroupDTO(group));
         });
 
         return new ResponseEntity<>(groupDTOs, HttpStatus.OK);

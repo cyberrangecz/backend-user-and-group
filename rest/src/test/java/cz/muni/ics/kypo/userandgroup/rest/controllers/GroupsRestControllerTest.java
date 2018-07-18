@@ -23,6 +23,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -44,6 +49,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
+@EnableSpringDataWebSupport
 public class GroupsRestControllerTest  {
 
     @InjectMocks
@@ -60,15 +66,24 @@ public class GroupsRestControllerTest  {
 
     private MockMvc mockMvc;
 
+    private Pageable pageable;
+
+    private int page, size;
+
     @Before
     public void setup() throws  RuntimeException {
+        page = 0;
+        size = 10;
+        pageable = PageRequest.of(page, size);
+
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(groupsRestController)
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        given(groupService.getAllIDMGroups()).willReturn(Arrays.asList(getGroup()));
+        given(groupService.getAllIDMGroups(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(getGroup())));
         given(groupService.getIDMGroupWithUsers(anyLong())).willReturn(getGroup());
         given(groupService.getIDMGroupWithUsers(anyString())).willReturn(getGroup());
         given(groupService.update(any(IDMGroup.class))).willReturn(getGroup());
@@ -363,7 +378,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testGetGroups() throws Exception {
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/"))
+        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/?page=0"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getGroupDTO()))));
@@ -371,7 +386,7 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testGetGroupsWithErrorWhileLoading() throws Exception {
-        given(groupService.getAllIDMGroups()).willThrow( new IdentityManagementException());
+        given(groupService.getAllIDMGroups(pageable)).willThrow( new IdentityManagementException());
         Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/"))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();

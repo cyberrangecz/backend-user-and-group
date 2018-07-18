@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,8 +42,8 @@ public class RoleRestController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get all roles", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<RoleDTO>> getRoles() {
-        List<Role> roles = roleService.getAllRoles();
+    public ResponseEntity<List<RoleDTO>> getRoles(Pageable pageable) {
+        List<Role> roles = roleService.getAllRoles(pageable).getContent();
         List<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toList());
 
         return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
