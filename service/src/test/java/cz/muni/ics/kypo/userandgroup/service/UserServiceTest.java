@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
@@ -65,6 +66,9 @@ public class UserServiceTest {
 
     @MockBean
     private IDMGroupRepository groupRepository;
+
+    @MockBean
+    private RestTemplate restTemplate;
 
     private User user1, user2;
 

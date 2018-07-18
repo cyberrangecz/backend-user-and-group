@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -42,6 +43,9 @@ public class RoleServiceTest {
 
     @MockBean
     private RoleRepository roleRepository;
+
+    @MockBean
+    private RestTemplate restTemplate;
 
     private Role adminRole, userRole;
 
