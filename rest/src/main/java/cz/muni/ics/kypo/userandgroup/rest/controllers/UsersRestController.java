@@ -2,10 +2,10 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;

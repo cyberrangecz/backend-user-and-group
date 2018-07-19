@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.dbmodel;
+package cz.muni.ics.kypo.userandgroup.model;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

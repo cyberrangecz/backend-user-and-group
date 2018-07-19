@@ -2,8 +2,8 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
@@ -22,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;

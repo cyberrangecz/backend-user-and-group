@@ -19,12 +19,12 @@
  */
 package cz.muni.ics.kypo.userandgroup.service;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
-import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
-import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,8 +53,8 @@ import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.dbmodel"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.persistence"})
+@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
 public class UserServiceTest {
 
     @Rule

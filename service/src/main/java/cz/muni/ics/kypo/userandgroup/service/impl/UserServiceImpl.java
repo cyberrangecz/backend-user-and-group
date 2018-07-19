@@ -19,11 +19,13 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
-import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
-import cz.muni.ics.kypo.userandgroup.persistence.RoleRepository;
-import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.slf4j.Logger;
@@ -32,12 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import javax.persistence.EntityNotFoundException;
-import java.security.Principal;
 import java.util.*;
 
 @Service
@@ -56,7 +55,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User get(Long id) throws IdentityManagementException {
         Assert.notNull(id, "Input id must not be null");
@@ -67,7 +66,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public User create(User user) {
         Assert.notNull(user, "Input user must not be null");
         Assert.hasLength(user.getScreenName(), "Screen name of input user must not be empty");
@@ -159,7 +158,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
     public User getUserByScreenName(String screenName) throws IdentityManagementException {
         Assert.hasLength(screenName, "Input screen name must not be empty");
@@ -170,7 +169,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public Page<User> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
         log.info("All Users loaded");
@@ -206,7 +205,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.dbmodel.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public Set<Role> getRolesOfUser(Long id) {
         Assert.notNull(id, "Input id must not be null");

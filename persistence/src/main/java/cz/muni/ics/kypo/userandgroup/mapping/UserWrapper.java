@@ -1,8 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.mapping;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.User;
 
 import java.util.HashSet;
 import java.util.Set;

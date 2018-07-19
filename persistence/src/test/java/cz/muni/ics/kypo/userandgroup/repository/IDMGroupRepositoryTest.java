@@ -1,6 +1,6 @@
-package cz.muni.ics.kypo.userandgroup.persistence;
+package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.*;
+import cz.muni.ics.kypo.userandgroup.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +24,7 @@ import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.dbmodel"})
+@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
 public class IDMGroupRepositoryTest {
 
     @Autowired

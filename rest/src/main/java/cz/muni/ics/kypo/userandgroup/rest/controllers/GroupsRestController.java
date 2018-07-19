@@ -1,10 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.google.common.base.Preconditions;
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.group.*;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
@@ -26,7 +26,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;

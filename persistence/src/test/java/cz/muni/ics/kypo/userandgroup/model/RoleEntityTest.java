@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.dbmodel;
+package cz.muni.ics.kypo.userandgroup.model;
 
 import org.junit.Rule;
 import org.junit.Test;

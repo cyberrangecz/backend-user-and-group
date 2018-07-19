@@ -17,12 +17,11 @@
  *  license, feel free to contact Technology transfer office of the Masaryk university
  *  in order to negotiate ad-hoc license agreement.
  */
-package cz.muni.ics.kypo.userandgroup.dbmodel;
+package cz.muni.ics.kypo.userandgroup.model;
 
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static javax.persistence.GenerationType.IDENTITY;

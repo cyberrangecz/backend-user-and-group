@@ -19,11 +19,14 @@
  */
 package cz.muni.ics.kypo.userandgroup.service;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.*;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
-import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,8 +57,8 @@ import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.dbmodel"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.persistence"})
+@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
 public class IDMGroupServiceTest {
 
     @Rule

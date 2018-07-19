@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
 import com.google.gson.JsonObject;
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
-import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
 import org.slf4j.Logger;

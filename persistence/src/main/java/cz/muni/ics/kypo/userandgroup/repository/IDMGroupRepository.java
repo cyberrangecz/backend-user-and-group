@@ -1,7 +1,7 @@
-package cz.muni.ics.kypo.userandgroup.persistence;
+package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

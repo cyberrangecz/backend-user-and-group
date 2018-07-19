@@ -1,7 +1,7 @@
-package cz.muni.ics.kypo.userandgroup.persistence;
+package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

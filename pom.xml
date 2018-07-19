@@ -7,7 +7,6 @@
     <artifactId>kypo2-user-and-group</artifactId>
     <version>1.0.0</version>
     <modules>
-        <module>db-model</module>
         <module>service</module>
         <module>rest</module>
         <module>persistence</module>

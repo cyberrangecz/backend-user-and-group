@@ -1,10 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.security.service;
 
 import com.google.gson.JsonObject;
-import cz.muni.ics.kypo.userandgroup.dbmodel.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
-import cz.muni.ics.kypo.userandgroup.persistence.IDMGroupRepository;
-import cz.muni.ics.kypo.userandgroup.persistence.UserRepository;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;

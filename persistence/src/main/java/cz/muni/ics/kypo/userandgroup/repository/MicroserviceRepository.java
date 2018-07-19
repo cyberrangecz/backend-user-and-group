@@ -1,6 +1,6 @@
-package cz.muni.ics.kypo.userandgroup.persistence;
+package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

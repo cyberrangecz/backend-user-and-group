@@ -17,7 +17,7 @@
  *  license, feel free to contact Technology transfer office of the Masaryk university
  *  in order to negotiate ad-hoc license agreement.
  */
-package cz.muni.ics.kypo.userandgroup.dbmodel;
+package cz.muni.ics.kypo.userandgroup.model;
 
 
 public enum UserAndGroupStatus {

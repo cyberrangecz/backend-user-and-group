@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
-import cz.muni.ics.kypo.userandgroup.persistence.RoleRepository;
+import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.junit.After;
 import org.junit.Before;
@@ -32,8 +32,8 @@ import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.dbmodel"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.persistence"})
+@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
 public class RoleServiceTest {
 
     @Rule

@@ -19,8 +19,8 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
-import cz.muni.ics.kypo.userandgroup.dbmodel.User;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.springframework.data.domain.Page;

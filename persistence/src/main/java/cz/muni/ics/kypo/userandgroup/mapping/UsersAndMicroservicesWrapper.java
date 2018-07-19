@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.mapping;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
 
 import java.util.ArrayList;
 import java.util.List;

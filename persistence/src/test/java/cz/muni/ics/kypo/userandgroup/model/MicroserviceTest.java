@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.dbmodel;
+package cz.muni.ics.kypo.userandgroup.model;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
-public class IDMGroupEntityTest {
+public class MicroserviceTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -22,8 +22,8 @@ public class IDMGroupEntityTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private String name = "group";
-    private String description = "aswesome group";
+    private String name = "Training";
+    private String endpoint = "/training/roles";
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -32,36 +32,42 @@ public class IDMGroupEntityTest {
     @Test
     public void createWhenNameIsNullShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Name of group must not be empty");
-        new IDMGroup(null, description);
+        this.thrown.expectMessage("Name of microservice must not be empty");
+        new Microservice(null, endpoint);
     }
 
     @Test
     public void createWhenNameIsEmptyShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Name of group must not be empty");
-        new IDMGroup("", description);
+        this.thrown.expectMessage("Name of microservice must not be empty");
+        new Microservice("", endpoint);
     }
 
     @Test
-    public void createWhenDescriptionIsNullShouldThrowException() {
+    public void createWhenEndpointIsNullShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Description of group must not be empty");
-        new IDMGroup(name, "");
+        this.thrown.expectMessage("Endpoint of microservice must not be empty");
+        new Microservice(name, null);
     }
 
     @Test
-    public void createWhenDescriptionIsEmptyShouldThrowException() {
+    public void createWhenEndpointIsEmptyShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Description of group must not be empty");
-        new IDMGroup(name, "");
+        this.thrown.expectMessage("Endpoint of microservice must not be empty");
+        new Microservice(name, "");
+    }
+
+    @Test
+    public void createWhenEndpoinContainsWhitespaceShouldThrowException() {
+        this.thrown.expect(IllegalArgumentException.class);
+        this.thrown.expectMessage("Endpoint of microservice must not contain whitespace");
+        new Microservice(name, "/training / roles");
     }
 
     @Test
     public void saveShouldPersistData() {
-        IDMGroup g = this.entityManager.persistFlushFind(new IDMGroup(name, description));
-        assertEquals(name, g.getName());
-        assertEquals(UserAndGroupStatus.VALID, g.getStatus());
-        assertEquals(description, g.getDescription());
+        Microservice m = this.entityManager.persistFlushFind(new Microservice(name, endpoint));
+        assertEquals(name, m.getName());
+        assertEquals(endpoint, m.getEndpoint());
     }
 }

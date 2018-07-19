@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.Role;
+import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;

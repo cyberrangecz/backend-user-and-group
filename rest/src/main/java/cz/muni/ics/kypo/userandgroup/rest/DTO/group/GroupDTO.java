@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.rest.DTO.group;
 
-import cz.muni.ics.kypo.userandgroup.dbmodel.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.Source;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
