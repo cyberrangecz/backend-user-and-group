@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +43,8 @@ public class RoleRestController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get all roles", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<RoleDTO>> getRoles(Pageable pageable) {
+    public ResponseEntity<List<RoleDTO>> getRoles(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+        LOGGER.info(pageable.toString());
         List<Role> roles = roleService.getAllRoles(pageable).getContent();
         List<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toList());
 

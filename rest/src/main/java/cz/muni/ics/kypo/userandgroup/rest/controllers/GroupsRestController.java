@@ -242,7 +242,7 @@ public class GroupsRestController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get groups.", produces = "application/json")
-    public ResponseEntity<List<GroupDTO>> getGroups(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<List<GroupDTO>> getGroups(@PageableDefault(size = 10, page = 0) Pageable pageable) {
         Page<IDMGroup> groups;
         try {
             groups = groupService.getAllIDMGroups(pageable);

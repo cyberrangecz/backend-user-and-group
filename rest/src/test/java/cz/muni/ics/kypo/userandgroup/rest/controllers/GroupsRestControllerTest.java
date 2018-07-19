@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @EnableSpringDataWebSupport
-public class GroupsRestControllerTest  {
+public class GroupsRestControllerTest {
 
     @InjectMocks
     private GroupsRestController groupsRestController;
@@ -66,15 +66,12 @@ public class GroupsRestControllerTest  {
 
     private MockMvc mockMvc;
 
-    private Pageable pageable;
-
     private int page, size;
 
     @Before
-    public void setup() throws  RuntimeException {
+    public void setup() throws RuntimeException {
         page = 0;
         size = 10;
-        pageable = PageRequest.of(page, size);
 
         MockitoAnnotations.initMocks(this);
 
@@ -92,7 +89,7 @@ public class GroupsRestControllerTest  {
         given(groupService.getIDMGroupWithUsers(anyString())).willReturn(getGroup());
         given(groupService.get(anyLong())).willReturn(getGroup());
         given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
-        given(groupService.deleteGroups(anyList())).willReturn(ImmutableMap.of(getGroup(),GroupDeletionStatus.SUCCESS));
+        given(groupService.deleteGroups(anyList())).willReturn(ImmutableMap.of(getGroup(), GroupDeletionStatus.SUCCESS));
 
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
         given(beanMapping.mapTo(any(NewGroupDTO.class), eq(IDMGroup.class))).willReturn(getGroup());
@@ -111,10 +108,10 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testCreateGroup() throws Exception {
-
-        mockMvc.perform(post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getNewGroupDTO())))
+        mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getNewGroupDTO())))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
@@ -122,10 +119,11 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testCreateGroupCouldNotBeCreated() throws Exception {
-        given(groupService.create(any(IDMGroup.class))).willThrow( new IdentityManagementException());
-        Exception ex = mockMvc.perform(post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getNewGroupDTO())))
+        given(groupService.create(any(IDMGroup.class))).willThrow(new IdentityManagementException());
+        Exception ex = mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getNewGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Invalid group's information or could not be created in database.", ex.getMessage());
@@ -134,56 +132,63 @@ public class GroupsRestControllerTest  {
     @Test
     public void testCreateGroupWithUserNotInDB() throws Exception {
         given(userService.getUserByScreenName(anyString())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getNewGroupDTO())))
+        Exception ex = mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getNewGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Invalid group's information or could not be created in database.", ex.getMessage());
     }
 
     @Test
-    public void  testCreateGroupWithNullRequestBody () throws Exception {
-        mockMvc.perform(post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(null)))
+    public void testCreateGroupWithNullRequestBody() throws Exception {
+        mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void  testUpdateGroup () throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getGroup())))
+    public void testUpdateGroup() throws Exception {
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getGroup())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
     }
 
     @Test
-    public void  testUpdateExternalGroup () throws Exception {
+    public void testUpdateExternalGroup() throws Exception {
         given(groupService.isGroupInternal(anyLong())).willReturn(false);
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getGroupDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group is external therefore they could not be updated", ex.getMessage());
     }
 
     @Test
-    public void  testUpdateGroupNotInDB () throws Exception {
+    public void testUpdateGroupNotInDB() throws Exception {
         given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getGroupDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getGroupDTO())))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
     }
 
     @Test
-    public void  testUpdateGroupWithUpdateError () throws Exception {
+    public void testUpdateGroupWithUpdateError() throws Exception {
         given(groupService.update(any(IDMGroup.class))).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -194,63 +199,69 @@ public class GroupsRestControllerTest  {
     }
 
     @Test
-    public void  testUpdateGroupWithNullNameAndDescription () throws Exception {
+    public void testUpdateGroupWithNullNameAndDescription() throws Exception {
         GroupDTO groupDTO = new GroupDTO();
         groupDTO.setId(1L);
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(groupDTO)))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(groupDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group name neither group description cannot be null.", ex.getMessage());
     }
 
     @Test
-    public void  testRemoveMembers () throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", getGroup().getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+    public void testRemoveMembers() throws Exception {
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", getGroup().getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
     }
 
     @Test
-    public void  testRemoveMembersFromGroupNotInDB () throws Exception {
+    public void testRemoveMembersFromGroupNotInDB() throws Exception {
         given(groupService.getIDMGroupWithUsers(anyString())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
     }
 
     @Test
-    public void  testRemoveMembersWithUpdateError () throws Exception {
+    public void testRemoveMembersWithUpdateError() throws Exception {
         given(groupService.update(any(IDMGroup.class))).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
     }
 
     @Test
-    public void  testRemoveMembersWithNullRequestBody () throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(null)))
+    public void testRemoveMembersWithNullRequestBody() throws Exception {
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void  testRemoveMembersFromExternalGroup () throws Exception {
+    public void testRemoveMembersFromExternalGroup() throws Exception {
         given(groupService.isGroupInternal(anyLong())).willReturn(false);
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group is external therefore they could not be updated", ex.getMessage());
@@ -258,9 +269,10 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testAddMembers() throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
@@ -269,9 +281,10 @@ public class GroupsRestControllerTest  {
     @Test
     public void testAddMembersToGroupNotInDB() throws Exception {
         given(groupService.getIDMGroupWithUsers(anyString())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
@@ -280,9 +293,10 @@ public class GroupsRestControllerTest  {
     @Test
     public void testAddMembersWithMemberNotInDB() throws Exception {
         given(userService.get(anyLong())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
@@ -291,9 +305,10 @@ public class GroupsRestControllerTest  {
     @Test
     public void testAddMembersWithUpdateError() throws Exception {
         given(groupService.update(any(IDMGroup.class))).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
@@ -301,57 +316,63 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testAddMembersWithNullRequestBody() throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(null)))
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testAddMembersToExternalGroup() throws Exception {
         given(groupService.isGroupInternal(anyLong())).willReturn(false);
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group is external therefore they could not be updated", ex.getMessage());
     }
 
     @Test
-    public void testDeleteGroup() throws  Exception {
-        mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+    public void testDeleteGroup() throws Exception {
+        mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDeletionResponse())));
     }
 
     @Test
-    public void testDeleteGroupNotInDB() throws  Exception {
+    public void testDeleteGroupNotInDB() throws Exception {
         given(groupService.get(anyLong())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        Exception ex = mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("Group with id " + getGroup().getId() + " could not be found.", ex.getMessage());
     }
 
     @Test
-    public void testDeleteGroupWithDeleteError() throws  Exception {
+    public void testDeleteGroupWithDeleteError() throws Exception {
         given(groupService.delete(any(IDMGroup.class))).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        Exception ex = mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
         assertEquals(ex.getMessage(), "Some error occurred during deletion of group with name " + getGroup().getName() + ". Please, try it later.");
     }
 
     @Test
-    public void testDeleteExternalGroup() throws  Exception {
+    public void testDeleteExternalGroup() throws Exception {
         given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.EXTERNAL_VALID);
-        Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        Exception ex = mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
         assertEquals("Group with name " + getGroup().getName() + " cannot be deleted because is from external source and is valid group.", ex.getMessage());
@@ -359,9 +380,10 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testDeleteGroups() throws Exception {
-        mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+        mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getGroupDeletionResponse()))));
@@ -370,15 +392,19 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testDeleteGroupsWithNoRequestBody() throws Exception {
-        mockMvc.perform(delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
     }
 
     @Test
     public void testGetGroups() throws Exception {
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/?page=0"))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                    .param("page", String.valueOf(page))
+                    .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getGroupDTO()))));
@@ -386,8 +412,11 @@ public class GroupsRestControllerTest  {
 
     @Test
     public void testGetGroupsWithErrorWhileLoading() throws Exception {
-        given(groupService.getAllIDMGroups(pageable)).willThrow( new IdentityManagementException());
-        Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/"))
+        given(groupService.getAllIDMGroups(any(Pageable.class))).willThrow(new IdentityManagementException());
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
         assertEquals("Error while loading all groups from database.", ex.getMessage());
@@ -397,7 +426,8 @@ public class GroupsRestControllerTest  {
     public void testGetGroup() throws Exception {
         IDMGroup group = getGroup();
         given(groupService.get(group.getId())).willReturn(group);
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", group.getId()))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", group.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
@@ -407,7 +437,8 @@ public class GroupsRestControllerTest  {
     public void testGetRolesOfGroup() throws Exception {
         IDMGroup g = getGroup();
         given(groupService.getRolesOfGroup(g.getId())).willReturn(getRoles());
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", g.getId()))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", g.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));

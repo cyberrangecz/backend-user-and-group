@@ -53,11 +53,12 @@ public class RoleRestControllerTest {
 
     private RoleDTO adminRoleDTO, userRoleDTO;
 
-    private Pageable pageable;
+    private int page, size;
 
     @Before
-    public void setup() throws  RuntimeException {
-        pageable = PageRequest.of(0, 10);
+    public void setup() throws RuntimeException {
+        page = 0;
+        size = 10;
 
         MockitoAnnotations.initMocks(this);
 
@@ -93,8 +94,11 @@ public class RoleRestControllerTest {
 
     @Test
     public void getRoles() throws Exception {
-        given(roleService.getAllRoles(pageable)).willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.ROLES_URL + "/"))
+        given(roleService.getAllRoles(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.ROLES_URL + "/")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(adminRoleDTO, userRoleDTO))));
@@ -103,7 +107,8 @@ public class RoleRestControllerTest {
     @Test
     public void getRole() throws Exception {
         given(roleService.getById(adminRole.getId())).willReturn(adminRole);
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRole.getId()))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRole.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(adminRoleDTO)));
@@ -112,7 +117,8 @@ public class RoleRestControllerTest {
     @Test
     public void getRoleNotFoundShouldThrowException() throws Exception {
         given(roleService.getById(adminRole.getId())).willThrow(IdentityManagementException.class);
-        Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRole.getId()))
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRole.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("Role with given id could not be found", ex.getMessage());

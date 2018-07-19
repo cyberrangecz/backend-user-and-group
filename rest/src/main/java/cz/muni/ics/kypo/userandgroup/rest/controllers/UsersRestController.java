@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class UsersRestController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets all users.", produces = "application/json")
-    public ResponseEntity<List<UserDTO>> getUsers(Pageable pageable) {
+    public ResponseEntity<List<UserDTO>> getUsers(@PageableDefault(size = 10, page = 0) Pageable pageable) {
         try {
             List<User> users = userService.getAllUsers(pageable).getContent();
             List<UserDTO> userDTOS = users.stream().map(user -> convertToUserDTO(user))
@@ -81,7 +82,7 @@ public class UsersRestController {
     @GetMapping(path = "/except/in/group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets all users except users in given group.", produces = "application/json")
     public ResponseEntity<List<UserDTO>> getAllUsersNotInGivenGroup(@ApiParam(value = "Id of group whose users do not get.",
-            required = true) @PathVariable("groupId") final Long groupId, Pageable pageable) {
+            required = true) @PathVariable("groupId") final Long groupId, @PageableDefault(size = 10, page = 0) Pageable pageable) {
         try {
             List<User> users = new ArrayList<>(userService.getAllUsers(pageable).getContent());
             IDMGroup group = groupService.getIDMGroupWithUsers(groupId);

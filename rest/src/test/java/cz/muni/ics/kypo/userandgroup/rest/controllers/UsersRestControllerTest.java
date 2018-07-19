@@ -64,12 +64,11 @@ public class UsersRestControllerTest {
 
     private MockMvc mockMvc;
 
-    private Pageable pageable;
+    private int page = 0;
+    private int size = 10;
 
     @Before
     public void setup() throws  RuntimeException {
-        pageable = PageRequest.of(0, 10);
-
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(usersRestController)
@@ -77,7 +76,7 @@ public class UsersRestControllerTest {
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        given(userService.getAllUsers(pageable)).willReturn(new PageImpl<>(Arrays.asList(getUser())));
+        given(userService.getAllUsers(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(getUser())));
         given(userService.getUserWithGroups(anyLong())).willReturn(getUser());
         given(userService.create(any(User.class))).willReturn(getUser());
         given(userService.isUserInternal(anyLong())).willReturn(true);
@@ -103,7 +102,10 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUsers() throws Exception {
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/"))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getUserDTO()))));
@@ -111,8 +113,11 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUsersWithErrorWhileLoading() throws Exception {
-        given(userService.getAllUsers(pageable)).willThrow(new IdentityManagementException());
-        Exception ex  = mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/"))
+        given(userService.getAllUsers(any(Pageable.class))).willThrow(new IdentityManagementException());
+        Exception ex  = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
         assertEquals("Some error occurred while loading all users. Please, try it later.", ex.getMessage());
@@ -120,7 +125,10 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetAllUsersNotInGivenGroup() throws Exception {
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId()))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(convertObjectToJsonBytes(Collections.EMPTY_LIST)));
@@ -128,8 +136,11 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingAllUsers() throws Exception {
-        given(userService.getAllUsers(pageable)).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId()))
+        given(userService.getAllUsers(any(Pageable.class))).willThrow(new IdentityManagementException());
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
         assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getMessage());
@@ -138,7 +149,10 @@ public class UsersRestControllerTest {
     @Test
     public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingGroupWithUsers() throws Exception {
         given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId()))
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
         assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getMessage());
@@ -147,9 +161,10 @@ public class UsersRestControllerTest {
     @Test
     public void testCreateNewUser() throws Exception {
 
-        mockMvc.perform(post(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getNewUserDTO())))
+        mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getNewUserDTO())))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getUserDTO())));
@@ -158,18 +173,20 @@ public class UsersRestControllerTest {
     @Test
     public void testCreateNewUserWithNullRequestBody() throws Exception {
 
-        mockMvc.perform(post(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(null)))
+        mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testCreateNewUserWithInvalidInformation() throws Exception {
         given(userService.create(any(User.class))).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(post(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getNewUserDTO())))
+        Exception ex = mockMvc.perform(
+                post(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getNewUserDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Invalid user's information or could not be created.", ex.getMessage());
@@ -177,9 +194,10 @@ public class UsersRestControllerTest {
 
     @Test
     public void testUpdateUser() throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getUpdateUserDTO())))
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getUpdateUserDTO())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getUserDTO())));
@@ -187,18 +205,20 @@ public class UsersRestControllerTest {
 
     @Test
     public void testUpdateUserWithNullRequestBody() throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(null)))
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testUpdateExternalUser() throws Exception {
         given(userService.isUserInternal(anyLong())).willReturn(false);
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getUpdateUserDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getUpdateUserDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("User is external therefore they could not be updated", ex.getMessage());
@@ -207,9 +227,10 @@ public class UsersRestControllerTest {
     @Test
     public void testUpdateUserWithUpdateError() throws Exception {
         given(userService.update(any(User.class))).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getUpdateUserDTO())))
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(getUpdateUserDTO())))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("User could not be updated", ex.getMessage());
@@ -217,8 +238,9 @@ public class UsersRestControllerTest {
 
     @Test
     public void testDeleteUser() throws Exception {
-        mockMvc.perform(delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getUserDeletionResponseDTO())));
@@ -227,8 +249,9 @@ public class UsersRestControllerTest {
     @Test
     public void testDeleteUserNotFound() throws Exception {
         given(userService.get(anyLong())).willThrow(new IdentityManagementException());
-        Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        Exception ex = mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("User with id " + getUser().getId() + " could not be found.", ex.getMessage());
@@ -237,8 +260,9 @@ public class UsersRestControllerTest {
     @Test
     public void testDeleteUserExternalValid() throws Exception {
         given(userService.delete(any(User.class))).willReturn(UserDeletionStatus.EXTERNAL_VALID);
-        Exception ex = mockMvc.perform(delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        Exception ex = mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
         assertEquals("User with login " + getUser().getScreenName() + " cannot be deleted because is from external source and is valid user.", ex.getMessage());
@@ -246,9 +270,10 @@ public class UsersRestControllerTest {
 
     @Test
     public void testDeleteUsers() throws Exception {
-        mockMvc.perform(delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+        mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getUserDeletionResponseDTO()))));
@@ -256,24 +281,27 @@ public class UsersRestControllerTest {
 
     @Test
     public void testDeleteUsersWithNullRequestBody() throws Exception {
-        mockMvc.perform(delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(null)))
+        mockMvc.perform(
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testChangeAdminRole() throws Exception {
-        mockMvc.perform(put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void testChangeAdminRoleWithUserNotInDB() throws Exception {
         willThrow(new IdentityManagementException()).given(userService).changeAdminRole(anyLong());
-        Exception ex =  mockMvc.perform(put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
-                .contentType(MediaType.APPLICATION_JSON))
+        Exception ex =  mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("User or role could not be found.", ex.getMessage());
@@ -283,7 +311,8 @@ public class UsersRestControllerTest {
     public void testGetRolesOfUser() throws Exception {
         User u = getUser();
         given(userService.getRolesOfUser(u.getId())).willReturn(getRoles());
-        mockMvc.perform(get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", u.getId()))
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", u.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
