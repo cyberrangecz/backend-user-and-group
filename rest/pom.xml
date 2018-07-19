@@ -5,28 +5,24 @@
     <parent>
         <artifactId>kypo2-user-and-group</artifactId>
         <groupId>cz.muni.ics.kypo</groupId>
-        <version>1.0.0</version>
+        <version>${project.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>kypo2-rest-user-and-group</artifactId>
     <packaging>war</packaging>
 
-    <properties>
-        <modelmapper.version>0.7.5</modelmapper.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
             <artifactId>kypo2-service-user-and-group</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
             <artifactId>kypo2-security-user-and-group</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -47,16 +43,11 @@
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
-            <version>${swagger.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
-            <version>${swagger.version}</version>
-            <scope>compile</scope>
         </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,7 +58,6 @@
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
-            <version>${modelmapper.version}</version>
         </dependency>
 
     </dependencies>
