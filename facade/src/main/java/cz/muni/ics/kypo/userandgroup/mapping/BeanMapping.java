@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * That class is used for mapping entities to DTO classes. Example of usage for this mapper shown
+ * That class is used for mapping entities to dto classes. Example of usage for this mapper shown
  * below:
  *
  * <pre>
@@ -27,7 +27,7 @@ import java.util.Set;
  * </code>
  * </pre>
  *
- * This example shows mapping list of user entities to list of user DTO classes.
+ * This example shows mapping list of user entities to list of user dto classes.
  *
  * @author Pavel Šeda (441048)
  *

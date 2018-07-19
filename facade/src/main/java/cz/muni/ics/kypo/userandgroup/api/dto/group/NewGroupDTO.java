@@ -1,6 +1,6 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO.group;
+package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 
 import java.util.List;
 

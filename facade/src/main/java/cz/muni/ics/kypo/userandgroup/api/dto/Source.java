@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO;
+package cz.muni.ics.kypo.userandgroup.api.dto;
 
 public enum Source {
 

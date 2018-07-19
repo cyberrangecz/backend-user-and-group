@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO.group;
+package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 

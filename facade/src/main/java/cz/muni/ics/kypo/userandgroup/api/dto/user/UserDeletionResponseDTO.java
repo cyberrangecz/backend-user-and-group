@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO.user;
+package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 

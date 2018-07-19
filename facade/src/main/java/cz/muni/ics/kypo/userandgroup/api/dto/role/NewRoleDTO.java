@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO.role;
+package cz.muni.ics.kypo.userandgroup.api.dto.role;
 
 public class NewRoleDTO {
 

@@ -1,9 +1,9 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO.group;
+package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.Source;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.Source;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 
 import java.util.List;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.rest.DTO.group;
+package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import java.util.List;
 
