@@ -19,6 +19,7 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
@@ -109,7 +110,7 @@ public interface UserService {
      *
      * @return users in database
      */
-    Page<User> getAllUsers(Pageable pageable);
+    Page<User> getAllUsers(Predicate predicate, Pageable pageable);
 
     /**
      * Returns user with IDM groups from database

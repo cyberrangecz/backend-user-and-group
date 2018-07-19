@@ -19,11 +19,9 @@
  */
 package cz.muni.ics.kypo.userandgroup.service;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
@@ -80,6 +78,7 @@ public class IDMGroupServiceTest {
     private Role adminRole, guestRole;
 
     private Pageable pageable;
+    private Predicate predicate;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -219,19 +218,19 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getAllGroups() {
-        given(groupRepository.findAll(pageable))
+        given(groupRepository.findAll(predicate, pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(group1, group2)));
 
         // do not create user3
         IDMGroup group3 = new IDMGroup("Participants", "thrird group");
 
-        List<IDMGroup> groups = groupService.getAllIDMGroups(pageable).getContent();
+        List<IDMGroup> groups = groupService.getAllIDMGroups(predicate, pageable).getContent();
         assertEquals(2, groups.size());
         assertTrue(groups.contains(group1));
         assertTrue(groups.contains(group2));
         assertFalse(groups.contains(group3));
 
-        then(groupRepository).should().findAll(pageable);
+        then(groupRepository).should().findAll(predicate, pageable);
     }
 
     @Test

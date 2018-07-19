@@ -26,6 +26,7 @@ import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.querydsl.core.types.Predicate;
 
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ public interface IDMGroupService {
      *
      * @return IDM groups in database
      */
-    Page<IDMGroup> getAllIDMGroups(Pageable pageable);
+    Page<IDMGroup> getAllIDMGroups(Predicate predicate, Pageable pageable);
 
     /**
      * Gets IDM group with given name from database.

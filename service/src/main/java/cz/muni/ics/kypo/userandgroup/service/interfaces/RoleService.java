@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import org.springframework.data.domain.Page;
@@ -44,5 +45,5 @@ public interface RoleService {
      *
      * @return all roles
      */
-    Page<Role> getAllRoles(Pageable pageable);
+    Page<Role> getAllRoles(Predicate predicate, Pageable pageable);
 }

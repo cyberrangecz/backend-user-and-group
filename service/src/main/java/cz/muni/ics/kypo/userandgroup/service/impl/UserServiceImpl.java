@@ -19,6 +19,7 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -170,8 +171,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Page<User> getAllUsers(Pageable pageable) {
-        Page<User> users = userRepository.findAll(pageable);
+    public Page<User> getAllUsers(Predicate predicate, Pageable pageable) {
+        Page<User> users = userRepository.findAll(predicate, pageable);
         log.info("All Users loaded");
         return users;
     }

@@ -19,6 +19,7 @@
  */
 package cz.muni.ics.kypo.userandgroup.service;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
@@ -79,6 +80,7 @@ public class UserServiceTest {
     private Role adminRole, guestRole;
 
     private Pageable pageable;
+    private Predicate predicate;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -355,12 +357,12 @@ public class UserServiceTest {
 
     @Test
     public void getAllUsers() {
-        given(userRepository.findAll(pageable))
+        given(userRepository.findAll(predicate, pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
-        List<User> users = userService.getAllUsers(pageable).getContent();
+        List<User> users = userService.getAllUsers(predicate, pageable).getContent();
         assertTrue(users.contains(user1));
         assertTrue(users.contains(user2));
-        then(userRepository).should().findAll(pageable);
+        then(userRepository).should().findAll(predicate, pageable);
     }
 
     @Test

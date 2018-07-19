@@ -19,6 +19,7 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
@@ -132,8 +133,8 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Page<IDMGroup> getAllIDMGroups(Pageable pageable) {
-        Page<IDMGroup> groups = groupRepository.findAll(pageable);
+    public Page<IDMGroup> getAllIDMGroups(Predicate predicate, Pageable pageable) {
+        Page<IDMGroup> groups = groupRepository.findAll(predicate, pageable);
         log.info("All IDM Groups loaded");
         return groups;
     }
