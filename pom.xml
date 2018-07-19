@@ -101,6 +101,7 @@
         <module>service</module>
         <module>rest</module>
         <module>security</module>
+        <module>facade</module>
     </modules>
 
 </project>
