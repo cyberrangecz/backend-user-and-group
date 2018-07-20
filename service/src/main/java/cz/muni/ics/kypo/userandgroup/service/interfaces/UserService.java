@@ -89,7 +89,7 @@ public interface UserService {
     void changeAdminRole(Long id) throws IdentityManagementException;
 
     /**
-     * Returns true if user with given screen name has administrator role, false otherwise.
+     * Returns true if user with given id has administrator role, false otherwise.
      *
      * @param id of user checked if they are administrator
      * @throws IdentityManagementException when administrator group could not be  found
@@ -99,11 +99,11 @@ public interface UserService {
     /**
      * Gets user with given user identity from database.
      *
-     * @param screenName of the user to be loaded
+     * @param login of the user to be loaded
      * @return user with given user identity
-     * @throws IdentityManagementException if user with given screen name could not be found
+     * @throws IdentityManagementException if user with given login could not be found
      */
-    User getUserByScreenName(String screenName) throws IdentityManagementException;
+    User getUserByLogin(String login) throws IdentityManagementException;
 
     /**
      * Returns all users from database.
@@ -133,11 +133,11 @@ public interface UserService {
     /**
      * Returns user with IDM groups from database
      *
-     * @param screenName of the user to be loaded
+     * @param login of the user to be loaded
      * @return user with IDM groups in database
      * @throws IdentityManagementException if some error occurred when loading user with groups
      */
-    User getUserWithGroups(String screenName) throws IdentityManagementException;
+    User getUserWithGroups(String login) throws IdentityManagementException;
 
     /**
      * Returns true if user is internal otherwise false

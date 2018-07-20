@@ -92,13 +92,13 @@ public class UserServiceTest {
         user1 = new User();
         user1.setId(1L);
         user1.setFullName("test user1");
-        user1.setScreenName("user1");
+        user1.setLogin("user1");
         user1.setStatus(UserAndGroupStatus.VALID);
 
         user2 = new User();
         user2.setId(2L);
         user2.setFullName("test user2");
-        user2.setScreenName("user2");
+        user2.setLogin("user2");
         user2.setStatus(UserAndGroupStatus.VALID);
 
         adminGroup = new IDMGroup("adminGroup", "Administrator group");
@@ -122,7 +122,7 @@ public class UserServiceTest {
         User u = userService.get(user1.getId());
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
-        assertEquals(user1.getScreenName(), u.getScreenName());
+        assertEquals(user1.getLogin(), u.getLogin());
         assertEquals(UserAndGroupStatus.VALID, u.getStatus());
 
         then(userRepository).should().findById(user1.getId());
@@ -151,7 +151,7 @@ public class UserServiceTest {
         User u = userService.create(user1);
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
-        assertEquals(user1.getScreenName(), u.getScreenName());
+        assertEquals(user1.getLogin(), u.getLogin());
         assertEquals(UserAndGroupStatus.VALID, u.getStatus());
 
         then(userRepository).should().save(user1);
@@ -165,9 +165,9 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUserWithNullScreenNameThrowException() {
+    public void createUserWithNullLoginThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Screen name of input user must not be empty");
+        thrown.expectMessage("Login of input user must not be empty");
         User user = new User();
 
         userService.create(user);
@@ -181,7 +181,7 @@ public class UserServiceTest {
         User u = userService.update(user1);
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
-        assertEquals(user1.getScreenName(), u.getScreenName());
+        assertEquals(user1.getLogin(), u.getLogin());
         assertEquals(UserAndGroupStatus.VALID, u.getStatus());
 
         then(userRepository).should().save(user1);
@@ -195,10 +195,10 @@ public class UserServiceTest {
     }
 
     @Test
-    public void updateUserWithNullScreenNameShouldThrowException() {
+    public void updateUserWithNullLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Screen name of input user must not be empty");
-        user1.setScreenName(null);
+        thrown.expectMessage("Login of input user must not be empty");
+        user1.setLogin(null);
         userService.update(user1);
     }
 
@@ -321,38 +321,38 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getUserByScreenName() {
-        given(userRepository.findByScreenName(user1.getScreenName())).willReturn(Optional.of(user1));
+    public void getUserByLogin() {
+        given(userRepository.findByLogin(user1.getLogin())).willReturn(Optional.of(user1));
 
-        User u = userService.getUserByScreenName(user1.getScreenName());
+        User u = userService.getUserByLogin(user1.getLogin());
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
-        assertEquals(user1.getScreenName(), u.getScreenName());
+        assertEquals(user1.getLogin(), u.getLogin());
         assertEquals(user1.getStatus(), u.getStatus());
 
-        then(userRepository).should().findByScreenName(user1.getScreenName());
+        then(userRepository).should().findByLogin(user1.getLogin());
     }
 
     @Test
-    public void getUserByScreenNameNotFoundShouldThrowException() {
+    public void getUserByLoginNotFoundShouldThrowException() {
         thrown.expect(IdentityManagementException.class);
-        thrown.expectMessage("User with screen name " + user1.getScreenName() + " could not be found");
-        given(userRepository.findByScreenName(anyString())).willReturn(Optional.empty());
-        userService.getUserByScreenName(user1.getScreenName());
+        thrown.expectMessage("User with login " + user1.getLogin() + " could not be found");
+        given(userRepository.findByLogin(anyString())).willReturn(Optional.empty());
+        userService.getUserByLogin(user1.getLogin());
     }
 
     @Test
-    public void getUserByScreenNameWithNullScreenNameShouldThrowException() {
+    public void getUserByLoginWithNullLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input screen name must not be empty");
-        userService.getUserByScreenName(null);
+        thrown.expectMessage("Input login must not be empty");
+        userService.getUserByLogin(null);
     }
 
     @Test
-    public void getUserByScreenNameWithEmptyScreenNameShouldThrowException() {
+    public void getUserByLoginWithEmptyLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input screen name must not be empty");
-        userService.getUserByScreenName("");
+        thrown.expectMessage("Input login must not be empty");
+        userService.getUserByLogin("");
     }
 
     @Test
@@ -374,19 +374,19 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getUserWithGroupsByScreenName() {
-        given(userRepository.findByScreenName(user1.getScreenName())).willReturn(Optional.of(user1));
+    public void getUserWithGroupsByLogin() {
+        given(userRepository.findByLogin(user1.getLogin())).willReturn(Optional.of(user1));
 
-        User u = userService.getUserWithGroups(user1.getScreenName());
+        User u = userService.getUserWithGroups(user1.getLogin());
         assertEquals(user1, u);
 
-        then(userRepository).should().findByScreenName(user1.getScreenName());
+        then(userRepository).should().findByLogin(user1.getLogin());
     }
 
     @Test
-    public void getUserWithGroupsWithEmptyScreenNameShouldThrowException() {
+    public void getUserWithGroupsWithEmptyLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input screen name must not be empty");
+        thrown.expectMessage("Input login must not be empty");
         userService.getUserWithGroups("");
     }
 

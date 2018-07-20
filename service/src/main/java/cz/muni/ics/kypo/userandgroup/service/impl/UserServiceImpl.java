@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public User create(User user) {
         Assert.notNull(user, "Input user must not be null");
-        Assert.hasLength(user.getScreenName(), "Screen name of input user must not be empty");
+        Assert.hasLength(user.getLogin(), "Login of input user must not be empty");
         User u = userRepository.save(user);
         log.info(user + " was created.");
         return u;
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public User update(User updatedUser) throws IdentityManagementException {
         Assert.notNull(updatedUser, "Input user must not be null");
-        Assert.hasLength(updatedUser.getScreenName(), "Screen name of input user must not be empty");
+        Assert.hasLength(updatedUser.getLogin(), "Login of input user must not be empty");
         if (!isUserInternal(updatedUser.getId())) {
             log.error("External user cannot be updated.");
             throw new IdentityManagementException("Error: External user cannot be updated");
@@ -160,11 +160,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
-            "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
-    public User getUserByScreenName(String screenName) throws IdentityManagementException {
-        Assert.hasLength(screenName, "Input screen name must not be empty");
-        Optional<User> optionalUser = userRepository.findByScreenName(screenName);
-        User user = optionalUser.orElseThrow(() -> new IdentityManagementException("User with screen name " + screenName + " could not be found"));
+            "or @securityService.hasLoggedInUserSameLogin(#login)")
+    public User getUserByLogin(String login) throws IdentityManagementException {
+        Assert.hasLength(login, "Input login must not be empty");
+        Optional<User> optionalUser = userRepository.findByLogin(login);
+        User user = optionalUser.orElseThrow(() -> new IdentityManagementException("User with login " + login + " could not be found"));
         log.info(user + " loaded.");
         return user;
     }
@@ -197,10 +197,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
-            "or @securityService.hasLoggedInUserSameScreenName(#screenName)")
-    public User getUserWithGroups(String screenName) throws IdentityManagementException {
-        Assert.hasLength(screenName, "Input screen name must not be empty");
-        User user = getUserByScreenName(screenName);
+            "or @securityService.hasLoggedInUserSameLogin(#login)")
+    public User getUserWithGroups(String login) throws IdentityManagementException {
+        Assert.hasLength(login, "Input login must not be empty");
+        User user = this.getUserByLogin(login);
         user.getGroups().size();
         return user;
     }
