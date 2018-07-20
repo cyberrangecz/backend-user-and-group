@@ -113,6 +113,15 @@ public interface UserService {
     Page<User> getAllUsers(Predicate predicate, Pageable pageable);
 
     /**
+     * Returns all users who are not in group with given groupId
+     *
+     * @param groupId id of group
+     * @param pageable parameter with information about pagination
+     * @return page of users who are not in group with given groupId
+     */
+    Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
+
+    /**
      * Returns user with IDM groups from database
      *
      * @param id of the user to be loaded

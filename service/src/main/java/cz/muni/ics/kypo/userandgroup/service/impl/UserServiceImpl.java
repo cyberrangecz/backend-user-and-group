@@ -178,6 +178,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    public Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
+        Page<User> usersNotInGivenGroup = userRepository.usersNotInGivenGroup(groupId, pageable);
+        log.info("All users who are not in group with id {} was loaded", groupId);
+        return usersNotInGivenGroup;
+    }
+
+    @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User getUserWithGroups(Long id) throws IdentityManagementException {
