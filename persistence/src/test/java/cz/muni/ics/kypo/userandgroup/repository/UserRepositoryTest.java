@@ -57,44 +57,44 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void findByScreenName() throws Exception {
-        String expectedScreenName = "user1";
-        this.entityManager.persist(new User(expectedScreenName));
-        Optional<User> optionalUser = this.userRepository.findByScreenName(expectedScreenName);
+    public void findByLogin() throws Exception {
+        String expectedLogin = "user1";
+        this.entityManager.persist(new User(expectedLogin));
+        Optional<User> optionalUser = this.userRepository.findByLogin(expectedLogin);
         User u = optionalUser.orElseThrow(() -> new Exception("User should be found"));
-        assertEquals(expectedScreenName, u.getScreenName());
+        assertEquals(expectedLogin, u.getLogin());
     }
 
     @Test
-    public void findByScreenNameNotFound() {
-        assertFalse(this.userRepository.findByScreenName("user1").isPresent());
+    public void findByLoginNotFound() {
+        assertFalse(this.userRepository.findByLogin("user1").isPresent());
     }
 
     @Test
-    public void getScreenName() throws Exception {
-        String expectedScreenName = "user1";
-        User u = this.entityManager.persistAndFlush(new User(expectedScreenName));
-        Optional<String> optionalScreenName = this.userRepository.getScreenName(u.getId());
-        String screenName = optionalScreenName.orElseThrow(() -> new Exception("User's screen name should be found"));
-        assertEquals(expectedScreenName, screenName);
+    public void getLogin() throws Exception {
+        String expectedLogin = "user1";
+        User u = this.entityManager.persistAndFlush(new User(expectedLogin));
+        Optional<String> optionalLogin = this.userRepository.getLogin(u.getId());
+        String login = optionalLogin.orElseThrow(() -> new Exception("User's login should be found"));
+        assertEquals(expectedLogin, login);
     }
 
     @Test
-    public void getScreenNameUserNotFound() {
-        assertFalse(this.userRepository.getScreenName(10L).isPresent());
+    public void getLoginUserNotFound() {
+        assertFalse(this.userRepository.getLogin(10L).isPresent());
     }
 
     @Test
     public void isUserInternal() {
-        String expectedScreenName = "user1";
-        User u = this.entityManager.persistAndFlush(new User(expectedScreenName));
+        String expectedLogin = "user1";
+        User u = this.entityManager.persistAndFlush(new User(expectedLogin));
         assertTrue(this.userRepository.isUserInternal(u.getId()));
     }
 
     @Test
     public void isUserExternal() {
-        String expectedScreenName = "user1";
-        User user = new User(expectedScreenName);
+        String expectedLogin = "user1";
+        User user = new User(expectedLogin);
         user.setExternalId(1L);
         User u = this.entityManager.persistAndFlush(user);
         assertFalse(this.userRepository.isUserInternal(u.getId()));

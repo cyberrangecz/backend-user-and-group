@@ -76,7 +76,7 @@ public class StartUpRunner implements ApplicationRunner {
 
     private void loadUsers(List<UserWrapper> users) {
         users.forEach(userWrapper -> {
-            Optional<User> optionalUser = userRepository.getUserByScreenNameWithUsers(userWrapper.getUser().getScreenName());
+            Optional<User> optionalUser = userRepository.getUserByLoginWithUsers(userWrapper.getUser().getLogin());
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
                 Set<Role> rolesOfUserInDB = userRepository.getRolesOfUser(user.getId());
@@ -93,9 +93,9 @@ public class StartUpRunner implements ApplicationRunner {
                     }
                 }
                 userRepository.save(user);
-                LOGGER.info("Roles of user with screen name {} were updated.", user.getScreenName());
+                LOGGER.info("Roles of user with screen name {} were updated.", user.getLogin());
             } else {
-                User newUser = new User(userWrapper.getUser().getScreenName());
+                User newUser = new User(userWrapper.getUser().getLogin());
                 newUser.setFullName(userWrapper.getUser().getFullName());
                 newUser.setMail(userWrapper.getUser().getMail());
                 newUser.setStatus(UserAndGroupStatus.VALID);
@@ -115,7 +115,7 @@ public class StartUpRunner implements ApplicationRunner {
                             ", " + RoleType.USER.name() + ", " + RoleType.GUEST.name());
                 }
                 userRepository.save(newUser);
-                LOGGER.info("User with screen name {} was created.", newUser.getScreenName());
+                LOGGER.info("User with screen name {} was created.", newUser.getLogin());
             }
         });
     }

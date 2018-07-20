@@ -36,8 +36,8 @@ public class User {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Column(name = "SCREEN_NAME", unique = true, nullable = false)
-    private String screenName;
+    @Column(name = "LOGIN", unique = true, nullable = false)
+    private String login;
 
     @Column(name = "FULL_NAME")
     private String fullName;
@@ -60,9 +60,9 @@ public class User {
     public User(){
     }
 
-    public User(String screenName) {
-        Assert.hasLength(screenName, "Screen name must not be empty");
-        this.screenName = screenName;
+    public User(String login) {
+        Assert.hasLength(login, "Login must not be empty");
+        this.login = login;
         this.status = UserAndGroupStatus.VALID;
     }
 
@@ -74,12 +74,12 @@ public class User {
         this.id = id;
     }
 
-    public String getScreenName() {
-        return screenName;
+    public String getLogin() {
+        return login;
     }
 
-    public void setScreenName(String screenName) {
-        this.screenName = screenName;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getFullName() {
@@ -128,7 +128,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", screenName=" + screenName + "]";
+        return "User [id=" + id + ", login=" + login + "]";
     }
 
     @Override
@@ -142,7 +142,7 @@ public class User {
             return false;
         }
         User other = (User) object;
-        if (!Objects.equals(this.screenName, other.screenName)) {
+        if (!Objects.equals(this.login, other.login)) {
             return false;
         }
         return true;

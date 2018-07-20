@@ -1,6 +1,6 @@
 CREATE TABLE users (
    id             BIGSERIAL NOT NULL,
-   screen_name    varchar(255) NOT NULL UNIQUE,
+   login    varchar(255) NOT NULL UNIQUE,
    full_name      varchar(255),
    mail           varchar(255),
    status         varchar(255) NOT NULL,

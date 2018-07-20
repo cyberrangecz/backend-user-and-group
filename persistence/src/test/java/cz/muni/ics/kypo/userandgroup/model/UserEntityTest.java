@@ -22,29 +22,29 @@ public class UserEntityTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private String screenName = "screenName";
+    private String login = "login";
 
     @SpringBootApplication
     static class TestConfiguration {
     }
 
     @Test
-    public void createWhenNameIsNullShouldThrowException() {
+    public void createWhenLoginIsNullShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Screen name must not be empty");
+        this.thrown.expectMessage("Login must not be empty");
         new User(null);
     }
 
     @Test
-    public void createWhenNameIsEmptyShouldThrowException() {
+    public void createWhenLoginIsEmptyShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Screen name must not be empty");
+        this.thrown.expectMessage("Login must not be empty");
         new User("");
     }
 
     @Test
     public void saveShouldPersistData() {
-        User u = this.entityManager.persistFlushFind(new User(screenName));
-        assertEquals(screenName, u.getScreenName());
+        User u = this.entityManager.persistFlushFind(new User(login));
+        assertEquals(login, u.getLogin());
     }
 }

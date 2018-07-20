@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
-import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.domain.Page;
@@ -19,10 +18,10 @@ import java.util.Set;
 public interface UserRepository extends JpaRepository<User, Long>,
         QuerydslPredicateExecutor<User> {
 
-    Optional<User> findByScreenName(String screenName);
+    Optional<User> findByLogin(String login);
 
-    @Query("SELECT u.screenName FROM User u WHERE u.id = :userId")
-    Optional<String> getScreenName(@Param("userId") Long id);
+    @Query("SELECT u.login FROM User u WHERE u.id = :userId")
+    Optional<String> getLogin(@Param("userId") Long id);
 
     @Query("SELECT CASE WHEN u.externalId IS NULL THEN true ELSE false END FROM User u WHERE u.id = :userId")
     boolean isUserInternal(@Param("userId") Long id);
@@ -31,8 +30,8 @@ public interface UserRepository extends JpaRepository<User, Long>,
     Set<Role> getRolesOfUser(@Param("userId") Long id);
 
     @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT u FROM User u WHERE u.screenName = :screenName")
-    Optional<User> getUserByScreenNameWithUsers(@Param("screenName") String screenName);
+    @Query("SELECT u FROM User u WHERE u.login = :login")
+    Optional<User> getUserByLoginWithUsers(@Param("login") String login);
 
     @Query("SELECT u FROM User u WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups")
     Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
