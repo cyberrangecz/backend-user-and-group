@@ -156,4 +156,23 @@ public interface IDMGroupService {
      * @return group with assigned role
      */
     IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
+
+    /**
+     * Removes members of group with given userIds from the group
+     *
+     * @param groupId id of group
+     * @param userIds ids of users to be removed from given group
+     * @return updated group
+     */
+    IDMGroup removeMembers(Long groupId, List<Long> userIds);
+
+    /**
+     * Adds users and users from groups to group with given groupId
+     *
+     * @param groupId id of group
+     * @param idsOfGroupsOfImportedUsers users of groups with given ids will be added to given group
+     * @param idsOfUsersToBeAdd ids of users to be added to given group
+     * @return updated group
+     */
+    IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd);
 }

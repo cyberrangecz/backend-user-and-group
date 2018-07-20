@@ -24,6 +24,7 @@ import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
@@ -46,14 +47,17 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     private static Logger log = LoggerFactory.getLogger(IDMGroupServiceImpl.class.getName());
 
     private final IDMGroupRepository groupRepository;
+    private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final MicroserviceRepository microserviceRepository;
     private final RestTemplate restTemplate;
 
     @Autowired
     public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository,
-                               MicroserviceRepository microserviceRepository, RestTemplate restTemplate) {
+                               MicroserviceRepository microserviceRepository, RestTemplate restTemplate,
+                               UserRepository userRepository) {
         this.groupRepository = idmGroupRepository;
+        this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.microserviceRepository = microserviceRepository;
         this.restTemplate = restTemplate;
@@ -269,10 +273,59 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         return group;
     }
 
+    @Override
+    public IDMGroup removeMembers(Long groupId, List<Long> userIds) {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(userIds, "Input list of users ids must not be null");
+
+        if (!this.isGroupInternal(groupId)) {
+            throw new IdentityManagementException("Group is external therefore they could not be updated");
+        }
+
+        IDMGroup groupToUpdate = this.get(groupId);
+        for (Long userId : userIds) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IdentityManagementException("User with id " + userId + " could not be found"));
+            groupToUpdate.addUser(user);
+        }
+        return this.update(groupToUpdate);
+    }
+
+    @Override
+    public IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
+        Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
+
+        if (!this.isGroupInternal(groupId)) {
+            throw new IdentityManagementException("Group is external therefore they could not be updated");
+        }
+        IDMGroup groupToUpdate = this.get(groupId);
+        for (Long userId : idsOfUsersToBeAdd) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IdentityManagementException("User with id " + userId + " could not be found"));
+            groupToUpdate.addUser(user);
+        }
+        for (Long id : idsOfGroupsOfImportedUsers) {
+            IDMGroup groupOfImportedMembers = this.get(groupId);
+            groupOfImportedMembers.getUsers().forEach((u) -> {
+                if (!groupToUpdate.getUsers().contains(u)) {
+                    groupToUpdate.addUser(u);
+                }
+            });
+        }
+
+        return this.update(groupToUpdate);
+    }
+
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
         if (group.getExternalId() != null && group.getStatus().equals(UserAndGroupStatus.VALID)) {
             return GroupDeletionStatus.EXTERNAL_VALID;
         }
         return GroupDeletionStatus.SUCCESS;
+    }
+
+    private void addMembersFromGroups(List<Long> groupIds, IDMGroup group) {
+
     }
 }
