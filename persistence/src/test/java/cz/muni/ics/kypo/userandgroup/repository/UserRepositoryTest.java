@@ -9,8 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -113,6 +115,30 @@ public class UserRepositoryTest {
         assertEquals(1, userRoles.size());
         assertTrue(userRoles.contains(adminRole));
         assertFalse(userRoles.contains(guestRole));
+    }
+
+    @Test
+    public void usersNotInGivenGroup() {
+        entityManager.persistAndFlush(user);
+        group.addUser(user);
+        IDMGroup g = entityManager.persistAndFlush(group);
+
+        User user2 = new User("user2");
+        user2.setFullName("User two");
+        user2.setMail("user.two@mail.com");
+        user2.setStatus(UserAndGroupStatus.VALID);
+        entityManager.persistAndFlush(user2);
+        User user3 = new User("user3");
+        user3.setFullName("User three");
+        user3.setMail("user.three@mail.com");
+        user3.setStatus(UserAndGroupStatus.VALID);
+        entityManager.persistAndFlush(user3);
+
+        List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group.getId(), PageRequest.of(0, 10)).getContent();
+        assertEquals(2, usersNotInGroup.size());
+        assertFalse(usersNotInGroup.contains(user));
+        assertTrue(usersNotInGroup.contains(user2));
+        assertTrue(usersNotInGroup.contains(user3));
     }
 
 }

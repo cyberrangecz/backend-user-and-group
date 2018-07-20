@@ -1,7 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.LOAD)
     @Query("SELECT u FROM User u WHERE u.screenName = :screenName")
     Optional<User> getUserByScreenNameWithUsers(@Param("screenName") String screenName);
+
+    @Query("SELECT u FROM User u WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups")
+    Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
 }
