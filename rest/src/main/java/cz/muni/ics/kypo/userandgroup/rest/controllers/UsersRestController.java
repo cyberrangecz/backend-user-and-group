@@ -8,10 +8,10 @@ import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.*;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
-import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
@@ -162,10 +162,10 @@ public class UsersRestController {
                     return new ResponseEntity<>(userDeletionResponseDTO, HttpStatus.OK);
                 case EXTERNAL_VALID:
                 default:
-                    throw new MethodNotAllowedException("User with login " + user.getScreenName() + " cannot be deleted because is from external source and is valid user.");
+                    throw new MethodNotAllowedException("User with login " + user.getLogin() + " cannot be deleted because is from external source and is valid user.");
             }
         } catch (IdentityManagementException e) {
-            throw new ServiceUnavailableException("Some system error occurred while deleting user with login " + user.getScreenName() + ". Please, try it later.");
+            throw new ServiceUnavailableException("Some system error occurred while deleting user with login " + user.getLogin() + ". Please, try it later.");
         }
     }
 
@@ -200,18 +200,6 @@ public class UsersRestController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/{id}/change-admin-role")
-    @ApiOperation(httpMethod = "PUT", value = "Changes admin role to user with given id.")
-    public ResponseEntity<Void> changeAdminRole(@ApiParam(value = "Id of user to be changed their admin role.",
-            required = true) @PathVariable("id") final Long id) {
-        try {
-            userService.changeAdminRole(id);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (IdentityManagementException e) {
-            throw new ResourceNotFoundException("User or role could not be found.");
-        }
-    }
-
     @GetMapping(path = "/{id}/roles")
     @ApiOperation(httpMethod = "GET", value = "Returns all roles of user with given id.")
     public ResponseEntity<Set<RoleDTO>> getRolesOfUser(
@@ -228,7 +216,7 @@ public class UsersRestController {
     public ResponseEntity<UserInfoDTO> getUserInfo(OAuth2Authentication authentication) {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         String sub = credentials.get("sub").getAsString();
-        User loggedInUser = userService.getUserByScreenName(sub);
+        User loggedInUser = userService.getUserByLogin(sub);
         Set<Role> rolesOfUser = userService.getRolesOfUser(loggedInUser.getId());
 
         return new ResponseEntity<>(convertToUserInfoDTO(loggedInUser, rolesOfUser), HttpStatus.OK);
@@ -236,25 +224,25 @@ public class UsersRestController {
 
     private UserDTO convertToUserDTO(User user) {
         UserDTO u = beanMapping.mapTo(user, UserDTO.class);
-        u.convertScreenNameToLogin(user.getScreenName());
+        u.convertScreenNameToLogin(user.getLogin());
         return u;
     }
 
     private User convertToUser(NewUserDTO newUserDTO) {
         User user = beanMapping.mapTo(newUserDTO, User.class);
-        user.setScreenName(newUserDTO.getLogin());
+        user.setLogin(newUserDTO.getLogin());
         return user;
     }
 
     private User convertToUser(UpdateUserDTO updateUserDTO) {
         User user = beanMapping.mapTo(updateUserDTO, User.class);
-        user.setScreenName(updateUserDTO.getLogin());
+        user.setLogin(updateUserDTO.getLogin());
         return user;
     }
 
     private UserInfoDTO convertToUserInfoDTO(User user, Set<Role> roles) {
         UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
-        u.convertScreenNameToLogin(user.getScreenName());
+        u.convertScreenNameToLogin(user.getLogin());
 
         Set<RoleDTO> rolesDTOs = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toSet());
         u.setRoles(rolesDTOs);

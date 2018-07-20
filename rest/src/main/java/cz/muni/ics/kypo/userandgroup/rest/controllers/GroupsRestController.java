@@ -6,11 +6,11 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.group.*;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
-import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -75,7 +75,7 @@ public class GroupsRestController {
         if (newGroupDTO.getMembers() != null) {
 
             newGroupDTO.getMembers().forEach(userForGroupsDTO -> {
-                User user = userService.getUserByScreenName(userForGroupsDTO.getLogin());
+                User user = userService.getUserByLogin(userForGroupsDTO.getLogin());
                 group.addUser(user);
             });
         }
@@ -305,7 +305,7 @@ public class GroupsRestController {
 
     private UserForGroupsDTO convertToUserForGroupsDTO(User user) {
         UserForGroupsDTO userForGroup = beanMapping.mapTo(user, UserForGroupsDTO.class);
-        userForGroup.convertScreenNameToLogin(user.getScreenName());
+        userForGroup.convertScreenNameToLogin(user.getLogin());
         return userForGroup;
     }
 

@@ -14,7 +14,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 
 @EnableSpringDataWebSupport
 @Import({ServiceConfig.class, SwaggerConfig.class})
-@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.rest.mapping"})
+@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.mapping"})
 public class RestConfig {
 
     @Bean

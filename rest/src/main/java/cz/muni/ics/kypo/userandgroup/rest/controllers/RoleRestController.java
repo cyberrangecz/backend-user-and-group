@@ -2,9 +2,9 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

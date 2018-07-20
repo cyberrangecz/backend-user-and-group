@@ -6,12 +6,12 @@ import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.NewUserDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UpdateUserDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserDeletionResponseDTO;
-import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.NewUserDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UpdateUserDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
@@ -264,7 +264,7 @@ public class UsersRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
-        assertEquals("User with login " + getUser().getScreenName() + " cannot be deleted because is from external source and is valid user.", ex.getMessage());
+        assertEquals("User with login " + getUser().getLogin() + " cannot be deleted because is from external source and is valid user.", ex.getMessage());
     }
 
     @Test
@@ -326,7 +326,7 @@ public class UsersRestControllerTest {
         User user = new User();
         user.setId(1L);
         user.setFullName("kypo");
-        user.setScreenName("KYPO LOCAL ADMIN");
+        user.setLogin("KYPO LOCAL ADMIN");
         user.setMail("kypo@mail.cz");
         user.setStatus(UserAndGroupStatus.VALID);
         user.addGroup(getGroup());

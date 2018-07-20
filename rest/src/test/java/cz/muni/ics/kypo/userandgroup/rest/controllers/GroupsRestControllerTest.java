@@ -6,14 +6,14 @@ import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.Source;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.group.AddMembersToGroupDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.group.GroupDeletionResponseDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.group.NewGroupDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.rest.DTO.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.rest.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.api.dto.Source;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.AddMembersToGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDeletionResponseDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -130,7 +130,7 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testCreateGroupWithUserNotInDB() throws Exception {
-        given(userService.getUserByScreenName(anyString())).willThrow(new IdentityManagementException());
+        given(userService.getUserByLogin(anyString())).willThrow(new IdentityManagementException());
         Exception ex = mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -508,7 +508,7 @@ public class GroupsRestControllerTest {
     private User getUser() {
         User user = new User();
         user.setId(1L);
-        user.setScreenName("kypo");
+        user.setLogin("kypo");
         user.setFullName("KYPO LOCAL ADMIN");
         user.setMail("kypo@mail.cz");
         user.setStatus(UserAndGroupStatus.VALID);
