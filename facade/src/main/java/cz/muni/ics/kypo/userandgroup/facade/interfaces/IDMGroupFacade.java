@@ -13,7 +13,7 @@ import java.util.Set;
 public interface IDMGroupFacade {
 
     /**
-     * Creates IDMGroup with informetion from given newGroupDTO and returns created group.
+     * Creates IDMGroup with information from given newGroupDTO and returns created group.
      *
      * @param newGroupDTO group to be created
      * @return created group
