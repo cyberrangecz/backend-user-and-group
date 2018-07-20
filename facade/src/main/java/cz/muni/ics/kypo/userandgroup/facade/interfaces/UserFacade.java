@@ -15,7 +15,7 @@ public interface UserFacade {
     /**
      * Returns page of users specified by given predicate and pageable
      *
-     * @param predicate specifies query to databse
+     * @param predicate specifies query to database
      * @param pageable parameter with information about pagination
      * @return page of users specified by given predicate and pageable
      */
@@ -33,11 +33,10 @@ public interface UserFacade {
      * Returns all users who are not in group with given groupId
      *
      * @param groupId id of group
-     * @param predicate specifies query to databse
      * @param pageable parameter with information about pagination
      * @return page of users who are not in group with given groupId
      */
-    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable);
+    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
 
     /**
      * Creates user with information from given newUserDTO and returns created user.
