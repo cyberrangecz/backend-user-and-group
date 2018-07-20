@@ -32,9 +32,9 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
-        String screenName = introspectionResponse.get("sub").getAsString();
-        Optional<User> optionalUser = userRepository.findByScreenName(screenName);
-        User user = optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + screenName + " could not be found in database"));
+        String login = introspectionResponse.get("sub").getAsString();
+        Optional<User> optionalUser = userRepository.findByLogin(login);
+        User user = optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + login + " could not be found in database"));
         Set<Role> roles = userRepository.getRolesOfUser(user.getId());
 
         return roles.stream()

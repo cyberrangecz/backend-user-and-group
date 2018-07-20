@@ -26,8 +26,8 @@ public class SecurityService {
         this.groupRepository = groupRepository;
     }
 
-    public boolean hasLoggedInUserSameScreenName(String screenName) {
-        return screenName.equals(getSubOfLoggedInUser());
+    public boolean hasLoggedInUserSameLogin(String login) {
+        return login.equals(getSubOfLoggedInUser());
     }
 
     public boolean hasLoggedInUserSameId(Long userId) throws SecurityException {
@@ -53,7 +53,7 @@ public class SecurityService {
 
     private User getLoggedInUser() throws SecurityException {
         String sub = getSubOfLoggedInUser();
-        Optional<User> optionalUser = userRepository.findByScreenName(sub);
+        Optional<User> optionalUser = userRepository.findByLogin(sub);
         return optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + sub + " could not be found in database"));
     }
 
