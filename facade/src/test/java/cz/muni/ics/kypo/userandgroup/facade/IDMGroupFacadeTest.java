@@ -32,8 +32,6 @@ import java.util.*;
 
 
 import static org.junit.Assert.assertEquals;
-
-
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
