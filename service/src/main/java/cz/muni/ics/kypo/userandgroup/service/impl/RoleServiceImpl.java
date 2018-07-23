@@ -2,7 +2,7 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.slf4j.Logger;
@@ -49,20 +49,20 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Role getById(Long id) throws IdentityManagementException {
+    public Role getById(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         Optional<Role> optionalRole = roleRepository.findById(id);
-        Role r = optionalRole.orElseThrow(() -> new IdentityManagementException("Role with id " + id + " could not be found"));
+        Role r = optionalRole.orElseThrow(() -> new UserAndGroupServiceException("Role with id " + id + " could not be found"));
         log.info(r + " loaded");
         return r;
     }
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Role getByRoleType(String roleType) throws IdentityManagementException {
+    public Role getByRoleType(String roleType) throws UserAndGroupServiceException {
         Assert.notNull(roleType, "Input role type must not be null");
         Optional<Role> optionalRole = roleRepository.findByRoleType(roleType);
-        Role r = optionalRole.orElseThrow(() -> new IdentityManagementException("Role with roleType " + roleType + " could not be found"));
+        Role r = optionalRole.orElseThrow(() -> new UserAndGroupServiceException("Role with roleType " + roleType + " could not be found"));
         log.info(r + " loaded");
         return r;
     }

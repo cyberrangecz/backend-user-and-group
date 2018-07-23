@@ -22,7 +22,7 @@ package cz.muni.ics.kypo.userandgroup.service.interfaces;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,9 +38,9 @@ public interface IDMGroupService {
      *
      * @param id of the IDM group to be loaded
      * @return IDM group with given id
-     * @throws IdentityManagementException if group was not found
+     * @throws UserAndGroupServiceException if group was not found
      */
-    IDMGroup get(Long id) throws IdentityManagementException;
+    IDMGroup get(Long id) throws UserAndGroupServiceException;
 
     /**
      * Creates given IDM group in database.
@@ -78,45 +78,45 @@ public interface IDMGroupService {
      *
      * @param name of the IDM group to be loaded
      * @return IDM group with given name
-     * @throws IdentityManagementException if group was not found
+     * @throws UserAndGroupServiceException if group was not found
      */
-    IDMGroup getIDMGroupByName(String name) throws IdentityManagementException;
+    IDMGroup getIDMGroupByName(String name) throws UserAndGroupServiceException;
 
     /**
      * Gets IDM groups with given name from database using like.
      *
      * @param name of the IDM group to be loaded (with '%' symbol)
      * @return IDM groups with given name
-     * @throws IdentityManagementException
+     * @throws UserAndGroupServiceException
      */
-    Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws IdentityManagementException;
+    Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws UserAndGroupServiceException;
 
     /**
      * Returns IDM group with assigned users from database
      *
      * @param id of the IDM group to be loaded
      * @return IDM group with assigned users in database
-     * @throws IdentityManagementException if group was not found
+     * @throws UserAndGroupServiceException if group was not found
      */
-    IDMGroup getIDMGroupWithUsers(Long id) throws IdentityManagementException;
+    IDMGroup getIDMGroupWithUsers(Long id) throws UserAndGroupServiceException;
 
     /**
      * Returns IDM group with assigned users from database
      *
      * @param name of the IDM group to be loaded
      * @return IDM group with assigned users in database
-     * @throws IdentityManagementException if group was not found
+     * @throws UserAndGroupServiceException if group was not found
      */
-    IDMGroup getIDMGroupWithUsers(String name) throws IdentityManagementException;
+    IDMGroup getIDMGroupWithUsers(String name) throws UserAndGroupServiceException;
 
     /**
      * Returns true if group is internal otherwise false
      *
      * @param id of group
      * @return true if group is internal otherwise false
-     * @throws IdentityManagementException if group was not found
+     * @throws UserAndGroupServiceException if group was not found
      */
-    boolean isGroupInternal(Long id) throws IdentityManagementException;
+    boolean isGroupInternal(Long id) throws UserAndGroupServiceException;
 
     /**
      * Deletes groups with given ids and returns statuses about their deletion.

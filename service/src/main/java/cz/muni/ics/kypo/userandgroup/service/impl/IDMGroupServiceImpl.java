@@ -20,7 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -66,10 +66,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public IDMGroup get(Long id) throws IdentityManagementException {
+    public IDMGroup get(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         Optional<IDMGroup> optionalGroup = groupRepository.findById(id);
-        IDMGroup group = optionalGroup.orElseThrow(() -> new IdentityManagementException("IDM group with id " + id + " not found"));
+        IDMGroup group = optionalGroup.orElseThrow(() -> new UserAndGroupServiceException("IDM group with id " + id + " not found"));
         group.setRoles(getRolesOfGroup(group.getId()));
         log.info(group + " loaded.");
         return group;
@@ -125,7 +125,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                 } catch (Exception ex) {
                     response.put(g, GroupDeletionStatus.ERROR);
                 }
-            } catch (IdentityManagementException ex) {
+            } catch (UserAndGroupServiceException ex) {
                 g = new IDMGroup();
                 g.setId(id);
                 response.put(g, GroupDeletionStatus.NOT_FOUND);
@@ -146,10 +146,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
-    public IDMGroup getIDMGroupByName(String name) throws IdentityManagementException {
+    public IDMGroup getIDMGroupByName(String name) throws UserAndGroupServiceException {
         Assert.hasLength(name, "Input name of group must not be empty");
         Optional<IDMGroup> optionalGroup = groupRepository.findByName(name);
-        IDMGroup group = optionalGroup.orElseThrow(() -> new IdentityManagementException("IDM Group with name " + name + " not found"));
+        IDMGroup group = optionalGroup.orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found"));
         group.setRoles(getRolesOfGroup(group.getId()));
         log.info(group + " loaded.");
         return group;
@@ -158,14 +158,14 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
-    public Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws IdentityManagementException {
+    public Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws UserAndGroupServiceException {
         Assert.hasLength(name, "Input name of group must not be empty");
         Page<IDMGroup> groups = groupRepository.findAllByName(name, pageable);
         if (groups != null && groups.getTotalElements() != 0) {
             log.info(groups.toString() + " loaded.");
         } else {
             log.error("IDM Groups with name containing " + name + " not empty");
-            throw new IdentityManagementException("IDM Groups with name containing " + name + " not found");
+            throw new UserAndGroupServiceException("IDM Groups with name containing " + name + " not found");
         }
         return groups;
     }
@@ -173,7 +173,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public IDMGroup getIDMGroupWithUsers(Long id) throws IdentityManagementException {
+    public IDMGroup getIDMGroupWithUsers(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         IDMGroup group = get(id);
         group.getUsers().size();
@@ -183,7 +183,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
-    public IDMGroup getIDMGroupWithUsers(String name) throws IdentityManagementException {
+    public IDMGroup getIDMGroupWithUsers(String name) throws UserAndGroupServiceException {
         Assert.hasLength(name, "Input name of group must not be empty");
         IDMGroup group = getIDMGroupByName(name);
         group.getUsers().size();
@@ -224,25 +224,25 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(roleType, "Input roleType must not be null");
 
         IDMGroup group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IdentityManagementException("Group with " + groupId + " could not be found."));
+                .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
 
         switch (roleType) {
             case ADMINISTRATOR:
                 Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name())
                         .orElseThrow(() ->
-                                new IdentityManagementException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                                new UserAndGroupServiceException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 log.info("ADMINISTRATOR");
                 group.addRole(adminRole);
             case USER:
                 Role userRole = roleRepository.findByRoleType(RoleType.USER.name())
                         .orElseThrow(() ->
-                                new IdentityManagementException(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                                new UserAndGroupServiceException(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 group.addRole(userRole);
                 log.info("USER");
             case GUEST:
                 Role guestRole = roleRepository.findByRoleType(RoleType.GUEST.name())
                         .orElseThrow(() ->
-                                new IdentityManagementException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                                new UserAndGroupServiceException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 group.addRole(guestRole);
                 log.info("GUEST");
         }
@@ -260,10 +260,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
         Microservice microservice = microserviceRepository.findById(microserviceId)
                 .orElseThrow(() ->
-                        new IdentityManagementException("Microservice with id " + microserviceId + " could not be found."));
+                        new UserAndGroupServiceException("Microservice with id " + microserviceId + " could not be found."));
         IDMGroup group = groupRepository.findById(groupId)
                 .orElseThrow(() ->
-                        new IdentityManagementException("Group with id " + groupId + " could not be found."));
+                        new UserAndGroupServiceException("Group with id " + groupId + " could not be found."));
 
         final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
 
@@ -280,13 +280,13 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
         if (!this.isGroupInternal(groupId)) {
-            throw new IdentityManagementException("Group is external therefore they could not be updated");
+            throw new UserAndGroupServiceException("Group is external therefore they could not be updated");
         }
 
         IDMGroup groupToUpdate = this.get(groupId);
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IdentityManagementException("User with id " + userId + " could not be found"));
+                    .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
             groupToUpdate.addUser(user);
         }
         return this.update(groupToUpdate);
@@ -300,12 +300,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
 
         if (!this.isGroupInternal(groupId)) {
-            throw new IdentityManagementException("Group is external therefore they could not be updated");
+            throw new UserAndGroupServiceException("Group is external therefore they could not be updated");
         }
         IDMGroup groupToUpdate = this.get(groupId);
         for (Long userId : idsOfUsersToBeAdd) {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IdentityManagementException("User with id " + userId + " could not be found"));
+                    .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
             groupToUpdate.addUser(user);
         }
         for (Long id : idsOfGroupsOfImportedUsers) {

@@ -19,23 +19,23 @@
  */
 package cz.muni.ics.kypo.userandgroup.exception;
 
-public class IdentityManagementException extends RuntimeException {
+public class UserAndGroupServiceException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public IdentityManagementException() {
+    public UserAndGroupServiceException() {
         super();
     }
 
-    public IdentityManagementException(String message) {
+    public UserAndGroupServiceException(String message) {
         super(message);
     }
 
-    public IdentityManagementException(String message, Throwable throwable) {
+    public UserAndGroupServiceException(String message, Throwable throwable) {
         super(message, throwable);
     }
 
-    public IdentityManagementException(Throwable throwable) {
+    public UserAndGroupServiceException(Throwable throwable) {
         super(throwable);
     }
 }

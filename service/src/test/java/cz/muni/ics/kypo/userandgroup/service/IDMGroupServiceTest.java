@@ -20,7 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -119,7 +119,7 @@ public class IDMGroupServiceTest {
     @Test
     public void getGroupNotFoundShouldThrowException() {
         Long id = 3L;
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("IDM group with id " + id + " not found");
         willThrow(EntityNotFoundException.class).given(groupRepository).getOne(id);
         groupService.get(id);
@@ -196,7 +196,7 @@ public class IDMGroupServiceTest {
 
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
-        willThrow(IdentityManagementException.class).given(groupRepository).getOne(group3.getId());
+        willThrow(UserAndGroupServiceException.class).given(groupRepository).getOne(group3.getId());
 
         Map<IDMGroup, GroupDeletionStatus> response = groupService.deleteGroups(idsOfGroups);
         assertEquals(GroupDeletionStatus.SUCCESS, response.get(group1));
@@ -246,7 +246,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getIDMGroupByNameNotFoundShouldThrowException() {
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("IDM Group with name " + group1.getName() + " not found");
         given(groupRepository.findByName(group1.getName())).willReturn(Optional.empty());
         groupService.getIDMGroupByName(group1.getName());
@@ -280,7 +280,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getIDMGroupsByNameNotFoundShouldThrowException() {
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("IDM Groups with name containing " + group1.getName() + " not found");
         given(groupRepository.findAllByName(group1.getName(), pageable)).willReturn(new PageImpl<>(new ArrayList<>()));
         groupService.getIDMGroupsByName(group1.getName(), pageable);

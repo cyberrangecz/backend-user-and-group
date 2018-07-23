@@ -22,7 +22,7 @@ package cz.muni.ics.kypo.userandgroup.service.interfaces;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,9 +38,9 @@ public interface UserService {
      *
      * @param id of the user to be loaded
      * @return user with given id
-     * @throws IdentityManagementException if user was not found
+     * @throws UserAndGroupServiceException if user was not found
      */
-    User get(Long id) throws IdentityManagementException;
+    User get(Long id) throws UserAndGroupServiceException;
 
     /**
      * Creates given user in database.
@@ -53,9 +53,9 @@ public interface UserService {
      * Updates given user in databases.
      *
      * @param user to be updated
-     * @throws IdentityManagementException if user is external
+     * @throws UserAndGroupServiceException if user is external
      */
-    User update(User user) throws IdentityManagementException;
+    User update(User user) throws UserAndGroupServiceException;
 
     /**
      * Deletes given user from database and returns status of deletion.
@@ -64,7 +64,7 @@ public interface UserService {
      *
      * @param user to be deleted
      * @return status of deletion
-     * @throws IdentityManagementException if some error occurred when deleting user
+     * @throws UserAndGroupServiceException if some error occurred when deleting user
      */
     UserDeletionStatus delete(User user);
 
@@ -84,26 +84,26 @@ public interface UserService {
      * Add/Cancel admin role to user with given id.
      *
      * @param id of user to be changed their admin role.
-     * @throws IdentityManagementException when administrator group could not be  found
+     * @throws UserAndGroupServiceException when administrator group could not be  found
      */
-    void changeAdminRole(Long id) throws IdentityManagementException;
+    void changeAdminRole(Long id) throws UserAndGroupServiceException;
 
     /**
      * Returns true if user with given id has administrator role, false otherwise.
      *
      * @param id of user checked if they are administrator
-     * @throws IdentityManagementException when administrator group could not be  found
+     * @throws UserAndGroupServiceException when administrator group could not be  found
      */
-    boolean isUserAdmin(Long id) throws IdentityManagementException;
+    boolean isUserAdmin(Long id) throws UserAndGroupServiceException;
 
     /**
      * Gets user with given user identity from database.
      *
      * @param login of the user to be loaded
      * @return user with given user identity
-     * @throws IdentityManagementException if user with given login could not be found
+     * @throws UserAndGroupServiceException if user with given login could not be found
      */
-    User getUserByLogin(String login) throws IdentityManagementException;
+    User getUserByLogin(String login) throws UserAndGroupServiceException;
 
     /**
      * Returns all users from database.
@@ -126,18 +126,18 @@ public interface UserService {
      *
      * @param id of the user to be loaded
      * @return user with IDM groups in database
-     * @throws IdentityManagementException if some error occurred when loading user with groups
+     * @throws UserAndGroupServiceException if some error occurred when loading user with groups
      */
-    User getUserWithGroups(Long id) throws IdentityManagementException;
+    User getUserWithGroups(Long id) throws UserAndGroupServiceException;
 
     /**
      * Returns user with IDM groups from database
      *
      * @param login of the user to be loaded
      * @return user with IDM groups in database
-     * @throws IdentityManagementException if some error occurred when loading user with groups
+     * @throws UserAndGroupServiceException if some error occurred when loading user with groups
      */
-    User getUserWithGroups(String login) throws IdentityManagementException;
+    User getUserWithGroups(String login) throws UserAndGroupServiceException;
 
     /**
      * Returns true if user is internal otherwise false

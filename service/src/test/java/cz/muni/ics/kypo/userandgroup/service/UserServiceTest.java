@@ -20,7 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
@@ -138,7 +138,7 @@ public class UserServiceTest {
     @Test
     public void getUserNotFoundShouldThrowException() {
         Long id = 3L;
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with id " + id + " not found");
         willThrow(EntityNotFoundException.class).given(userRepository).getOne(id);
         userService.get(id);
@@ -204,7 +204,7 @@ public class UserServiceTest {
 
     @Test
     public void updateUserIsExternalShouldThrowException() {
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Error: External user cannot be updated");
         given(userRepository.isUserInternal(user1.getId())).willReturn(false);
         userService.update(user1);
@@ -251,7 +251,7 @@ public class UserServiceTest {
 
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
-        willThrow(IdentityManagementException.class).given(userRepository).getOne(user3.getId());
+        willThrow(UserAndGroupServiceException.class).given(userRepository).getOne(user3.getId());
 
         Map<User, UserDeletionStatus> response = userService.deleteUsers(idsOfUsers);
         assertEquals(UserDeletionStatus.SUCCESS, response.get(user1));
@@ -335,7 +335,7 @@ public class UserServiceTest {
 
     @Test
     public void getUserByLoginNotFoundShouldThrowException() {
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with login " + user1.getLogin() + " could not be found");
         given(userRepository.findByLogin(anyString())).willReturn(Optional.empty());
         userService.getUserByLogin(user1.getLogin());

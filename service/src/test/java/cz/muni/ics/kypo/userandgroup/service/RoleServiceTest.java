@@ -3,7 +3,7 @@ package cz.muni.ics.kypo.userandgroup.service;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.junit.After;
@@ -123,7 +123,7 @@ public class RoleServiceTest {
     @Test
     public void getByIdNotFoundShouldThrowException() {
         Long id = 3L;
-        thrown.expect(IdentityManagementException.class);
+        thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Role with id " + id + " could not be found");
         given(roleRepository.findById(id)).willReturn(Optional.empty());
         roleService.getById(id);

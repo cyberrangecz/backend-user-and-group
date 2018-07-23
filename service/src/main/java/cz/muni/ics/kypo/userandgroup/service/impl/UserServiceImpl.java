@@ -20,7 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -58,10 +58,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public User get(Long id) throws IdentityManagementException {
+    public User get(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         Optional<User> optionalUser = userRepository.findById(id);
-        User user = optionalUser.orElseThrow(() -> new IdentityManagementException("User with id " + id + " not found"));
+        User user = optionalUser.orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
         log.info(user + " loaded.");
         return user;
     }
@@ -78,12 +78,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public User update(User updatedUser) throws IdentityManagementException {
+    public User update(User updatedUser) throws UserAndGroupServiceException {
         Assert.notNull(updatedUser, "Input user must not be null");
         Assert.hasLength(updatedUser.getLogin(), "Login of input user must not be empty");
         if (!isUserInternal(updatedUser.getId())) {
             log.error("External user cannot be updated.");
-            throw new IdentityManagementException("Error: External user cannot be updated");
+            throw new UserAndGroupServiceException("Error: External user cannot be updated");
         }
         User u = userRepository.save(updatedUser);
         log.info(updatedUser + " was updated in IDM databases.");
@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
                 } catch (Exception ex) {
                     response.put(u, UserDeletionStatus.ERROR);
                 }
-            } catch (IdentityManagementException ex) {
+            } catch (UserAndGroupServiceException ex) {
                 u = new User();
                 u.setId(id);
                 response.put(u, UserDeletionStatus.NOT_FOUND);
@@ -133,11 +133,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public void changeAdminRole(Long id) throws IdentityManagementException {
+    public void changeAdminRole(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
-        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new IdentityManagementException("Administrator group could not be  found."));
+        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be  found."));
         if (user.getGroups().contains(administratorGroup)) {
             user.removeGroup(administratorGroup);
         } else {
@@ -149,11 +149,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public boolean isUserAdmin(Long id) throws IdentityManagementException {
+    public boolean isUserAdmin(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
-        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new IdentityManagementException("Administrator group could not be found."));
+        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be found."));
 
         return user.getGroups().contains(administratorGroup);
     }
@@ -161,10 +161,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserByLogin(String login) throws IdentityManagementException {
+    public User getUserByLogin(String login) throws UserAndGroupServiceException {
         Assert.hasLength(login, "Input login must not be empty");
         Optional<User> optionalUser = userRepository.findByLogin(login);
-        User user = optionalUser.orElseThrow(() -> new IdentityManagementException("User with login " + login + " could not be found"));
+        User user = optionalUser.orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " could not be found"));
         log.info(user + " loaded.");
         return user;
     }
@@ -188,7 +188,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public User getUserWithGroups(Long id) throws IdentityManagementException {
+    public User getUserWithGroups(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
         user.getGroups().size();
@@ -198,7 +198,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserWithGroups(String login) throws IdentityManagementException {
+    public User getUserWithGroups(String login) throws UserAndGroupServiceException {
         Assert.hasLength(login, "Input login must not be empty");
         User user = this.getUserByLogin(login);
         user.getGroups().size();
