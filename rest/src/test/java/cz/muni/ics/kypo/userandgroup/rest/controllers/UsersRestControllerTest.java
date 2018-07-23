@@ -2,7 +2,7 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
@@ -112,7 +112,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUsersWithErrorWhileLoading() throws Exception {
-        given(userService.getAllUsers(any(Pageable.class))).willThrow(new IdentityManagementException());
+        given(userService.getAllUsers(any(Pageable.class))).willThrow(new UserAndGroupServiceException());
         Exception ex  = mockMvc.perform(
                 get(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .param("page", String.valueOf(page))
@@ -135,7 +135,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingAllUsers() throws Exception {
-        given(userService.getAllUsers(any(Pageable.class))).willThrow(new IdentityManagementException());
+        given(userService.getAllUsers(any(Pageable.class))).willThrow(new UserAndGroupServiceException());
         Exception ex = mockMvc.perform(
                 get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
                         .param("page", String.valueOf(page))
@@ -147,7 +147,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingGroupWithUsers() throws Exception {
-        given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new IdentityManagementException());
+        given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new UserAndGroupServiceException());
         Exception ex = mockMvc.perform(
                 get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
                         .param("page", String.valueOf(page))
@@ -181,7 +181,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testCreateNewUserWithInvalidInformation() throws Exception {
-        given(userService.create(any(User.class))).willThrow(new IdentityManagementException());
+        given(userService.create(any(User.class))).willThrow(new UserAndGroupServiceException());
         Exception ex = mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -225,7 +225,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testUpdateUserWithUpdateError() throws Exception {
-        given(userService.update(any(User.class))).willThrow(new IdentityManagementException());
+        given(userService.update(any(User.class))).willThrow(new UserAndGroupServiceException());
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -247,7 +247,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testDeleteUserNotFound() throws Exception {
-        given(userService.get(anyLong())).willThrow(new IdentityManagementException());
+        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
         Exception ex = mockMvc.perform(
                 delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -297,7 +297,7 @@ public class UsersRestControllerTest {
 
     @Test
     public void testChangeAdminRoleWithUserNotInDB() throws Exception {
-        willThrow(new IdentityManagementException()).given(userService).changeAdminRole(anyLong());
+        willThrow(new UserAndGroupServiceException()).given(userService).changeAdminRole(anyLong());
         Exception ex =  mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
                         .contentType(MediaType.APPLICATION_JSON))

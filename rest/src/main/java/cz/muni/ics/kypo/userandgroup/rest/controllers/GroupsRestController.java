@@ -5,7 +5,7 @@ import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
@@ -64,7 +64,7 @@ public class GroupsRestController {
             group = groupService.create(group);
             GroupDTO g = convertToGroupDTO(group);
             return new ResponseEntity<>(g, HttpStatus.CREATED);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotCreatedException("Invalid group's information or could not be created in database.");
         }
     }
@@ -119,7 +119,7 @@ public class GroupsRestController {
             GroupDTO g = convertToGroupDTO(groupToUpdate);
 
             return new ResponseEntity<>(g, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
     }
@@ -144,7 +144,7 @@ public class GroupsRestController {
             GroupDTO g = convertToGroupDTO(groupToUpdate);
 
             return new ResponseEntity<>(g, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
     }
@@ -176,7 +176,7 @@ public class GroupsRestController {
             GroupDTO g = convertToGroupDTO(groupToUpdate);
 
             return new ResponseEntity<>(g, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
     }
@@ -192,7 +192,7 @@ public class GroupsRestController {
         IDMGroup group = null;
         try {
             group = groupService.get(id);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotFoundException("Group with id " + id + " could not be found.");
         }
 
@@ -208,7 +208,7 @@ public class GroupsRestController {
                 default:
                     throw new MethodNotAllowedException("Group with name " + group.getName() + " cannot be deleted because is from external source and is valid group.");
             }
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ServiceUnavailableException("Some error occurred during deletion of group with name " + group.getName() + ". Please, try it later.");
         }
     }
@@ -245,7 +245,7 @@ public class GroupsRestController {
         Page<IDMGroup> groups;
         try {
             groups = groupService.getAllIDMGroups(pageable);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ServiceUnavailableException("Error while loading all groups from database.");
         }
         List<GroupDTO> groupDTOs = new ArrayList<>();
@@ -266,7 +266,7 @@ public class GroupsRestController {
             GroupDTO groupDTO = convertToGroupDTO(groupService.get(id));
 
             return new ResponseEntity<>(groupDTO, HttpStatus.OK);
-        } catch (IdentityManagementException ex) {
+        } catch (UserAndGroupServiceException ex) {
             throw new ServiceUnavailableException("Some error occurred while loading group with id: " + id + ". Please, try it later.");
         }
     }

@@ -184,7 +184,7 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testGetGroupWithIdentityManagementException() {
+    public void testGetGroupWithUserAndGroupServiceException() {
         given(idmGroupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupServiceException.class);
         idmGroupFacade.getGroup(1L);

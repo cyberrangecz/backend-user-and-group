@@ -6,7 +6,7 @@ import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
@@ -61,7 +61,7 @@ public class UsersRestController {
                     .collect(Collectors.toList());
 
             return new ResponseEntity<>(userDTOS, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ServiceUnavailableException("Some error occurred while loading all users. Please, try it later.");
         }
     }
@@ -74,7 +74,7 @@ public class UsersRestController {
             UserDTO userDTO = convertToUserDTO(userService.get(id));
 
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ServiceUnavailableException("Some error occurred while loading user with id: " + id + ". Please, try it later.");
         }
     }
@@ -94,7 +94,7 @@ public class UsersRestController {
                     .collect(Collectors.toList());
 
             return new ResponseEntity<>(userDTOS, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ServiceUnavailableException("Some error occurred while loading users not in group with id: " + groupId + ". Please, try it later.");
         }
     }
@@ -111,7 +111,7 @@ public class UsersRestController {
             user = userService.create(user);
             UserDTO s = convertToUserDTO(user);
             return new ResponseEntity<>(s, HttpStatus.CREATED);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotCreatedException("Invalid user's information or could not be created.");
         }
     }
@@ -132,7 +132,7 @@ public class UsersRestController {
             User u = userService.update(updateUser);
             UserDTO s = convertToUserDTO(u);
             return new ResponseEntity<>(s, HttpStatus.OK);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotModifiedException("User could not be updated");
         }
     }
@@ -147,7 +147,7 @@ public class UsersRestController {
         User user = null;
         try {
             user = userService.get(id);
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ResourceNotFoundException("User with id " + id + " could not be found.");
         }
 
@@ -164,7 +164,7 @@ public class UsersRestController {
                 default:
                     throw new MethodNotAllowedException("User with login " + user.getLogin() + " cannot be deleted because is from external source and is valid user.");
             }
-        } catch (IdentityManagementException e) {
+        } catch (UserAndGroupServiceException e) {
             throw new ServiceUnavailableException("Some system error occurred while deleting user with login " + user.getLogin() + ". Please, try it later.");
         }
     }

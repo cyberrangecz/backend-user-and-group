@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
@@ -58,7 +58,7 @@ public class RoleRestController {
         try {
             RoleDTO roleDTO = beanMapping.mapTo(roleService.getById(id), RoleDTO.class);
             return new ResponseEntity<>(roleDTO, HttpStatus.OK);
-        } catch (IdentityManagementException ex) {
+        } catch (UserAndGroupServiceException ex) {
             throw new ResourceNotFoundException("Role with given id could not be found");
         }
     }

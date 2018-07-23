@@ -3,7 +3,7 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -115,7 +115,7 @@ public class RoleRestControllerTest {
 
     @Test
     public void getRoleNotFoundShouldThrowException() throws Exception {
-        given(roleService.getById(adminRole.getId())).willThrow(IdentityManagementException.class);
+        given(roleService.getById(adminRole.getId())).willThrow(UserAndGroupServiceException.class);
         Exception ex = mockMvc.perform(
                 get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRole.getId()))
                 .andExpect(status().isNotFound())

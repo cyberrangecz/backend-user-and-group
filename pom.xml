@@ -100,7 +100,7 @@
         <module>service</module>
         <module>facade</module>
         <module>security</module>
-        <module>rest</module>
+        <!--<module>rest</module>-->
     </modules>
 
 </project>
