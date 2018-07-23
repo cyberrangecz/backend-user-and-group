@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
@@ -122,10 +123,16 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
+    public void testRemoveMembersWithServiceExcpetion() {
+        given(idmGroupService.removeMembers(1L, Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        idmGroupFacade.removeMembers(1L, Arrays.asList(1L));
+    }
+
+    @Test
     public void testAddMembers() {
         GroupDTO g = getGroupDTO();
         g.setMembers(Arrays.asList(new UserForGroupsDTO()));
-        System.out.println(g1.getId());
         given(idmGroupService.addMembers(1L, Arrays.asList(1L), Arrays.asList(1L))).willReturn(g1);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(g);
         GroupDTO groupDTO = idmGroupFacade.addMembers(getAddMembersToGroupDTO());
@@ -133,6 +140,13 @@ public class IDMGroupFacadeTest {
         assertEquals(1, groupDTO.getMembers().size());
         then(idmGroupService).should().addMembers(1L, Arrays.asList(1L), Arrays.asList(1L));
 
+    }
+
+    @Test
+    public void testAddMembersWithServiceException() {
+        given(idmGroupService.addMembers(1L, Arrays.asList(1L), Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        idmGroupFacade.addMembers(getAddMembersToGroupDTO());
     }
 
     @Test
@@ -144,6 +158,13 @@ public class IDMGroupFacadeTest {
 
         assertEquals(GroupDeletionStatus.SUCCESS, groupDeletionResponseDTO.getStatus());
         then(idmGroupService).should().delete(g1);
+    }
+
+    @Test
+    public void testDeleteGroupWithServiceException() {
+        given(idmGroupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        idmGroupFacade.deleteGroup(1L);
     }
 
     @Test
@@ -184,9 +205,9 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testGetGroupWithUserAndGroupServiceException() {
+    public void testGetGroupWithServiceException() {
         given(idmGroupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
-        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expect(UserAndGroupFacadeException.class);
         idmGroupFacade.getGroup(1L);
     }
 
@@ -213,6 +234,13 @@ public class IDMGroupFacadeTest {
         GroupDTO groupDTO = idmGroupFacade.assignRole(1L, RoleType.USER);
 
         assertEquals(RoleType.USER.toString(), new ArrayList<RoleDTO>(groupDTO.getRoles()).get(0).getRoleType().toString());
+    }
+
+    @Test
+    public void testAssignRoleWithServiceException() {
+        given(idmGroupService.assignRole(anyLong(), any(RoleType.class))).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        idmGroupFacade.assignRole(1L, RoleType.USER);
     }
 
 
