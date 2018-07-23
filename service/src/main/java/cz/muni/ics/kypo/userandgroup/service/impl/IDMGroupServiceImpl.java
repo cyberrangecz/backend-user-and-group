@@ -287,7 +287,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
-            groupToUpdate.addUser(user);
+            groupToUpdate.removeUser(user);
         }
         return this.update(groupToUpdate);
     }
@@ -309,7 +309,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             groupToUpdate.addUser(user);
         }
         for (Long id : idsOfGroupsOfImportedUsers) {
-            IDMGroup groupOfImportedMembers = this.get(groupId);
+            IDMGroup groupOfImportedMembers = this.get(id);
             groupOfImportedMembers.getUsers().forEach((u) -> {
                 if (!groupToUpdate.getUsers().contains(u)) {
                     groupToUpdate.addUser(u);
