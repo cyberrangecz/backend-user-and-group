@@ -22,6 +22,9 @@ package cz.muni.ics.kypo.userandgroup.service;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
+import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
@@ -71,11 +74,20 @@ public class IDMGroupServiceTest {
     private IDMGroupRepository groupRepository;
 
     @MockBean
+    private RoleRepository roleRepository;
+
+    @MockBean
+    private MicroserviceRepository microserviceRepository;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
     private RestTemplate restTemplate;
 
     private IDMGroup group1, group2;
-
-    private Role adminRole, guestRole;
+    private Role adminRole, userRole, guestRole;
+    private User user1, user2, user3;
 
     private Pageable pageable;
     private Predicate predicate;
@@ -96,9 +108,31 @@ public class IDMGroupServiceTest {
         adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
         adminRole.setId(1L);
 
+        userRole = new Role();
+        userRole.setRoleType(RoleType.USER.name());
+        userRole.setId(2L);
+
         guestRole = new Role();
         guestRole.setRoleType(RoleType.GUEST.name());
-        guestRole.setId(2L);
+        guestRole.setId(3L);
+
+        user1 = new User("user1");
+        user1.setId(1L);
+        user1.setFullName("User One");
+        user1.setMail("user.one@mail.com");
+        user1.setStatus(UserAndGroupStatus.VALID);
+
+        user2 = new User("user2");
+        user2.setId(2L);
+        user2.setFullName("User Two");
+        user2.setMail("user.two@mail.com");
+        user2.setStatus(UserAndGroupStatus.VALID);
+
+        user3 = new User("user3");
+        user3.setId(3L);
+        user3.setFullName("User Three");
+        user3.setMail("user.three@mail.com");
+        user3.setStatus(UserAndGroupStatus.VALID);
 
         ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(new Role[0], HttpStatus.OK);
         given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
@@ -364,6 +398,258 @@ public class IDMGroupServiceTest {
         groupService.getRolesOfGroup(null);
     }
 
+    @Test
+    public void assignRole() {
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.of(adminRole));
+        given(roleRepository.findByRoleType(userRole.getRoleType())).willReturn(Optional.of(userRole));
+        given(roleRepository.findByRoleType(guestRole.getRoleType())).willReturn(Optional.of(guestRole));
+        given(groupRepository.save(group1)).willReturn(group1);
+        given(groupRepository.getRolesOfGroup(group1.getId())).willReturn(new HashSet<>(Arrays.asList(adminRole, userRole, guestRole)));
+
+        IDMGroup g = groupService.assignRole(group1.getId(), RoleType.ADMINISTRATOR);
+
+        assertTrue(g.getRoles().contains(adminRole));
+        assertTrue(g.getRoles().contains(userRole));
+        assertTrue(g.getRoles().contains(guestRole));
+        assertEquals(group1, g);
+
+        then(groupRepository).should().findById(group1.getId());
+        then(roleRepository).should(times(3)).findByRoleType(anyString());
+        then(groupRepository).should().save(group1);
+        then(groupRepository).should().getRolesOfGroup(group1.getId());
+    }
+
+    @Test
+    public void assignRoleWihtInputGroupIdIsNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input groupId must not be null");
+        groupService.assignRole(null, RoleType.ADMINISTRATOR);
+    }
+
+    @Test
+    public void assignRoleWihtInputRoleTypeIsNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input roleType must not be null");
+        groupService.assignRole(1L, null);
+    }
+
+    @Test
+    public void assignRoleWihtGroupNotFoundShouldThrowException() {
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Group with " + group1.getId() + " could not be found.");
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.empty());
+        groupService.assignRole(group1.getId(), RoleType.ADMINISTRATOR);
+    }
+
+    @Test
+    public void assignRoleWihtAdminRoleNotFoundShouldThrowException() {
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support.");
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.empty());
+        groupService.assignRole(group1.getId(), RoleType.ADMINISTRATOR);
+    }
+
+    @Test
+    public void assignRoleWihtUserRoleNotFoundShouldThrowException() {
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support.");
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.of(adminRole));
+        given(roleRepository.findByRoleType(userRole.getRoleType())).willReturn(Optional.empty());
+        groupService.assignRole(group1.getId(), RoleType.ADMINISTRATOR);
+    }
+
+    @Test
+    public void assignRoleWihtGuestRoleNotFoundShouldThrowException() {
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support.");
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.of(adminRole));
+        given(roleRepository.findByRoleType(userRole.getRoleType())).willReturn(Optional.of(userRole));
+        given(roleRepository.findByRoleType(guestRole.getRoleType())).willReturn(Optional.empty());
+        groupService.assignRole(group1.getId(), RoleType.ADMINISTRATOR);
+    }
+
+    @Test
+    public void assignRoleInMicroservice() {
+        Microservice microservice = new Microservice("traning", "/training");
+        microservice.setId(1L);
+        given(microserviceRepository.findById(microservice.getId())).willReturn(Optional.of(microservice));
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(groupRepository.getRolesOfGroup(group1.getId())).willReturn(new HashSet<>(Arrays.asList(adminRole, userRole, guestRole)));
+
+        IDMGroup g = groupService.assignRoleInMicroservice(group1.getId(), adminRole.getId(), microservice.getId());
+
+        assertTrue(g.getRoles().contains(adminRole));
+        assertTrue(g.getRoles().contains(userRole));
+        assertTrue(g.getRoles().contains(guestRole));
+        assertEquals(group1, g);
+
+        then(microserviceRepository).should().findById(microservice.getId());
+        then(groupRepository).should().findById(group1.getId());
+        then(groupRepository).should().getRolesOfGroup(group1.getId());
+    }
+
+    @Test
+    public void assignRoleInMicroserviceWithNullInputGroupIdShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input groupId must not be null");
+        groupService.assignRoleInMicroservice(null, 1L, 1L);
+    }
+
+    @Test
+    public void assignRoleInMicroserviceWithNullInputRoleIdShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input roleId must not be null");
+        groupService.assignRoleInMicroservice(1L, null, 1L);
+    }
+
+    @Test
+    public void assignRoleInMicroserviceWithNullInputMicroserviceIdShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input microserviceId must not be null");
+        groupService.assignRoleInMicroservice(1L, 1L, null);
+    }
+
+    @Test
+    public void assignRoleInMicroserviceWithMicroserviceNotFoundShouldThrowException() {
+        Microservice microservice = new Microservice("traning", "/training");
+        microservice.setId(1L);
+        given(microserviceRepository.findById(microservice.getId())).willReturn(Optional.empty());
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Microservice with id " + microservice.getId() + " could not be found.");
+        groupService.assignRoleInMicroservice(group1.getId(), adminRole.getId(), microservice.getId());
+    }
+
+    @Test
+    public void assignRoleInMicroserviceWithGroupNotFoundShouldThrowException() {
+        Microservice microservice = new Microservice("traning", "/training");
+        microservice.setId(1L);
+        given(microserviceRepository.findById(microservice.getId())).willReturn(Optional.of(microservice));
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Group with id " + group1.getId() + " could not be found.");
+        groupService.assignRoleInMicroservice(group1.getId(), adminRole.getId(), microservice.getId());
+    }
+
+    @Test
+    public void removeMembers() {
+        group1.addUser(user1);
+        group1.addUser(user2);
+        group1.addUser(user3);
+
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
+        given(groupRepository.save(group1)).willReturn(group1);
+
+        IDMGroup g = groupService.removeMembers(group1.getId(), Arrays.asList(user1.getId(), group2.getId()));
+
+        assertEquals(group1, g);
+        assertFalse(g.getUsers().contains(user1));
+        assertFalse(g.getUsers().contains(user2));
+        assertTrue(g.getUsers().contains(user3));
+
+        then(groupRepository).should(times(2)).findById(group1.getId());
+        then(userRepository).should().findById(user1.getId());
+        then(userRepository).should().findById(user2.getId());
+        then(groupRepository).should().save(group1);
+    }
+
+    @Test
+    public void removeMembersWithGroupIdNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input groupId must not be null");
+        groupService.removeMembers(null, Collections.singletonList(1L));
+    }
+
+    @Test
+    public void removeMembersWithUserIdsNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input list of users ids must not be null");
+        groupService.removeMembers(1L, null);
+    }
+
+    @Test
+    public void removeMembersWithGroupNotFoundShouldThrowException() {
+        group1.setExternalId(123L);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Group is external therefore they could not be updated");
+        groupService.removeMembers(group1.getId(), Arrays.asList(user1.getId(), user2.getId()));
+    }
+
+    @Test
+    public void removeMembersWithUserNotFoundShouldThrowException() {
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("User with id " + user1.getId() + " could not be found");
+        groupService.removeMembers(group1.getId(), Arrays.asList(user1.getId(), user2.getId()));
+    }
+
+    @Test
+    public void addMembers() {
+        group2.addUser(user2);
+
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+        given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
+        given(groupRepository.save(group1)).willReturn(group1);
+
+        IDMGroup g = groupService.addMembers(group1.getId(), Collections.singletonList(group2.getId()), Collections.singletonList(user1.getId()));
+
+        assertEquals(group1, g);
+        assertTrue(g.getUsers().contains(user1));
+        assertTrue(g.getUsers().contains(user2));
+        assertFalse(g.getUsers().contains(user3));
+
+        then(groupRepository).should(times(2)).findById(group1.getId());
+        then(userRepository).should().findById(user1.getId());
+        then(groupRepository).should().findById(group2.getId());
+        then(groupRepository).should().save(group1);
+    }
+
+    @Test
+    public void addMembersWithGroupIdNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input groupId must not be null");
+        groupService.addMembers(null, Collections.singletonList(1L), Collections.singletonList(1L));
+    }
+
+    @Test
+    public void addMembersWithListOfGroupsIdsNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input list of groups ids must not be null");
+        groupService.addMembers(1L, null, Collections.singletonList(1L));
+    }
+
+    @Test
+    public void addMembersWithUserIdsNullShouldThrowException() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Input list of users ids must not be null");
+        groupService.addMembers(1L, Collections.singletonList(1L), null);
+    }
+
+    @Test
+    public void addMembersWithGroupNotFoundShouldThrowException() {
+        group1.setExternalId(123L);
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Group is external therefore they could not be updated");
+        groupService.addMembers(group1.getId(), Collections.singletonList(group2.getId()), Arrays.asList(user1.getId(), user2.getId()));
+    }
+
+    @Test
+    public void addMembersWithUserNotFoundShouldThrowException() {
+        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("User with id " + user1.getId() + " could not be found");
+        groupService.addMembers(group1.getId(), Collections.singletonList(group2.getId()), Arrays.asList(user1.getId(), user2.getId()));
+    }
+
     private void deepEqruals(IDMGroup expectedGroup, IDMGroup actualGroup) {
         assertEquals(expectedGroup.getId(), actualGroup.getId());
         assertEquals(expectedGroup.getName(), actualGroup.getName());
@@ -373,6 +659,6 @@ public class IDMGroupServiceTest {
 
     @After
     public void afterMethod() {
-        reset(groupRepository);
+        reset(groupRepository, userRepository, roleRepository, microserviceRepository);
     }
 }
