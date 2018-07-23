@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -37,29 +39,29 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     public GroupDTO createGroup(NewGroupDTO newGroupDTO) {
         IDMGroup group = beanMapping.mapTo(newGroupDTO, IDMGroup.class);
-        GroupDTO createdGroup = beanMapping.mapTo(groupService.create(group), GroupDTO.class);
-        return createdGroup;
+        return beanMapping.mapTo(groupService.create(group), GroupDTO.class);
     }
 
     @Override
     public GroupDTO updateGroup(UpdateGroupDTO updateGroupDTO) {
         IDMGroup group = beanMapping.mapTo(updateGroupDTO, IDMGroup.class);
-        GroupDTO updatedGroup = beanMapping.mapTo(groupService.update(group), GroupDTO.class);
-        return updatedGroup;
+        return beanMapping.mapTo(groupService.update(group), GroupDTO.class);
     }
 
     @Override
     public GroupDTO removeMembers(Long groupId, List<Long> userIds) {
-        GroupDTO updatedGroup = beanMapping.mapTo(groupService.removeMembers(groupId, userIds), GroupDTO.class);
-        return updatedGroup;
+        return beanMapping.mapTo(groupService.removeMembers(groupId, userIds), GroupDTO.class);
     }
 
     @Override
     public GroupDTO addMembers(AddMembersToGroupDTO addMembers) {
-        IDMGroup group = groupService.addMembers(addMembers.getGroupId(),
-                addMembers.getIdsOfGroupsOfImportedUsers(), addMembers.getIdsOfUsersToBeAdd());
-        GroupDTO updatedGroup = beanMapping.mapTo(group, GroupDTO.class);
-        return updatedGroup;
+        try {
+            IDMGroup group = groupService.addMembers(addMembers.getGroupId(),
+                    addMembers.getIdsOfGroupsOfImportedUsers(), addMembers.getIdsOfUsersToBeAdd());
+            return beanMapping.mapTo(group, GroupDTO.class);
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
     }
 
     @Override
