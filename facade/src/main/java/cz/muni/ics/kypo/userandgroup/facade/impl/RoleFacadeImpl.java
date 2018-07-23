@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.NewRoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -21,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RoleFacadeImpl implements RoleFacade {
 
-    Logger logger = LoggerFactory.getLogger(RoleFacadeImpl.class);
+    Logger LOG = LoggerFactory.getLogger(RoleFacadeImpl.class);
 
     private RoleService roleService;
     private BeanMapping beanMapping;
@@ -35,7 +37,7 @@ public class RoleFacadeImpl implements RoleFacade {
     @Override
     public RoleDTO createRole(NewRoleDTO newRoleDTO) {
         Role role = beanMapping.mapTo(newRoleDTO, Role.class);
-        logger.info("Role with id: " + role.getId() + " and role type: " + role.getRoleType() +" has been created." );
+        LOG.info("Role with id: " + role.getId() + " and role type: " + role.getRoleType() +" has been created." );
         return beanMapping.mapTo(roleService.create(role), RoleDTO.class);
     }
 
@@ -43,28 +45,39 @@ public class RoleFacadeImpl implements RoleFacade {
     public void deleteRole(Long id) {
         Role roleToDelete = roleService.getById(id);
         roleService.delete(roleToDelete);
-        logger.info("Role with id: " + id + "has been deleted.");
+        LOG.info("Role with id: " + id + "has been deleted.");
 
     }
 
     @Override
     public RoleDTO getById(Long id) {
-        Role role = roleService.getById(id);
-        logger.info("Role with id: " + id + "has been loaded.");
-        return beanMapping.mapTo(role, RoleDTO.class);
+        try {
+            Role role = roleService.getById(id);
+            LOG.info("Role with id: " + id + "has been loaded.");
+            return beanMapping.mapTo(role, RoleDTO.class);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while loading role with id: " + id + ".");
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
+
     }
 
     @Override
     public RoleDTO getByRoleType(RoleType roleType) {
-        Role role = roleService.getByRoleType(roleType.toString());
-        logger.info("Role with role type: " + roleType + "has been loaded.");
-        return beanMapping.mapTo(role, RoleDTO.class);
+        try {
+            Role role = roleService.getByRoleType(roleType.toString());
+            LOG.info("Role with role type: " + roleType + "has been loaded.");
+            return beanMapping.mapTo(role, RoleDTO.class);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while loading role with role type: " + roleType.toString() + ".");
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
     }
 
     @Override
     public PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable) {
         Page<Role> roles = roleService.getAllRoles(predicate, pageable);
-        logger.info("All roles have been loaded");
+        LOG.info("All roles have been loaded");
         return beanMapping.mapToPageResultDTO(roles, RoleDTO.class);
     }
 }

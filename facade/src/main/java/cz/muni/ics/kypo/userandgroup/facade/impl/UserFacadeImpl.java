@@ -5,13 +5,18 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -27,6 +32,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class UserFacadeImpl implements UserFacade {
+
+    Logger LOG = LoggerFactory.getLogger(UserFacadeImpl.class);
 
     private UserService userService;
     private BeanMapping beanMapping;
@@ -45,7 +52,14 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     public UserDTO getUser(Long id) {
-        return beanMapping.mapTo(userService.get(id), UserDTO.class);
+        try {
+            User user = userService.get(id);
+            LOG.info("User with id: " + id + " has been loaded.");
+            return beanMapping.mapTo(user, UserDTO.class);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while loading user with id: " + id + "." );
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
     }
 
     @Override
@@ -63,12 +77,25 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     public UserDTO updateUser(UpdateUserDTO updateUserDTO) {
         User user = beanMapping.mapTo(updateUserDTO, User.class);
-        return beanMapping.mapTo(userService.update(user), UserDTO.class);
+        try {
+            User updatedUser = userService.update(user);
+            LOG.info(updatedUser + "has been updated.");
+            return beanMapping.mapTo(updatedUser, UserDTO.class);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while updating " + updateUserDTO);
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
     }
 
     @Override
     public UserDeletionResponseDTO deleteUser(Long id) {
-        User user = userService.get(id);
+        User user = null;
+        try {
+            user = userService.get(id);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while deleting user with id: " + id + ".");
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
         UserDeletionStatus deletionStatus = userService.delete(user);
         UserDeletionResponseDTO userDeletionResponseDTO = beanMapping.mapTo(user, UserDeletionResponseDTO.class);
         userDeletionResponseDTO.setStatus(deletionStatus);
@@ -105,7 +132,13 @@ public class UserFacadeImpl implements UserFacade {
     public UserInfoDTO getUserInfo(OAuth2Authentication authentication) {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         String sub = credentials.get("sub").getAsString();
-        User loggedInUser = userService.getUserByLogin(sub);
+        User loggedInUser = null;
+        try {
+            loggedInUser = userService.getUserByLogin(sub);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while getting info about user with sub: " + sub + ".");
+            throw new UserAndGroupFacadeException(ex.getMessage());
+        }
         Set<Role> rolesOfUser = userService.getRolesOfUser(loggedInUser.getId());
 
         return convertToUserInfoDTO(loggedInUser, rolesOfUser);

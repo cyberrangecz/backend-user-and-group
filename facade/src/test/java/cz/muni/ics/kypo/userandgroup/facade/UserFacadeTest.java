@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -125,6 +127,13 @@ public class UserFacadeTest {
     }
 
     @Test
+    public void testGetUserWithServiceException() {
+        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        userFacade.getUser(1L);
+    }
+
+    @Test
     public void testGetAllUsersNotInGivenGroup() {
         Page<User> rolePage = new PageImpl<>(Arrays.asList(user1, user2));
         PageResultResource<UserDTO> pageResult = new PageResultResource<>();
@@ -162,6 +171,14 @@ public class UserFacadeTest {
     }
 
     @Test
+    public void testUpdateUserNotInDB() {
+        given(userService.update(any(User.class))).willThrow(new UserAndGroupServiceException());
+        given(beanMapping.mapTo(any(UpdateUserDTO.class), eq(User.class))).willReturn(user2);
+        thrown.expect(UserAndGroupFacadeException.class);
+        userFacade.updateUser(new UpdateUserDTO());
+    }
+
+    @Test
     public void testDeleteUser() {
         UserDeletionResponseDTO userDeletionResponseDTO = new UserDeletionResponseDTO();
         userDeletionResponseDTO.setUser(userDTO1);
@@ -174,6 +191,13 @@ public class UserFacadeTest {
         assertEquals(UserDeletionStatus.SUCCESS, userDeletionResponseDTO.getStatus());
         then(userService).should().delete(user1);
 
+    }
+
+    @Test
+    public void testDeleteUserNotFound() {
+        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        userFacade.deleteUser(1L);
     }
 
     @Test

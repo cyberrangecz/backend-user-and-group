@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.NewRoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
@@ -105,9 +106,9 @@ public class RoleFacadeTest {
     }
 
     @Test
-    public void testGetByIdWithIdentityManagementException() {
+    public void testGetByIdWithServiceException() {
         given(roleService.getById(anyLong())).willThrow(new UserAndGroupServiceException());
-        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expect(UserAndGroupFacadeException.class);
         roleFacade.getById(1L);
     }
 
@@ -118,6 +119,13 @@ public class RoleFacadeTest {
         RoleDTO roleDTO = roleFacade.getByRoleType(RoleType.ADMINISTRATOR);
 
         assertEquals(RoleType.ADMINISTRATOR.toString(), roleDTO.getRoleType().toString());
+    }
+
+    @Test
+    public void testGetByRoleTypeWithServiceException() {
+        given(roleService.getByRoleType(anyString())).willThrow(new UserAndGroupFacadeException());
+        thrown.expect(UserAndGroupFacadeException.class);
+        roleFacade.getByRoleType(RoleType.ADMINISTRATOR);
     }
 
     @Test
