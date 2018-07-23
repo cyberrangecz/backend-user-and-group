@@ -193,7 +193,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public boolean isGroupInternal(Long id) {
+    public boolean isGroupInternal(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         return get(id).getExternalId() == null;
     }
@@ -219,7 +219,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup assignRole(Long groupId, RoleType roleType) {
+    public IDMGroup assignRole(Long groupId, RoleType roleType) throws UserAndGroupServiceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleType, "Input roleType must not be null");
 
@@ -253,7 +253,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) {
+    public IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupServiceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         Assert.notNull(microserviceId, "Input microserviceId must not be null");
@@ -275,7 +275,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup removeMembers(Long groupId, List<Long> userIds) {
+    public IDMGroup removeMembers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
@@ -294,7 +294,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) {
+    public IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
@@ -325,9 +325,5 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             return GroupDeletionStatus.EXTERNAL_VALID;
         }
         return GroupDeletionStatus.SUCCESS;
-    }
-
-    private void addMembersFromGroups(List<Long> groupIds, IDMGroup group) {
-
     }
 }

@@ -67,6 +67,18 @@ public interface IDMGroupService {
     GroupDeletionStatus delete(IDMGroup group);
 
     /**
+     * Deletes groups with given ids and returns statuses about their deletion.
+     * Return statuses: SUCCESS - succesfully deleted
+     *      EXTERNAL_VALID - group is from external source and is not marked as DELETED
+     *      ERROR - group could not be deleted, try it later
+     *      NOT_FOUND - group could not be found
+     *
+     * @param idsOfGroups ids of groups to be deleted
+     * @return statuses about deletion of groups
+     */
+    Map<IDMGroup, GroupDeletionStatus> deleteGroups(List<Long> idsOfGroups);
+
+    /**
      * Returns all IDM groups from database.
      *
      * @return IDM groups in database
@@ -119,18 +131,6 @@ public interface IDMGroupService {
     boolean isGroupInternal(Long id) throws UserAndGroupServiceException;
 
     /**
-     * Deletes groups with given ids and returns statuses about their deletion.
-     * Return statuses: SUCCESS - succesfully deleted
-     *      EXTERNAL_VALID - group is from external source and is not marked as DELETED
-     *      ERROR - group could not be deleted, try it later
-     *      NOT_FOUND - group could not be found
-     *
-     * @param idsOfGroups ids of groups to be deleted
-     * @return statuses about deletion of groups
-     */
-    Map<IDMGroup, GroupDeletionStatus> deleteGroups(List<Long> idsOfGroups);
-
-    /**
      * Returns all roles of group with given id
      *
      * @param id of group.
@@ -144,8 +144,9 @@ public interface IDMGroupService {
      * @param groupId id of group which will get role with role type
      * @param roleType type of assigning role
      * @return group with assigned role with given role type
+     * @throws UserAndGroupServiceException if group or one of the main role could not be find
      */
-    IDMGroup assignRole(Long groupId, RoleType roleType);
+    IDMGroup assignRole(Long groupId, RoleType roleType) throws UserAndGroupServiceException;
 
     /**
      * Assigns role to group with given groupId in microservice with given microserviceId
@@ -154,8 +155,9 @@ public interface IDMGroupService {
      * @param roleId id of assigning role
      * @param microserviceId id of microservice in which will group get role with roleId
      * @return group with assigned role
+     * @throws UserAndGroupServiceException if group or microservice could not be found
      */
-    IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
+    IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupServiceException;
 
     /**
      * Removes members of group with given userIds from the group
@@ -163,8 +165,9 @@ public interface IDMGroupService {
      * @param groupId id of group
      * @param userIds ids of users to be removed from given group
      * @return updated group
+     * @throws UserAndGroupServiceException if some group, user could not be found or group with groupId is external and cannot be edited
      */
-    IDMGroup removeMembers(Long groupId, List<Long> userIds);
+    IDMGroup removeMembers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException;
 
     /**
      * Adds users and users from groups to group with given groupId
@@ -173,6 +176,7 @@ public interface IDMGroupService {
      * @param idsOfGroupsOfImportedUsers users of groups with given ids will be added to given group
      * @param idsOfUsersToBeAdd ids of users to be added to given group
      * @return updated group
+     * @throws UserAndGroupServiceException if some group, user could not be found or group with groupId is external and cannot be edited
      */
-    IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd);
+    IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException;
 }
