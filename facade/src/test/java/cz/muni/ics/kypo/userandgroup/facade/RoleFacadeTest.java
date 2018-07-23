@@ -1,15 +1,12 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
-
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.NewRoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
@@ -40,7 +37,7 @@ import static org.mockito.BDDMockito.*;
 @SpringBootTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
-@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.facade",  "cz.muni.ics.kypo.userandgroup.service"})
+@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.service"})
 public class RoleFacadeTest {
 
     @Rule
@@ -109,8 +106,8 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetByIdWithIdentityManagementException() {
-        given(roleService.getById(anyLong())).willThrow(new IdentityManagementException());
-        thrown.expect(IdentityManagementException.class);
+        given(roleService.getById(anyLong())).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupServiceException.class);
         roleFacade.getById(1L);
     }
 
@@ -125,7 +122,7 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetAllRoles() {
-        Page<Role> rolePage = new PageImpl<Role>(Arrays.asList(r1));
+        Page<Role> rolePage = new PageImpl<>(Arrays.asList(r1));
         PageResultResource<RoleDTO> pageResult = new PageResultResource<>();
         pageResult.setContent(Arrays.asList(roleDTO1));
 

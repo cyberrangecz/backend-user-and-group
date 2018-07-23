@@ -5,7 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.exception.IdentityManagementException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.*;
@@ -185,8 +185,8 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetGroupWithIdentityManagementException() {
-        given(idmGroupService.get(anyLong())).willThrow(new IdentityManagementException());
-        thrown.expect(IdentityManagementException.class);
+        given(idmGroupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        thrown.expect(UserAndGroupServiceException.class);
         idmGroupFacade.getGroup(1L);
     }
 
