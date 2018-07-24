@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import org.springframework.data.domain.Pageable;
 
@@ -104,4 +105,13 @@ public interface IDMGroupFacade {
      * @return updated group
      */
     GroupDTO assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
+
+    /**
+     * Returns true if group is internal otherwise false
+     *
+     * @param id of group
+     * @return true if group is internal otherwise false
+     * @throws UserAndGroupFacadeException if group was not found
+     */
+    boolean isGroupInternal(Long id) throws UserAndGroupFacadeException;
 }

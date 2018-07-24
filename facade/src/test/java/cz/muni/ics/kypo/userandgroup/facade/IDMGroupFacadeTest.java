@@ -33,6 +33,8 @@ import java.util.*;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
@@ -46,10 +48,10 @@ public class IDMGroupFacadeTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Autowired
-    private IDMGroupFacade idmGroupFacade;
+    private IDMGroupFacade groupFacade;
 
     @MockBean
-    private IDMGroupService idmGroupService;
+    private IDMGroupService groupService;
 
     @MockBean
     private BeanMapping beanMapping;
@@ -87,13 +89,13 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testCreateGroup() {
-        given(idmGroupService.create(any(IDMGroup.class))).willReturn(g1);
+        given(groupService.create(any(IDMGroup.class))).willReturn(g1);
         given(beanMapping.mapTo(any(NewGroupDTO.class), eq(IDMGroup.class))).willReturn(g1);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
-        GroupDTO groupDTO = idmGroupFacade.createGroup(getNewGroupDTO());
+        GroupDTO groupDTO = groupFacade.createGroup(getNewGroupDTO());
 
         assertEquals(g1.getName(), groupDTO.getName());
-        then(idmGroupService).should().create(g1);
+        then(groupService).should().create(g1);
 
     }
 
@@ -102,69 +104,69 @@ public class IDMGroupFacadeTest {
         GroupDTO updatedGroupDTO = getGroupDTO();
         updatedGroupDTO.setName("Group 2");
         given(beanMapping.mapTo(any(UpdateGroupDTO.class), eq(IDMGroup.class))).willReturn(g2);
-        given(idmGroupService.update(g2)).willReturn(g2);
+        given(groupService.update(g2)).willReturn(g2);
         given(beanMapping.mapTo(g2, GroupDTO.class)).willReturn(updatedGroupDTO);
-        GroupDTO groupDTO = idmGroupFacade.updateGroup(getUpdateGroupDTO());
+        GroupDTO groupDTO = groupFacade.updateGroup(getUpdateGroupDTO());
 
         assertEquals("Group 2", groupDTO.getName());
-        then(idmGroupService).should().update(g2);
+        then(groupService).should().update(g2);
 
     }
 
     @Test
     public void testRemoveMembers() {
-        given(idmGroupService.removeMembers(1L, Arrays.asList(1L))).willReturn(g2);
+        given(groupService.removeMembers(1L, Arrays.asList(1L))).willReturn(g2);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
-        GroupDTO groupDTO = idmGroupFacade.removeMembers(1L, Arrays.asList(1L));
+        GroupDTO groupDTO = groupFacade.removeMembers(1L, Arrays.asList(1L));
 
         assertEquals(0, groupDTO.getMembers().size());
-        then(idmGroupService).should().removeMembers(1L, Arrays.asList(1L));
+        then(groupService).should().removeMembers(1L, Arrays.asList(1L));
 
     }
 
     @Test
     public void testRemoveMembersWithServiceExcpetion() {
-        given(idmGroupService.removeMembers(1L, Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
+        given(groupService.removeMembers(1L, Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
-        idmGroupFacade.removeMembers(1L, Arrays.asList(1L));
+        groupFacade.removeMembers(1L, Arrays.asList(1L));
     }
 
     @Test
     public void testAddMembers() {
         GroupDTO g = getGroupDTO();
         g.setMembers(Arrays.asList(new UserForGroupsDTO()));
-        given(idmGroupService.addMembers(1L, Arrays.asList(1L), Arrays.asList(1L))).willReturn(g1);
+        given(groupService.addMembers(1L, Arrays.asList(1L), Arrays.asList(1L))).willReturn(g1);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(g);
-        GroupDTO groupDTO = idmGroupFacade.addMembers(getAddMembersToGroupDTO());
+        GroupDTO groupDTO = groupFacade.addMembers(getAddMembersToGroupDTO());
 
         assertEquals(1, groupDTO.getMembers().size());
-        then(idmGroupService).should().addMembers(1L, Arrays.asList(1L), Arrays.asList(1L));
+        then(groupService).should().addMembers(1L, Arrays.asList(1L), Arrays.asList(1L));
 
     }
 
     @Test
     public void testAddMembersWithServiceException() {
-        given(idmGroupService.addMembers(1L, Arrays.asList(1L), Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
+        given(groupService.addMembers(1L, Arrays.asList(1L), Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
-        idmGroupFacade.addMembers(getAddMembersToGroupDTO());
+        groupFacade.addMembers(getAddMembersToGroupDTO());
     }
 
     @Test
     public void testDeleteGroup() {
-        given(idmGroupService.get(anyLong())).willReturn(g1);
-        given(idmGroupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
+        given(groupService.get(anyLong())).willReturn(g1);
+        given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDeletionResponseDTO.class))).willReturn(getGroupDeletionResponseDTO());
-        GroupDeletionResponseDTO groupDeletionResponseDTO = idmGroupFacade.deleteGroup(1L);
+        GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(1L);
 
         assertEquals(GroupDeletionStatus.SUCCESS, groupDeletionResponseDTO.getStatus());
-        then(idmGroupService).should().delete(g1);
+        then(groupService).should().delete(g1);
     }
 
     @Test
     public void testDeleteGroupWithServiceException() {
-        given(idmGroupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(groupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
-        idmGroupFacade.deleteGroup(1L);
+        groupFacade.deleteGroup(1L);
     }
 
     @Test
@@ -172,11 +174,11 @@ public class IDMGroupFacadeTest {
         Map<IDMGroup, GroupDeletionStatus> groupGroupDeletionStatusMap = new HashMap<>();
         groupGroupDeletionStatusMap.put(g1, GroupDeletionStatus.SUCCESS);
 
-        given(idmGroupService.deleteGroups(anyList())).willReturn(groupGroupDeletionStatusMap);
-        List<GroupDeletionResponseDTO> responseDTOS = idmGroupFacade.deleteGroups(Arrays.asList(1L));
+        given(groupService.deleteGroups(anyList())).willReturn(groupGroupDeletionStatusMap);
+        List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Arrays.asList(1L));
 
         assertEquals(GroupDeletionStatus.SUCCESS, responseDTOS.get(0).getStatus());
-        then(idmGroupService).should().deleteGroups(Arrays.asList(1L));
+        then(groupService).should().deleteGroups(Arrays.asList(1L));
 
     }
 
@@ -186,29 +188,29 @@ public class IDMGroupFacadeTest {
         PageResultResource<GroupDTO> pages = new PageResultResource<>();
         pages.setContent(Arrays.asList(getGroupDTO()));
 
-        given(idmGroupService.getAllIDMGroups(predicate, pageable)).willReturn(idmGroupPage);
+        given(groupService.getAllIDMGroups(predicate, pageable)).willReturn(idmGroupPage);
         given(beanMapping.mapToPageResultDTO(any(Page.class), eq(GroupDTO.class))).willReturn(pages);
-        PageResultResource<GroupDTO> responseDTOPageResultResource = idmGroupFacade.getAllGroups(predicate, pageable);
+        PageResultResource<GroupDTO> responseDTOPageResultResource = groupFacade.getAllGroups(predicate, pageable);
 
         assertEquals(1, responseDTOPageResultResource.getContent().size());
-        then(idmGroupService).should().getAllIDMGroups(predicate, pageable);
+        then(groupService).should().getAllIDMGroups(predicate, pageable);
     }
 
     @Test
     public void testGetGroup() {
-        given(idmGroupService.get(anyLong())).willReturn(g1);
+        given(groupService.get(anyLong())).willReturn(g1);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
-        GroupDTO groupDTO = idmGroupFacade.getGroup(1L);
+        GroupDTO groupDTO = groupFacade.getGroup(1L);
 
         assertEquals(g1.getName(), groupDTO.getName());
-        then(idmGroupService).should().get(1L);
+        then(groupService).should().get(1L);
     }
 
     @Test
     public void testGetGroupWithServiceException() {
-        given(idmGroupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(groupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
-        idmGroupFacade.getGroup(1L);
+        groupFacade.getGroup(1L);
     }
 
     @Test
@@ -220,29 +222,50 @@ public class IDMGroupFacadeTest {
         Set<RoleDTO> roleDTOS = new HashSet<>();
         roleDTOS.add(getRoleDTO());
 
-        given(idmGroupService.getRolesOfGroup(anyLong())).willReturn(roles);
+        given(groupService.getRolesOfGroup(anyLong())).willReturn(roles);
         given(beanMapping.mapToSet(anySet(), eq(RoleDTO.class))).willReturn(roleDTOS);
-        Set<RoleDTO> rolesDTO = idmGroupFacade.getRolesOfGroup(1L);
+        Set<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L);
         assertEquals(1L, roleDTOS.size());
         assertEquals(RoleType.USER.toString(), new ArrayList<RoleDTO>(roleDTOS).get(0).getRoleType().toString());
     }
 
     @Test
     public void testAssignRole() {
-        given(idmGroupService.assignRole(anyLong(), any(RoleType.class))).willReturn(g1);
+        given(groupService.assignRole(anyLong(), any(RoleType.class))).willReturn(g1);
         given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
-        GroupDTO groupDTO = idmGroupFacade.assignRole(1L, RoleType.USER);
+        GroupDTO groupDTO = groupFacade.assignRole(1L, RoleType.USER);
 
         assertEquals(RoleType.USER.toString(), new ArrayList<RoleDTO>(groupDTO.getRoles()).get(0).getRoleType().toString());
     }
 
     @Test
     public void testAssignRoleWithServiceException() {
-        given(idmGroupService.assignRole(anyLong(), any(RoleType.class))).willThrow(new UserAndGroupServiceException());
+        given(groupService.assignRole(anyLong(), any(RoleType.class))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
-        idmGroupFacade.assignRole(1L, RoleType.USER);
+        groupFacade.assignRole(1L, RoleType.USER);
     }
 
+    @Test
+    public void isGroupInternal() {
+        given(groupService.isGroupInternal(g1.getId())).willReturn(true);
+        assertTrue(groupFacade.isGroupInternal(g1.getId()));
+        then(groupService).should().isGroupInternal(g1.getId());
+    }
+
+    @Test
+    public void isGroupExternal() {
+        g1.setExternalId(1L);
+        given(groupService.isGroupInternal(g1.getId())).willReturn(false);
+        assertFalse(groupFacade.isGroupInternal(g1.getId()));
+        then(groupService).should().isGroupInternal(g1.getId());
+    }
+
+    @Test
+    public void isGroupInternalWhenServiceThrowsException() {
+        given(groupService.isGroupInternal(g1.getId())).willThrow(UserAndGroupServiceException.class);
+        thrown.expect(UserAndGroupFacadeException.class);
+        groupFacade.isGroupInternal(g1.getId());
+    }
 
     private NewGroupDTO getNewGroupDTO() {
         NewGroupDTO newGroupDTO = new NewGroupDTO();

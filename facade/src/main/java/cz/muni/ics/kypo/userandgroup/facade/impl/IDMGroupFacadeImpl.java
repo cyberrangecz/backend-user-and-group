@@ -133,4 +133,13 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
+
+    @Override
+    public boolean isGroupInternal(Long id) throws UserAndGroupFacadeException {
+        try {
+            return groupService.isGroupInternal(id);
+        } catch (UserAndGroupServiceException e) {
+            throw new UserAndGroupFacadeException(e.getMessage());
+        }
+    }
 }
