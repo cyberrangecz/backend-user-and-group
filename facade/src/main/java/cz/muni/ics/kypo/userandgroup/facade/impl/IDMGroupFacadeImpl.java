@@ -113,7 +113,11 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
     @Override
     public Set<RoleDTO> getRolesOfGroup(Long id) {
-        return beanMapping.mapToSet(groupService.getRolesOfGroup(id), RoleDTO.class);
+        try {
+            return beanMapping.mapToSet(groupService.getRolesOfGroup(id), RoleDTO.class);
+        } catch (UserAndGroupServiceException e) {
+            throw new UserAndGroupFacadeException(e.getMessage());
+        }
     }
 
     @Override

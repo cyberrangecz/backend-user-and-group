@@ -215,7 +215,6 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetRolesOfGroup() {
-
         Set<Role> roles = new HashSet<>();
         roles.add(getRole());
 
@@ -225,8 +224,15 @@ public class IDMGroupFacadeTest {
         given(groupService.getRolesOfGroup(anyLong())).willReturn(roles);
         given(beanMapping.mapToSet(anySet(), eq(RoleDTO.class))).willReturn(roleDTOS);
         Set<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L);
-        assertEquals(1L, roleDTOS.size());
+        assertEquals(1L, rolesDTO.size());
         assertEquals(RoleType.USER.toString(), new ArrayList<RoleDTO>(roleDTOS).get(0).getRoleType().toString());
+    }
+
+    @Test
+    public void testGetRolesOfGroupWithServiceThrowsException() {
+        given(groupService.getRolesOfGroup(anyLong())).willThrow(UserAndGroupServiceException.class);
+        thrown.expect(UserAndGroupFacadeException.class);
+        groupFacade.getRolesOfGroup(1L);
     }
 
     @Test
