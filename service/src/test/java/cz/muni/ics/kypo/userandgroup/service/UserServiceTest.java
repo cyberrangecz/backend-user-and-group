@@ -177,6 +177,7 @@ public class UserServiceTest {
     public void updateUser() {
         given(userRepository.isUserInternal(user1.getId())).willReturn(true);
         given(userRepository.save(user1)).willReturn(user1);
+        given(userRepository.existsById(user1.getId())).willReturn(true);
 
         User u = userService.update(user1);
         assertEquals(user1.getId(), u.getId());
@@ -207,6 +208,7 @@ public class UserServiceTest {
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Error: External user cannot be updated");
         given(userRepository.isUserInternal(user1.getId())).willReturn(false);
+        given(userRepository.existsById(user1.getId())).willReturn(true);
         userService.update(user1);
     }
 
