@@ -32,6 +32,7 @@
         <mitre.oidc.version>1.3.2</mitre.oidc.version>
         <modelmapper.version>0.7.5</modelmapper.version>
         <jackson.version>2.9.5</jackson.version>
+        <squiggly.filter.jackson.version>1.3.11</squiggly.filter.jackson.version>
     </properties>
 
     <dependencyManagement>
@@ -74,25 +75,14 @@
                 <artifactId>modelmapper</artifactId>
                 <version>${modelmapper.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-filter-jackson</artifactId>
+                <version>${squiggly.filter.jackson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <!--<build>-->
-        <!--<pluginManagement>-->
-            <!--<plugins>-->
-                <!--<plugin>-->
-                    <!--<groupId>org.apache.maven.plugins</groupId>-->
-                    <!--<artifactId>maven-compiler-plugin</artifactId>-->
-                    <!--<version>${maven.compiler.version}</version>-->
-                    <!--<configuration>-->
-                        <!--<source>${java.version}</source>-->
-                        <!--<target>${java.version}</target>-->
-                        <!--<encoding>${project.build.sourceEncoding}</encoding>-->
-                    <!--</configuration>-->
-                <!--</plugin>-->
-            <!--</plugins>-->
-        <!--</pluginManagement>-->
-    <!--</build>-->
 
 
     <modules>
@@ -100,7 +90,7 @@
         <module>service</module>
         <module>facade</module>
         <module>security</module>
-        <!--<module>rest</module>-->
+        <module>rest</module>
     </modules>
 
 </project>

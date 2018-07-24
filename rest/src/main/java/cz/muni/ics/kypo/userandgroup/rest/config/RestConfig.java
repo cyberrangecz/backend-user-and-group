@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.rest.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import cz.muni.ics.kypo.userandgroup.config.FacadeConfig;
 import cz.muni.ics.kypo.userandgroup.config.ServiceConfig;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 
 
 @EnableSpringDataWebSupport
-@Import({ServiceConfig.class, SwaggerConfig.class})
+@Import({FacadeConfig.class, SwaggerConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.mapping"})
 public class RestConfig {
 

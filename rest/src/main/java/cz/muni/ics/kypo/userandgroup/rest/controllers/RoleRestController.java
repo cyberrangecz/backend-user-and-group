@@ -1,26 +1,30 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.github.bohnman.squiggly.Squiggly;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup.ROLES_URL;
 
@@ -31,35 +35,38 @@ public class RoleRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RoleRestController.class);
 
-    private RoleService roleService;
+    private RoleFacade roleFacade;
 
-    private BeanMapping beanMapping;
+    private ObjectMapper objectMapper;
 
     @Autowired
-    public RoleRestController(RoleService roleService, BeanMapping beanMapping) {
-        this.roleService = roleService;
-        this.beanMapping = beanMapping;
+    public RoleRestController(RoleFacade roleFacade, @Qualifier("objMapperRESTApi") ObjectMapper objectMapper) {
+        this.roleFacade = roleFacade;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get all roles", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<RoleDTO>> getRoles(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        LOGGER.info(pageable.toString());
-        List<Role> roles = roleService.getAllRoles(pageable).getContent();
-        List<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toList());
+    public ResponseEntity<Object> getRoles(@QuerydslPredicate(root = Role.class) Predicate predicate,
+                                                  @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                                  @RequestParam MultiValueMap<String, String> parameters,
+                                                  @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                      @RequestParam(value = "fields", required = false) String fields) {
+        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
 
-        return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get role with given id", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RoleDTO> getRole(
+    public ResponseEntity<Object> getRole(
             @ApiParam(value = "Id of role to be returned", required = true) @PathVariable("id") final Long id) {
         try {
-            RoleDTO roleDTO = beanMapping.mapTo(roleService.getById(id), RoleDTO.class);
-            return new ResponseEntity<>(roleDTO, HttpStatus.OK);
-        } catch (UserAndGroupServiceException ex) {
-            throw new ResourceNotFoundException("Role with given id could not be found");
+            return new ResponseEntity<>(roleFacade.getById(id), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException ex) {
+            throw new ResourceNotFoundException("Role with given id " + id + " could not be found");
         }
+
     }
 }

@@ -1,42 +1,41 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.Source;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.AddMembersToGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDeletionResponseDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,150 +54,155 @@ public class GroupsRestControllerTest {
     private GroupsRestController groupsRestController;
 
     @MockBean
-    private IDMGroupService groupService;
+    private IDMGroupFacade groupFacade;
 
     @MockBean
-    private UserService userService;
-
-    @MockBean
-    private BeanMapping beanMapping;
+    @Qualifier("objMapperRESTApi")
+    private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;
 
+    private GroupDTO groupDTO1, groupDTO2;
+    private NewGroupDTO newGroupDTO;
+    private UpdateGroupDTO updateGroupDTO;
     private int page, size;
+    private PageResultResource<GroupDTO> groupPageResultResource;
 
     @Before
     public void setup() throws RuntimeException {
         page = 0;
         size = 10;
 
+        groupDTO1 = new GroupDTO();
+        groupDTO1.setId(1L);
+        groupDTO1.setName("GroupOne");
+        groupDTO1.setDescription("Group one");
+        groupDTO1.setSource(Source.INTERNAL);
+
+        groupDTO2 = new GroupDTO();
+        groupDTO2.setId(2L);
+        groupDTO2.setName("GroupTwo");
+        groupDTO2.setDescription("Group two");
+        groupDTO2.setSource(Source.INTERNAL);
+
+        newGroupDTO = new NewGroupDTO();
+        newGroupDTO.setName("GroupOne");
+        newGroupDTO.setDescription("Group one");
+
+        updateGroupDTO = new UpdateGroupDTO();
+        updateGroupDTO.setId(1L);
+        updateGroupDTO.setName("GroupOne");
+        updateGroupDTO.setDescription("Group one");
+
+        groupPageResultResource = new PageResultResource<>(Arrays.asList(groupDTO1, groupDTO2));
+
+        ObjectMapper obj = new ObjectMapper();
+        obj.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        given(objectMapper.getSerializationConfig()).willReturn(obj.getSerializationConfig());
+
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(groupsRestController)
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setCustomArgumentResolvers(
+                        new PageableHandlerMethodArgumentResolver(),
+                        new QuerydslPredicateArgumentResolver(
+                                new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE), Optional.empty()
+                        )
+                )
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
-                .setControllerAdvice(new CustomRestExceptionHandler()).build();
-
-        given(groupService.getAllIDMGroups(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(getGroup())));
-        given(groupService.getIDMGroupWithUsers(anyLong())).willReturn(getGroup());
-        given(groupService.getIDMGroupWithUsers(anyString())).willReturn(getGroup());
-        given(groupService.update(any(IDMGroup.class))).willReturn(getGroup());
-        given(groupService.create(any(IDMGroup.class))).willReturn(getGroup());
-        given(groupService.isGroupInternal(anyLong())).willReturn(true);
-        given(groupService.getIDMGroupWithUsers(anyString())).willReturn(getGroup());
-        given(groupService.get(anyLong())).willReturn(getGroup());
-        given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
-        given(groupService.deleteGroups(anyList())).willReturn(ImmutableMap.of(getGroup(), GroupDeletionStatus.SUCCESS));
-
-        given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDTO.class))).willReturn(getGroupDTO());
-        given(beanMapping.mapTo(any(NewGroupDTO.class), eq(IDMGroup.class))).willReturn(getGroup());
-        given(beanMapping.mapTo(any(IDMGroup.class), eq(GroupDeletionResponseDTO.class))).willReturn(getGroupDeletionResponse());
-
-        given(beanMapping.mapTo(any(User.class), eq(UserForGroupsDTO.class))).willReturn(getUserForGroupsDTO());
-
-        given(beanMapping.mapTo(getAdminRole(), RoleDTO.class)).willReturn(getAdminRoleDTO());
-        given(beanMapping.mapTo(getGuestRole(), RoleDTO.class)).willReturn(getGuestRoleDTO());
+                .setControllerAdvice(new CustomRestExceptionHandler())
+                .build();
     }
 
     @Test
-    public void contextLoads() throws Exception {
+    public void contextLoads() {
         assertNotNull(groupsRestController);
     }
 
     @Test
     public void testCreateGroup() throws Exception {
+        given(groupFacade.createGroup(any(NewGroupDTO.class))).willReturn(groupDTO1);
         mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getNewGroupDTO())))
+                        .content(convertObjectToJsonBytes(newGroupDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+        then(groupFacade).should().createGroup(any(NewGroupDTO.class));
     }
 
     @Test
     public void testCreateGroupCouldNotBeCreated() throws Exception {
-        given(groupService.create(any(IDMGroup.class))).willThrow(new UserAndGroupServiceException());
+        given(groupFacade.createGroup(any(NewGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
         Exception ex = mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                         .content(convertObjectToJsonBytes(getNewGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Invalid group's information or could not be created in database.", ex.getMessage());
-    }
-
-    @Test
-    public void testCreateGroupWithUserNotInDB() throws Exception {
-        given(userService.getUserByLogin(anyString())).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getNewGroupDTO())))
-                .andExpect(status().isNotAcceptable())
-                .andReturn().getResolvedException();
-        assertEquals("Invalid group's information or could not be created in database.", ex.getMessage());
+        then(groupFacade).should().createGroup(any(NewGroupDTO.class));
     }
 
     @Test
     public void testCreateGroupWithNullRequestBody() throws Exception {
         mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
+        then(groupFacade).should(never()).isGroupInternal(anyLong());
+        then(groupFacade).should(never()).updateGroup(any(UpdateGroupDTO.class));
     }
 
     @Test
     public void testUpdateGroup() throws Exception {
+        given(groupFacade.isGroupInternal(groupDTO1.getId())).willReturn(true);
+        given(groupFacade.updateGroup(any(UpdateGroupDTO.class))).willReturn(groupDTO1);
         mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getGroup())))
+                        .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
+                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should().updateGroup(any(UpdateGroupDTO.class));
     }
 
     @Test
     public void testUpdateExternalGroup() throws Exception {
-        given(groupService.isGroupInternal(anyLong())).willReturn(false);
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getGroupDTO())))
+                        .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group is external therefore they could not be updated", ex.getMessage());
-    }
-
-    @Test
-    public void testUpdateGroupNotInDB() throws Exception {
-        given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getGroupDTO())))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
+        then(groupFacade).should().isGroupInternal(anyLong());
     }
 
     @Test
     public void testUpdateGroupWithUpdateError() throws Exception {
-        given(groupService.update(any(IDMGroup.class))).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(convertObjectToJsonBytes(getGroupDTO())))
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
+        given(groupFacade.updateGroup(any(UpdateGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
+        Exception ex = mockMvc.perform(
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
+
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should().updateGroup(any(UpdateGroupDTO.class));
     }
 
     @Test
     public void testUpdateGroupWithNullNameAndDescription() throws Exception {
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
         GroupDTO groupDTO = new GroupDTO();
         groupDTO.setId(1L);
         Exception ex = mockMvc.perform(
@@ -208,34 +212,28 @@ public class GroupsRestControllerTest {
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group name neither group description cannot be null.", ex.getMessage());
+        then(groupFacade).should().isGroupInternal(anyLong());
     }
 
     @Test
     public void testRemoveMembers() throws Exception {
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
+        given(groupFacade.removeMembers(groupDTO1.getId(), Collections.singletonList(1L))).willReturn(groupDTO1);
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", getGroup().getId())
+                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+                        .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
-    }
-
-    @Test
-    public void testRemoveMembersFromGroupNotInDB() throws Exception {
-        given(groupService.getIDMGroupWithUsers(anyString())).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
+                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should().removeMembers(groupDTO1.getId(), Collections.singletonList(1L));
     }
 
     @Test
     public void testRemoveMembersWithUpdateError() throws Exception {
-        given(groupService.update(any(IDMGroup.class))).willThrow(new UserAndGroupServiceException());
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
+        given(groupFacade.removeMembers(100L, Collections.singletonList(1L))).willThrow(new UserAndGroupFacadeException());
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -243,6 +241,8 @@ public class GroupsRestControllerTest {
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should().removeMembers(100L, Collections.singletonList(1L));
     }
 
     @Test
@@ -252,11 +252,13 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
+        then(groupFacade).should(never()).isGroupInternal(anyLong());
+        then(groupFacade).should(never()).removeMembers(anyLong(), anyList());
     }
 
     @Test
     public void testRemoveMembersFromExternalGroup() throws Exception {
-        given(groupService.isGroupInternal(anyLong())).willReturn(false);
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeMembers", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -264,46 +266,36 @@ public class GroupsRestControllerTest {
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group is external therefore they could not be updated", ex.getMessage());
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should(never()).removeMembers(anyLong(), anyList());
     }
 
     @Test
     public void testAddMembers() throws Exception {
+        UserForGroupsDTO user = new UserForGroupsDTO();
+        user.setId(1L);
+        user.setLogin("user");
+        user.setFullName("user one");
+        user.setMail("user.one@mail.com");
+        groupDTO1.setMembers(Collections.singletonList(user));
+
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
+        given(groupFacade.addMembers(any(AddMembersToGroupDTO.class))).willReturn(groupDTO1);
         mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
-    }
-
-    @Test
-    public void testAddMembersToGroupNotInDB() throws Exception {
-        given(groupService.getIDMGroupWithUsers(anyString())).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
-    }
-
-    @Test
-    public void testAddMembersWithMemberNotInDB() throws Exception {
-        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getAddMembersToGroupDTO())))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
+                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should().addMembers(any(AddMembersToGroupDTO.class));
     }
 
     @Test
     public void testAddMembersWithUpdateError() throws Exception {
-        given(groupService.update(any(IDMGroup.class))).willThrow(new UserAndGroupServiceException());
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
+        given(groupFacade.addMembers(any(AddMembersToGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -311,6 +303,8 @@ public class GroupsRestControllerTest {
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("Group could not be modified.", ex.getMessage());
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should().addMembers(any(AddMembersToGroupDTO.class));
     }
 
     @Test
@@ -320,11 +314,13 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
+        then(groupFacade).should(never()).isGroupInternal(anyLong());
+        then(groupFacade).should(never()).addMembers(any(AddMembersToGroupDTO.class));
     }
 
     @Test
     public void testAddMembersToExternalGroup() throws Exception {
-        given(groupService.isGroupInternal(anyLong())).willReturn(false);
+        given(groupFacade.isGroupInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addMembers")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -332,61 +328,59 @@ public class GroupsRestControllerTest {
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Group is external therefore they could not be updated", ex.getMessage());
+        then(groupFacade).should().isGroupInternal(anyLong());
+        then(groupFacade).should(never()).addMembers(any(AddMembersToGroupDTO.class));
     }
 
     @Test
     public void testDeleteGroup() throws Exception {
+        given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(getGroupDeletionResponse());
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getGroupDeletionResponse())));
-    }
-
-    @Test
-    public void testDeleteGroupNotInDB() throws Exception {
-        given(groupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("Group with id " + getGroup().getId() + " could not be found.", ex.getMessage());
+        then(groupFacade).should().deleteGroup(groupDTO1.getId());
     }
 
     @Test
     public void testDeleteGroupWithDeleteError() throws Exception {
-        given(groupService.delete(any(IDMGroup.class))).willThrow(new UserAndGroupServiceException());
+        given(groupFacade.deleteGroup(groupDTO1.getId())).willThrow(new UserAndGroupFacadeException());
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
-        assertEquals(ex.getMessage(), "Some error occurred during deletion of group with name " + getGroup().getName() + ". Please, try it later.");
+        assertEquals("Some error occurred during deletion of group with id " + groupDTO1.getId() + ". Please, try it later.", ex.getMessage());
+        then(groupFacade).should().deleteGroup(groupDTO1.getId());
     }
 
     @Test
     public void testDeleteExternalGroup() throws Exception {
-        given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.EXTERNAL_VALID);
+        GroupDeletionResponseDTO deletionResponseDTO = getGroupDeletionResponse();
+        deletionResponseDTO.setStatus(GroupDeletionStatus.EXTERNAL_VALID);
+        given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(deletionResponseDTO);
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", getGroup().getId())
+                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
-        assertEquals("Group with name " + getGroup().getName() + " cannot be deleted because is from external source and is valid group.", ex.getMessage());
+        assertEquals("Group with id " + groupDTO1.getId() + " cannot be deleted because is from external source and is valid group.", ex.getMessage());
+        then(groupFacade).should().deleteGroup(groupDTO1.getId());
     }
 
     @Test
     public void testDeleteGroups() throws Exception {
+        given(groupFacade.deleteGroups(Collections.singletonList(1L))).willReturn(Collections.singletonList(getGroupDeletionResponse()));
         mockMvc.perform(
                 delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+                        .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getGroupDeletionResponse()))));
-
+                .andExpect(content().string(convertObjectToJsonBytes(Collections.singletonList(getGroupDeletionResponse()))));
+        then(groupFacade).should().deleteGroups(Collections.singletonList(1L));
     }
 
     @Test
@@ -395,58 +389,72 @@ public class GroupsRestControllerTest {
                 delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
-
+        then(groupFacade).should(never()).deleteGroups(anyList());
     }
 
     @Test
     public void testGetGroups() throws Exception {
-        mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                    .param("page", String.valueOf(page))
-                    .param("size", String.valueOf(size)))
+        String valueAs = convertObjectToJsonBytes(groupPageResultResource);
+        given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
+        given(groupFacade.getAllGroups(any(Predicate.class), any(Pageable.class))).willReturn(groupPageResultResource);
+
+        MockHttpServletResponse result = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getGroupDTO()))));
-    }
-
-    @Test
-    public void testGetGroupsWithErrorWhileLoading() throws Exception {
-        given(groupService.getAllIDMGroups(any(Pageable.class))).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andExpect(status().isServiceUnavailable())
-                .andReturn().getResolvedException();
-        assertEquals("Error while loading all groups from database.", ex.getMessage());
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(groupPageResultResource)), result.getContentAsString());
+        then(groupFacade).should().getAllGroups(any(Predicate.class), any(Pageable.class));
     }
 
     @Test
     public void testGetGroup() throws Exception {
-        IDMGroup group = getGroup();
-        given(groupService.get(group.getId())).willReturn(group);
+        given(groupFacade.getGroup(groupDTO1.getId())).willReturn(groupDTO1);
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", group.getId()))
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getGroupDTO())));
+                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+        then(groupFacade).should().getGroup(groupDTO1.getId());
+    }
+
+    @Test
+    public void testGetGroupWithGroupNotFound() throws Exception {
+        given(groupFacade.getGroup(groupDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getMessage());
     }
 
     @Test
     public void testGetRolesOfGroup() throws Exception {
-        IDMGroup g = getGroup();
-        given(groupService.getRolesOfGroup(g.getId())).willReturn(getRoles());
+        given(groupFacade.getRolesOfGroup(groupDTO1.getId())).willReturn(getRolesDTO());
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", g.getId()))
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", groupDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
+        then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
+    }
+
+    @Test
+    public void testGetRolesOfGroupWithExceptionFromFacade() throws Exception {
+        given(groupFacade.getRolesOfGroup(groupDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", groupDTO1.getId()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getMessage());
+        then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
     }
 
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
     }
+
 
     private AddMembersToGroupDTO getAddMembersToGroupDTO() {
         AddMembersToGroupDTO groupDTO = new AddMembersToGroupDTO();
@@ -455,65 +463,24 @@ public class GroupsRestControllerTest {
         groupDTO.setIdsOfUsersToBeAdd(Arrays.asList(3L));
 
         return groupDTO;
-
-
-    }
-
-    private GroupDTO getGroupDTO() {
-        GroupDTO group = new GroupDTO();
-        group.setId(1L);
-        group.setDescription("Testing group 1");
-        group.setName("Group 1");
-        group.setSource(Source.INTERNAL);
-        group.setCanBeDeleted(false);
-        group.setMembers(Arrays.asList(getUserForGroupsDTO()));
-        group.setRoles(Collections.EMPTY_SET);
-
-        return group;
     }
 
     private NewGroupDTO getNewGroupDTO() {
         NewGroupDTO newGroupDTO = new NewGroupDTO();
-        newGroupDTO.setName("New group");
-        newGroupDTO.setDescription("New testing group");
+        newGroupDTO.setName("GroupOne");
+        newGroupDTO.setDescription("Group One");
         newGroupDTO.setGroupIdsOfImportedMembers(Arrays.asList(1L));
         newGroupDTO.setMembers(Arrays.asList(getUserForGroupsDTO()));
 
         return newGroupDTO;
-
     }
-
 
     private GroupDeletionResponseDTO getGroupDeletionResponse() {
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         groupDeletionResponseDTO.setId(1L);
         groupDeletionResponseDTO.setStatus(GroupDeletionStatus.SUCCESS);
-        groupDeletionResponseDTO.setName("Group 1");
+        groupDeletionResponseDTO.setName("GroupOne");
         return groupDeletionResponseDTO;
-
-    }
-
-
-    private IDMGroup getGroup() {
-        IDMGroup group = new IDMGroup();
-        group.setId(1L);
-        group.setDescription("Testing group 1");
-        group.setName("Group 1");
-        group.setStatus(UserAndGroupStatus.VALID);
-        group.addUser(getUser());
-
-        return group;
-    }
-
-    private User getUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setLogin("kypo");
-        user.setFullName("KYPO LOCAL ADMIN");
-        user.setMail("kypo@mail.cz");
-        user.setStatus(UserAndGroupStatus.VALID);
-
-        return user;
     }
 
     private UserForGroupsDTO getUserForGroupsDTO() {
@@ -523,14 +490,6 @@ public class GroupsRestControllerTest {
         userDTO.setFullName("KYPO LOCAL ADMIN");
         userDTO.setLogin("kypo");
         return userDTO;
-
-    }
-
-    private Role getAdminRole() {
-        Role adminRole = new Role();
-        adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
-        return adminRole;
     }
 
     private RoleDTO getAdminRoleDTO() {
@@ -540,22 +499,11 @@ public class GroupsRestControllerTest {
         return adminRole;
     }
 
-    private Role getGuestRole() {
-        Role guestRole = new Role();
-        guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.GUEST.name());
-        return guestRole;
-    }
-
     private RoleDTO getGuestRoleDTO() {
         RoleDTO guestRole = new RoleDTO();
         guestRole.setId(2L);
         guestRole.setRoleType(RoleType.GUEST.name());
         return guestRole;
-    }
-
-    private Set<Role> getRoles() {
-        return Stream.of(getAdminRole(), getGuestRole()).collect(Collectors.toSet());
     }
 
     private Set<RoleDTO> getRolesDTO() {

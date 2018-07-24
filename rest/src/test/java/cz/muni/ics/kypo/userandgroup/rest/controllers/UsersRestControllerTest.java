@@ -1,8 +1,11 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
@@ -11,21 +14,22 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.NewUserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UpdateUserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -33,6 +37,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +45,6 @@ import java.util.stream.Stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -50,48 +54,65 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UsersRestControllerTest {
 
     @MockBean
-    private IDMGroupService groupService;
-
-    @MockBean
-    private UserService userService;
+    private UserFacade userFacade;
 
     @InjectMocks
     private UsersRestController usersRestController;
 
     @MockBean
-    private BeanMapping beanMapping;
+    @Qualifier("objMapperRESTApi")
+    private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;
 
-    private int page = 0;
-    private int size = 10;
+    private UserDTO userDTO1, userDTO2;
+    private NewUserDTO newUserDTO;
+    private UpdateUserDTO updateUserDTO;
+    private int page, size;
+    private PageResultResource<UserDTO> userPageResultResource;
 
     @Before
-    public void setup() throws  RuntimeException {
+    public void setup() throws RuntimeException {
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(usersRestController)
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setCustomArgumentResolvers(
+                        new PageableHandlerMethodArgumentResolver(),
+                        new QuerydslPredicateArgumentResolver(
+                                new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE), Optional.empty()
+                        )
+                )
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        given(userService.getAllUsers(any(Pageable.class))).willReturn(new PageImpl<>(Arrays.asList(getUser())));
-        given(userService.getUserWithGroups(anyLong())).willReturn(getUser());
-        given(userService.create(any(User.class))).willReturn(getUser());
-        given(userService.isUserInternal(anyLong())).willReturn(true);
-        given(userService.get(anyLong())).willReturn(getUser());
-        given(userService.update(any(User.class))).willReturn(getUser());
-        given(userService.delete(any(User.class))).willReturn(UserDeletionStatus.SUCCESS);
-        given(userService.deleteUsers(anyList())).willReturn(ImmutableMap.of(getUser(), UserDeletionStatus.SUCCESS));
+        userDTO1 = new UserDTO();
+        userDTO1.setId(1L);
+        userDTO1.setLogin("user1");
+        userDTO1.setFullName("User One");
+        userDTO1.setMail("user.one@mail.com");
 
-        given(groupService.getIDMGroupWithUsers(anyLong())).willReturn(getGroupWithUsers());
+        userDTO2 = new UserDTO();
+        userDTO2.setId(2L);
+        userDTO2.setLogin("user2");
+        userDTO2.setFullName("User Two");
+        userDTO2.setMail("user.two@mail.com");
 
-        given(beanMapping.mapTo(any(User.class), eq(UserDTO.class))).willReturn(getUserDTO());
-        given(beanMapping.mapTo(any(NewUserDTO.class), eq(User.class))).willReturn(getUser());
-        given(beanMapping.mapTo(any(UpdateUserDTO.class), eq(User.class))).willReturn(getUser());
+        newUserDTO = new NewUserDTO();
+        newUserDTO.setLogin("user1");
+        newUserDTO.setFullName("User One");
+        newUserDTO.setMail("user.one@mail.com");
 
-        given(beanMapping.mapTo(getAdminRole(), RoleDTO.class)).willReturn(getAdminRoleDTO());
-        given(beanMapping.mapTo(getGuestRole(), RoleDTO.class)).willReturn(getGuestRoleDTO());
+        updateUserDTO = new UpdateUserDTO();
+        updateUserDTO.setId(1L);
+        updateUserDTO.setLogin("user1");
+        updateUserDTO.setFullName("User One");
+        updateUserDTO.setMail("user.one@mail.com");
+
+        userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
+
+        ObjectMapper obj = new ObjectMapper();
+        obj.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        given(objectMapper.getSerializationConfig()).willReturn(obj.getSerializationConfig());
     }
 
     @Test
@@ -101,53 +122,58 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUsers() throws Exception {
-        mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        String valueAs = convertObjectToJsonBytes(userPageResultResource);
+        given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
+        given(userFacade.getUsers(any(Predicate.class), any(Pageable.class))).willReturn(userPageResultResource);
+
+        MockHttpServletResponse result = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getUserDTO()))));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(userPageResultResource)), result.getContentAsString());
+        then(userFacade).should().getUsers(any(Predicate.class), any(Pageable.class));
     }
 
     @Test
-    public void testGetUsersWithErrorWhileLoading() throws Exception {
-        given(userService.getAllUsers(any(Pageable.class))).willThrow(new UserAndGroupServiceException());
-        Exception ex  = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andExpect(status().isServiceUnavailable())
+    public void testGetUser() throws Exception {
+        given(userFacade.getUser(userDTO1.getId())).willReturn(userDTO1);
+        mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
+        then(userFacade).should().getUser(userDTO1.getId());
+    }
+
+    @Test
+    public void testGetUserWithUserNotFound() throws Exception {
+        given(userFacade.getUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId()))
+                .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Some error occurred while loading all users. Please, try it later.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getMessage());
     }
 
     @Test
     public void testGetAllUsersNotInGivenGroup() throws Exception {
-        mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        String valueAs = convertObjectToJsonBytes(userPageResultResource);
+        given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
+        given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willReturn(userPageResultResource);
+
+        MockHttpServletResponse result = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(content().string(convertObjectToJsonBytes(Collections.EMPTY_LIST)));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(userPageResultResource)), result.getContentAsString());
+        then(userFacade).should().getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class));
     }
 
     @Test
-    public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingAllUsers() throws Exception {
-        given(userService.getAllUsers(any(Pageable.class))).willThrow(new UserAndGroupServiceException());
-        Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andExpect(status().isServiceUnavailable())
-                .andReturn().getResolvedException();
-        assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getMessage());
-    }
-
-    @Test
-    public void testGetAllUsersNotInGivenGroupWithErrorWhileLoadingGroupWithUsers() throws Exception {
-        given(groupService.getIDMGroupWithUsers(anyLong())).willThrow(new UserAndGroupServiceException());
+    public void testGetAllUsersNotInGivenGroupWithError() throws Exception {
+        given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
                 get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
                         .param("page", String.valueOf(page))
@@ -159,47 +185,53 @@ public class UsersRestControllerTest {
 
     @Test
     public void testCreateNewUser() throws Exception {
-
+        given(userFacade.createUser(any(NewUserDTO.class))).willReturn(userDTO1);
         mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getNewUserDTO())))
+                        .content(convertObjectToJsonBytes(newUserDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getUserDTO())));
+                .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
+        then(userFacade).should().createUser(any(NewUserDTO.class));
     }
 
     @Test
     public void testCreateNewUserWithNullRequestBody() throws Exception {
-
         mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
+        then(userFacade).should(never()).createUser(any(NewUserDTO.class));
     }
 
     @Test
     public void testCreateNewUserWithInvalidInformation() throws Exception {
-        given(userService.create(any(User.class))).willThrow(new UserAndGroupServiceException());
+        given(userFacade.createUser(any(NewUserDTO.class))).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
                 post(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getNewUserDTO())))
+                        .content(convertObjectToJsonBytes(newUserDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("Invalid user's information or could not be created.", ex.getMessage());
+        then(userFacade).should().createUser(any(NewUserDTO.class));
     }
 
     @Test
     public void testUpdateUser() throws Exception {
+        given(userFacade.isUserInternal(anyLong())).willReturn(true);
+        given(userFacade.updateUser(any(UpdateUserDTO.class))).willReturn(userDTO1);
         mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getUpdateUserDTO())))
+                        .content(convertObjectToJsonBytes(updateUserDTO)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getUserDTO())));
+                .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
+        then(userFacade).should().isUserInternal(anyLong());
+        then(userFacade).should().updateUser(any(UpdateUserDTO.class));
     }
 
     @Test
@@ -209,73 +241,91 @@ public class UsersRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
+        then(userFacade).should(never()).isUserInternal(anyLong());
+        then(userFacade).should(never()).updateUser(any(UpdateUserDTO.class));
     }
 
     @Test
     public void testUpdateExternalUser() throws Exception {
-        given(userService.isUserInternal(anyLong())).willReturn(false);
+        given(userFacade.isUserInternal(anyLong())).willReturn(false);
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getUpdateUserDTO())))
+                        .content(convertObjectToJsonBytes(updateUserDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
         assertEquals("User is external therefore they could not be updated", ex.getMessage());
+        then(userFacade).should().isUserInternal(anyLong());
+        then(userFacade).should(never()).updateUser(any(UpdateUserDTO.class));
     }
 
     @Test
     public void testUpdateUserWithUpdateError() throws Exception {
-        given(userService.update(any(User.class))).willThrow(new UserAndGroupServiceException());
+        given(userFacade.isUserInternal(anyLong())).willReturn(true);
+        given(userFacade.updateUser(any(UpdateUserDTO.class))).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getUpdateUserDTO())))
+                        .content(convertObjectToJsonBytes(updateUserDTO)))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
         assertEquals("User could not be updated", ex.getMessage());
+        then(userFacade).should().isUserInternal(anyLong());
+        then(userFacade).should().updateUser(any(UpdateUserDTO.class));
     }
 
     @Test
     public void testDeleteUser() throws Exception {
+        given(userFacade.deleteUser(userDTO1.getId())).willReturn(getUserDeletionResponseDTO());
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getUserDeletionResponseDTO())));
+        then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
     @Test
     public void testDeleteUserNotFound() throws Exception {
-        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(userFacade.deleteUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + getUser().getId() + " could not be found.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getMessage());
+        then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
     @Test
     public void testDeleteUserExternalValid() throws Exception {
-        given(userService.delete(any(User.class))).willReturn(UserDeletionStatus.EXTERNAL_VALID);
+        UserDeletionResponseDTO userDeletionResponseDTO = getUserDeletionResponseDTO();
+        userDeletionResponseDTO.setStatus(UserDeletionStatus.EXTERNAL_VALID);
+        given(userFacade.deleteUser(userDTO1.getId())).willReturn(userDeletionResponseDTO);
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", getUser().getId())
+                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
-        assertEquals("User with login " + getUser().getLogin() + " cannot be deleted because is from external source and is valid user.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " cannot be deleted because is from external source and is valid user.", ex.getMessage());
+        then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
     @Test
     public void testDeleteUsers() throws Exception {
+        UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
+        deletionResponseDTO.setUser(userDTO2);
+        deletionResponseDTO.setStatus(UserDeletionStatus.EXTERNAL_VALID);
+        given(userFacade.deleteUsers(Arrays.asList(userDTO1.getId(), userDTO2.getId()))).willReturn(Arrays.asList(getUserDeletionResponseDTO(), deletionResponseDTO));
         mockMvc.perform(
                 delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
+                        .content(convertObjectToJsonBytes(Arrays.asList(userDTO1.getId(), userDTO2.getId()))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getUserDeletionResponseDTO()))));
+                .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getUserDeletionResponseDTO(), deletionResponseDTO))));
+        then(userFacade).should().deleteUsers(Arrays.asList(userDTO1.getId(), userDTO2.getId()));
     }
 
     @Test
@@ -285,77 +335,32 @@ public class UsersRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
+        then(userFacade).should(never()).deleteUsers(anyList());
     }
 
     @Test
-    public void testChangeAdminRole() throws Exception {
+    public void testGetRolesOfGroup() throws Exception {
+        given(userFacade.getRolesOfUser(userDTO1.getId())).willReturn(getRolesDTO());
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void testChangeAdminRoleWithUserNotInDB() throws Exception {
-        willThrow(new UserAndGroupServiceException()).given(userService).changeAdminRole(anyLong());
-        Exception ex =  mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/change-admin-role", getUser().getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("User or role could not be found.", ex.getMessage());
-    }
-
-    @Test
-    public void testGetRolesOfUser() throws Exception {
-        User u = getUser();
-        given(userService.getRolesOfUser(u.getId())).willReturn(getRoles());
-        mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", u.getId()))
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
     }
 
+    @Test
+    public void testGetRolesOfGroupWithExceptionFromFacade() throws Exception {
+        given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
+        Exception ex = mockMvc.perform(
+                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", userDTO1.getId()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getMessage());
+    }
+
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
-    }
-
-    private User getUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setFullName("kypo");
-        user.setLogin("KYPO LOCAL ADMIN");
-        user.setMail("kypo@mail.cz");
-        user.setStatus(UserAndGroupStatus.VALID);
-        user.addGroup(getGroup());
-        return user;
-    }
-
-    private UserDTO getUserDTO() {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
-        userDTO.setMail("kypo@mail.cz");
-        userDTO.setLogin("KYPO LOCAL ADMIN");
-        userDTO.setFullName("kypo");
-        return userDTO;
-    }
-
-    private NewUserDTO getNewUserDTO() {
-        NewUserDTO newUserDTO = new NewUserDTO();
-        newUserDTO.setFullName("kypo");
-        newUserDTO.setLogin("KYPO LOCAL ADMIN");
-        newUserDTO.setMail("kypo@mail.cz");
-        return newUserDTO;
-    }
-
-    private UpdateUserDTO getUpdateUserDTO() {
-        UpdateUserDTO updateUserDTO = new UpdateUserDTO();
-        updateUserDTO.setId(1L);
-        updateUserDTO.setLogin("KYPO LOCAL ADMIN");
-        updateUserDTO.setMail("kypo@mail.cz");
-        return updateUserDTO;
     }
 
     private IDMGroup getGroup() {
@@ -368,25 +373,11 @@ public class UsersRestControllerTest {
         return group;
     }
 
-    private IDMGroup getGroupWithUsers() {
-        IDMGroup group = new IDMGroup();
-        group.setId(1L);
-        group.addUser(getUser());
-        return group;
-    }
-
     private UserDeletionResponseDTO getUserDeletionResponseDTO() {
         UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
-        deletionResponseDTO.setUser(getUserDTO());
+        deletionResponseDTO.setUser(userDTO1);
         deletionResponseDTO.setStatus(UserDeletionStatus.SUCCESS);
         return deletionResponseDTO;
-    }
-
-    private Role getAdminRole() {
-        Role adminRole = new Role();
-        adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
-        return adminRole;
     }
 
     private RoleDTO getAdminRoleDTO() {
@@ -396,22 +387,11 @@ public class UsersRestControllerTest {
         return adminRole;
     }
 
-    private Role getGuestRole() {
-        Role guestRole = new Role();
-        guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.GUEST.name());
-        return guestRole;
-    }
-
     private RoleDTO getGuestRoleDTO() {
         RoleDTO guestRole = new RoleDTO();
         guestRole.setId(2L);
         guestRole.setRoleType(RoleType.GUEST.name());
         return guestRole;
-    }
-
-    private Set<Role> getRoles() {
-        return Stream.of(getAdminRole(), getGuestRole()).collect(Collectors.toSet());
     }
 
     private Set<RoleDTO> getRolesDTO() {

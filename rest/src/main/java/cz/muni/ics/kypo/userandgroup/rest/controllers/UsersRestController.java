@@ -1,19 +1,22 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.bohnman.squiggly.Squiggly;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -21,12 +24,15 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -39,31 +45,25 @@ public class UsersRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(UsersRestController.class);
 
-    private IDMGroupService groupService;
-
-    private UserService userService;
-
-    private BeanMapping beanMapping;
+    private UserFacade userFacade;
+    private ObjectMapper objectMapper;
 
     @Autowired
-    public UsersRestController(UserService userService, IDMGroupService groupService, BeanMapping beanMapping) {
-        this.userService = userService;
-        this.groupService = groupService;
-        this.beanMapping = beanMapping;
+    public UsersRestController(UserFacade userFacade, @Qualifier("objMapperRESTApi") ObjectMapper objectMapper) {
+        this.userFacade = userFacade;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets all users.", produces = "application/json")
-    public ResponseEntity<List<UserDTO>> getUsers(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        try {
-            List<User> users = userService.getAllUsers(pageable).getContent();
-            List<UserDTO> userDTOS = users.stream().map(user -> convertToUserDTO(user))
-                    .collect(Collectors.toList());
-
-            return new ResponseEntity<>(userDTOS, HttpStatus.OK);
-        } catch (UserAndGroupServiceException e) {
-            throw new ServiceUnavailableException("Some error occurred while loading all users. Please, try it later.");
-        }
+    public ResponseEntity<Object> getUsers(@QuerydslPredicate(root = Role.class) Predicate predicate,
+                                           @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                           @RequestParam MultiValueMap<String, String> parameters,
+                                           @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                           @RequestParam(value = "fields", required = false) String fields) {
+        PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -71,30 +71,24 @@ public class UsersRestController {
     public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.",
             required = true) @PathVariable("id") final Long id) {
         try {
-            UserDTO userDTO = convertToUserDTO(userService.get(id));
-
-            return new ResponseEntity<>(userDTO, HttpStatus.OK);
-        } catch (UserAndGroupServiceException e) {
-            throw new ServiceUnavailableException("Some error occurred while loading user with id: " + id + ". Please, try it later.");
+            return new ResponseEntity<>(userFacade.getUser(id), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
         }
     }
 
     @GetMapping(path = "/except/in/group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets all users except users in given group.", produces = "application/json")
-    public ResponseEntity<List<UserDTO>> getAllUsersNotInGivenGroup(@ApiParam(value = "Id of group whose users do not get.",
-            required = true) @PathVariable("groupId") final Long groupId, @PageableDefault(size = 10, page = 0) Pageable pageable) {
+    public ResponseEntity<Object> getAllUsersNotInGivenGroup(@ApiParam(value = "Id of group whose users do not get.",
+            required = true) @PathVariable("groupId") final Long groupId,
+                                                             @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                             @RequestParam(value = "fields", required = false) String fields) {
         try {
-            List<User> users = new ArrayList<>(userService.getAllUsers(pageable).getContent());
-            IDMGroup group = groupService.getIDMGroupWithUsers(groupId);
-            for (User u : group.getUsers()) {
-                users.remove(u);
-
-            }
-            List<UserDTO> userDTOS = users.stream().map(user -> convertToUserDTO(user))
-                    .collect(Collectors.toList());
-
-            return new ResponseEntity<>(userDTOS, HttpStatus.OK);
-        } catch (UserAndGroupServiceException e) {
+            PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, pageable);
+            Squiggly.init(objectMapper, fields);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
             throw new ServiceUnavailableException("Some error occurred while loading users not in group with id: " + groupId + ". Please, try it later.");
         }
     }
@@ -105,13 +99,8 @@ public class UsersRestController {
             required = true) @RequestBody NewUserDTO newUserDTO) {
         Preconditions.checkNotNull(newUserDTO);
         try {
-            User user = convertToUser(newUserDTO);
-            user.setStatus(UserAndGroupStatus.VALID);
-
-            user = userService.create(user);
-            UserDTO s = convertToUserDTO(user);
-            return new ResponseEntity<>(s, HttpStatus.CREATED);
-        } catch (UserAndGroupServiceException e) {
+            return new ResponseEntity<>(userFacade.createUser(newUserDTO), HttpStatus.CREATED);
+        } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotCreatedException("Invalid user's information or could not be created.");
         }
     }
@@ -122,17 +111,13 @@ public class UsersRestController {
                                               @RequestBody UpdateUserDTO updateUserDTO) {
         Preconditions.checkNotNull(updateUserDTO);
 
-        if (!userService.isUserInternal(updateUserDTO.getId())) {
+        if (!userFacade.isUserInternal(updateUserDTO.getId())) {
             throw new InvalidParameterException("User is external therefore they could not be updated");
         }
 
         try {
-            User updateUser = convertToUser(updateUserDTO);
-            updateUser.setStatus(userService.get(updateUserDTO.getId()).getStatus());
-            User u = userService.update(updateUser);
-            UserDTO s = convertToUserDTO(u);
-            return new ResponseEntity<>(s, HttpStatus.OK);
-        } catch (UserAndGroupServiceException e) {
+            return new ResponseEntity<>(userFacade.updateUser(updateUserDTO), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("User could not be updated");
         }
     }
@@ -143,29 +128,18 @@ public class UsersRestController {
             produces = "application/json")
     public ResponseEntity<UserDeletionResponseDTO> deleteUser(@ApiParam(value = "Screen name of user to be deleted.",
             required = true) @PathVariable("id") final Long id) {
-
-        User user = null;
         try {
-            user = userService.get(id);
-        } catch (UserAndGroupServiceException e) {
-            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
-        }
+            UserDeletionResponseDTO userDeletionResponseDTO = userFacade.deleteUser(id);
 
-        try {
-            UserDeletionStatus deletionStatus = userService.delete(user);
-            UserDeletionResponseDTO userDeletionResponseDTO = new UserDeletionResponseDTO();
-            userDeletionResponseDTO.setUser(convertToUserDTO(user));
-            userDeletionResponseDTO.setStatus(deletionStatus);
-
-            switch (deletionStatus) {
+            switch (userDeletionResponseDTO.getStatus()) {
                 case SUCCESS:
                     return new ResponseEntity<>(userDeletionResponseDTO, HttpStatus.OK);
                 case EXTERNAL_VALID:
                 default:
-                    throw new MethodNotAllowedException("User with login " + user.getLogin() + " cannot be deleted because is from external source and is valid user.");
+                    throw new MethodNotAllowedException("User with id " + id + " cannot be deleted because is from external source and is valid user.");
             }
-        } catch (UserAndGroupServiceException e) {
-            throw new ServiceUnavailableException("Some system error occurred while deleting user with login " + user.getLogin() + ". Please, try it later.");
+        } catch (UserAndGroupFacadeException e) {
+            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
         }
     }
 
@@ -175,78 +149,31 @@ public class UsersRestController {
             "3) ERROR - user could not be deleted, try it later\n 4) NOT_FOUND - user could not be found",
             consumes = "application/json", produces = "application/json")
     public ResponseEntity<List<UserDeletionResponseDTO>> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
-                                                                     @RequestBody List<Long> ids) {
+                                                                         @RequestBody List<Long> ids) {
         Preconditions.checkNotNull(ids);
-
-        ids.forEach(id -> LOGGER.info(String.valueOf(id)));
-
-        Map<User, UserDeletionStatus> mapOfResults = userService.deleteUsers(ids);
-        List<UserDeletionResponseDTO> response = new ArrayList<>();
-
-        mapOfResults.forEach((user, status) -> {
-            UserDeletionResponseDTO r = new UserDeletionResponseDTO();
-            if (status.equals(UserDeletionStatus.NOT_FOUND)) {
-                UserDTO u = new UserDTO();
-                u.setId(user.getId());
-                r.setUser(u);
-            } else {
-                r.setUser(convertToUserDTO(user));
-            }
-            r.setStatus(status);
-
-            response.add(r);
-        });
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(userFacade.deleteUsers(ids), HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}/roles")
     @ApiOperation(httpMethod = "GET", value = "Returns all roles of user with given id.")
     public ResponseEntity<Set<RoleDTO>> getRolesOfUser(
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
-
-        Set<Role> roles = userService.getRolesOfUser(id);
-        Set<RoleDTO> roleDTOS = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class))
-                .collect(Collectors.toSet());
-        return new ResponseEntity<>(roleDTOS, HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(userFacade.getRolesOfUser(id), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
+        }
     }
 
     @GetMapping(path = "/info")
     @ApiOperation(httpMethod = "GET", value = "Returns details of user who is logged in")
     public ResponseEntity<UserInfoDTO> getUserInfo(OAuth2Authentication authentication) {
-        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-        String sub = credentials.get("sub").getAsString();
-        User loggedInUser = userService.getUserByLogin(sub);
-        Set<Role> rolesOfUser = userService.getRolesOfUser(loggedInUser.getId());
-
-        return new ResponseEntity<>(convertToUserInfoDTO(loggedInUser, rolesOfUser), HttpStatus.OK);
-    }
-
-    private UserDTO convertToUserDTO(User user) {
-        UserDTO u = beanMapping.mapTo(user, UserDTO.class);
-        u.convertScreenNameToLogin(user.getLogin());
-        return u;
-    }
-
-    private User convertToUser(NewUserDTO newUserDTO) {
-        User user = beanMapping.mapTo(newUserDTO, User.class);
-        user.setLogin(newUserDTO.getLogin());
-        return user;
-    }
-
-    private User convertToUser(UpdateUserDTO updateUserDTO) {
-        User user = beanMapping.mapTo(updateUserDTO, User.class);
-        user.setLogin(updateUserDTO.getLogin());
-        return user;
-    }
-
-    private UserInfoDTO convertToUserInfoDTO(User user, Set<Role> roles) {
-        UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
-        u.convertScreenNameToLogin(user.getLogin());
-
-        Set<RoleDTO> rolesDTOs = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toSet());
-        u.setRoles(rolesDTOs);
-
-        return u;
+        try {
+            return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
+            String sub = credentials.get("sub").getAsString();
+            throw new ResourceNotFoundException("Logged in user with login " + sub + " could not be found in database.");
+        }
     }
 }
