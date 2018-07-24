@@ -76,8 +76,9 @@ public interface UserFacade {
      *
      * @param id of user
      * @return all roles of user with given id
+     * @throws UserAndGroupFacadeException if user was not found
      */
-    Set<RoleDTO> getRolesOfUser(Long id);
+    Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException;
 
     /**
      * Returns info about currently logged in user

@@ -124,8 +124,12 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Set<RoleDTO> getRolesOfUser(Long id) {
-        return beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
+    public Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException {
+        try {
+            return beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
+        } catch (UserAndGroupServiceException e) {
+            throw new UserAndGroupFacadeException(e.getMessage());
+        }
     }
 
     @Override
