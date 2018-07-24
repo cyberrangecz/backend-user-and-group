@@ -85,8 +85,9 @@ public interface UserFacade {
      *
      * @param authentication spring's authentication
      * @return information about logged in user
+     * @throws UserAndGroupFacadeException if logged in user could not be found in database
      */
-    UserInfoDTO getUserInfo(OAuth2Authentication authentication);
+    UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException;
 
     /**
      * Returns true if user is internal otherwise false

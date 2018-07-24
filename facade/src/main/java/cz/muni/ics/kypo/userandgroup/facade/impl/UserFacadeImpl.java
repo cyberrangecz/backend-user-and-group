@@ -133,7 +133,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public UserInfoDTO getUserInfo(OAuth2Authentication authentication) {
+    public UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         String sub = credentials.get("sub").getAsString();
         User loggedInUser = null;
