@@ -41,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.*;
 
@@ -253,5 +254,27 @@ public class UserFacadeTest {
 
         assertTrue(responseRolesDTO.contains(roleDTO1));
         assertTrue(responseRolesDTO.contains(roleDTO2));
+    }
+
+    @Test
+    public void isGroupInternal() {
+        given(userService.isUserInternal(user1.getId())).willReturn(true);
+        assertTrue(userFacade.isUserInternal(user1.getId()));
+        then(userService).should().isUserInternal(user1.getId());
+    }
+
+    @Test
+    public void isGroupExternal() {
+        user1.setExternalId(1L);
+        given(userService.isUserInternal(user1.getId())).willReturn(false);
+        assertFalse(userFacade.isUserInternal(user1.getId()));
+        then(userService).should().isUserInternal(user1.getId());
+    }
+
+    @Test
+    public void isGroupInternalWhenServiceThrowsException() {
+        given(userService.isUserInternal(user1.getId())).willThrow(UserAndGroupServiceException.class);
+        thrown.expect(UserAndGroupFacadeException.class);
+        userFacade.isUserInternal(user1.getId());
     }
 }

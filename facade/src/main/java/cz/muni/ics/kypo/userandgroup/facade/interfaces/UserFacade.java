@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
@@ -85,4 +86,13 @@ public interface UserFacade {
      * @return information about logged in user
      */
     UserInfoDTO getUserInfo(OAuth2Authentication authentication);
+
+    /**
+     * Returns true if user is internal otherwise false
+     *
+     * @param id of user
+     * @return true if user is internal otherwise false
+     * @throws UserAndGroupFacadeException if user was not found
+     */
+    boolean isUserInternal(Long id) throws UserAndGroupFacadeException;
 }

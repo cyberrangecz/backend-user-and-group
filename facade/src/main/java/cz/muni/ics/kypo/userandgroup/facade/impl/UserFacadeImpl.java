@@ -144,6 +144,15 @@ public class UserFacadeImpl implements UserFacade {
         return convertToUserInfoDTO(loggedInUser, rolesOfUser);
     }
 
+    @Override
+    public boolean isUserInternal(Long id) throws UserAndGroupFacadeException {
+        try {
+            return userService.isUserInternal(id);
+        } catch (UserAndGroupServiceException e) {
+            throw new UserAndGroupFacadeException(e.getMessage());
+        }
+    }
+
     private UserInfoDTO convertToUserInfoDTO(User user, Set<Role> roles) {
         UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
 
