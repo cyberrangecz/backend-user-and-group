@@ -144,14 +144,16 @@ public interface UserService {
      *
      * @param id of user
      * @return true if user is internal otherwise false
+     * @throws UserAndGroupServiceException if user could not be found
      */
-    boolean isUserInternal(Long id);
+    boolean isUserInternal(Long id) throws UserAndGroupServiceException;
 
     /**
      * Returns all roles of user with given id
      *
      * @param id of user.
      * @return all roles of user with given id
+     * @throws UserAndGroupServiceException if user could not be found
      */
-    Set<Role> getRolesOfUser(Long id);
+    Set<Role> getRolesOfUser(Long id) throws UserAndGroupServiceException;
 }

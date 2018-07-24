@@ -392,6 +392,7 @@ public class UserServiceTest {
 
     @Test
     public void isUserInternal() {
+        given(userRepository.existsById(user1.getId())).willReturn(true);
         given(userRepository.isUserInternal(user1.getId())).willReturn(true);
         assertTrue(userService.isUserInternal(user1.getId()));
         then(userRepository).should().isUserInternal(user1.getId());
@@ -400,6 +401,7 @@ public class UserServiceTest {
     @Test
     public void isUserExternal() {
         user1.setExternalId(1L);
+        given(userRepository.existsById(user1.getId())).willReturn(true);
         given(userRepository.isUserInternal(user1.getId())).willReturn(false);
         assertFalse(userService.isUserInternal(user1.getId()));
         then(userRepository).should().isUserInternal(user1.getId());
@@ -413,7 +415,16 @@ public class UserServiceTest {
     }
 
     @Test
+    public void isUserInternalWithUserNotFoundShouldThrowException() {
+        given(userRepository.existsById(user1.getId())).willReturn(false);
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("User with id " + user1.getId() + " could not be found.");
+        userService.isUserInternal(user1.getId());
+    }
+
+    @Test
     public void getRolesOfUser() {
+        given(userRepository.existsById(user1.getId())).willReturn(true);
         given(userRepository.getRolesOfUser(user1.getId()))
                 .willReturn(Stream.of(adminRole, guestRole).collect(Collectors.toSet()));
         Set<Role> roles = userService.getRolesOfUser(user1.getId());
@@ -428,6 +439,14 @@ public class UserServiceTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input id must not be null");
         userService.getRolesOfUser(null);
+    }
+
+    @Test
+    public void getRolesOfUserWithUserNotFoundShouldThrowException() {
+        given(userRepository.existsById(user1.getId())).willReturn(false);
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("User with id " + user1.getId() + " could not be found.");
+        userService.getRolesOfUser(user1.getId());
     }
 
     @After

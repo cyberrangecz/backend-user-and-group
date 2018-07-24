@@ -208,16 +208,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public boolean isUserInternal(Long id) {
+    public boolean isUserInternal(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
+        if (!userRepository.existsById(id)) {
+            throw new UserAndGroupServiceException("User with id " + id + " could not be found.");
+        }
         return userRepository.isUserInternal(id);
     }
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public Set<Role> getRolesOfUser(Long id) {
+    public Set<Role> getRolesOfUser(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
+        if (!userRepository.existsById(id)) {
+            throw new UserAndGroupServiceException("User with id " + id + " could not be found.");
+        }
         return userRepository.getRolesOfUser(id);
     }
 
