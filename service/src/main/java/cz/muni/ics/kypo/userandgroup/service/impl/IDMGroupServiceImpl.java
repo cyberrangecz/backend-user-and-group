@@ -201,8 +201,11 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public Set<Role> getRolesOfGroup(Long id) {
+    public Set<Role> getRolesOfGroup(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
+        if (!groupRepository.existsById(id)) {
+            throw new UserAndGroupServiceException("Group with id " + id + " could not be found.");
+        }
 
         Set<Role> roles = new HashSet<>(groupRepository.getRolesOfGroup(id));
 

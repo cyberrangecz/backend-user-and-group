@@ -382,6 +382,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getRolesOfGroup() {
+        given(groupRepository.existsById(group1.getId())).willReturn(true);
         given(groupRepository.getRolesOfGroup(group1.getId()))
                 .willReturn(Stream.of(adminRole, guestRole).collect(Collectors.toSet()));
         Set<Role> roles = groupService.getRolesOfGroup(group1.getId());
@@ -396,6 +397,14 @@ public class IDMGroupServiceTest {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input id must not be null");
         groupService.getRolesOfGroup(null);
+    }
+
+    @Test
+    public void getRolesOfGroupWithGroupNotFoundShouldThrowException() {
+        given(groupRepository.existsById(group1.getId())).willReturn(false);
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Group with id " + group1.getId() + " could not be found.");
+        groupService.getRolesOfGroup(group1.getId());
     }
 
     @Test

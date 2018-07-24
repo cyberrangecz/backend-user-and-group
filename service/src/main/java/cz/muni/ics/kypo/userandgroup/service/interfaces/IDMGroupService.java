@@ -135,8 +135,9 @@ public interface IDMGroupService {
      *
      * @param id of group.
      * @return all roles of group with given id
+     * @throws UserAndGroupServiceException if group was not found
      */
-    Set<Role> getRolesOfGroup(Long id);
+    Set<Role> getRolesOfGroup(Long id) throws UserAndGroupServiceException;
 
     /**
      * Assigns role to group with given groupId
