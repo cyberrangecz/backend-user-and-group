@@ -145,35 +145,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUser() {
-        given(userRepository.save(user1)).willReturn(user1);
-
-        User u = userService.create(user1);
-        assertEquals(user1.getId(), u.getId());
-        assertEquals(user1.getFullName(), u.getFullName());
-        assertEquals(user1.getLogin(), u.getLogin());
-        assertEquals(UserAndGroupStatus.VALID, u.getStatus());
-
-        then(userRepository).should().save(user1);
-    }
-
-    @Test
-    public void createUserWithNullUserThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input user must not be null");
-        userService.create(null);
-    }
-
-    @Test
-    public void createUserWithNullLoginThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Login of input user must not be empty");
-        User user = new User();
-
-        userService.create(user);
-    }
-
-    @Test
     public void updateUser() {
         given(userRepository.isUserInternal(user1.getId())).willReturn(true);
         given(userRepository.save(user1)).willReturn(user1);

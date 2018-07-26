@@ -43,13 +43,6 @@ public interface UserService {
     User get(Long id) throws UserAndGroupServiceException;
 
     /**
-     * Creates given user in database.
-     *
-     * @param user to be created
-     */
-    User create(User user);
-
-    /**
      * Updates given user in databases.
      *
      * @param user to be updated

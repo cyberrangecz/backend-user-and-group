@@ -67,16 +67,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public User create(User user) {
-        Assert.notNull(user, "Input user must not be null");
-        Assert.hasLength(user.getLogin(), "Login of input user must not be empty");
-        User u = userRepository.save(user);
-        log.info(user + " was created.");
-        return u;
-    }
-
-    @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public User update(User updatedUser) throws UserAndGroupServiceException {
         Assert.notNull(updatedUser, "Input user must not be null");

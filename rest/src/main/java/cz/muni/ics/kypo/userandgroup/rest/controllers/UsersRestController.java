@@ -93,18 +93,6 @@ public class UsersRestController {
         }
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "POST", value = "Creates new user.", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<UserDTO> createNewUser(@ApiParam(value = "User to be created.",
-            required = true) @RequestBody NewUserDTO newUserDTO) {
-        Preconditions.checkNotNull(newUserDTO);
-        try {
-            return new ResponseEntity<>(userFacade.createUser(newUserDTO), HttpStatus.CREATED);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotCreatedException("Invalid user's information or could not be created.");
-        }
-    }
-
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Updates input internal user.", consumes = "application/json", produces = "application/json")
     public ResponseEntity<UserDTO> updateUser(@ApiParam(value = "User to be updated.", required = true)
@@ -169,6 +157,7 @@ public class UsersRestController {
     @ApiOperation(httpMethod = "GET", value = "Returns details of user who is logged in")
     public ResponseEntity<UserInfoDTO> getUserInfo(OAuth2Authentication authentication) {
         try {
+            JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
             return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();

@@ -40,14 +40,6 @@ public interface UserFacade {
     PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
 
     /**
-     * Creates user with information from given newUserDTO and returns created user.
-     *
-     * @param newUserDTO user to be created
-     * @return created user
-     */
-    UserDTO createUser(NewUserDTO newUserDTO);
-
-    /**
      * Updates given user in database.
      *
      * @param updateUserDTO user to be updated

@@ -69,12 +69,6 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public UserDTO createUser(NewUserDTO newUserDTO) {
-        User user = beanMapping.mapTo(newUserDTO, User.class);
-        return beanMapping.mapTo(userService.create(user), UserDTO.class);
-    }
-
-    @Override
     public UserDTO updateUser(UpdateUserDTO updateUserDTO) {
         User user = beanMapping.mapTo(updateUserDTO, User.class);
         try {

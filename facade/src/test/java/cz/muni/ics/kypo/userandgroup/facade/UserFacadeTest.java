@@ -150,17 +150,6 @@ public class UserFacadeTest {
     }
 
     @Test
-    public void testCreateUser() {
-        given(userService.create(any(User.class))).willReturn(user1);
-        given(beanMapping.mapTo(any(User.class), eq(UserDTO.class))).willReturn(userDTO1);
-        given(beanMapping.mapTo(any(NewUserDTO.class), eq(User.class))).willReturn(user1);
-        UserDTO userDTO = userFacade.createUser(new NewUserDTO());
-
-        assertEquals(userDTO1, userDTO);
-        then(userService).should().create(user1);
-    }
-
-    @Test
     public void testUpdateUser() {
         given(userService.update(any(User.class))).willReturn(user2);
         given(beanMapping.mapTo(any(UpdateUserDTO.class), eq(User.class))).willReturn(user2);

@@ -184,42 +184,6 @@ public class UsersRestControllerTest {
     }
 
     @Test
-    public void testCreateNewUser() throws Exception {
-        given(userFacade.createUser(any(NewUserDTO.class))).willReturn(userDTO1);
-        mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(newUserDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
-        then(userFacade).should().createUser(any(NewUserDTO.class));
-    }
-
-    @Test
-    public void testCreateNewUserWithNullRequestBody() throws Exception {
-        mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(null)))
-                .andExpect(status().isBadRequest());
-        then(userFacade).should(never()).createUser(any(NewUserDTO.class));
-    }
-
-    @Test
-    public void testCreateNewUserWithInvalidInformation() throws Exception {
-        given(userFacade.createUser(any(NewUserDTO.class))).willThrow(UserAndGroupFacadeException.class);
-        Exception ex = mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(newUserDTO)))
-                .andExpect(status().isNotAcceptable())
-                .andReturn().getResolvedException();
-        assertEquals("Invalid user's information or could not be created.", ex.getMessage());
-        then(userFacade).should().createUser(any(NewUserDTO.class));
-    }
-
-    @Test
     public void testUpdateUser() throws Exception {
         given(userFacade.isUserInternal(anyLong())).willReturn(true);
         given(userFacade.updateUser(any(UpdateUserDTO.class))).willReturn(userDTO1);
