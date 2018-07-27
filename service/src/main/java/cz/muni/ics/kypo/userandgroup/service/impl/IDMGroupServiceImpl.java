@@ -22,7 +22,6 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
@@ -33,11 +32,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -49,18 +46,13 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     private final IDMGroupRepository groupRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final MicroserviceRepository microserviceRepository;
-    private final RestTemplate restTemplate;
 
     @Autowired
     public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository,
-                               MicroserviceRepository microserviceRepository, RestTemplate restTemplate,
                                UserRepository userRepository) {
         this.groupRepository = idmGroupRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.microserviceRepository = microserviceRepository;
-        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -70,7 +62,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(id, "Input id must not be null");
         Optional<IDMGroup> optionalGroup = groupRepository.findById(id);
         IDMGroup group = optionalGroup.orElseThrow(() -> new UserAndGroupServiceException("IDM group with id " + id + " not found"));
-        group.setRoles(getRolesOfGroup(group.getId()));
         log.info(group + " loaded.");
         return group;
     }
@@ -104,7 +95,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         groupInDatabase.setDescription(group.getDescription());
         groupInDatabase.setName(group.getName());
         IDMGroup g = groupRepository.save(groupInDatabase);
-        g.setRoles(getRolesOfGroup(g.getId()));
         log.info(group + " updated.");
         return g;
     }
@@ -164,7 +154,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.hasLength(name, "Input name of group must not be empty");
         Optional<IDMGroup> optionalGroup = groupRepository.findByName(name);
         IDMGroup group = optionalGroup.orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found"));
-        group.setRoles(getRolesOfGroup(group.getId()));
         log.info(group + " loaded.");
         return group;
     }
@@ -220,17 +209,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         if (!groupRepository.existsById(id)) {
             throw new UserAndGroupServiceException("Group with id " + id + " could not be found.");
         }
-
         Set<Role> roles = new HashSet<>(groupRepository.getRolesOfGroup(id));
-
-        List<Microservice> microservices = microserviceRepository.findAll();
-        for (Microservice microservice : microservices) {
-            String uri = microservice.getEndpoint() + "/of/{groupId}";
-
-            ResponseEntity<Role[]> responseEntity = restTemplate.getForEntity(uri, Role[].class, id);
-            roles.addAll(Arrays.asList(responseEntity.getBody()));
-        }
-
         return roles;
     }
 
@@ -263,31 +242,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                 group.addRole(guestRole);
                 log.info("GUEST");
         }
-        IDMGroup updatedGroup = groupRepository.save(group);
-        updatedGroup.setRoles(getRolesOfGroup(updatedGroup.getId()));
-        return updatedGroup;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupServiceException {
-        Assert.notNull(groupId, "Input groupId must not be null");
-        Assert.notNull(roleId, "Input roleId must not be null");
-        Assert.notNull(microserviceId, "Input microserviceId must not be null");
-
-        Microservice microservice = microserviceRepository.findById(microserviceId)
-                .orElseThrow(() ->
-                        new UserAndGroupServiceException("Microservice with id " + microserviceId + " could not be found."));
-        IDMGroup group = groupRepository.findById(groupId)
-                .orElseThrow(() ->
-                        new UserAndGroupServiceException("Group with id " + groupId + " could not be found."));
-
-        final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
-
-        restTemplate.put(uri, null, roleId, groupId);
-        group.setRoles(getRolesOfGroup(group.getId()));
-
-        return group;
+        return groupRepository.save(group);
     }
 
     @Override
@@ -296,17 +251,16 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
-        if (!this.isGroupInternal(groupId)) {
+        IDMGroup groupToUpdate = this.get(groupId);
+        if (groupToUpdate.getExternalId() != null) {
             throw new UserAndGroupServiceException("Group is external therefore they could not be updated");
         }
-
-        IDMGroup groupToUpdate = this.get(groupId);
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
             groupToUpdate.removeUser(user);
         }
-        return this.update(groupToUpdate);
+        return groupRepository.save(groupToUpdate);
     }
 
     @Override
@@ -316,10 +270,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
 
-        if (!this.isGroupInternal(groupId)) {
-            throw new UserAndGroupServiceException("Group is external therefore they could not be updated");
-        }
         IDMGroup groupToUpdate = this.get(groupId);
+        if (groupToUpdate.getExternalId() != null) {
+            throw new UserAndGroupServiceException("Group is external therefore it could not be updated");
+        }
         for (Long userId : idsOfUsersToBeAdd) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
@@ -334,7 +288,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             });
         }
 
-        return this.update(groupToUpdate);
+        return groupRepository.save(groupToUpdate);
     }
 
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {

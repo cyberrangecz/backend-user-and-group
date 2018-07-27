@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,9 +44,6 @@ public class RoleServiceTest {
 
     @MockBean
     private RoleRepository roleRepository;
-
-    @MockBean
-    private RestTemplate restTemplate;
 
     private Role adminRole, userRole;
 

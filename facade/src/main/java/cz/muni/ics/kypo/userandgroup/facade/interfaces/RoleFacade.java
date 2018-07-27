@@ -2,7 +2,6 @@ package cz.muni.ics.kypo.userandgroup.facade.interfaces;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.NewRoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import org.springframework.data.domain.Pageable;

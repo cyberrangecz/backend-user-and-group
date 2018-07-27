@@ -153,17 +153,6 @@ public interface IDMGroupService {
     IDMGroup assignRole(Long groupId, RoleType roleType) throws UserAndGroupServiceException;
 
     /**
-     * Assigns role to group with given groupId in microservice with given microserviceId
-     *
-     * @param groupId id of group which will get role with roleId in given microservice
-     * @param roleId id of assigning role
-     * @param microserviceId id of microservice in which will group get role with roleId
-     * @return group with assigned role
-     * @throws UserAndGroupServiceException if group or microservice could not be found
-     */
-    IDMGroup assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupServiceException;
-
-    /**
      * Removes members of group with given userIds from the group
      *
      * @param groupId id of group

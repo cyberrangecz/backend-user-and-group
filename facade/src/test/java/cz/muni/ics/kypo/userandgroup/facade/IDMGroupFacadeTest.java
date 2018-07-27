@@ -11,6 +11,7 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,7 +29,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -58,6 +62,12 @@ public class IDMGroupFacadeTest {
 
     @MockBean
     private IDMGroupService groupService;
+
+    @MockBean
+    private MicroserviceService microserviceService;
+
+    @MockBean
+    private RestTemplate restTemplate;
 
     private IDMGroup g1, g2;
     private GroupDTO groupDTO;
@@ -101,6 +111,14 @@ public class IDMGroupFacadeTest {
         newGroupDTO = new NewGroupDTO();
         newGroupDTO.setName("Group 1");
         newGroupDTO.setUsers(Collections.singletonList(userForGroupsDTO));
+
+        Role role = new Role();
+        role.setId(1L);
+        role.setRoleType(RoleType.GUEST.toString());
+        Role[] rolesArray = new Role[1];
+        rolesArray[0] = role;
+        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.OK);
+        given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
     }
 
     @Test
@@ -195,11 +213,12 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetAllGroups() {
-        Page<IDMGroup> idmGroupPage = new PageImpl<IDMGroup>(Arrays.asList(g1));
+        Page<IDMGroup> idmGroupPage = new PageImpl<>(Arrays.asList(g1));
         PageResultResource<GroupDTO> pages = new PageResultResource<>();
         pages.setContent(Arrays.asList(groupDTO));
 
         given(groupService.getAllIDMGroups(predicate, pageable)).willReturn(idmGroupPage);
+        given(groupService.get(anyLong())).willReturn(g1);
         PageResultResource<GroupDTO> responseDTOPageResultResource = groupFacade.getAllGroups(predicate, pageable);
 
         assertEquals(1, responseDTOPageResultResource.getContent().size());
@@ -212,7 +231,7 @@ public class IDMGroupFacadeTest {
         GroupDTO groupDTO = groupFacade.getGroup(1L);
 
         assertEquals(g1.getName(), groupDTO.getName());
-        then(groupService).should().get(1L);
+        then(groupService).should(times(2)).get(1L);
     }
 
     @Test
@@ -224,21 +243,24 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetRolesOfGroup() {
+        Microservice m = new Microservice("training", "/training");
         Set<Role> roles = new HashSet<>();
         roles.add(getRole());
+        g1.addRole(getRole());
 
         Set<RoleDTO> roleDTOS = new HashSet<>();
         roleDTOS.add(getRoleDTO());
 
-        given(groupService.getRolesOfGroup(anyLong())).willReturn(roles);
+        given(groupService.get(anyLong())).willReturn(g1);
+        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(m));
         Set<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L);
-        assertEquals(1L, rolesDTO.size());
+        assertEquals(2, rolesDTO.size());
         assertEquals(RoleType.USER.toString(), new ArrayList<>(roleDTOS).get(0).getRoleType());
     }
 
     @Test
     public void testGetRolesOfGroupWithServiceThrowsException() {
-        given(groupService.getRolesOfGroup(anyLong())).willThrow(UserAndGroupServiceException.class);
+        given(groupService.get(anyLong())).willThrow(UserAndGroupServiceException.class);
         thrown.expect(UserAndGroupFacadeException.class);
         groupFacade.getRolesOfGroup(1L);
     }
