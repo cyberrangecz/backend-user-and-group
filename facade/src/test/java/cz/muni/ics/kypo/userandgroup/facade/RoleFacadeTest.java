@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.NewRoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.config.FacadeTestConfig;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
@@ -23,6 +24,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +40,12 @@ import static org.mockito.BDDMockito.*;
 @SpringBootTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
-@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.service"})
+@ComponentScan(basePackages = {
+        "cz.muni.ics.kypo.userandgroup.facade",
+        "cz.muni.ics.kypo.userandgroup.service",
+        "cz.muni.ics.kypo.userandgroup.mapping"
+})
+@Import(FacadeTestConfig.class)
 public class RoleFacadeTest {
 
     @Rule
@@ -53,12 +60,8 @@ public class RoleFacadeTest {
     @MockBean
     private IDMGroupService idmGroupService;
 
-    @MockBean
-    private BeanMapping beanMapping;
-
     private Role r1 ;
     private RoleDTO roleDTO1;
-    private NewRoleDTO newRoleDTO;
     private Predicate predicate;
     private Pageable pageable;
 
@@ -78,17 +81,6 @@ public class RoleFacadeTest {
     }
 
     @Test
-    public void testCreateRole() {
-        given(beanMapping.mapTo(newRoleDTO, Role.class)).willReturn(r1);
-        given(beanMapping.mapTo(any(Role.class), eq(RoleDTO.class))).willReturn(roleDTO1);
-        given(roleService.create(any(Role.class))).willReturn(r1);
-        RoleDTO roleDTO = roleFacade.createRole(newRoleDTO);
-
-        assertEquals(roleDTO1, roleDTO);
-        then(roleService).should().create(r1);
-    }
-
-    @Test
     public void testDeleteRole() {
         given(roleService.getById(anyLong())).willReturn(r1);
         roleFacade.deleteRole(1L);
@@ -98,7 +90,6 @@ public class RoleFacadeTest {
     @Test
     public void testGetById() {
         given(roleService.getById(anyLong())).willReturn(r1);
-        given(beanMapping.mapTo(any(Role.class), eq(RoleDTO.class))).willReturn(roleDTO1);
         RoleDTO roleDTO = roleFacade.getById(1L);
 
         assertEquals(r1.getRoleType(), roleDTO.getRoleType());
@@ -115,7 +106,6 @@ public class RoleFacadeTest {
     @Test
     public void testGetByRoleType() {
         given(roleService.getByRoleType(anyString())).willReturn(r1);
-        given(beanMapping.mapTo(any(Role.class), eq(RoleDTO.class))).willReturn(roleDTO1);
         RoleDTO roleDTO = roleFacade.getByRoleType(RoleType.ADMINISTRATOR);
 
         assertEquals(RoleType.ADMINISTRATOR.toString(), roleDTO.getRoleType().toString());
@@ -135,7 +125,6 @@ public class RoleFacadeTest {
         pageResult.setContent(Arrays.asList(roleDTO1));
 
         given(roleService.getAllRoles(predicate, pageable)).willReturn(rolePage);
-        given(beanMapping.mapToPageResultDTO(any(Page.class), eq(RoleDTO.class))).willReturn(pageResult);
         PageResultResource<RoleDTO> pageResultResource = roleFacade.getAllRoles(predicate,pageable);
 
         assertEquals(roleDTO1.toString(), pageResultResource.getContent().get(0).toString());

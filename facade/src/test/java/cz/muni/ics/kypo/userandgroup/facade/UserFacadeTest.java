@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
+import cz.muni.ics.kypo.userandgroup.config.FacadeTestConfig;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
@@ -25,6 +26,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +45,12 @@ import static org.mockito.BDDMockito.*;
 @SpringBootTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup"})
-@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.service"})
+@ComponentScan(basePackages = {
+        "cz.muni.ics.kypo.userandgroup.facade",
+        "cz.muni.ics.kypo.userandgroup.service",
+        "cz.muni.ics.kypo.userandgroup.mapping"
+})
+@Import(FacadeTestConfig.class)
 public class UserFacadeTest {
 
     @Rule
@@ -57,9 +64,6 @@ public class UserFacadeTest {
 
     @MockBean
     private RestTemplate restTemplate;
-
-    @MockBean
-    private BeanMapping beanMapping;
 
     private User user1, user2;
     private UserDTO userDTO1, userDTO2;
@@ -104,7 +108,6 @@ public class UserFacadeTest {
         pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
 
         given(userService.getAllUsers(predicate, pageable)).willReturn(rolePage);
-        given(beanMapping.mapToPageResultDTO(any(Page.class), eq(UserDTO.class))).willReturn(pageResult);
         PageResultResource<UserDTO> pageResultResource = userFacade.getUsers(predicate,pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
@@ -115,7 +118,6 @@ public class UserFacadeTest {
     @Test
     public void testGetUser() {
         given(userService.get(anyLong())).willReturn(user1);
-        given(beanMapping.mapTo(any(User.class), eq(UserDTO.class))).willReturn(userDTO1);
         UserDTO userDTO = userFacade.getUser(1L);
 
         assertEquals(userDTO1, userDTO);
@@ -135,7 +137,6 @@ public class UserFacadeTest {
         pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
 
         given(userService.getAllUsersNotInGivenGroup(1L,pageable)).willReturn(rolePage);
-        given(beanMapping.mapToPageResultDTO(any(Page.class), eq(UserDTO.class))).willReturn(pageResult);
         PageResultResource<UserDTO> pageResultResource = userFacade.getAllUsersNotInGivenGroup(1L, pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
@@ -150,7 +151,6 @@ public class UserFacadeTest {
 
         given(userService.get(anyLong())).willReturn(user1);
         given(userService.delete(any(User.class))).willReturn(UserDeletionStatus.SUCCESS);
-        given(beanMapping.mapTo(any(User.class), eq(UserDeletionResponseDTO.class))).willReturn(userDeletionResponseDTO);
         userDeletionResponseDTO = userFacade.deleteUser(1L);
 
         assertEquals(UserDeletionStatus.SUCCESS, userDeletionResponseDTO.getStatus());
@@ -177,8 +177,6 @@ public class UserFacadeTest {
         userDeletionResponseDTO2.setUser(userDTO2);
 
         given(userService.deleteUsers(anyList())).willReturn(deletionStatusMap);
-        given(beanMapping.mapTo(user1, UserDeletionResponseDTO.class)).willReturn(userDeletionResponseDTO1);
-        given(beanMapping.mapTo(user2, UserDeletionResponseDTO.class)).willReturn(userDeletionResponseDTO2);
         List<UserDeletionResponseDTO> userDeletionResponseDTOS = userFacade.deleteUsers(Arrays.asList(1L, 2L));
 
         assertEquals(2,userDeletionResponseDTOS.size());
@@ -205,15 +203,10 @@ public class UserFacadeTest {
         roleDTO1.setRoleType(RoleType.ADMINISTRATOR.toString());
 
         RoleDTO roleDTO2 = new RoleDTO();
-        roleDTO2.setId(1L);
+        roleDTO2.setId(2L);
         roleDTO2.setRoleType(RoleType.USER.toString());
 
-        Set<RoleDTO> roleDTOS = new HashSet<>();
-        roleDTOS.add(roleDTO1);
-        roleDTOS.add(roleDTO2);
-
         given(userService.getRolesOfUser(anyLong())).willReturn(roles);
-        given(beanMapping.mapToSet(anySet(), eq(RoleDTO.class))).willReturn(roleDTOS);
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);
 
         assertTrue(responseRolesDTO.contains(roleDTO1));

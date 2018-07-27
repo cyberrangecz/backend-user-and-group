@@ -128,7 +128,7 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testremoveUsers() {
+    public void testRemoveUsers() {
         given(groupService.removeUsers(1L, Arrays.asList(1L))).willReturn(g2);
         GroupDTO groupDTO = groupFacade.removeUsers(1L, Arrays.asList(1L));
 
@@ -138,14 +138,14 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testremoveUsersWithServiceExcpetion() {
+    public void testRemoveUsersWithServiceExcpetion() {
         given(groupService.removeUsers(1L, Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
         groupFacade.removeUsers(1L, Arrays.asList(1L));
     }
 
     @Test
-    public void testaddUsers() {
+    public void testAddUsers() {
         GroupDTO g = groupDTO;
         g.setUsers(Arrays.asList(new UserForGroupsDTO()));
         given(groupService.addUsers(1L, Arrays.asList(1L), Arrays.asList(1L))).willReturn(g1);
@@ -157,7 +157,7 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testaddUsersWithServiceException() {
+    public void testAddUsersWithServiceException() {
         given(groupService.addUsers(1L, Arrays.asList(1L), Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
         groupFacade.addUsers(getaddUsersToGroupDTO());
