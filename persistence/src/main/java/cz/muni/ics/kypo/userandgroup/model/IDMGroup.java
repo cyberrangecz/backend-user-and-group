@@ -105,6 +105,10 @@ public class IDMGroup {
         return users;
     }
 
+    public void setUsers(List<User> users) {
+        this.users = users;
+    }
+
     public void addUser(User user) {
         users.add(user);
     }
