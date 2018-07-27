@@ -1,6 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.rest;
 
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
+import cz.muni.ics.kypo.userandgroup.security.exception.LoggedInUserNotFoundException;
+import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -542,6 +544,16 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     final APIError apiError =
         new APIError.APIErrorBuilder(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage()).setErrors(errors).setPath(URLHELPER.getRequestUri(req)).build();
     return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+  }
+
+  @ExceptionHandler({LoggedInUserNotFoundException.class})
+  public ResponseEntity<Object> handleLoggedInUserNotFoundException(LoggedInUserNotFoundException ex,
+                                                                    WebRequest request, HttpServletRequest req) {
+    LOGGER.info("handleLoggedInUserNotFoundException({}, {})", ex, request);
+
+    final APIError apiError = new APIError.APIErrorBuilder(HttpStatus.NOT_FOUND, ex.getLocalizedMessage()).setError("Access denied")
+            .setPath(URLHELPER.getRequestUri(req)).build();
+    return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.status);
   }
 
   // 500

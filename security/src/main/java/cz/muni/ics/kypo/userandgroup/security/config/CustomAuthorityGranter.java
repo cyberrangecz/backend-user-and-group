@@ -1,9 +1,13 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
 import com.google.gson.JsonObject;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.exception.LoggedInUserNotFoundException;
 import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
 import org.slf4j.Logger;
@@ -24,18 +28,32 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
     private static Logger LOGGER = LoggerFactory.getLogger(CustomAuthorityGranter.class);
 
     private UserRepository userRepository;
+    private IDMGroupRepository groupRepository;
 
     @Autowired
-    public CustomAuthorityGranter(UserRepository userRepository) {
+    public CustomAuthorityGranter(UserRepository userRepository, IDMGroupRepository groupRepository) {
         this.userRepository = userRepository;
+        this.groupRepository = groupRepository;
     }
 
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
+        LOGGER.info(introspectionResponse.toString());
         String login = introspectionResponse.get("sub").getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
-        User user = optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + login + " could not be found in database"));
-        Set<Role> roles = userRepository.getRolesOfUser(user.getId());
+        if (!optionalUser.isPresent()) {
+            IDMGroup guestGroup = groupRepository.findByName(RoleType.GUEST.name()).orElseThrow(() -> new SecurityException("Guest group could not be found"));
+
+            String fullName = introspectionResponse.get("given_name").getAsString() + " " + introspectionResponse.get("family_name").getAsString();
+            String email = introspectionResponse.get("email").getAsString();
+            User newUser = new User(login);
+            newUser.setFullName(fullName);
+            newUser.setMail(email);
+            newUser.addGroup(guestGroup);
+            userRepository.save(newUser);
+            throw new LoggedInUserNotFoundException("Logged in user with sub " + login + " could not be found in database");
+        }
+        Set<Role> roles = userRepository.getRolesOfUser(optionalUser.get().getId());
 
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleType()))
