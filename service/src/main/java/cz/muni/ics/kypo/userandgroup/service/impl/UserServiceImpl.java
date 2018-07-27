@@ -68,20 +68,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
-    public User update(User updatedUser) throws UserAndGroupServiceException {
-        Assert.notNull(updatedUser, "Input user must not be null");
-        Assert.hasLength(updatedUser.getLogin(), "Login of input user must not be empty");
-        if (!isUserInternal(updatedUser.getId())) {
-            log.error("External user cannot be updated.");
-            throw new UserAndGroupServiceException("Error: External user cannot be updated");
-        }
-        User u = userRepository.save(updatedUser);
-        log.info(updatedUser + " was updated in IDM databases.");
-        return u;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
     public UserDeletionStatus delete(User user) {
         Assert.notNull(user, "Input user must not be null");
         UserDeletionStatus deletionCheck = checkKypoUserBeforeDelete(user);

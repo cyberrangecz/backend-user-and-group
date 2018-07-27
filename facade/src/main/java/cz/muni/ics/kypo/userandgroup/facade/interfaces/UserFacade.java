@@ -40,14 +40,6 @@ public interface UserFacade {
     PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
 
     /**
-     * Updates given user in database.
-     *
-     * @param updateUserDTO user to be updated
-     * @return updated user
-     */
-    UserDTO updateUser(UpdateUserDTO updateUserDTO);
-
-    /**
      * Deletes user with given id from database and returns status of deletion with user.
      *
      * @param id of user to be deleted

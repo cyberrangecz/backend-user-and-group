@@ -11,7 +11,6 @@ import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.NewUserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UpdateUserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
@@ -67,7 +66,6 @@ public class UsersRestControllerTest {
 
     private UserDTO userDTO1, userDTO2;
     private NewUserDTO newUserDTO;
-    private UpdateUserDTO updateUserDTO;
     private int page, size;
     private PageResultResource<UserDTO> userPageResultResource;
 
@@ -101,12 +99,6 @@ public class UsersRestControllerTest {
         newUserDTO.setLogin("user1");
         newUserDTO.setFullName("User One");
         newUserDTO.setMail("user.one@mail.com");
-
-        updateUserDTO = new UpdateUserDTO();
-        updateUserDTO.setId(1L);
-        updateUserDTO.setLogin("user1");
-        updateUserDTO.setFullName("User One");
-        updateUserDTO.setMail("user.one@mail.com");
 
         userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
 
@@ -181,61 +173,6 @@ public class UsersRestControllerTest {
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
         assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getMessage());
-    }
-
-    @Test
-    public void testUpdateUser() throws Exception {
-        given(userFacade.isUserInternal(anyLong())).willReturn(true);
-        given(userFacade.updateUser(any(UpdateUserDTO.class))).willReturn(userDTO1);
-        mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(updateUserDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
-        then(userFacade).should().isUserInternal(anyLong());
-        then(userFacade).should().updateUser(any(UpdateUserDTO.class));
-    }
-
-    @Test
-    public void testUpdateUserWithNullRequestBody() throws Exception {
-        mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(null)))
-                .andExpect(status().isBadRequest());
-        then(userFacade).should(never()).isUserInternal(anyLong());
-        then(userFacade).should(never()).updateUser(any(UpdateUserDTO.class));
-    }
-
-    @Test
-    public void testUpdateExternalUser() throws Exception {
-        given(userFacade.isUserInternal(anyLong())).willReturn(false);
-        Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(updateUserDTO)))
-                .andExpect(status().isNotAcceptable())
-                .andReturn().getResolvedException();
-        assertEquals("User is external therefore they could not be updated", ex.getMessage());
-        then(userFacade).should().isUserInternal(anyLong());
-        then(userFacade).should(never()).updateUser(any(UpdateUserDTO.class));
-    }
-
-    @Test
-    public void testUpdateUserWithUpdateError() throws Exception {
-        given(userFacade.isUserInternal(anyLong())).willReturn(true);
-        given(userFacade.updateUser(any(UpdateUserDTO.class))).willThrow(UserAndGroupFacadeException.class);
-        Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.USERS_URL + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(updateUserDTO)))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("User could not be updated", ex.getMessage());
-        then(userFacade).should().isUserInternal(anyLong());
-        then(userFacade).should().updateUser(any(UpdateUserDTO.class));
     }
 
     @Test

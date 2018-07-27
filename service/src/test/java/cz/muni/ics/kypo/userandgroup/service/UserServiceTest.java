@@ -145,45 +145,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void updateUser() {
-        given(userRepository.isUserInternal(user1.getId())).willReturn(true);
-        given(userRepository.save(user1)).willReturn(user1);
-        given(userRepository.existsById(user1.getId())).willReturn(true);
-
-        User u = userService.update(user1);
-        assertEquals(user1.getId(), u.getId());
-        assertEquals(user1.getFullName(), u.getFullName());
-        assertEquals(user1.getLogin(), u.getLogin());
-        assertEquals(UserAndGroupStatus.VALID, u.getStatus());
-
-        then(userRepository).should().save(user1);
-    }
-
-    @Test
-    public void updateUserWithNullUserShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input user must not be null");
-        userService.update(null);
-    }
-
-    @Test
-    public void updateUserWithNullLoginShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Login of input user must not be empty");
-        user1.setLogin(null);
-        userService.update(user1);
-    }
-
-    @Test
-    public void updateUserIsExternalShouldThrowException() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Error: External user cannot be updated");
-        given(userRepository.isUserInternal(user1.getId())).willReturn(false);
-        given(userRepository.existsById(user1.getId())).willReturn(true);
-        userService.update(user1);
-    }
-
-    @Test
     public void deleteUser() {
         UserDeletionStatus status = userService.delete(user1);
         assertEquals(UserDeletionStatus.SUCCESS, status);

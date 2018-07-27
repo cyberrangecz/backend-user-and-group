@@ -69,19 +69,6 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public UserDTO updateUser(UpdateUserDTO updateUserDTO) {
-        User user = beanMapping.mapTo(updateUserDTO, User.class);
-        try {
-            User updatedUser = userService.update(user);
-            LOG.info(updatedUser + "has been updated.");
-            return beanMapping.mapTo(updatedUser, UserDTO.class);
-        } catch (UserAndGroupServiceException ex) {
-            LOG.error("Error while updating " + updateUserDTO);
-            throw new UserAndGroupFacadeException(ex.getMessage());
-        }
-    }
-
-    @Override
     public UserDeletionResponseDTO deleteUser(Long id) {
         User user = null;
         try {

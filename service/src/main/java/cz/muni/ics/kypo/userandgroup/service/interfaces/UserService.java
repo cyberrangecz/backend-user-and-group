@@ -43,14 +43,6 @@ public interface UserService {
     User get(Long id) throws UserAndGroupServiceException;
 
     /**
-     * Updates given user in databases.
-     *
-     * @param user to be updated
-     * @throws UserAndGroupServiceException if user is external
-     */
-    User update(User user) throws UserAndGroupServiceException;
-
-    /**
      * Deletes given user from database and returns status of deletion.
      * Return values: SUCCESS - successfully deleted
      *                EXTERNAL_VALID - user is from external source and is not marked as DELETED

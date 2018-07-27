@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.security.oauth2.OAuth2AutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
@@ -30,11 +29,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.test.OAuth2ContextConfiguration;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -147,25 +141,6 @@ public class UserFacadeTest {
         assertEquals(2, pageResultResource.getContent().size());
         assertEquals(userDTO1, pageResultResource.getContent().get(0));
         assertEquals(userDTO2, pageResultResource.getContent().get(1));
-    }
-
-    @Test
-    public void testUpdateUser() {
-        given(userService.update(any(User.class))).willReturn(user2);
-        given(beanMapping.mapTo(any(UpdateUserDTO.class), eq(User.class))).willReturn(user2);
-        given(beanMapping.mapTo(any(User.class), eq(UserDTO.class))).willReturn(userDTO2);
-        UserDTO userDTO = userFacade.updateUser(new UpdateUserDTO());
-
-        assertEquals(userDTO2, userDTO);
-        then(userService).should().update(user2);
-    }
-
-    @Test
-    public void testUpdateUserNotInDB() {
-        given(userService.update(any(User.class))).willThrow(new UserAndGroupServiceException());
-        given(beanMapping.mapTo(any(UpdateUserDTO.class), eq(User.class))).willReturn(user2);
-        thrown.expect(UserAndGroupFacadeException.class);
-        userFacade.updateUser(new UpdateUserDTO());
     }
 
     @Test

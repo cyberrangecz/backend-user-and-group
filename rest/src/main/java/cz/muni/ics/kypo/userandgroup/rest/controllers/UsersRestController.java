@@ -93,23 +93,6 @@ public class UsersRestController {
         }
     }
 
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "PUT", value = "Updates input internal user.", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<UserDTO> updateUser(@ApiParam(value = "User to be updated.", required = true)
-                                              @RequestBody UpdateUserDTO updateUserDTO) {
-        Preconditions.checkNotNull(updateUserDTO);
-
-        if (!userFacade.isUserInternal(updateUserDTO.getId())) {
-            throw new InvalidParameterException("User is external therefore they could not be updated");
-        }
-
-        try {
-            return new ResponseEntity<>(userFacade.updateUser(updateUserDTO), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotModifiedException("User could not be updated");
-        }
-    }
-
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete user with given screen name and returns if it was successful. \n" +
             "Statuses: 1) SUCCESS - user was deleted\n 2) EXTERNAL_VALID - user is from external source and was not marked as deleted",
