@@ -10,7 +10,6 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
@@ -82,10 +81,10 @@ public class GroupsRestController {
         }
     }
 
-    @PutMapping(path = "/{id}/removeMembers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "PUT", value = "Remove members from input group.")
-    public ResponseEntity<GroupDTO> removeMembers(
-            @ApiParam(value = "Id of group to remove members.", required = true) @PathVariable("id") final Long id,
+    @PutMapping(path = "/{id}/removeUsers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(httpMethod = "PUT", value = "Remove users from input group.")
+    public ResponseEntity<GroupDTO> removeUsers(
+            @ApiParam(value = "Id of group to remove users.", required = true) @PathVariable("id") final Long id,
             @ApiParam(value = "Ids of members to be removed from group.", required = true) @RequestBody List<Long> userIds) {
         Preconditions.checkNotNull(userIds);
 
@@ -94,24 +93,24 @@ public class GroupsRestController {
         }
 
         try {
-            return new ResponseEntity<>(groupFacade.removeMembers(id, userIds), HttpStatus.OK);
+            return new ResponseEntity<>(groupFacade.removeUsers(id, userIds), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
     }
 
-    @PutMapping(path = "/addMembers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "PUT", value = "Add members to group.")
-    public ResponseEntity<GroupDTO> addMembers(
-            @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddMembersToGroupDTO addMembers) {
-        Preconditions.checkNotNull(addMembers);
+    @PutMapping(path = "/addUsers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(httpMethod = "PUT", value = "Add users to group.")
+    public ResponseEntity<GroupDTO> addUsers(
+            @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddUsersToGroupDTO addUsers) {
+        Preconditions.checkNotNull(addUsers);
 
-        if (!groupFacade.isGroupInternal(addMembers.getGroupId())) {
+        if (!groupFacade.isGroupInternal(addUsers.getGroupId())) {
             throw new InvalidParameterException("Group is external therefore they could not be updated");
         }
 
         try {
-            return new ResponseEntity<>(groupFacade.addMembers(addMembers), HttpStatus.OK);
+            return new ResponseEntity<>(groupFacade.addUsers(addUsers), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
