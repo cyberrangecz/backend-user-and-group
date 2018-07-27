@@ -46,8 +46,11 @@ public interface IDMGroupService {
      * Creates given IDM group in database.
      *
      * @param group group to be created
+     * @param groupIdsOfImportedMembers all users from groups with given ids will be imported to new group
+     * @return created group
+     * @throws UserAndGroupServiceException if some of group with given name could not be found
      */
-    IDMGroup create(IDMGroup group);
+    IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers) throws UserAndGroupServiceException;
 
     /**
      * Updates given IDM group in database.
@@ -168,7 +171,7 @@ public interface IDMGroupService {
      * @return updated group
      * @throws UserAndGroupServiceException if some group, user could not be found or group with groupId is external and cannot be edited
      */
-    IDMGroup removeMembers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException;
+    IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException;
 
     /**
      * Adds users and users from groups to group with given groupId
@@ -179,5 +182,5 @@ public interface IDMGroupService {
      * @return updated group
      * @throws UserAndGroupServiceException if some group, user could not be found or group with groupId is external and cannot be edited
      */
-    IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException;
+    IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException;
 }

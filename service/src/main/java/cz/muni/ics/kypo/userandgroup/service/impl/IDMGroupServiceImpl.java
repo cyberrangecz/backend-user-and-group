@@ -77,9 +77,20 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup create(IDMGroup group) {
+    public IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers) throws UserAndGroupServiceException {
         Assert.notNull(group, "Input group must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
+
+        groupIdsOfImportedMembers.forEach(groupId -> {
+            IDMGroup gr = groupRepository.findById(groupId)
+                    .orElseThrow(() -> new UserAndGroupServiceException("Group with id " + groupId + " counld not be found"));
+            gr.getUsers().forEach(user -> {
+                if (!group.getUsers().contains(user)) {
+                    group.addUser(user);
+                }
+            });
+        });
+
         IDMGroup g = groupRepository.save(group);
         log.info(group + " created.");
         return g;
@@ -278,7 +289,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup removeMembers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException {
+    public IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
@@ -297,7 +308,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup addMembers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException {
+    public IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
