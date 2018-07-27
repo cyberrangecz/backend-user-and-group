@@ -72,44 +72,6 @@ public class RoleServiceTest {
     }
 
     @Test
-    public void create() {
-        given(roleRepository.save(adminRole)).willReturn(adminRole);
-        Role r = roleService.create(adminRole);
-        assertEquals(adminRole.getId(), r.getId());
-        assertEquals(adminRole.getRoleType(), r.getRoleType());
-
-        then(roleRepository).should().save(adminRole);
-    }
-
-    @Test
-    public void createWithNullRoleShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input role must not be null");
-        roleService.create(null);
-    }
-
-    @Test
-    public void createWithNullRoleTypeShouldThrowException() {
-        Role role = new Role();
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Role type of input role must not be null");
-        roleService.create(role);
-    }
-
-    @Test
-    public void delete() {
-        roleService.delete(adminRole);
-        then(roleRepository).should().delete(adminRole);
-    }
-
-    @Test
-    public void deleteWithNullRoleShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input role must not be null");
-        roleService.delete(null);
-    }
-
-    @Test
     public void getById() {
         given(roleRepository.findById(adminRole.getId())).willReturn(Optional.of(adminRole));
 

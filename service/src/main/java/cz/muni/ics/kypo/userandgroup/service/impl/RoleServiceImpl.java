@@ -30,25 +30,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Role create(Role role) {
-        Assert.notNull(role, "Input role must not be null");
-        Assert.notNull(role.getRoleType(), "Role type of input role must not be null");
-
-        Role r = roleRepository.save(role);
-        log.info(r + " was created.");
-        return r;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public void delete(Role role) {
-        Assert.notNull(role, "Input role must not be null");
-        roleRepository.delete(role);
-        log.info("Role with id: " + role.getId() + " was successfully deleted.");
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public Role getById(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         Optional<Role> optionalRole = roleRepository.findById(id);

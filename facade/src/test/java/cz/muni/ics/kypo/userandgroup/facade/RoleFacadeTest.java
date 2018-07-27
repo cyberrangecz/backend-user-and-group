@@ -81,13 +81,6 @@ public class RoleFacadeTest {
     }
 
     @Test
-    public void testDeleteRole() {
-        given(roleService.getById(anyLong())).willReturn(r1);
-        roleFacade.deleteRole(1L);
-        then(roleService).should().delete(r1);
-    }
-
-    @Test
     public void testGetById() {
         given(roleService.getById(anyLong())).willReturn(r1);
         RoleDTO roleDTO = roleFacade.getById(1L);

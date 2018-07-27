@@ -9,20 +9,6 @@ import org.springframework.data.domain.Pageable;
 public interface RoleService {
 
     /**
-     * Creates given role
-     *
-     * @param role to be created
-     * @return created role
-     */
-    Role create(Role role);
-
-    /**
-     * Deletes given role
-     * @param role to be deleted
-     */
-    void delete(Role role);
-
-    /**
      * Returns role by id
      *
      * @param id of role

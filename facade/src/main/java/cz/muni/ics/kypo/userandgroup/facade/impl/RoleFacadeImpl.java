@@ -29,24 +29,9 @@ public class RoleFacadeImpl implements RoleFacade {
     private BeanMapping beanMapping;
 
     @Autowired
-    public void RoleFacadeImpl(RoleService roleService, BeanMapping beanMapping) {
+    public RoleFacadeImpl(RoleService roleService, BeanMapping beanMapping) {
         this.roleService = roleService;
         this.beanMapping = beanMapping;
-    }
-
-    @Override
-    public RoleDTO createRole(NewRoleDTO newRoleDTO) {
-        Role role = beanMapping.mapTo(newRoleDTO, Role.class);
-        LOG.info("Role with id: " + role.getId() + " and role type: " + role.getRoleType() +" has been created." );
-        return beanMapping.mapTo(roleService.create(role), RoleDTO.class);
-    }
-
-    @Override
-    public void deleteRole(Long id) {
-        Role roleToDelete = roleService.getById(id);
-        roleService.delete(roleToDelete);
-        LOG.info("Role with id: " + id + "has been deleted.");
-
     }
 
     @Override
