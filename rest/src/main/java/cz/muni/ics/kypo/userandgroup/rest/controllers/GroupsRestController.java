@@ -64,18 +64,18 @@ public class GroupsRestController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Updates input group.", consumes = "application/json", produces = "application/json")
     public ResponseEntity<GroupDTO> updateGroup(
-            @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO groupDTO) {
-        Preconditions.checkNotNull(groupDTO);
+            @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO updateGroupDTO) {
+        Preconditions.checkNotNull(updateGroupDTO);
 
-        if (!groupFacade.isGroupInternal(groupDTO.getId())) {
+        if (!groupFacade.isGroupInternal(updateGroupDTO.getId())) {
             throw new InvalidParameterException("Group is external therefore they could not be updated");
         }
-        if (groupDTO.getDescription() == null || groupDTO.getName() == null) {
+        if (updateGroupDTO.getDescription() == null || updateGroupDTO.getName() == null) {
             throw new InvalidParameterException("Group name neither group description cannot be null.");
         }
 
         try {
-            return new ResponseEntity<>(groupFacade.updateGroup(groupDTO), HttpStatus.OK);
+            return new ResponseEntity<>(groupFacade.updateGroup(updateGroupDTO), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }

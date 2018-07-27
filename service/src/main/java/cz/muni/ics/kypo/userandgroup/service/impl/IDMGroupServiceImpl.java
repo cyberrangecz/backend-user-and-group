@@ -100,7 +100,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public IDMGroup update(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
-        IDMGroup g = groupRepository.save(group);
+        IDMGroup groupInDatabase = get(group.getId());
+        groupInDatabase.setDescription(group.getDescription());
+        groupInDatabase.setName(group.getName());
+        IDMGroup g = groupRepository.save(groupInDatabase);
         g.setRoles(getRolesOfGroup(g.getId()));
         log.info(group + " updated.");
         return g;

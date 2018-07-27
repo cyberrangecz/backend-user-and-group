@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public UserDeletionStatus delete(User user) {
         Assert.notNull(user, "Input user must not be null");
         UserDeletionStatus deletionCheck = checkKypoUserBeforeDelete(user);
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public Map<User, UserDeletionStatus> deleteUsers(List<Long> idsOfUsers) {
         Assert.notNull(idsOfUsers, "Input ids of users must not be null");
         Map<User, UserDeletionStatus> response = new HashMap<>();
@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public void changeAdminRole(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserAdmin(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
@@ -162,7 +162,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User getUserWithGroups(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
     public User getUserWithGroups(String login) throws UserAndGroupServiceException {
         Assert.hasLength(login, "Input login must not be empty");
@@ -182,7 +182,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.dbmodel.core.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserInternal(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
