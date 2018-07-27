@@ -39,7 +39,8 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     public GroupDTO createGroup(NewGroupDTO newGroupDTO) {
         IDMGroup group = beanMapping.mapTo(newGroupDTO, IDMGroup.class);
-        return beanMapping.mapTo(groupService.create(group), GroupDTO.class);
+        IDMGroup createdGroup = groupService.create(group, newGroupDTO.getGroupIdsOfImportedUsers());
+        return beanMapping.mapTo(createdGroup, GroupDTO.class);
     }
 
     @Override
@@ -49,19 +50,19 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public GroupDTO removeMembers(Long groupId, List<Long> userIds) {
+    public GroupDTO removeUsers(Long groupId, List<Long> userIds) {
         try {
-            return beanMapping.mapTo(groupService.removeMembers(groupId, userIds), GroupDTO.class);
+            return beanMapping.mapTo(groupService.removeUsers(groupId, userIds), GroupDTO.class);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
 
     @Override
-    public GroupDTO addMembers(AddMembersToGroupDTO addMembers) {
+    public GroupDTO addUsers(AddUsersToGroupDTO addUsers) {
         try {
-            IDMGroup group = groupService.addMembers(addMembers.getGroupId(),
-                    addMembers.getIdsOfGroupsOfImportedUsers(), addMembers.getIdsOfUsersToBeAdd());
+            IDMGroup group = groupService.addUsers(addUsers.getGroupId(),
+                    addUsers.getIdsOfGroupsOfImportedUsers(), addUsers.getIdsOfUsersToBeAdd());
             return beanMapping.mapTo(group, GroupDTO.class);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());

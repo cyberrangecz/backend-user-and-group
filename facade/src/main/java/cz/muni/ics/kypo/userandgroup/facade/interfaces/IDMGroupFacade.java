@@ -36,15 +36,15 @@ public interface IDMGroupFacade {
      * @param userIds ids of users to be removed from given group
      * @return updated group
      */
-    GroupDTO removeMembers(Long groupId, List<Long> userIds);
+    GroupDTO removeUsers(Long groupId, List<Long> userIds);
 
     /**
      * Adds users and users from groups to group with given groupId in input parameter addMember
      *
-     * @param addMembers parameter containing users to be added, groups which users will be added to group with groupId which is also specify in this parameter
+     * @param addUsers parameter containing users to be added, groups which users will be added to group with groupId which is also specify in this parameter
      * @return updated group
      */
-    GroupDTO addMembers(AddMembersToGroupDTO addMembers);
+    GroupDTO addUsers(AddUsersToGroupDTO addUsers);
 
     /**
      * Deletes group with given id from database and returns status of deletion with group name and id.

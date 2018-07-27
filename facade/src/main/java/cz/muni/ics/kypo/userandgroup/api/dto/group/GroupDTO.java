@@ -5,8 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class GroupDTO {
@@ -17,9 +16,9 @@ public class GroupDTO {
 
     private String description;
 
-    private Set<RoleDTO> roles;
+    private Set<RoleDTO> roles = new HashSet<>();
 
-    private List<UserForGroupsDTO> members;
+    private List<UserForGroupsDTO> users = new ArrayList<>();
 
     private Source source;
 
@@ -32,6 +31,7 @@ public class GroupDTO {
             this.source = Source.PERUN;
         }
     }
+
     public void convertStatusToCanBeDeleted(UserAndGroupStatus status) {
         if (status.equals(UserAndGroupStatus.DELETED)) {
             this.canBeDeleted = true;
@@ -65,12 +65,12 @@ public class GroupDTO {
         this.description = description;
     }
 
-    public List<UserForGroupsDTO> getMembers() {
-        return members;
+    public List<UserForGroupsDTO> getUsers() {
+        return users;
     }
 
-    public void setMembers(List<UserForGroupsDTO> members) {
-        this.members = members;
+    public void setUsers(List<UserForGroupsDTO> users) {
+        this.users = users;
     }
 
     public Set<RoleDTO> getRoles() {
@@ -95,5 +95,30 @@ public class GroupDTO {
 
     public void setCanBeDeleted(boolean canBeDeleted) {
         this.canBeDeleted = canBeDeleted;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GroupDTO groupDTO = (GroupDTO) o;
+        return Objects.equals(getId(), groupDTO.getId()) &&
+                Objects.equals(getName(), groupDTO.getName()) &&
+                Objects.equals(getDescription(), groupDTO.getDescription());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getId(), getName(), getDescription());
+    }
+
+    @Override
+    public String toString() {
+        return "GroupDTO{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

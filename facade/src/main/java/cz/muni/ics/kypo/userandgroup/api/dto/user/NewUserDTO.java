@@ -1,5 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
+import java.util.Objects;
+
 public class NewUserDTO {
 
     private String fullName;
@@ -34,5 +36,28 @@ public class NewUserDTO {
 
     public void convertScreenNameToLogin(String screenName) {
         this.login = screenName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NewUserDTO that = (NewUserDTO) o;
+        return Objects.equals(getFullName(), that.getFullName()) &&
+                Objects.equals(getLogin(), that.getLogin()) &&
+                Objects.equals(getMail(), that.getMail());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getFullName(), getLogin(), getMail());
+    }
+
+    @Override
+    public String toString() {
+        return "UserDTO{" +
+                "login='" + login + '\'' +
+                '}';
     }
 }

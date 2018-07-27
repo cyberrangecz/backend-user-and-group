@@ -2,7 +2,9 @@ package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class NewGroupDTO {
 
@@ -10,9 +12,9 @@ public class NewGroupDTO {
 
     private String description;
 
-    private List<UserForGroupsDTO> members;
+    private List<UserForGroupsDTO> users = new ArrayList<>();
 
-    private List<Long> groupIdsOfImportedMembers;
+    private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -30,19 +32,42 @@ public class NewGroupDTO {
         this.description = description;
     }
 
-    public List<UserForGroupsDTO> getMembers() {
-        return members;
+    public List<UserForGroupsDTO> getUsers() {
+        return users;
     }
 
-    public void setMembers(List<UserForGroupsDTO> members) {
-        this.members = members;
+    public void setUsers(List<UserForGroupsDTO> users) {
+        this.users = users;
     }
 
-    public List<Long> getGroupIdsOfImportedMembers() {
-        return groupIdsOfImportedMembers;
+    public List<Long> getGroupIdsOfImportedUsers() {
+        return groupIdsOfImportedUsers;
     }
 
-    public void setGroupIdsOfImportedMembers(List<Long> groupIdsOfImportedMembers) {
-        groupIdsOfImportedMembers = groupIdsOfImportedMembers;
+    public void setGroupIdsOfImportedUsers(List<Long> groupIdsOfImportedUsers) {
+        this.groupIdsOfImportedUsers = groupIdsOfImportedUsers;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GroupDTO groupDTO = (GroupDTO) o;
+        return Objects.equals(getName(), groupDTO.getName()) &&
+                Objects.equals(getDescription(), groupDTO.getDescription());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getName(), getDescription());
+    }
+
+    @Override
+    public String toString() {
+        return "NewGroupDTO{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

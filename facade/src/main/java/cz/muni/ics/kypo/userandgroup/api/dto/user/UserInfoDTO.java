@@ -2,6 +2,8 @@ package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class UserInfoDTO {
@@ -14,7 +16,7 @@ public class UserInfoDTO {
 
     private String mail;
 
-    private Set<RoleDTO> roles;
+    private Set<RoleDTO> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -58,5 +60,28 @@ public class UserInfoDTO {
 
     public void setRoles(Set<RoleDTO> roles) {
         this.roles = roles;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserInfoDTO that = (UserInfoDTO) o;
+        return Objects.equals(getId(), that.getId()) &&
+                Objects.equals(getLogin(), that.getLogin());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getId(), getLogin());
+    }
+
+    @Override
+    public String toString() {
+        return "UserInfoDTO{" +
+                "id=" + id +
+                ", login='" + login + '\'' +
+                '}';
     }
 }

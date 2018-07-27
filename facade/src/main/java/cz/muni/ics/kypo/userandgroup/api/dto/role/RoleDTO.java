@@ -1,5 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.role;
 
+import java.util.Objects;
+
 public class RoleDTO {
     private Long id;
 
@@ -25,17 +27,22 @@ public class RoleDTO {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         RoleDTO roleDTO = (RoleDTO) o;
-
-        if (!id.equals(roleDTO.id)) return false;
-        return roleType.equals(roleDTO.roleType);
+        return Objects.equals(getId(), roleDTO.getId()) &&
+                Objects.equals(getRoleType(), roleDTO.getRoleType());
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + roleType.hashCode();
-        return result;
+
+        return Objects.hash(getId(), getRoleType());
+    }
+
+    @Override
+    public String toString() {
+        return "RoleDTO{" +
+                "id=" + id +
+                ", roleType='" + roleType + '\'' +
+                '}';
     }
 }
