@@ -96,8 +96,6 @@ public class StartUpRunner implements ApplicationRunner {
                 LOGGER.info("Roles of user with screen name {} were updated.", user.getLogin());
             } else {
                 User newUser = new User(userWrapper.getUser().getLogin());
-                newUser.setFullName(userWrapper.getUser().getFullName());
-                newUser.setMail(userWrapper.getUser().getMail());
                 newUser.setStatus(UserAndGroupStatus.VALID);
 
                 if (userWrapper.getRoles().contains(RoleType.ADMINISTRATOR)) {

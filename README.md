@@ -36,16 +36,12 @@ Example of the YAML file can be seen below:
 ```yaml
 users:
     - user:
-        login: userOne
-        fullName: User One
-        mail: user.one@mail.com
+        login: userOne   # login for MU is UCO@muni.cz
       roles:
         - ADMINISTRATOR
         - USER
     - user:
         login: userTwo
-        fullName: User Two
-        mail: user.two@mail.com
       roles:
         - GUEST
         

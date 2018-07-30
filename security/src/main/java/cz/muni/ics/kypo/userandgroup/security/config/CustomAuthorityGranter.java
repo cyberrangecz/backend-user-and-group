@@ -38,25 +38,32 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
-        LOGGER.info(introspectionResponse.toString());
         String login = introspectionResponse.get("sub").getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
         if (!optionalUser.isPresent()) {
-            IDMGroup guestGroup = groupRepository.findByName(RoleType.GUEST.name()).orElseThrow(() -> new SecurityException("Guest group could not be found"));
-
-            String fullName = introspectionResponse.get("given_name").getAsString() + " " + introspectionResponse.get("family_name").getAsString();
-            String email = introspectionResponse.get("email").getAsString();
-            User newUser = new User(login);
-            newUser.setFullName(fullName);
-            newUser.setMail(email);
-            newUser.addGroup(guestGroup);
-            userRepository.save(newUser);
+            saveNewUser(login, introspectionResponse.get("name").getAsString(), introspectionResponse.get("email").getAsString());
             throw new LoggedInUserNotFoundException("Logged in user with sub " + login + " could not be found in database");
         }
-        Set<Role> roles = userRepository.getRolesOfUser(optionalUser.get().getId());
+        User user = optionalUser.get();
+        if (user.getFullName() == null || user.getMail() == null) {
+            System.out.println(introspectionResponse.get("name").getAsString());
+            user.setFullName(introspectionResponse.get("name").getAsString());
+            user.setMail(introspectionResponse.get("email").getAsString());
+            userRepository.save(user);
+        }
+        Set<Role> roles = userRepository.getRolesOfUser(user.getId());
 
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleType()))
                 .collect(Collectors.toList());
+    }
+
+    private void saveNewUser(String login, String fullName, String email) {
+        IDMGroup guestGroup = groupRepository.findByName(RoleType.GUEST.name()).orElseThrow(() -> new SecurityException("Guest group could not be found"));
+        User newUser = new User(login);
+        newUser.setFullName(fullName);
+        newUser.setMail(email);
+        newUser.addGroup(guestGroup);
+        userRepository.save(newUser);
     }
 }
