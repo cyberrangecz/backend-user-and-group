@@ -46,7 +46,6 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
         }
         User user = optionalUser.get();
         if (user.getFullName() == null || user.getMail() == null) {
-            System.out.println(introspectionResponse.get("name").getAsString());
             user.setFullName(introspectionResponse.get("name").getAsString());
             user.setMail(introspectionResponse.get("email").getAsString());
             userRepository.save(user);
