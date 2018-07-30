@@ -9,10 +9,8 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.junit.Before;
@@ -31,6 +29,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -64,6 +64,9 @@ public class UserFacadeTest {
 
     @MockBean
     private RestTemplate restTemplate;
+
+    @MockBean
+    private MicroserviceService microserviceService;
 
     private User user1, user2;
     private UserDTO userDTO1, userDTO2;
@@ -186,6 +189,14 @@ public class UserFacadeTest {
 
     @Test
     public void testGetRolesOfUser() {
+        Role role = new Role();
+        role.setId(1L);
+        role.setRoleType(RoleType.GUEST.toString());
+        Role[] rolesArray = new Role[1];
+        rolesArray[0] = role;
+        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.OK);
+        given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
+        Microservice m = new Microservice("training", "/training");
         Role role1 = new Role();
         role1.setId(1L);
         role1.setRoleType(RoleType.ADMINISTRATOR.toString());
@@ -201,14 +212,18 @@ public class UserFacadeTest {
         RoleDTO roleDTO1 = new RoleDTO();
         roleDTO1.setId(1L);
         roleDTO1.setRoleType(RoleType.ADMINISTRATOR.toString());
+        roleDTO1.setNameOfMicroservice("User and Group");
 
         RoleDTO roleDTO2 = new RoleDTO();
         roleDTO2.setId(2L);
         roleDTO2.setRoleType(RoleType.USER.toString());
+        roleDTO2.setNameOfMicroservice("User and Group");
 
         given(userService.getRolesOfUser(anyLong())).willReturn(roles);
+        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(m));
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);
 
+        assertEquals(3, responseRolesDTO.size());
         assertTrue(responseRolesDTO.contains(roleDTO1));
         assertTrue(responseRolesDTO.contains(roleDTO2));
     }

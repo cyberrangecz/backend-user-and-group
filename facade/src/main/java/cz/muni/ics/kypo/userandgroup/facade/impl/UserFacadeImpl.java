@@ -9,8 +9,10 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.slf4j.Logger;
@@ -19,14 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,11 +37,16 @@ public class UserFacadeImpl implements UserFacade {
     Logger LOG = LoggerFactory.getLogger(UserFacadeImpl.class);
 
     private UserService userService;
+    private MicroserviceService microserviceService;
+    private RestTemplate restTemplate;
     private BeanMapping beanMapping;
 
     @Autowired
-    public UserFacadeImpl(UserService userService, BeanMapping beanMapping) {
+    public UserFacadeImpl(UserService userService, MicroserviceService microserviceService,
+                          RestTemplate restTemplate, BeanMapping beanMapping) {
         this.userService = userService;
+        this.microserviceService = microserviceService;
+        this.restTemplate = restTemplate;
         this.beanMapping = beanMapping;
     }
 
@@ -107,7 +113,32 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     public Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException {
         try {
-            return beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
+            Set<RoleDTO> roles = beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
+            roles = roles.stream()
+                    .peek(roleDTO -> roleDTO.setNameOfMicroservice("User and Group"))
+                    .collect(Collectors.toSet());
+
+            List<Microservice> microservices = microserviceService.getMicroservices();
+            for (Microservice microservice : microservices) {
+                String uri = microservice.getEndpoint() + "/of/user/{userId}";
+
+                ResponseEntity<Role[]> responseEntity = restTemplate.getForEntity(uri, Role[].class, id);
+                if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                    Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
+                            .map(role -> {
+                                RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+                                roleDTO.setNameOfMicroservice(microservice.getName());
+                                return roleDTO;
+                            })
+                            .collect(Collectors.toSet());
+
+                    roles.addAll(rolesOfMicroservice);
+                } else {
+                    throw new UserAndGroupFacadeException("Some error occured during getting roles of user with id " + id + " from microservice " + microservice.getName());
+                }
+            }
+
+            return roles;
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());
         }

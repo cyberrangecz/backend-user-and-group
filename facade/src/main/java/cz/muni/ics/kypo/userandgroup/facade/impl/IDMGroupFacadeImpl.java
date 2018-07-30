@@ -16,9 +16,7 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,7 +135,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                     .collect(Collectors.toSet());
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                String uri = microservice.getEndpoint() + "/of/{groupId}";
+                String uri = microservice.getEndpoint() + "/of/group/{groupId}";
 
                 ResponseEntity<Role[]> responseEntity = restTemplate.getForEntity(uri, Role[].class, id);
                 if (responseEntity.getStatusCode().is2xxSuccessful()) {

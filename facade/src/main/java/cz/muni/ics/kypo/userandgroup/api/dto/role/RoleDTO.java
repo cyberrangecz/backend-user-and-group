@@ -54,7 +54,7 @@ public class RoleDTO {
         return "RoleDTO{" +
                 "id=" + id +
                 ", roleType='" + roleType + '\'' +
-                ", nameOfMicroservice" +
+                ", nameOfMicroservice='" + nameOfMicroservice + "\'" +
                 '}';
     }
 }
