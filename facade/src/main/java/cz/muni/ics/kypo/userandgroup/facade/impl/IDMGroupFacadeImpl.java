@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,15 +140,19 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                 String uri = microservice.getEndpoint() + "/of/{groupId}";
 
                 ResponseEntity<Role[]> responseEntity = restTemplate.getForEntity(uri, Role[].class, id);
-                Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
-                        .map(role -> {
-                            RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-                            roleDTO.setNameOfMicroservice(microservice.getName());
-                            return roleDTO;
-                        })
-                        .collect(Collectors.toSet());
+                if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                    Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
+                            .map(role -> {
+                                RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+                                roleDTO.setNameOfMicroservice(microservice.getName());
+                                return roleDTO;
+                            })
+                            .collect(Collectors.toSet());
 
-                roles.addAll(rolesOfMicroservice);
+                    roles.addAll(rolesOfMicroservice);
+                } else {
+                    throw new UserAndGroupFacadeException("Some error occured during getting roles of group with id " + id + " from microservice " + microservice.getName());
+                }
             }
 
             return roles;
