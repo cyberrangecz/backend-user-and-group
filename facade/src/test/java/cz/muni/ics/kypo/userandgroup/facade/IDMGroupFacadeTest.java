@@ -135,20 +135,18 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testUpdateGroup() {
-        GroupDTO updatedGroupDTO = groupDTO;
-        updatedGroupDTO.setName("Group 2");
-        given(groupService.update(g2)).willReturn(g2);
-        GroupDTO groupDTO = groupFacade.updateGroup(getUpdateGroupDTO());
-
-        assertEquals("Group 2", groupDTO.getName());
+        UpdateGroupDTO updatedGroupDTO = new UpdateGroupDTO();
+        updatedGroupDTO.setId(g2.getId());
+        updatedGroupDTO.setName(g2.getName());
+        updatedGroupDTO.setDescription(g2.getDescription());
+        groupFacade.updateGroup(updatedGroupDTO);
         then(groupService).should().update(g2);
-
     }
 
     @Test
     public void testRemoveUsers() {
         given(groupService.removeUsers(1L, Arrays.asList(1L))).willReturn(g2);
-        GroupDTO groupDTO = groupFacade.removeUsers(1L, Arrays.asList(1L));
+        groupFacade.removeUsers(1L, Arrays.asList(1L));
 
         assertEquals(0, groupDTO.getUsers().size());
         then(groupService).should().removeUsers(1L, Arrays.asList(1L));
@@ -167,7 +165,7 @@ public class IDMGroupFacadeTest {
         GroupDTO g = groupDTO;
         g.setUsers(Arrays.asList(new UserForGroupsDTO()));
         given(groupService.addUsers(1L, Arrays.asList(1L), Arrays.asList(1L))).willReturn(g1);
-        GroupDTO groupDTO = groupFacade.addUsers(getaddUsersToGroupDTO());
+        groupFacade.addUsers(getaddUsersToGroupDTO());
 
         assertEquals(1, groupDTO.getUsers().size());
         then(groupService).should().addUsers(1L, Arrays.asList(1L), Arrays.asList(1L));
@@ -272,9 +270,9 @@ public class IDMGroupFacadeTest {
         userRole.setRoleType(RoleType.USER.toString());
         g1.addRole(userRole);
         given(groupService.assignRole(anyLong(), any(RoleType.class))).willReturn(g1);
-        GroupDTO groupDTO = groupFacade.assignRole(1L, RoleType.USER);
+        groupFacade.assignRole(1L, RoleType.USER);
 
-        assertEquals(RoleType.USER.toString(), new ArrayList<>(groupDTO.getRoles()).get(0).getRoleType());
+        then(groupService).should().assignRole(1L, RoleType.USER);
     }
 
     @Test

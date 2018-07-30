@@ -25,26 +25,23 @@ public interface IDMGroupFacade {
      * Updates given IDM group in database.
      *
      * @param updateGroupDTO group to be updated
-     * @return updated group
      */
-    GroupDTO updateGroup(UpdateGroupDTO updateGroupDTO);
+    void updateGroup(UpdateGroupDTO updateGroupDTO);
 
     /**
      * Removes members of group with given userIds from the group
      *
      * @param groupId id of group from which given users should be removed
      * @param userIds ids of users to be removed from given group
-     * @return updated group
      */
-    GroupDTO removeUsers(Long groupId, List<Long> userIds);
+    void removeUsers(Long groupId, List<Long> userIds);
 
     /**
      * Adds users and users from groups to group with given groupId in input parameter addMember
      *
      * @param addUsers parameter containing users to be added, groups which users will be added to group with groupId which is also specify in this parameter
-     * @return updated group
      */
-    GroupDTO addUsers(AddUsersToGroupDTO addUsers);
+    void addUsers(AddUsersToGroupDTO addUsers);
 
     /**
      * Deletes group with given id from database and returns status of deletion with group name and id.
@@ -92,9 +89,8 @@ public interface IDMGroupFacade {
      *
      * @param groupId of group
      * @param roleType to be assigned to group
-     * @return updated group
      */
-    GroupDTO assignRole(Long groupId, RoleType roleType);
+    void assignRole(Long groupId, RoleType roleType);
 
     /**
      * Assigns role with given roleId in microservice with microserviceID to group with given groupId
@@ -102,9 +98,8 @@ public interface IDMGroupFacade {
      * @param groupId of group
      * @param roleId of role to be assigned to group from specific microservice
      * @param microserviceId of microservice from which is role
-     * @return updated group
      */
-    GroupDTO assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
+    void assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
 
     /**
      * Returns true if group is internal otherwise false

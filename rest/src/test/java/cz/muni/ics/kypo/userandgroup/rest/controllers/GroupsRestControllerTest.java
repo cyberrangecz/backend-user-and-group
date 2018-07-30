@@ -162,14 +162,11 @@ public class GroupsRestControllerTest {
     @Test
     public void testUpdateGroup() throws Exception {
         given(groupFacade.isGroupInternal(groupDTO1.getId())).willReturn(true);
-        given(groupFacade.updateGroup(any(UpdateGroupDTO.class))).willReturn(groupDTO1);
         mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(updateGroupDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+                .andExpect(status().isNoContent());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should().updateGroup(any(UpdateGroupDTO.class));
     }
@@ -190,7 +187,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testUpdateGroupWithUpdateError() throws Exception {
         given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
-        given(groupFacade.updateGroup(any(UpdateGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
+        willThrow(new UserAndGroupFacadeException()).given(groupFacade).updateGroup(any(UpdateGroupDTO.class));
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -221,14 +218,11 @@ public class GroupsRestControllerTest {
     @Test
     public void testRemoveUsers() throws Exception {
         given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
-        given(groupFacade.removeUsers(groupDTO1.getId(), Collections.singletonList(1L))).willReturn(groupDTO1);
         mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeUsers", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+                .andExpect(status().isNoContent());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should().removeUsers(groupDTO1.getId(), Collections.singletonList(1L));
     }
@@ -236,7 +230,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testRemoveUsersWithUpdateError() throws Exception {
         given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
-        given(groupFacade.removeUsers(100L, Collections.singletonList(1L))).willThrow(new UserAndGroupFacadeException());
+        willThrow(new UserAndGroupFacadeException()).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeUsers", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -283,14 +277,11 @@ public class GroupsRestControllerTest {
         groupDTO1.setUsers(Collections.singletonList(user));
 
         given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
-        given(groupFacade.addUsers(any(AddUsersToGroupDTO.class))).willReturn(groupDTO1);
         mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addUsers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
+                .andExpect(status().isNoContent());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should().addUsers(any(AddUsersToGroupDTO.class));
     }
@@ -298,7 +289,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testAddUsersWithUpdateError() throws Exception {
         given(groupFacade.isGroupInternal(anyLong())).willReturn(true);
-        given(groupFacade.addUsers(any(AddUsersToGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
+        willThrow(new UserAndGroupFacadeException()).given(groupFacade).addUsers(any(AddUsersToGroupDTO.class));
         Exception ex = mockMvc.perform(
                 put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addUsers")
                         .contentType(MediaType.APPLICATION_JSON)

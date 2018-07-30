@@ -63,7 +63,7 @@ public class GroupsRestController {
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Updates input group.", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<GroupDTO> updateGroup(
+    public ResponseEntity<Void> updateGroup(
             @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO updateGroupDTO) {
         Preconditions.checkNotNull(updateGroupDTO);
 
@@ -75,7 +75,8 @@ public class GroupsRestController {
         }
 
         try {
-            return new ResponseEntity<>(groupFacade.updateGroup(updateGroupDTO), HttpStatus.OK);
+            groupFacade.updateGroup(updateGroupDTO);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
@@ -83,7 +84,7 @@ public class GroupsRestController {
 
     @PutMapping(path = "/{id}/removeUsers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Remove users from input group.")
-    public ResponseEntity<GroupDTO> removeUsers(
+    public ResponseEntity<Void> removeUsers(
             @ApiParam(value = "Id of group to remove users.", required = true) @PathVariable("id") final Long id,
             @ApiParam(value = "Ids of members to be removed from group.", required = true) @RequestBody List<Long> userIds) {
         Preconditions.checkNotNull(userIds);
@@ -93,7 +94,8 @@ public class GroupsRestController {
         }
 
         try {
-            return new ResponseEntity<>(groupFacade.removeUsers(id, userIds), HttpStatus.OK);
+            groupFacade.removeUsers(id, userIds);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
@@ -110,7 +112,8 @@ public class GroupsRestController {
         }
 
         try {
-            return new ResponseEntity<>(groupFacade.addUsers(addUsers), HttpStatus.OK);
+            groupFacade.addUsers(addUsers);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotModifiedException("Group could not be modified.");
         }
@@ -186,11 +189,12 @@ public class GroupsRestController {
 
     @PutMapping(path = "/{groupId}/assign/{roleType}")
     @ApiOperation(httpMethod = "PUT", value = "Assigns role to group with given groupId")
-    public ResponseEntity<GroupDTO> assignRole(
+    public ResponseEntity<Void> assignRole(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleType", required = true) @PathVariable("roleType") RoleType roleType) {
         try {
-            return new ResponseEntity<>(groupFacade.assignRole(groupId, roleType), HttpStatus.OK);
+            groupFacade.assignRole(groupId, roleType);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("Group with id: " + groupId + " or one of the main roles (ADMINISTRATOR, USER, GUEST) could not be found.");
         }
@@ -198,12 +202,13 @@ public class GroupsRestController {
 
     @PutMapping("/{groupId}/assign/{roleId}/in/microservice/{microserviceId}")
     @ApiOperation(httpMethod = "PUT", value = "Assign role with given role ID to group with given ID in chosen microservice")
-    public ResponseEntity<GroupDTO> assignRoleInMicroservice(
+    public ResponseEntity<Void> assignRoleInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
             @ApiParam(value = "microserviceId", required = true) @PathVariable("microserviceId") Long microserviceId) {
         try {
-            return new ResponseEntity<>(groupFacade.assignRoleInMicroservice(groupId, roleId, microserviceId), HttpStatus.OK);
+            groupFacade.assignRoleInMicroservice(groupId, roleId, microserviceId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
         }

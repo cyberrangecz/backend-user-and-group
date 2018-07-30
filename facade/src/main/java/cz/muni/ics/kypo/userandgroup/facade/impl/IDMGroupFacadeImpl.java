@@ -52,26 +52,24 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public GroupDTO updateGroup(UpdateGroupDTO updateGroupDTO) {
-        IDMGroup group = beanMapping.mapTo(updateGroupDTO, IDMGroup.class);
-        return beanMapping.mapTo(groupService.update(group), GroupDTO.class);
+    public void updateGroup(UpdateGroupDTO updateGroupDTO) {
+        groupService.update(beanMapping.mapTo(updateGroupDTO, IDMGroup.class));
     }
 
     @Override
-    public GroupDTO removeUsers(Long groupId, List<Long> userIds) {
+    public void removeUsers(Long groupId, List<Long> userIds) {
         try {
-            return beanMapping.mapTo(groupService.removeUsers(groupId, userIds), GroupDTO.class);
+            beanMapping.mapTo(groupService.removeUsers(groupId, userIds), GroupDTO.class);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
 
     @Override
-    public GroupDTO addUsers(AddUsersToGroupDTO addUsers) {
+    public void addUsers(AddUsersToGroupDTO addUsers) {
         try {
-            IDMGroup group = groupService.addUsers(addUsers.getGroupId(),
+            groupService.addUsers(addUsers.getGroupId(),
                     addUsers.getIdsOfGroupsOfImportedUsers(), addUsers.getIdsOfUsersToBeAdd());
-            return beanMapping.mapTo(group, GroupDTO.class);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());
         }
@@ -160,29 +158,24 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public GroupDTO assignRole(Long groupId, RoleType roleType) {
+    public void assignRole(Long groupId, RoleType roleType) {
         try {
-            return beanMapping.mapTo(groupService.assignRole(groupId, roleType), GroupDTO.class);
+            groupService.assignRole(groupId, roleType);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
 
     @Override
-    public GroupDTO assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) {
+    public void assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         Assert.notNull(microserviceId, "Input microserviceId must not be null");
 
         try {
             Microservice microservice = microserviceService.get(microserviceId);
-            IDMGroup group = groupService.get(groupId);
             final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
             restTemplate.put(uri, null, roleId, groupId);
-
-            GroupDTO groupDTO = beanMapping.mapTo(group, GroupDTO.class);
-            groupDTO.setRoles(getRolesOfGroup(groupId));
-            return groupDTO;
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getMessage());
         }
