@@ -8,7 +8,6 @@ import cz.muni.ics.kypo.userandgroup.config.FacadeTestConfig;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
@@ -18,6 +17,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,8 +29,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -106,12 +109,18 @@ public class UserFacadeTest {
 
     @Test
     public void testGetUsers() {
+        Role role = new Role();
+        role.setId(1L);
+        role.setRoleType(RoleType.GUEST.toString());
+        Role[] rolesArray = new Role[1];
+        rolesArray[0] = role;
+        mockSpringSecurityContextForGet(rolesArray);
         Page<User> rolePage = new PageImpl<>(Arrays.asList(user1, user2));
         PageResultResource<UserDTO> pageResult = new PageResultResource<>();
         pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
 
         given(userService.getAllUsers(predicate, pageable)).willReturn(rolePage);
-        PageResultResource<UserDTO> pageResultResource = userFacade.getUsers(predicate,pageable);
+        PageResultResource<UserDTO> pageResultResource = userFacade.getUsers(predicate, pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
         assertEquals(userDTO1, pageResultResource.getContent().get(0));
@@ -139,7 +148,7 @@ public class UserFacadeTest {
         PageResultResource<UserDTO> pageResult = new PageResultResource<>();
         pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
 
-        given(userService.getAllUsersNotInGivenGroup(1L,pageable)).willReturn(rolePage);
+        given(userService.getAllUsersNotInGivenGroup(1L, pageable)).willReturn(rolePage);
         PageResultResource<UserDTO> pageResultResource = userFacade.getAllUsersNotInGivenGroup(1L, pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
@@ -182,7 +191,7 @@ public class UserFacadeTest {
         given(userService.deleteUsers(anyList())).willReturn(deletionStatusMap);
         List<UserDeletionResponseDTO> userDeletionResponseDTOS = userFacade.deleteUsers(Arrays.asList(1L, 2L));
 
-        assertEquals(2,userDeletionResponseDTOS.size());
+        assertEquals(2, userDeletionResponseDTOS.size());
         assertEquals(UserDeletionStatus.SUCCESS, userDeletionResponseDTOS.get(0).getStatus());
         assertEquals(UserDeletionStatus.NOT_FOUND, userDeletionResponseDTOS.get(1).getStatus());
     }
@@ -194,8 +203,8 @@ public class UserFacadeTest {
         role.setRoleType(RoleType.GUEST.toString());
         Role[] rolesArray = new Role[1];
         rolesArray[0] = role;
-        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.OK);
-        given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
+        mockSpringSecurityContextForGet(rolesArray);
+
         Microservice m = new Microservice("training", "/training");
         Role role1 = new Role();
         role1.setId(1L);
@@ -248,5 +257,18 @@ public class UserFacadeTest {
         given(userService.isUserInternal(user1.getId())).willThrow(UserAndGroupServiceException.class);
         thrown.expect(UserAndGroupFacadeException.class);
         userFacade.isUserInternal(user1.getId());
+    }
+
+    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
+        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails auth = Mockito.mock(OAuth2AuthenticationDetails.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getDetails()).willReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
+        given(auth.getTokenType()).willReturn("");
+        given(auth.getTokenValue()).willReturn("");
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role[].class), anyLong())).willReturn(responseEntity);
     }
 }

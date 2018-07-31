@@ -18,6 +18,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,8 +30,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -211,6 +218,9 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetAllGroups() {
+        Role[] rolesArray = new Role[1];
+        rolesArray[0] = getRole();
+        mockSpringSecurityContextForGet(rolesArray);
         Page<IDMGroup> idmGroupPage = new PageImpl<>(Arrays.asList(g1));
         PageResultResource<GroupDTO> pages = new PageResultResource<>();
         pages.setContent(Arrays.asList(groupDTO));
@@ -225,6 +235,9 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetGroup() {
+        Role[] rolesArray = new Role[1];
+        rolesArray[0] = getRole();
+        mockSpringSecurityContextForGet(rolesArray);
         given(groupService.get(anyLong())).willReturn(g1);
         GroupDTO groupDTO = groupFacade.getGroup(1L);
 
@@ -245,6 +258,9 @@ public class IDMGroupFacadeTest {
         Set<Role> roles = new HashSet<>();
         roles.add(getRole());
         g1.addRole(getRole());
+        Role[] rolesArray = new Role[1];
+        rolesArray[0] = getRole();
+        mockSpringSecurityContextForGet(rolesArray);
 
         Set<RoleDTO> roleDTOS = new HashSet<>();
         roleDTOS.add(getRoleDTO());
@@ -342,9 +358,16 @@ public class IDMGroupFacadeTest {
         return roleDTO;
     }
 
-
-
-
-
-
+    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
+        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails auth = Mockito.mock(OAuth2AuthenticationDetails.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getDetails()).willReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
+        given(auth.getTokenType()).willReturn("");
+        given(auth.getTokenValue()).willReturn("");
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role[].class), anyLong())).willReturn(responseEntity);
+    }
 }

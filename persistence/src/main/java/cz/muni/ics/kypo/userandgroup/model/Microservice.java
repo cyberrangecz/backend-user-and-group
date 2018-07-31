@@ -72,4 +72,13 @@ public class Microservice {
 
         return Objects.hash(name, endpoint);
     }
+
+    @Override
+    public String toString() {
+        return "Microservice{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                '}';
+    }
 }

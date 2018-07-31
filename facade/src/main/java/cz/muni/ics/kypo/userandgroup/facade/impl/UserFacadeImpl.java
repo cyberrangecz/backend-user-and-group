@@ -21,8 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -52,16 +57,21 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) {
-        Page<User> users = userService.getAllUsers(predicate, pageable);
-        return beanMapping.mapToPageResultDTO(users, UserDTO.class);
+        PageResultResource<UserDTO> users = beanMapping.mapToPageResultDTO(userService.getAllUsers(predicate, pageable), UserDTO.class);
+        List<UserDTO> usersWithRoles = users.getContent().stream()
+                .peek(userDTO -> userDTO.setRoles(this.getRolesOfUser(userDTO.getId())))
+                .collect(Collectors.toList());
+        users.setContent(usersWithRoles);
+        return users;
     }
 
     @Override
     public UserDTO getUser(Long id) {
         try {
-            User user = userService.get(id);
+            UserDTO userDTO = beanMapping.mapTo(userService.get(id), UserDTO.class);
             LOG.info("User with id: " + id + " has been loaded.");
-            return beanMapping.mapTo(user, UserDTO.class);
+            userDTO.setRoles(getRolesOfUser(id));
+            return userDTO;
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while loading user with id: " + id + "." );
             throw new UserAndGroupFacadeException(ex.getMessage());
@@ -118,11 +128,16 @@ public class UserFacadeImpl implements UserFacade {
                     .peek(roleDTO -> roleDTO.setNameOfMicroservice("User and Group"))
                     .collect(Collectors.toSet());
 
+            OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                String uri = microservice.getEndpoint() + "/of/user/{userId}";
+                String uri = microservice.getEndpoint() + "of/user/{userId}";
 
-                ResponseEntity<Role[]> responseEntity = restTemplate.getForEntity(uri, Role[].class, id);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+                HttpEntity<String> entity = new HttpEntity<>( null, headers);
+                ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
                 if (responseEntity.getStatusCode().is2xxSuccessful()) {
                     Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
                             .map(role -> {
@@ -155,7 +170,7 @@ public class UserFacadeImpl implements UserFacade {
             LOG.error("Error while getting info about user with sub: " + sub + ".");
             throw new UserAndGroupFacadeException(ex.getMessage());
         }
-        Set<Role> rolesOfUser = userService.getRolesOfUser(loggedInUser.getId());
+        Set<RoleDTO> rolesOfUser = getRolesOfUser(loggedInUser.getId());
 
         return convertToUserInfoDTO(loggedInUser, rolesOfUser);
     }
@@ -169,11 +184,11 @@ public class UserFacadeImpl implements UserFacade {
         }
     }
 
-    private UserInfoDTO convertToUserInfoDTO(User user, Set<Role> roles) {
+    private UserInfoDTO convertToUserInfoDTO(User user, Set<RoleDTO> roles) {
         UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
 
         Set<RoleDTO> rolesDTOs = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toSet());
-        u.setRoles(rolesDTOs);
+        u.setRoles(roles);
 
         return u;
     }
