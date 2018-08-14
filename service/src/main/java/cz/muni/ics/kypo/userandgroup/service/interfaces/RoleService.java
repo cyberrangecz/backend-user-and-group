@@ -31,5 +31,5 @@ public interface RoleService {
      *
      * @return all roles
      */
-    Page<Role> getAllRoles(Predicate predicate, Pageable pageable);
+    Page<Role> getAllRoles(Pageable pageable);
 }

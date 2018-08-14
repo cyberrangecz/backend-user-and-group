@@ -50,8 +50,8 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Page<Role> getAllRoles(Predicate predicate, Pageable pageable) {
-        Page<Role> roles = roleRepository.findAll(predicate, pageable);
+    public Page<Role> getAllRoles(Pageable pageable) {
+        Page<Role> roles = roleRepository.findAll(pageable);
         log.info("All Roles loaded");
         return roles;
     }

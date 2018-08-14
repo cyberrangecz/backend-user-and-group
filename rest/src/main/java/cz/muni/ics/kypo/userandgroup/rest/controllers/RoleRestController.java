@@ -47,13 +47,8 @@ public class RoleRestController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get all roles", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getRoles(@QuerydslPredicate(root = Role.class) Predicate predicate,
-                                                  @PageableDefault(size = 10, page = 0) Pageable pageable,
-                                                  @RequestParam MultiValueMap<String, String> parameters,
-                                                  @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                      @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
-        Squiggly.init(objectMapper, fields);
+    public ResponseEntity<Object> getRoles(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(pageable);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
 
     }

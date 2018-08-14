@@ -48,7 +48,6 @@ public class RoleServiceTest {
     private Role adminRole, userRole;
 
     private Pageable pageable;
-    private Predicate predicate;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -114,19 +113,19 @@ public class RoleServiceTest {
 
     @Test
     public void getAllRoles() {
-        given(roleRepository.findAll(predicate, pageable))
+        given(roleRepository.findAll(pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
 
         Role role = new Role();
         role.setRoleType(RoleType.GUEST.name());
 
-        List<Role> roles = roleService.getAllRoles(predicate, pageable).getContent();
+        List<Role> roles = roleService.getAllRoles(pageable).getContent();
         assertEquals(2, roles.size());
         assertTrue(roles.contains(adminRole));
         assertTrue(roles.contains(userRole));
         assertFalse(roles.contains(role));
 
-        then(roleRepository).should().findAll(predicate, pageable);
+        then(roleRepository).should().findAll(pageable);
     }
 
     @After

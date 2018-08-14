@@ -102,7 +102,7 @@ public class RoleRestControllerTest {
     public void getRoles() throws Exception {
         String valueAs = convertObjectToJsonBytes(rolePageResultResource);
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
-        given(roleFacade.getAllRoles(any(Predicate.class), any(Pageable.class))).willReturn(rolePageResultResource);
+        given(roleFacade.getAllRoles(any(Pageable.class))).willReturn(rolePageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
                 get(ApiEndpointsUserAndGroup.ROLES_URL + "/"))
@@ -110,7 +110,7 @@ public class RoleRestControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
         assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(rolePageResultResource)), result.getContentAsString());
-        then(roleFacade).should().getAllRoles(any(Predicate.class), any(Pageable.class));
+        then(roleFacade).should().getAllRoles(any(Pageable.class));
     }
 
     @Test

@@ -27,11 +27,10 @@ public interface RoleFacade {
     /**
      * Returns page of roles specified by given predicate and pageable
      *
-     * @param predicate specifies query to databse
      * @param pageable parameter with information about pagination
      * @return page of roles specified by given predicate and pageable
      */
-    PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable);
+    PageResultResource<RoleDTO> getAllRoles(Pageable pageable);
 
 
 }
