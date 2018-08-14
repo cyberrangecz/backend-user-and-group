@@ -59,7 +59,9 @@ public class RoleFacadeImpl implements RoleFacade {
         try {
             Role role = roleService.getById(id);
             LOG.info("Role with id: " + id + "has been loaded.");
-            return beanMapping.mapTo(role, RoleDTO.class);
+            RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+            roleDTO.setNameOfMicroservice("User and Group");
+            return roleDTO;
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while loading role with id: " + id + ".");
             throw new UserAndGroupFacadeException(ex.getMessage());
@@ -72,7 +74,9 @@ public class RoleFacadeImpl implements RoleFacade {
         try {
             Role role = roleService.getByRoleType(roleType.toString());
             LOG.info("Role with role type: " + roleType + "has been loaded.");
-            return beanMapping.mapTo(role, RoleDTO.class);
+            RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+            roleDTO.setNameOfMicroservice("User and Group");
+            return roleDTO;
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while loading role with role type: " + roleType.toString() + ".");
             throw new UserAndGroupFacadeException(ex.getMessage());
