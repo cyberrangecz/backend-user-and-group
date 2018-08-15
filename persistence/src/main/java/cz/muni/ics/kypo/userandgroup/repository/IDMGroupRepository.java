@@ -37,5 +37,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
     @Query("SELECT g FROM IDMGroup g WHERE g.name = :name")
     Optional<IDMGroup> getIDMGroupByNameWithUsers(@Param("name") String name);
 
-
+    @Query("SELECT CASE WHEN g.externalId IS NULL THEN true ELSE false END FROM IDMGroup g WHERE g.id = :groupId")
+    boolean isIDMGroupInternal(@Param("groupId") Long id);
 }

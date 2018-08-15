@@ -169,4 +169,23 @@ public class IDMGroupRepositoryTest {
             throw new Exception("Group with name 'group' should not be found");
         }
     }
+
+    @Test
+    public void isIDMGroupInternal() {
+        String exceptedName = "group1";
+        String exceptedDescription = "Group1 description";
+        IDMGroup group = new IDMGroup(exceptedName, exceptedDescription);
+        IDMGroup g = this.entityManager.persistAndFlush(group);
+        assertTrue(this.groupRepository.isIDMGroupInternal(g.getId()));
+    }
+
+    @Test
+    public void isIDMGroupExternal() {
+        String exceptedName = "group1";
+        String exceptedDescription = "Group1 description";
+        IDMGroup group = new IDMGroup(exceptedName, exceptedDescription);
+        group.setExternalId(1L);
+        IDMGroup g = this.entityManager.persistAndFlush(group);
+        assertFalse(this.groupRepository.isIDMGroupInternal(g.getId()));
+    }
 }
