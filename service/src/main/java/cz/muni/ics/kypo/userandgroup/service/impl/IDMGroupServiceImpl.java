@@ -20,6 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -89,14 +90,20 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup update(IDMGroup group) {
+    public IDMGroup update(IDMGroup group) throws ExternalSourceException {
         Assert.notNull(group, "Input group must not be null.");
-        IDMGroup groupInDatabase = get(group.getId());
-        groupInDatabase.setDescription(group.getDescription());
-        groupInDatabase.setName(group.getName());
-        IDMGroup g = groupRepository.save(groupInDatabase);
-        log.info(group + " updated.");
-        return g;
+
+        if (groupRepository.isIDMGroupInternal(group.getId())) {
+            IDMGroup groupInDatabase = get(group.getId());
+            groupInDatabase.setDescription(group.getDescription());
+            groupInDatabase.setName(group.getName());
+            IDMGroup g = groupRepository.save(groupInDatabase);
+            log.info(group + " updated.");
+            return g;
+        } else {
+            log.error("Given idm group is external therefore it cannot be updated");
+            throw new ExternalSourceException("Given idm group is external therefore it cannot be udpated");
+        }
     }
 
     @Override
@@ -198,7 +205,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             "or @securityService.isLoggedInUserInGroup(#id)")
     public boolean isGroupInternal(Long id) throws UserAndGroupServiceException {
         Assert.notNull(id, "Input id must not be null");
-        return get(id).getExternalId() == null;
+        return groupRepository.isIDMGroupInternal(id);
     }
 
     @Override
@@ -247,13 +254,13 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException {
+    public IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException, ExternalSourceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
         IDMGroup groupToUpdate = this.get(groupId);
-        if (groupToUpdate.getExternalId() != null) {
-            throw new UserAndGroupServiceException("Group is external therefore they could not be updated");
+        if (!groupRepository.isIDMGroupInternal(groupId)) {
+            throw new ExternalSourceException("Group is external therefore it could not be updated");
         }
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
@@ -265,14 +272,14 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException {
+    public IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException, ExternalSourceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
 
         IDMGroup groupToUpdate = this.get(groupId);
-        if (groupToUpdate.getExternalId() != null) {
-            throw new UserAndGroupServiceException("Group is external therefore it could not be updated");
+        if (!groupRepository.isIDMGroupInternal(groupId)) {
+            throw new ExternalSourceException("Group is external therefore it could not be updated");
         }
         for (Long userId : idsOfUsersToBeAdd) {
             User user = userRepository.findById(userId)
@@ -292,7 +299,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
-        if (group.getExternalId() != null && group.getStatus().equals(UserAndGroupStatus.VALID)) {
+        if (!groupRepository.isIDMGroupInternal(group.getId()) && group.getStatus().equals(UserAndGroupStatus.VALID)) {
             return GroupDeletionStatus.EXTERNAL_VALID;
         }
         return GroupDeletionStatus.SUCCESS;

@@ -19,6 +19,7 @@
  */
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
+import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
@@ -48,7 +49,7 @@ public interface IDMGroupService {
      * @param group group to be created
      * @param groupIdsOfImportedMembers all users from groups with given ids will be imported to new group
      * @return created group
-     * @throws UserAndGroupServiceException if some of group with given name could not be found
+     * @throws UserAndGroupServiceException if some of group with given ids could not be found
      */
     IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers) throws UserAndGroupServiceException;
 
@@ -56,8 +57,10 @@ public interface IDMGroupService {
      * Updates given IDM group in database.
      *
      * @param group group to be updated
+     * @return updated group
+     * @throws ExternalSourceException if group with given groupID is external and cannot be edited
      */
-    IDMGroup update(IDMGroup group);
+    IDMGroup update(IDMGroup group) throws ExternalSourceException;
 
     /**
      * Delete given IDM group from database and return status of deletion.
@@ -158,9 +161,10 @@ public interface IDMGroupService {
      * @param groupId id of group
      * @param userIds ids of users to be removed from given group
      * @return updated group
-     * @throws UserAndGroupServiceException if some group, user could not be found or group with groupId is external and cannot be edited
+     * @throws UserAndGroupServiceException if some group or user could not be found
+     * @throws ExternalSourceException if group with given groupID is external and cannot be edited
      */
-    IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException;
+    IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException, ExternalSourceException;
 
     /**
      * Adds users and users from groups to group with given groupId
@@ -169,7 +173,8 @@ public interface IDMGroupService {
      * @param idsOfGroupsOfImportedUsers users of groups with given ids will be added to given group
      * @param idsOfUsersToBeAdd ids of users to be added to given group
      * @return updated group
-     * @throws UserAndGroupServiceException if some group, user could not be found or group with groupId is external and cannot be edited
+     * @throws UserAndGroupServiceException if some group or user could not be found
+     * @throws ExternalSourceException if group with given groupID is external and cannot be edited
      */
-    IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException;
+    IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException, ExternalSourceException;
 }

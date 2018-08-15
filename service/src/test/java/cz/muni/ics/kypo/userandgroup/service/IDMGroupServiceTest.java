@@ -20,6 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
@@ -177,6 +178,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void updateGroup() {
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(groupRepository.save(group1)).willReturn(group1);
         IDMGroup g = groupService.update(group1);
@@ -194,6 +196,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void testDeleteGroupSuccess() {
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         assertEquals(GroupDeletionStatus.SUCCESS, groupService.delete(group1));
         then(groupRepository).should().delete(group1);
     }
@@ -223,7 +226,9 @@ public class IDMGroupServiceTest {
         List<Long> idsOfGroups = Arrays.asList(group1.getId(), group2.getId(), group3.getId());
 
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
+        given(groupRepository.isIDMGroupInternal(group2.getId())).willReturn(false);
         willThrow(UserAndGroupServiceException.class).given(groupRepository).getOne(group3.getId());
 
         Map<IDMGroup, GroupDeletionStatus> response = groupService.deleteGroups(idsOfGroups);
@@ -354,17 +359,17 @@ public class IDMGroupServiceTest {
 
     @Test
     public void isGroupInternal() {
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         assertTrue(groupService.isGroupInternal(group1.getId()));
-        then(groupRepository).should().findById(group1.getId());
+        then(groupRepository).should().isIDMGroupInternal(group1.getId());
     }
 
     @Test
     public void isGroupExternal() {
         group1.setExternalId(1L);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(false);
         assertFalse(groupService.isGroupInternal(group1.getId()));
-        then(groupRepository).should().findById(group1.getId());
+        then(groupRepository).should().isIDMGroupInternal(group1.getId());
     }
 
     @Test
@@ -479,6 +484,7 @@ public class IDMGroupServiceTest {
         group1.addUser(user2);
         group1.addUser(user3);
 
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
@@ -491,6 +497,7 @@ public class IDMGroupServiceTest {
         assertFalse(g.getUsers().contains(user2));
         assertTrue(g.getUsers().contains(user3));
 
+        then(groupRepository).should().isIDMGroupInternal(group1.getId());
         then(groupRepository).should().findById(group1.getId());
         then(userRepository).should().findById(user1.getId());
         then(userRepository).should().findById(user2.getId());
@@ -512,16 +519,18 @@ public class IDMGroupServiceTest {
     }
 
     @Test
-    public void removeUsersWithGroupNotFoundShouldThrowException() {
+    public void removeUsersWithGroupIsExternalShouldThrowException() {
         group1.setExternalId(123L);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Group is external therefore they could not be updated");
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(false);
+        thrown.expect(ExternalSourceException.class);
+        thrown.expectMessage("Group is external therefore it could not be updated");
         groupService.removeUsers(group1.getId(), Arrays.asList(user1.getId(), user2.getId()));
     }
 
     @Test
     public void removeUsersWithUserNotFoundShouldThrowException() {
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
         thrown.expect(UserAndGroupServiceException.class);
@@ -533,6 +542,7 @@ public class IDMGroupServiceTest {
     public void addUsers() {
         group2.addUser(user2);
 
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
@@ -545,6 +555,7 @@ public class IDMGroupServiceTest {
         assertTrue(g.getUsers().contains(user2));
         assertFalse(g.getUsers().contains(user3));
 
+        then(groupRepository).should().isIDMGroupInternal(group1.getId());
         then(groupRepository).should().findById(group1.getId());
         then(userRepository).should().findById(user1.getId());
         then(groupRepository).should().findById(group2.getId());
@@ -573,16 +584,18 @@ public class IDMGroupServiceTest {
     }
 
     @Test
-    public void addUsersWithGroupNotFoundShouldThrowException() {
+    public void addUsersWithGroupIsExternalShouldThrowException() {
         group1.setExternalId(123L);
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(false);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expect(ExternalSourceException.class);
         thrown.expectMessage("Group is external therefore it could not be updated");
         groupService.addUsers(group1.getId(), Collections.singletonList(group2.getId()), Arrays.asList(user1.getId(), user2.getId()));
     }
 
     @Test
     public void addUsersWithUserNotFoundShouldThrowException() {
+        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
         thrown.expect(UserAndGroupServiceException.class);
