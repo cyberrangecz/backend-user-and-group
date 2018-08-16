@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -61,9 +62,15 @@ public class UsersRestController {
                                            @RequestParam MultiValueMap<String, String> parameters,
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        try {
+            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
+            Squiggly.init(objectMapper, fields);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new InternalServerErrorException(e.getLocalizedMessage());
+        } catch (MicroserviceException e) {
+            throw new BadRequestException(e.getLocalizedMessage());
+        }
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -74,6 +81,8 @@ public class UsersRestController {
             return new ResponseEntity<>(userFacade.getUser(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("User with id " + id + " could not be found.");
+        } catch (MicroserviceException e) {
+            throw new BadRequestException(e.getLocalizedMessage());
         }
     }
 

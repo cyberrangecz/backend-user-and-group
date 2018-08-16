@@ -76,7 +76,7 @@ public class UserFacadeImpl implements UserFacade {
             return userDTO;
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while loading user with id: " + id + "." );
-            throw new UserAndGroupFacadeException(ex.getMessage());
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
     }
 
@@ -97,7 +97,7 @@ public class UserFacadeImpl implements UserFacade {
             user = userService.get(id);
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while deleting user with id: " + id + ".");
-            throw new UserAndGroupFacadeException(ex.getMessage());
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
         UserDeletionStatus deletionStatus = userService.delete(user);
         UserDeletionResponseDTO userDeletionResponseDTO = beanMapping.mapTo(user, UserDeletionResponseDTO.class);
@@ -180,7 +180,7 @@ public class UserFacadeImpl implements UserFacade {
             loggedInUser = userService.getUserByLogin(sub);
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while getting info about user with sub: " + sub + ".");
-            throw new UserAndGroupFacadeException(ex.getMessage());
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
         Set<RoleDTO> rolesOfUser = getRolesOfUser(loggedInUser.getId());
 
@@ -192,7 +192,7 @@ public class UserFacadeImpl implements UserFacade {
         try {
             return userService.isUserInternal(id);
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 

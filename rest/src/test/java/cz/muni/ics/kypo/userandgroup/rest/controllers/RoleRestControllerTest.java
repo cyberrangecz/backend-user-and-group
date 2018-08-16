@@ -131,7 +131,7 @@ public class RoleRestControllerTest {
                 get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Role with given id " + adminRoleDTO.getId() + " could not be found", ex.getMessage());
+        assertEquals("Role with given id " + adminRoleDTO.getId() + " could not be found", ex.getLocalizedMessage());
         then(roleFacade).should().getById(adminRoleDTO.getId());
     }
 

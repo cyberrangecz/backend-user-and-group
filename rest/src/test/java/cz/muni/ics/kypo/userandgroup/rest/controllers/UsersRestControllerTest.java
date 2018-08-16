@@ -145,7 +145,7 @@ public class UsersRestControllerTest {
                 get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
     }
 
     @Test
@@ -172,7 +172,7 @@ public class UsersRestControllerTest {
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
-        assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getMessage());
+        assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getLocalizedMessage());
     }
 
     @Test
@@ -195,7 +195,7 @@ public class UsersRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
         then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
@@ -209,7 +209,7 @@ public class UsersRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " cannot be deleted because is from external source and is valid user.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " cannot be deleted because is from external source and is valid user.", ex.getLocalizedMessage());
         then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
@@ -256,7 +256,7 @@ public class UsersRestControllerTest {
                 get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
     }
 
     private static String convertObjectToJsonBytes(Object object) throws IOException {

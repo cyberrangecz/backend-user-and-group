@@ -144,7 +144,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(getNewGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertEquals("Invalid group's information or could not be created in database.", ex.getMessage());
+        assertEquals("Invalid group's information or could not be created in database.", ex.getLocalizedMessage());
         then(groupFacade).should().createGroup(any(NewGroupDTO.class));
     }
 
@@ -180,7 +180,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertEquals("Group is external therefore they could not be updated", ex.getMessage());
+        assertEquals("Group is external therefore they could not be updated", ex.getLocalizedMessage());
         then(groupFacade).should().isGroupInternal(anyLong());
     }
 
@@ -194,7 +194,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
+        assertEquals("Group could not be modified.", ex.getLocalizedMessage());
 
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should().updateGroup(any(UpdateGroupDTO.class));
@@ -211,7 +211,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(groupDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertEquals("Group name neither group description cannot be null.", ex.getMessage());
+        assertEquals("Group name neither group description cannot be null.", ex.getLocalizedMessage());
         then(groupFacade).should().isGroupInternal(anyLong());
     }
 
@@ -237,7 +237,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
+        assertEquals("Group could not be modified.", ex.getLocalizedMessage());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should().removeUsers(100L, Collections.singletonList(1L));
     }
@@ -262,7 +262,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertEquals("Group is external therefore they could not be updated", ex.getMessage());
+        assertEquals("Group is external therefore they could not be updated", ex.getLocalizedMessage());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should(never()).removeUsers(anyLong(), anyList());
     }
@@ -296,7 +296,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotModified())
                 .andReturn().getResolvedException();
-        assertEquals("Group could not be modified.", ex.getMessage());
+        assertEquals("Group could not be modified.", ex.getLocalizedMessage());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should().addUsers(any(AddUsersToGroupDTO.class));
     }
@@ -321,7 +321,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertEquals("Group is external therefore they could not be updated", ex.getMessage());
+        assertEquals("Group is external therefore they could not be updated", ex.getLocalizedMessage());
         then(groupFacade).should().isGroupInternal(anyLong());
         then(groupFacade).should(never()).addUsers(any(AddUsersToGroupDTO.class));
     }
@@ -346,7 +346,7 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isServiceUnavailable())
                 .andReturn().getResolvedException();
-        assertEquals("Some error occurred during deletion of group with id " + groupDTO1.getId() + ". Please, try it later.", ex.getMessage());
+        assertEquals("Some error occurred during deletion of group with id " + groupDTO1.getId() + ". Please, try it later.", ex.getLocalizedMessage());
         then(groupFacade).should().deleteGroup(groupDTO1.getId());
     }
 
@@ -360,7 +360,7 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " cannot be deleted because is from external source and is valid group.", ex.getMessage());
+        assertEquals("Group with id " + groupDTO1.getId() + " cannot be deleted because is from external source and is valid group.", ex.getLocalizedMessage());
         then(groupFacade).should().deleteGroup(groupDTO1.getId());
     }
 
@@ -419,7 +419,7 @@ public class GroupsRestControllerTest {
                 get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getMessage());
+        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
     }
 
     @Test
@@ -440,7 +440,7 @@ public class GroupsRestControllerTest {
                 get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getMessage());
+        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
         then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
     }
 

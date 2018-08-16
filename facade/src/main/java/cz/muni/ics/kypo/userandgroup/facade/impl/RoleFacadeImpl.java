@@ -66,7 +66,7 @@ public class RoleFacadeImpl implements RoleFacade {
             return roleDTO;
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Role with id: " + id + " could not be found.");
-            throw new UserAndGroupFacadeException(ex.getMessage());
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
 
     }
@@ -81,7 +81,7 @@ public class RoleFacadeImpl implements RoleFacade {
             return roleDTO;
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Role with role type: " + roleType + " could not be found.");
-            throw new UserAndGroupFacadeException(ex.getMessage());
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
     }
 

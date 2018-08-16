@@ -81,7 +81,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             beanMapping.mapTo(groupService.removeUsers(groupId, userIds), GroupDTO.class);
         } catch (UserAndGroupServiceException e) {
             LOG.error(e.getLocalizedMessage());
-            throw new UserAndGroupFacadeException(e.getMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
@@ -92,7 +92,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                     addUsers.getIdsOfGroupsOfImportedUsers(), addUsers.getIdsOfUsersToBeAdd());
         } catch (UserAndGroupServiceException e) {
             LOG.error(e.getLocalizedMessage());
-            throw new UserAndGroupFacadeException(e.getMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
@@ -220,7 +220,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             }
         } catch (UserAndGroupServiceException e) {
             LOG.error(e.getLocalizedMessage());
-            throw new UserAndGroupFacadeException(e.getMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
