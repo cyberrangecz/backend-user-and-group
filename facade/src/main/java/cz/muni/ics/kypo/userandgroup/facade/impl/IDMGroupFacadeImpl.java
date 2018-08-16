@@ -26,14 +26,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import sun.rmi.runtime.Log;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -152,13 +150,13 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                String uri = microservice.getEndpoint() + "/of/group/{groupId}";
+                String url = microservice.getEndpoint() + "/of/groups?ids=" + id;
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                 HttpEntity<String> entity = new HttpEntity<>(null, headers);
                 try {
-                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
+                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Role[].class, id);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
                                 .map(role -> {
@@ -203,13 +201,13 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
         try {
             Microservice microservice = microserviceService.get(microserviceId);
-            final String uri = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
+            final String url = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
             HttpEntity<String> entity = new HttpEntity<>(null, headers);
             try {
-                ResponseEntity<Void> responseEntity = restTemplate.exchange(uri, HttpMethod.PUT, entity, Void.class, roleId, groupId);
+                ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class, roleId, groupId);
                 if (!responseEntity.getStatusCode().is2xxSuccessful()) {
                     throw new UserAndGroupFacadeException("Some error occured during assigning role with " + roleId + " to group with id " + groupId + " in microservice " +
                             "with name " + microservice.getName());

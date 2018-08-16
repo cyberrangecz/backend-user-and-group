@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.facade.impl;
 
-import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
@@ -16,7 +15,6 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
@@ -95,13 +93,13 @@ public class RoleFacadeImpl implements RoleFacade {
 
         List<Microservice> microservices = microserviceService.getMicroservices();
         for (Microservice microservice : microservices) {
-            String uri = microservice.getEndpoint();
+            String url = microservice.getEndpoint();
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
             HttpEntity<String> entity = new HttpEntity<>(null, headers);
             try {
-                ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class);
+                ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Role[].class);
                 if (responseEntity.getStatusCode().is2xxSuccessful()) {
                     Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
                             .map(role -> {

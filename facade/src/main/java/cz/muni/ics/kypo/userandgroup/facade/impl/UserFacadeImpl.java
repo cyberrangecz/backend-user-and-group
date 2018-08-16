@@ -19,8 +19,6 @@ import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -138,13 +136,19 @@ public class UserFacadeImpl implements UserFacade {
 
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                String uri = microservice.getEndpoint() + "of/user/{userId}";
+                User u = userService.get(id);
+                StringBuilder groupsIds = new StringBuilder(String.valueOf(u.getGroups().get(0).getId()));
+                for (int i = 1; i < u.getGroups().size(); i++) {
+                    groupsIds.append(",").append(u.getGroups().get(i).getId());
+                }
+
+                String url = microservice.getEndpoint() + "/of/groups?ids=" + groupsIds.toString();
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-                HttpEntity<String> entity = new HttpEntity<>( null, headers);
+                HttpEntity<List<Long>> entity = new HttpEntity<>(null, headers);
                 try {
-                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
+                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Role[].class, id);
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
                         Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
                                 .map(role -> {
