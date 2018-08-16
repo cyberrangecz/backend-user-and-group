@@ -69,7 +69,7 @@ public class UsersRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new InternalServerErrorException(e.getLocalizedMessage());
         } catch (MicroserviceException e) {
-            throw new BadRequestException(e.getLocalizedMessage());
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 
@@ -82,7 +82,7 @@ public class UsersRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("User with id " + id + " could not be found.");
         } catch (MicroserviceException e) {
-            throw new BadRequestException(e.getLocalizedMessage());
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 
@@ -99,6 +99,8 @@ public class UsersRestController {
             return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             throw new ServiceUnavailableException("Some error occurred while loading users not in group with id: " + groupId + ". Please, try it later.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 
@@ -142,6 +144,8 @@ public class UsersRestController {
             return new ResponseEntity<>(userFacade.getRolesOfUser(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("User with id " + id + " could not be found.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 
@@ -149,12 +153,13 @@ public class UsersRestController {
     @ApiOperation(httpMethod = "GET", value = "Returns details of user who is logged in")
     public ResponseEntity<UserInfoDTO> getUserInfo(OAuth2Authentication authentication) {
         try {
-            JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
             return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
             String sub = credentials.get("sub").getAsString();
             throw new ResourceNotFoundException("Logged in user with login " + sub + " could not be found in database.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 }

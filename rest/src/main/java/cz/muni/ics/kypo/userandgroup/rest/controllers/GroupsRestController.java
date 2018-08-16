@@ -6,6 +6,8 @@ import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -57,7 +59,7 @@ public class GroupsRestController {
         try {
             return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotCreatedException("Invalid group's information or could not be created in database.");
+            throw new ResourceNotFoundException("Some of given groups could not be found in database.");
         }
     }
 
@@ -67,9 +69,6 @@ public class GroupsRestController {
             @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO updateGroupDTO) {
         Preconditions.checkNotNull(updateGroupDTO);
 
-        if (!groupFacade.isGroupInternal(updateGroupDTO.getId())) {
-            throw new InvalidParameterException("Group is external therefore they could not be updated");
-        }
         if (updateGroupDTO.getDescription() == null || updateGroupDTO.getName() == null) {
             throw new InvalidParameterException("Group name neither group description cannot be null.");
         }
@@ -77,8 +76,8 @@ public class GroupsRestController {
         try {
             groupFacade.updateGroup(updateGroupDTO);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotModifiedException("Group could not be modified.");
+        } catch (ExternalSourceException e) {
+            throw new ResourceNotModifiedException("Group is external therefore they could not be updated");
         }
     }
 
@@ -89,15 +88,13 @@ public class GroupsRestController {
             @ApiParam(value = "Ids of members to be removed from group.", required = true) @RequestBody List<Long> userIds) {
         Preconditions.checkNotNull(userIds);
 
-        if (!groupFacade.isGroupInternal(id)) {
-            throw new InvalidParameterException("Group is external therefore they could not be updated");
-        }
-
         try {
             groupFacade.removeUsers(id, userIds);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotModifiedException("Group could not be modified.");
+            throw new ResourceNotFoundException("Given group or users could not be found");
+        } catch (ExternalSourceException e) {
+            throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
         }
     }
 
@@ -107,15 +104,13 @@ public class GroupsRestController {
             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddUsersToGroupDTO addUsers) {
         Preconditions.checkNotNull(addUsers);
 
-        if (!groupFacade.isGroupInternal(addUsers.getGroupId())) {
-            throw new InvalidParameterException("Group is external therefore they could not be updated");
-        }
-
         try {
             groupFacade.addUsers(addUsers);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotModifiedException("Group could not be modified.");
+            throw new ResourceNotFoundException("Given group or users could not be found");
+        } catch (ExternalSourceException e) {
+            throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
         }
     }
 
@@ -126,18 +121,14 @@ public class GroupsRestController {
             produces = "application/json")
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.",
             required = true) @PathVariable("id") final Long id) {
-        try {
-            GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
+        GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
 
-            switch (groupDeletionResponseDTO.getStatus()) {
-                case SUCCESS:
-                    return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);
-                case EXTERNAL_VALID:
-                default:
-                    throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is from external source and is valid group.");
-            }
-        } catch (UserAndGroupFacadeException e) {
-            throw new ServiceUnavailableException("Some error occurred during deletion of group with id " + id + ". Please, try it later.");
+        switch (groupDeletionResponseDTO.getStatus()) {
+            case SUCCESS:
+                return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);
+            case EXTERNAL_VALID:
+            default:
+                throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is from external source and is valid group.");
         }
     }
 
@@ -183,7 +174,9 @@ public class GroupsRestController {
         try {
             return new ResponseEntity<>(groupFacade.getRolesOfGroup(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Group with id " + id + " could not be found.");
+            throw new ResourceNotFoundException("Group with id " + id + " could not be found or some of microservice did not return status code 2xx.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 
@@ -211,6 +204,8 @@ public class GroupsRestController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 }

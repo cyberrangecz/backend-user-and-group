@@ -3,11 +3,14 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ServiceUnavailableException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -48,8 +51,14 @@ public class RoleRestController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get all roles", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getRoles(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(pageable);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
+        try {
+            PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(pageable);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new InternalServerErrorException("Some of microservice did not return status code 2xx.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("Client error occurs during calling other microservice, probably due to wrong URL");
+        }
 
     }
 
