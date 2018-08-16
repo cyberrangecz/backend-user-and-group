@@ -5,6 +5,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
+import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
@@ -30,6 +31,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -79,13 +81,17 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
-        Page<User> users = userService.getAllUsersNotInGivenGroup(groupId, pageable);
-        return beanMapping.mapToPageResultDTO(users, UserDTO.class);
+    public PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) throws UserAndGroupFacadeException, MicroserviceException {
+        PageResultResource<UserDTO> users = beanMapping.mapToPageResultDTO(userService.getAllUsersNotInGivenGroup(groupId, pageable), UserDTO.class);
+        List<UserDTO> usersWithRoles = users.getContent().stream()
+                .peek(userDTO -> userDTO.setRoles(this.getRolesOfUser(userDTO.getId())))
+                .collect(Collectors.toList());
+        users.setContent(usersWithRoles);
+        return users;
     }
 
     @Override
-    public UserDeletionResponseDTO deleteUser(Long id) {
+    public UserDeletionResponseDTO deleteUser(Long id) throws UserAndGroupFacadeException {
         User user = null;
         try {
             user = userService.get(id);
@@ -121,7 +127,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException {
+    public Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException, MicroserviceException {
         try {
             Set<RoleDTO> roles = beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
             roles = roles.stream()
@@ -137,30 +143,36 @@ public class UserFacadeImpl implements UserFacade {
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                 HttpEntity<String> entity = new HttpEntity<>( null, headers);
-                ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
-                if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                    Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
-                            .map(role -> {
-                                RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-                                roleDTO.setNameOfMicroservice(microservice.getName());
-                                return roleDTO;
-                            })
-                            .collect(Collectors.toSet());
+                try {
+                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
+                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                        Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
+                                .map(role -> {
+                                    RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+                                    roleDTO.setNameOfMicroservice(microservice.getName());
+                                    return roleDTO;
+                                })
+                                .collect(Collectors.toSet());
 
-                    roles.addAll(rolesOfMicroservice);
-                } else {
-                    throw new UserAndGroupFacadeException("Some error occured during getting roles of user with id " + id + " from microservice " + microservice.getName());
+                        roles.addAll(rolesOfMicroservice);
+                    } else {
+                        LOG.error("Some error occured during getting roles of user with id {} from microservice {}", id, microservice.getName());
+                        throw new UserAndGroupFacadeException("Some error occured during getting roles of user with id " + id + " from microservice " + microservice.getName());
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
             }
 
             return roles;
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
     @Override
-    public UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException {
+    public UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         String sub = credentials.get("sub").getAsString();
         User loggedInUser = null;

@@ -197,13 +197,6 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testDeleteGroupWithServiceException() {
-        given(groupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
-        thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.deleteGroup(1L);
-    }
-
-    @Test
     public void testDeleteGroups() {
         Map<IDMGroup, GroupDeletionStatus> groupGroupDeletionStatusMap = new HashMap<>();
         groupGroupDeletionStatusMap.put(g1, GroupDeletionStatus.SUCCESS);

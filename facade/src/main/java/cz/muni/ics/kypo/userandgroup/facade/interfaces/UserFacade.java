@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
+import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -19,16 +20,20 @@ public interface UserFacade {
      * @param predicate specifies query to database
      * @param pageable parameter with information about pagination
      * @return page of users specified by given predicate and pageable
+     * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
+     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable);
+    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) throws UserAndGroupFacadeException, MicroserviceException;
 
     /**
      * Returns user with given id
      *
      * @param id of user to be loaded
      * @return user with given id
+     * @throws UserAndGroupFacadeException if user with id could not be found
+     * @throws MicroserviceException if client error occurs during getting roles from other microservices, probably due to wrong URL
      */
-    UserDTO getUser(Long id);
+    UserDTO getUser(Long id) throws UserAndGroupFacadeException, MicroserviceException;
 
     /**
      * Returns all users who are not in group with given groupId
@@ -36,16 +41,19 @@ public interface UserFacade {
      * @param groupId id of group
      * @param pageable parameter with information about pagination
      * @return page of users who are not in group with given groupId
+     * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
+     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
+    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) throws UserAndGroupFacadeException, MicroserviceException;
 
     /**
      * Deletes user with given id from database and returns status of deletion with user.
      *
      * @param id of user to be deleted
      * @return status of deletion with user
+     * @throws UserAndGroupFacadeException if error occurs during deleting user
      */
-    UserDeletionResponseDTO deleteUser(Long id);
+    UserDeletionResponseDTO deleteUser(Long id) throws UserAndGroupFacadeException;
 
     /**
      * Deletes users with given ids from database and returns statuses of deletion users
@@ -61,8 +69,9 @@ public interface UserFacade {
      * @param id of user
      * @return all roles of user with given id
      * @throws UserAndGroupFacadeException if user was not found
+     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException;
+    Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException, MicroserviceException;
 
     /**
      * Returns info about currently logged in user
@@ -70,8 +79,9 @@ public interface UserFacade {
      * @param authentication spring's authentication
      * @return information about logged in user
      * @throws UserAndGroupFacadeException if logged in user could not be found in database
+     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException;
+    UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException;
 
     /**
      * Returns true if user is internal otherwise false

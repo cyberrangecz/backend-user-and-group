@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
@@ -15,6 +17,8 @@ import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
@@ -22,11 +26,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import sun.rmi.runtime.Log;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,6 +41,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class IDMGroupFacadeImpl implements IDMGroupFacade {
+
+    private static Logger LOG = LoggerFactory.getLogger(IDMGroupFacadeImpl.class.getName());
 
     private IDMGroupService groupService;
     private MicroserviceService microserviceService;
@@ -50,47 +59,50 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public GroupDTO createGroup(NewGroupDTO newGroupDTO) {
+    public GroupDTO createGroup(NewGroupDTO newGroupDTO) throws UserAndGroupFacadeException {
         IDMGroup group = beanMapping.mapTo(newGroupDTO, IDMGroup.class);
-        IDMGroup createdGroup = groupService.create(group, newGroupDTO.getGroupIdsOfImportedUsers());
-        return beanMapping.mapTo(createdGroup, GroupDTO.class);
+        try {
+            IDMGroup createdGroup = groupService.create(group, newGroupDTO.getGroupIdsOfImportedUsers());
+            return beanMapping.mapTo(createdGroup, GroupDTO.class);
+        } catch (UserAndGroupServiceException e) {
+            LOG.error(e.getLocalizedMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
+        }
     }
 
     @Override
-    public void updateGroup(UpdateGroupDTO updateGroupDTO) {
+    public void updateGroup(UpdateGroupDTO updateGroupDTO) throws ExternalSourceException {
         groupService.update(beanMapping.mapTo(updateGroupDTO, IDMGroup.class));
     }
 
     @Override
-    public void removeUsers(Long groupId, List<Long> userIds) {
+    public void removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupFacadeException, ExternalSourceException {
         try {
             beanMapping.mapTo(groupService.removeUsers(groupId, userIds), GroupDTO.class);
         } catch (UserAndGroupServiceException e) {
+            LOG.error(e.getLocalizedMessage());
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
 
     @Override
-    public void addUsers(AddUsersToGroupDTO addUsers) {
+    public void addUsers(AddUsersToGroupDTO addUsers) throws UserAndGroupFacadeException, ExternalSourceException {
         try {
             groupService.addUsers(addUsers.getGroupId(),
                     addUsers.getIdsOfGroupsOfImportedUsers(), addUsers.getIdsOfUsersToBeAdd());
         } catch (UserAndGroupServiceException e) {
+            LOG.error(e.getLocalizedMessage());
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
 
     @Override
     public GroupDeletionResponseDTO deleteGroup(Long id) {
-        try {
-            IDMGroup group = groupService.get(id);
-            GroupDeletionStatus deletionStatus = groupService.delete(group);
-            GroupDeletionResponseDTO groupDeletionResponseDTO = beanMapping.mapTo(group, GroupDeletionResponseDTO.class);
-            groupDeletionResponseDTO.setStatus(deletionStatus);
-            return groupDeletionResponseDTO;
-        } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
-        }
+        IDMGroup group = groupService.get(id);
+        GroupDeletionStatus deletionStatus = groupService.delete(group);
+        GroupDeletionResponseDTO groupDeletionResponseDTO = beanMapping.mapTo(group, GroupDeletionResponseDTO.class);
+        groupDeletionResponseDTO.setStatus(deletionStatus);
+        return groupDeletionResponseDTO;
     }
 
     @Override
@@ -119,18 +131,19 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public GroupDTO getGroup(Long id) {
+    public GroupDTO getGroup(Long id) throws UserAndGroupFacadeException {
         try {
             GroupDTO groupDTO = beanMapping.mapTo(groupService.get(id), GroupDTO.class);
             groupDTO.setRoles(this.getRolesOfGroup(id));
             return groupDTO;
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
+            LOG.error(e.getLocalizedMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
     @Override
-    public Set<RoleDTO> getRolesOfGroup(Long id) {
+    public Set<RoleDTO> getRolesOfGroup(Long id) throws UserAndGroupFacadeException, RestClientException {
         try {
             GroupDTO group = beanMapping.mapTo(groupService.get(id), GroupDTO.class);
             Set<RoleDTO> roles = group.getRoles().stream()
@@ -143,35 +156,42 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-                HttpEntity<String> entity = new HttpEntity<>( null, headers);
-                ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
-                if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                    Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
-                            .map(role -> {
-                                RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-                                roleDTO.setNameOfMicroservice(microservice.getName());
-                                return roleDTO;
-                            })
-                            .collect(Collectors.toSet());
+                HttpEntity<String> entity = new HttpEntity<>(null, headers);
+                try {
+                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, Role[].class, id);
+                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                        Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
+                                .map(role -> {
+                                    RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+                                    roleDTO.setNameOfMicroservice(microservice.getName());
+                                    return roleDTO;
+                                })
+                                .collect(Collectors.toSet());
 
-                    roles.addAll(rolesOfMicroservice);
-                } else {
-                    throw new UserAndGroupFacadeException("Some error occured during getting roles of group with id " + id + " from microservice " + microservice.getName());
+                        roles.addAll(rolesOfMicroservice);
+                    } else {
+                        LOG.error("Some error occured during getting roles of group with id {} from microservice {}", id, microservice.getName());
+                        throw new UserAndGroupFacadeException("Some error occured during getting roles of group with id " + id + " from microservice " + microservice.getName());
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
             }
 
             return roles;
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
     @Override
-    public void assignRole(Long groupId, RoleType roleType) {
+    public void assignRole(Long groupId, RoleType roleType) throws UserAndGroupFacadeException {
         try {
             groupService.assignRole(groupId, roleType);
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
+            LOG.error(e.getLocalizedMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 
@@ -187,13 +207,19 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-            HttpEntity<String> entity = new HttpEntity<>( null, headers);
-            ResponseEntity<Void> responseEntity = restTemplate.exchange(uri, HttpMethod.PUT, entity, Void.class, roleId, groupId);
-            if (!responseEntity.getStatusCode().is2xxSuccessful()) {
-                throw new UserAndGroupFacadeException("Some error occured during assigning role with " + roleId + " to group with id " + groupId + " in microservice " +
-                        "with name " + microservice.getName());
+            HttpEntity<String> entity = new HttpEntity<>(null, headers);
+            try {
+                ResponseEntity<Void> responseEntity = restTemplate.exchange(uri, HttpMethod.PUT, entity, Void.class, roleId, groupId);
+                if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                    throw new UserAndGroupFacadeException("Some error occured during assigning role with " + roleId + " to group with id " + groupId + " in microservice " +
+                            "with name " + microservice.getName());
+                }
+            } catch (RestClientException e) {
+                LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
             }
         } catch (UserAndGroupServiceException e) {
+            LOG.error(e.getLocalizedMessage());
             throw new UserAndGroupFacadeException(e.getMessage());
         }
     }
@@ -203,7 +229,8 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         try {
             return groupService.isGroupInternal(id);
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e.getMessage());
+            LOG.error(e.getLocalizedMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 }
