@@ -199,7 +199,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public void assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) {
+    public void assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         Assert.notNull(microserviceId, "Input microserviceId must not be null");
@@ -231,6 +231,35 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     public boolean isGroupInternal(Long id) throws UserAndGroupFacadeException {
         try {
             return groupService.isGroupInternal(id);
+        } catch (UserAndGroupServiceException e) {
+            LOG.error(e.getLocalizedMessage());
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public void cancelRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(roleId, "Input roleId must not be null");
+        Assert.notNull(microserviceId, "Input microserviceId must not be null");
+
+        try {
+            Microservice microservice = microserviceService.get(microserviceId);
+            final String url = microservice.getEndpoint() + "/{roleId}/cancel/to/{groupId}";
+            OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+            HttpEntity<String> entity = new HttpEntity<>(null, headers);
+            try {
+                ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class, roleId, groupId);
+                if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                    throw new UserAndGroupFacadeException("Some error occured during canceling role with " + roleId + " to group with id " + groupId + " in microservice " +
+                            "with name " + microservice.getName());
+                }
+            } catch (RestClientException e) {
+                LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+            }
         } catch (UserAndGroupServiceException e) {
             LOG.error(e.getLocalizedMessage());
             throw new UserAndGroupFacadeException(e.getLocalizedMessage());

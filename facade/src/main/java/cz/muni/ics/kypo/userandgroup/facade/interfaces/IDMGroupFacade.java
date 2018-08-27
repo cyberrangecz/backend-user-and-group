@@ -124,4 +124,15 @@ public interface IDMGroupFacade {
      * @throws UserAndGroupFacadeException if group was not found
      */
     boolean isGroupInternal(Long id) throws UserAndGroupFacadeException;
+
+    /**
+     * Cancel role with given roleId in microservice with microserviceID to group with given groupId
+     *
+     * @param groupId of group
+     * @param roleId of role to be assigned to group from specific microservice
+     * @param microserviceId of microservice from which is role
+     * @throws UserAndGroupFacadeException if microservice with given microserviceId could not be found
+     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     */
+    void cancelRoleInMicroservice(Long groupId, Long roleId, Long microserviceId);
 }

@@ -208,4 +208,20 @@ public class GroupsRestController {
             throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
+
+    @PutMapping("/{groupId}/cancel/{roleId}/in/microservice/{microserviceId}")
+    @ApiOperation(httpMethod = "PUT", value = "Cancel role with given role ID to group with given ID in chosen microservice")
+    public ResponseEntity<Void> cancelRoleInMicroservice(
+            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
+            @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
+            @ApiParam(value = "microserviceId", required = true) @PathVariable("microserviceId") Long microserviceId) {
+        try {
+            groupFacade.cancelRoleInMicroservice(groupId, roleId, microserviceId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (UserAndGroupFacadeException e) {
+            throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
+        }
+    }
 }
