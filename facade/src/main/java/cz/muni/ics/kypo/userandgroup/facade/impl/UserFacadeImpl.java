@@ -137,7 +137,12 @@ public class UserFacadeImpl implements UserFacade {
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
                 User u = userService.get(id);
-                StringBuilder groupsIds = new StringBuilder(String.valueOf(u.getGroups().get(0).getId()));
+                StringBuilder groupsIds = new StringBuilder();
+
+                if (u.getGroups().size() > 0) {
+                    groupsIds.append(String.valueOf(u.getGroups().get(0).getId()));
+                }
+
                 for (int i = 1; i < u.getGroups().size(); i++) {
                     groupsIds.append(",").append(u.getGroups().get(i).getId());
                 }

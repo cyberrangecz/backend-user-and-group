@@ -333,7 +333,6 @@ public class IDMGroupFacadeTest {
     private GroupDeletionResponseDTO getGroupDeletionResponseDTO() {
         GroupDeletionResponseDTO gdrDTO = new GroupDeletionResponseDTO();
         gdrDTO.setId(1L);
-        gdrDTO.setName("Group deletion response");
         return gdrDTO;
     }
 

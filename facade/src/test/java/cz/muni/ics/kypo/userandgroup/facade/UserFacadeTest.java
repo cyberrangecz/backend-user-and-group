@@ -228,6 +228,7 @@ public class UserFacadeTest {
         roleDTO2.setRoleType(RoleType.USER.toString());
         roleDTO2.setNameOfMicroservice("User and Group");
 
+        given(userService.get(anyLong())).willReturn(user1);
         given(userService.getRolesOfUser(anyLong())).willReturn(roles);
         given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(m));
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);

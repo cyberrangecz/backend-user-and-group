@@ -96,9 +96,15 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
     @Override
     public GroupDeletionResponseDTO deleteGroup(Long id) {
-        IDMGroup group = groupService.get(id);
-        GroupDeletionStatus deletionStatus = groupService.delete(group);
-        GroupDeletionResponseDTO groupDeletionResponseDTO = beanMapping.mapTo(group, GroupDeletionResponseDTO.class);
+        GroupDeletionStatus deletionStatus;
+        try {
+            IDMGroup group = groupService.get(id);
+            deletionStatus = groupService.delete(group);
+        } catch (UserAndGroupServiceException e) {
+            deletionStatus = GroupDeletionStatus.SUCCESS;
+        }
+        GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
+        groupDeletionResponseDTO.setId(id);
         groupDeletionResponseDTO.setStatus(deletionStatus);
         return groupDeletionResponseDTO;
     }
@@ -111,7 +117,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         mapOfResults.forEach((group, status) -> {
             GroupDeletionResponseDTO r = new GroupDeletionResponseDTO();
             r.setId(group.getId());
-            r.setName(group.getName());
             r.setStatus(status);
             response.add(r);
         });

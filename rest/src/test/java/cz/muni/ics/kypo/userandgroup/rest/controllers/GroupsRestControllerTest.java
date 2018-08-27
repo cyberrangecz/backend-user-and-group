@@ -433,7 +433,6 @@ public class GroupsRestControllerTest {
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         groupDeletionResponseDTO.setId(1L);
         groupDeletionResponseDTO.setStatus(GroupDeletionStatus.SUCCESS);
-        groupDeletionResponseDTO.setName("GroupOne");
         return groupDeletionResponseDTO;
     }
 
