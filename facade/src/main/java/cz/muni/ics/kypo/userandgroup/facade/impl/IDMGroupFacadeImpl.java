@@ -271,14 +271,14 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public void cancelRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException {
+    public void removeRoleToGroupInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         Assert.notNull(microserviceId, "Input microserviceId must not be null");
 
         try {
             Microservice microservice = microserviceService.get(microserviceId);
-            final String url = microservice.getEndpoint() + "/roles/{roleId}/cancel/to/{groupId}";
+            final String url = microservice.getEndpoint() + "/roles/{roleId}/remove/to/{groupId}";
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());

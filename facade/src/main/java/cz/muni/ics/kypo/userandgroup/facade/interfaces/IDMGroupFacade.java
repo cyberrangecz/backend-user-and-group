@@ -134,5 +134,5 @@ public interface IDMGroupFacade {
      * @throws UserAndGroupFacadeException if microservice with given microserviceId could not be found
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    void cancelRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException;
+    void removeRoleToGroupInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException;
 }
