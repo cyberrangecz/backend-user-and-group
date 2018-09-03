@@ -120,34 +120,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Map<IDMGroup, GroupDeletionStatus> deleteGroups(List<Long> idsOfGroups) {
-        Assert.notNull(idsOfGroups, "Input ids of groups must not be null");
-
-        Map<IDMGroup, GroupDeletionStatus> response = new HashMap<>();
-
-        idsOfGroups.forEach(id -> {
-            IDMGroup g = null;
-            try {
-                g = get(id);
-
-                try {
-                    GroupDeletionStatus status = delete(g);
-                    response.put(g, status);
-                } catch (Exception ex) {
-                    response.put(g, GroupDeletionStatus.ERROR);
-                }
-            } catch (UserAndGroupServiceException ex) {
-                g = new IDMGroup();
-                g.setId(id);
-                response.put(g, GroupDeletionStatus.NOT_FOUND);
-            }
-        });
-
-        return response;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
     public Page<IDMGroup> getAllIDMGroups(Predicate predicate, Pageable pageable) {
         Page<IDMGroup> groups = groupRepository.findAll(predicate, pageable);
         log.info("All IDM Groups loaded");

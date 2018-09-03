@@ -81,6 +81,7 @@ public class IDMGroupFacadeTest {
     private NewGroupDTO newGroupDTO;
     private User user1;
     private UserForGroupsDTO userForGroupsDTO;
+    private Microservice microservice;
     private Predicate predicate;
     private Pageable pageable;
 
@@ -119,13 +120,15 @@ public class IDMGroupFacadeTest {
         newGroupDTO.setName("Group 1");
         newGroupDTO.setUsers(Collections.singletonList(userForGroupsDTO));
 
+        microservice = new Microservice("training", "www.ttt.com/trainings");
+
         Role role = new Role();
         role.setId(1L);
         role.setRoleType(RoleType.GUEST.toString());
         Role[] rolesArray = new Role[1];
         rolesArray[0] = role;
-        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.OK);
-        given(restTemplate.getForEntity(anyString(), eq(Role[].class), anyLong())).willReturn(responseEntity);
+
+        mockAuthentication();
     }
 
     @Test
@@ -189,7 +192,11 @@ public class IDMGroupFacadeTest {
     @Test
     public void testDeleteGroup() {
         given(groupService.get(anyLong())).willReturn(g1);
+        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(microservice));
         given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
+        ResponseEntity<String> responseEntity = new ResponseEntity<>("Group was deleted", HttpStatus.OK);
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(String.class), anyLong())).willReturn(responseEntity);
+
         GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(1L);
 
         assertEquals(GroupDeletionStatus.SUCCESS, groupDeletionResponseDTO.getStatus());
@@ -198,14 +205,15 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testDeleteGroups() {
-        Map<IDMGroup, GroupDeletionStatus> groupGroupDeletionStatusMap = new HashMap<>();
-        groupGroupDeletionStatusMap.put(g1, GroupDeletionStatus.SUCCESS);
-
-        given(groupService.deleteGroups(anyList())).willReturn(groupGroupDeletionStatusMap);
+        given(groupService.get(anyLong())).willReturn(g1);
+        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(microservice));
+        given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatus.SUCCESS);
+        ResponseEntity<String> responseEntity = new ResponseEntity<>("Group was deleted", HttpStatus.OK);
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(String.class), anyLong())).willReturn(responseEntity);
         List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Arrays.asList(1L));
 
         assertEquals(GroupDeletionStatus.SUCCESS, responseDTOS.get(0).getStatus());
-        then(groupService).should().deleteGroups(Arrays.asList(1L));
+        then(groupService).should().delete(any(IDMGroup.class));
 
     }
 
@@ -350,16 +358,19 @@ public class IDMGroupFacadeTest {
         return roleDTO;
     }
 
-    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
-        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
+    private void mockAuthentication() {
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails auth = Mockito.mock(OAuth2AuthenticationDetails.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
         given(securityContext.getAuthentication()).willReturn(authentication);
         given(authentication.getDetails()).willReturn(auth);
-        SecurityContextHolder.setContext(securityContext);
         given(auth.getTokenType()).willReturn("");
         given(auth.getTokenValue()).willReturn("");
+    }
+
+    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
+        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
         given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role[].class), anyLong())).willReturn(responseEntity);
     }
 }

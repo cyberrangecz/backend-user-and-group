@@ -217,39 +217,6 @@ public class IDMGroupServiceTest {
     }
 
     @Test
-    public void deleteGroups() {
-        group2.setExternalId(1L);
-
-        IDMGroup group3 = new IDMGroup();
-        group3.setId(3L);
-
-        List<Long> idsOfGroups = Arrays.asList(group1.getId(), group2.getId(), group3.getId());
-
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
-        given(groupRepository.isIDMGroupInternal(group2.getId())).willReturn(false);
-        willThrow(UserAndGroupServiceException.class).given(groupRepository).getOne(group3.getId());
-
-        Map<IDMGroup, GroupDeletionStatus> response = groupService.deleteGroups(idsOfGroups);
-        assertEquals(GroupDeletionStatus.SUCCESS, response.get(group1));
-        assertEquals(GroupDeletionStatus.EXTERNAL_VALID, response.get(group2));
-        assertEquals(GroupDeletionStatus.NOT_FOUND, response.get(group3));
-
-        then(groupRepository).should(times(3)).findById(anyLong());
-        then(groupRepository).should().delete(group1);
-        then(groupRepository).should(never()).delete(group2);
-        then(groupRepository).should(never()).delete(group3);
-    }
-
-    @Test
-    public void deleteGroupWithNullIdsShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input ids of groups must not be null");
-        groupService.deleteGroups(null);
-    }
-
-    @Test
     public void getAllGroups() {
         given(groupRepository.findAll(predicate, pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(group1, group2)));

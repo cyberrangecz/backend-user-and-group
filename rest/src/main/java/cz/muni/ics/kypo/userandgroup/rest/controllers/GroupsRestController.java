@@ -117,7 +117,8 @@ public class GroupsRestController {
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete group with given id and returns if it was successful. \n" +
             "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role \n" +
-            "3) EXTERNAL_VALID - group is from external source and was not marked as deleted",
+            "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
+            "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice",
             produces = "application/json")
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.",
             required = true) @PathVariable("id") final Long id) {

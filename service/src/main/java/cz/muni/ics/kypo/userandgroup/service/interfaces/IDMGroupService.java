@@ -73,18 +73,6 @@ public interface IDMGroupService {
     GroupDeletionStatus delete(IDMGroup group);
 
     /**
-     * Deletes groups with given ids and returns statuses about their deletion.
-     * Return statuses: SUCCESS - succesfully deleted
-     *      EXTERNAL_VALID - group is from external source and is not marked as DELETED
-     *      ERROR - group could not be deleted, try it later
-     *      NOT_FOUND - group could not be found
-     *
-     * @param idsOfGroups ids of groups to be deleted
-     * @return statuses about deletion of groups
-     */
-    Map<IDMGroup, GroupDeletionStatus> deleteGroups(List<Long> idsOfGroups);
-
-    /**
      * Returns all IDM groups from database.
      *
      * @return IDM groups in database

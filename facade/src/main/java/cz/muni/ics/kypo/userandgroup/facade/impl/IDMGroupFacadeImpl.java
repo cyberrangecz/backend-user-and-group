@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.facade.impl;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.MicroserviceForGroupDeletionDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
@@ -10,10 +11,7 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
@@ -21,10 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
@@ -96,30 +91,68 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
     @Override
     public GroupDeletionResponseDTO deleteGroup(Long id) {
-        GroupDeletionStatus deletionStatus;
+        GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         try {
             IDMGroup group = groupService.get(id);
-            deletionStatus = groupService.delete(group);
+
+            if (group.getStatus().equals(UserAndGroupStatus.VALID) && group.getExternalId() != null) {
+                groupDeletionResponseDTO.setStatus(GroupDeletionStatus.EXTERNAL_VALID);
+            } else {
+                groupDeletionResponseDTO = deleteGroupInAllMicroservices(id);
+                if (groupDeletionResponseDTO.getStatus() == null) {
+                    groupDeletionResponseDTO.setStatus(groupService.delete(group));
+                } else {
+                    group.setStatus(UserAndGroupStatus.DIRTY);
+                    groupService.update(group);
+                }
+            }
         } catch (UserAndGroupServiceException e) {
-            deletionStatus = GroupDeletionStatus.SUCCESS;
+            groupDeletionResponseDTO.setStatus(GroupDeletionStatus.NOT_FOUND);
         }
-        GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         groupDeletionResponseDTO.setId(id);
-        groupDeletionResponseDTO.setStatus(deletionStatus);
         return groupDeletionResponseDTO;
+    }
+
+    private GroupDeletionResponseDTO deleteGroupInAllMicroservices(Long id) {
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+
+        GroupDeletionResponseDTO responseDTO = new GroupDeletionResponseDTO();
+        List<MicroserviceForGroupDeletionDTO> microserviceForGroupDeletionDTOs = new ArrayList<>();
+        List<Microservice> microservices = microserviceService.getMicroservices();
+        for (Microservice microservice : microservices) {
+            final String url = microservice.getEndpoint() + "/groups/{groupId}";
+            MicroserviceForGroupDeletionDTO microserviceForGroupDeletionDTO = new MicroserviceForGroupDeletionDTO();
+            microserviceForGroupDeletionDTO.setName(microservice.getName());
+            microserviceForGroupDeletionDTO.setId(microservice.getId());
+            try {
+                ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class, id);
+                microserviceForGroupDeletionDTO.setHttpStatus(responseEntity.getStatusCode());
+                microserviceForGroupDeletionDTO.setResponseMessage(responseEntity.getBody());
+                if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                    responseDTO.setStatus(GroupDeletionStatus.MICROSERVICE_ERROR);
+                    LOG.error("Some error occured during getting roles of group with id {} from microservice {}", id, microservice.getName());
+                }
+            } catch (RestClientException e) {
+                responseDTO.setStatus(GroupDeletionStatus.MICROSERVICE_ERROR);
+                microserviceForGroupDeletionDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
+                microserviceForGroupDeletionDTO.setResponseMessage("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+            }
+            microserviceForGroupDeletionDTOs.add(microserviceForGroupDeletionDTO);
+        }
+        responseDTO.setMicroserviceForGroupDeletionDTOs(microserviceForGroupDeletionDTOs);
+        return responseDTO;
     }
 
     @Override
     public List<GroupDeletionResponseDTO> deleteGroups(List<Long> ids) {
-        Map<IDMGroup, GroupDeletionStatus> mapOfResults = groupService.deleteGroups(ids);
         List<GroupDeletionResponseDTO> response = new ArrayList<>();
-
-        mapOfResults.forEach((group, status) -> {
-            GroupDeletionResponseDTO r = new GroupDeletionResponseDTO();
-            r.setId(group.getId());
-            r.setStatus(status);
-            response.add(r);
-        });
+        for (Long id : ids) {
+            response.add(this.deleteGroup(id));
+        }
         return response;
     }
 
@@ -155,7 +188,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                String url = microservice.getEndpoint() + "/of/groups?ids=" + id;
+                String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + id;
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
@@ -206,7 +239,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
         try {
             Microservice microservice = microserviceService.get(microserviceId);
-            final String url = microservice.getEndpoint() + "/{roleId}/assign/to/{groupId}";
+            final String url = microservice.getEndpoint() + "/roles/{roleId}/assign/to/{groupId}";
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
@@ -245,7 +278,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
         try {
             Microservice microservice = microserviceService.get(microserviceId);
-            final String url = microservice.getEndpoint() + "/{roleId}/cancel/to/{groupId}";
+            final String url = microservice.getEndpoint() + "/roles/{roleId}/cancel/to/{groupId}";
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());

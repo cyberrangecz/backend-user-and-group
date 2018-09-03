@@ -1,11 +1,15 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
+import cz.muni.ics.kypo.userandgroup.api.dto.MicroserviceForGroupDeletionDTO;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 
+import java.util.List;
 import java.util.Objects;
 
 public class GroupDeletionResponseDTO {
     private Long id;
+
+    private List<MicroserviceForGroupDeletionDTO> microserviceForGroupDeletionDTOs;
 
     private GroupDeletionStatus status;
 
@@ -15,6 +19,22 @@ public class GroupDeletionResponseDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public List<MicroserviceForGroupDeletionDTO> getMicroserviceForGroupDeletionDTOs() {
+        return microserviceForGroupDeletionDTOs;
+    }
+
+    public void setMicroserviceForGroupDeletionDTOs(List<MicroserviceForGroupDeletionDTO> microserviceForGroupDeletionDTOs) {
+        this.microserviceForGroupDeletionDTOs = microserviceForGroupDeletionDTOs;
+    }
+
+    public void addMicroserviceForGroupDeletionDTO(MicroserviceForGroupDeletionDTO microserviceForGroupDeletionDTO) {
+        this.microserviceForGroupDeletionDTOs.add(microserviceForGroupDeletionDTO);
+    }
+
+    public void removeMicroserviceForGroupDeletionDTO(MicroserviceForGroupDeletionDTO microserviceForGroupDeletionDTO) {
+        this.microserviceForGroupDeletionDTOs.remove(microserviceForGroupDeletionDTO);
     }
 
     public GroupDeletionStatus getStatus() {
