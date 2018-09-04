@@ -14,6 +14,7 @@ import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,14 +40,16 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
     private IDMGroupService groupService;
     private MicroserviceService microserviceService;
+    private RoleService roleService;
     private RestTemplate restTemplate;
     private BeanMapping beanMapping;
 
     @Autowired
     public IDMGroupFacadeImpl(IDMGroupService groupService, MicroserviceService microserviceService,
-                              BeanMapping beanMapping, RestTemplate restTemplate) {
+                              RoleService roleService, BeanMapping beanMapping, RestTemplate restTemplate) {
         this.groupService = groupService;
         this.microserviceService = microserviceService;
+        this.roleService = roleService;
         this.beanMapping = beanMapping;
         this.restTemplate = restTemplate;
     }

@@ -111,7 +111,7 @@ public class UserFacadeTest {
     public void testGetUsers() {
         Role role = new Role();
         role.setId(1L);
-        role.setRoleType(RoleType.GUEST.toString());
+        role.setRoleType(RoleType.GUEST);
         Role[] rolesArray = new Role[1];
         rolesArray[0] = role;
         mockSpringSecurityContextForGet(rolesArray);
@@ -200,7 +200,7 @@ public class UserFacadeTest {
     public void testGetRolesOfUser() {
         Role role = new Role();
         role.setId(1L);
-        role.setRoleType(RoleType.GUEST.toString());
+        role.setRoleType(RoleType.GUEST);
         Role[] rolesArray = new Role[1];
         rolesArray[0] = role;
         mockSpringSecurityContextForGet(rolesArray);
@@ -208,11 +208,11 @@ public class UserFacadeTest {
         Microservice m = new Microservice("training", "/training");
         Role role1 = new Role();
         role1.setId(1L);
-        role1.setRoleType(RoleType.ADMINISTRATOR.toString());
+        role1.setRoleType(RoleType.ADMINISTRATOR);
 
         Role role2 = new Role();
         role2.setId(2L);
-        role2.setRoleType(RoleType.USER.toString());
+        role2.setRoleType(RoleType.USER);
 
         Set<Role> roles = new HashSet<>();
         roles.add(role1);

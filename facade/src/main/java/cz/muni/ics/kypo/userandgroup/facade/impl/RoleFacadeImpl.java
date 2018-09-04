@@ -72,7 +72,7 @@ public class RoleFacadeImpl implements RoleFacade {
     @Override
     public RoleDTO getByRoleType(RoleType roleType) throws UserAndGroupFacadeException {
         try {
-            Role role = roleService.getByRoleType(roleType.toString());
+            Role role = roleService.getByRoleType(roleType);
             LOG.info("Role with role type: " + roleType + "has been loaded.");
             RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
             roleDTO.setNameOfMicroservice("User and Group");

@@ -124,7 +124,7 @@ public class IDMGroupFacadeTest {
 
         Role role = new Role();
         role.setId(1L);
-        role.setRoleType(RoleType.GUEST.toString());
+        role.setRoleType(RoleType.GUEST);
         Role[] rolesArray = new Role[1];
         rolesArray[0] = role;
 
@@ -284,7 +284,7 @@ public class IDMGroupFacadeTest {
     public void testAssignRole() {
         Role userRole = new Role();
         userRole.setId(1L);
-        userRole.setRoleType(RoleType.USER.toString());
+        userRole.setRoleType(RoleType.USER);
         g1.addRole(userRole);
         given(groupService.assignRole(anyLong(), any(RoleType.class))).willReturn(g1);
         groupFacade.assignRole(1L, RoleType.USER);
@@ -347,7 +347,7 @@ public class IDMGroupFacadeTest {
     private Role getRole() {
         Role role = new Role();
         role.setId(1L);
-        role.setRoleType(RoleType.USER.toString());
+        role.setRoleType(RoleType.USER);
         return role;
     }
 

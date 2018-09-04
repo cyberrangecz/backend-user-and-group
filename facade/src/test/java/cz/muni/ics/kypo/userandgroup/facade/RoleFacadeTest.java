@@ -92,7 +92,7 @@ public class RoleFacadeTest {
     public void init() {
         r1 = new Role();
         r1.setId(1L);
-        r1.setRoleType(RoleType.ADMINISTRATOR.toString());
+        r1.setRoleType(RoleType.ADMINISTRATOR);
 
         roleDTO1 = new RoleDTO();
         roleDTO1.setId(1L);
@@ -106,7 +106,7 @@ public class RoleFacadeTest {
         given(roleService.getById(anyLong())).willReturn(r1);
         RoleDTO roleDTO = roleFacade.getById(1L);
 
-        assertEquals(r1.getRoleType(), roleDTO.getRoleType());
+        assertEquals(r1.getRoleType().name(), roleDTO.getRoleType());
 
     }
 
@@ -119,7 +119,7 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetByRoleType() {
-        given(roleService.getByRoleType(anyString())).willReturn(r1);
+        given(roleService.getByRoleType(any(RoleType.class))).willReturn(r1);
         RoleDTO roleDTO = roleFacade.getByRoleType(RoleType.ADMINISTRATOR);
 
         assertEquals(RoleType.ADMINISTRATOR.toString(), roleDTO.getRoleType().toString());
@@ -127,7 +127,7 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetByRoleTypeWithServiceException() {
-        given(roleService.getByRoleType(anyString())).willThrow(new UserAndGroupFacadeException());
+        given(roleService.getByRoleType(any(RoleType.class))).willThrow(new UserAndGroupFacadeException());
         thrown.expect(UserAndGroupFacadeException.class);
         roleFacade.getByRoleType(RoleType.ADMINISTRATOR);
     }
@@ -139,7 +139,7 @@ public class RoleFacadeTest {
 
         Role role = new Role();
         role.setId(1L);
-        role.setRoleType(RoleType.GUEST.toString());
+        role.setRoleType(RoleType.GUEST);
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(1L);
         roleDTO.setRoleType(RoleType.GUEST.toString());
