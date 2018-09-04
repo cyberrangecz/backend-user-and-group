@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public Role getByRoleType(String roleType) throws UserAndGroupServiceException {
+    public Role getByRoleType(RoleType roleType) throws UserAndGroupServiceException {
         Assert.notNull(roleType, "Input role type must not be null");
         Optional<Role> optionalRole = roleRepository.findByRoleType(roleType);
         Role r = optionalRole.orElseThrow(() -> new UserAndGroupServiceException("Role with roleType " + roleType + " could not be found"));

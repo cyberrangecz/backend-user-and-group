@@ -203,19 +203,19 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
         switch (roleType) {
             case ADMINISTRATOR:
-                Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name())
+                Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR)
                         .orElseThrow(() ->
                                 new UserAndGroupServiceException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 log.info("ADMINISTRATOR");
                 group.addRole(adminRole);
             case USER:
-                Role userRole = roleRepository.findByRoleType(RoleType.USER.name())
+                Role userRole = roleRepository.findByRoleType(RoleType.USER)
                         .orElseThrow(() ->
                                 new UserAndGroupServiceException(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 group.addRole(userRole);
                 log.info("USER");
             case GUEST:
-                Role guestRole = roleRepository.findByRoleType(RoleType.GUEST.name())
+                Role guestRole = roleRepository.findByRoleType(RoleType.GUEST)
                         .orElseThrow(() ->
                                 new UserAndGroupServiceException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 group.addRole(guestRole);

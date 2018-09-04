@@ -103,15 +103,15 @@ public class IDMGroupServiceTest {
         group2.setId(2L);
 
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
         adminRole.setId(1L);
 
         userRole = new Role();
-        userRole.setRoleType(RoleType.USER.name());
+        userRole.setRoleType(RoleType.USER);
         userRole.setId(2L);
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST.name());
+        guestRole.setRoleType(RoleType.GUEST);
         guestRole.setId(3L);
 
         user1 = new User("user1");
@@ -389,7 +389,7 @@ public class IDMGroupServiceTest {
         assertEquals(group1, g);
 
         then(groupRepository).should().findById(group1.getId());
-        then(roleRepository).should(times(3)).findByRoleType(anyString());
+        then(roleRepository).should(times(3)).findByRoleType(any(RoleType.class));
         then(groupRepository).should().save(group1);
     }
 

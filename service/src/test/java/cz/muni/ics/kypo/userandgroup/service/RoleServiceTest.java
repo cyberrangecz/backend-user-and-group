@@ -57,10 +57,10 @@ public class RoleServiceTest {
     public void init() {
         adminRole = new Role();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
+        adminRole.setRoleType(RoleType.ADMINISTRATOR);
 
         userRole = new Role();
-        userRole.setRoleType(RoleType.USER.name());
+        userRole.setRoleType(RoleType.USER);
         userRole.setId(2L);
 
         pageable = PageRequest.of(0, 10);
@@ -117,7 +117,7 @@ public class RoleServiceTest {
                 .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
 
         Role role = new Role();
-        role.setRoleType(RoleType.GUEST.name());
+        role.setRoleType(RoleType.GUEST);
 
         List<Role> roles = roleService.getAllRoles(pageable).getContent();
         assertEquals(2, roles.size());

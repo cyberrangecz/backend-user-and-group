@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.service.interfaces;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -24,7 +25,7 @@ public interface RoleService {
      * @return role with given roleType
      * @throws UserAndGroupServiceException when role with given role type could not be found
      */
-    Role getByRoleType(String roleType) throws UserAndGroupServiceException;
+    Role getByRoleType(RoleType roleType) throws UserAndGroupServiceException;
 
     /**
      * Returns all roles
