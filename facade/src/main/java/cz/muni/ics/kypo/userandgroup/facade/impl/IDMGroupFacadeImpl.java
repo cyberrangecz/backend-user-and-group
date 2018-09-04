@@ -31,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import static cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE;
 
 @Service
 @Transactional
@@ -185,36 +186,40 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     public Set<RoleDTO> getRolesOfGroup(Long id) throws UserAndGroupFacadeException, RestClientException {
         try {
             GroupDTO group = beanMapping.mapTo(groupService.get(id), GroupDTO.class);
-            Set<RoleDTO> roles = group.getRoles().stream()
-                    .peek(roleDTO -> roleDTO.setNameOfMicroservice("User and Group"))
-                    .collect(Collectors.toSet());
+            Set<RoleDTO> roles = new HashSet<>();
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + id;
+                if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
+                    roles.addAll(group.getRoles().stream()
+                            .peek(roleDTO -> roleDTO.setNameOfMicroservice(microservice.getName()))
+                            .collect(Collectors.toSet()));
+                } else {
+                    String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + id;
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-                HttpEntity<String> entity = new HttpEntity<>(null, headers);
-                try {
-                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Role[].class, id);
-                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                        Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
-                                .map(role -> {
-                                    RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-                                    roleDTO.setNameOfMicroservice(microservice.getName());
-                                    return roleDTO;
-                                })
-                                .collect(Collectors.toSet());
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+                    HttpEntity<String> entity = new HttpEntity<>(null, headers);
+                    try {
+                        ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Role[].class, id);
+                        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                            Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
+                                    .map(role -> {
+                                        RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
+                                        roleDTO.setNameOfMicroservice(microservice.getName());
+                                        return roleDTO;
+                                    })
+                                    .collect(Collectors.toSet());
 
-                        roles.addAll(rolesOfMicroservice);
-                    } else {
-                        LOG.error("Some error occured during getting roles of group with id {} from microservice {}", id, microservice.getName());
-                        throw new UserAndGroupFacadeException("Some error occured during getting roles of group with id " + id + " from microservice " + microservice.getName());
+                            roles.addAll(rolesOfMicroservice);
+                        } else {
+                            LOG.error("Some error occured during getting roles of group with id {} from microservice {}", id, microservice.getName());
+                            throw new UserAndGroupFacadeException("Some error occured during getting roles of group with id " + id + " from microservice " + microservice.getName());
+                        }
+                    } catch (RestClientException e) {
+                        LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                        throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                     }
-                } catch (RestClientException e) {
-                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
-                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
             }
 
@@ -242,20 +247,24 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
         try {
             Microservice microservice = microserviceService.get(microserviceId);
-            final String url = microservice.getEndpoint() + "/roles/{roleId}/assign/to/{groupId}";
-            OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-            HttpEntity<String> entity = new HttpEntity<>(null, headers);
-            try {
-                ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class, roleId, groupId);
-                if (!responseEntity.getStatusCode().is2xxSuccessful()) {
-                    throw new UserAndGroupFacadeException("Some error occured during assigning role with " + roleId + " to group with id " + groupId + " in microservice " +
-                            "with name " + microservice.getName());
+            if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
+                groupService.assignRole(groupId, roleService.getById(roleId).getRoleType());
+            } else {
+                final String url = microservice.getEndpoint() + "/roles/{roleId}/assign/to/{groupId}";
+                OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+                HttpEntity<String> entity = new HttpEntity<>(null, headers);
+                try {
+                    ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class, roleId, groupId);
+                    if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                        throw new UserAndGroupFacadeException("Some error occured during assigning role with " + roleId + " to group with id " + groupId + " in microservice " +
+                                "with name " + microservice.getName());
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
-            } catch (RestClientException e) {
-                LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
-                throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
             }
         } catch (UserAndGroupServiceException e) {
             LOG.error(e.getLocalizedMessage());
