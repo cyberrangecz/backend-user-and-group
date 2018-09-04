@@ -22,13 +22,13 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.*;
 
+import static cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE;
+
 @Component
 @PropertySource("file:${path-to-config-file}")
 public class StartUpRunner implements ApplicationRunner {
 
     private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
-
-    public static final String NAME_OF_USER_GROUP_SERVICE = "User and Group";
 
     @Value("${path.to.file.with.initial.users.and.services}")
     private String pathToFileWithInitialUsersAndServices;
@@ -71,7 +71,7 @@ public class StartUpRunner implements ApplicationRunner {
         LOGGER.info("All microservices managed by user-and-group service were deleted from database. (Only microservices which are in the file are active.)");
 
         Microservice userAndGroupService = new Microservice();
-        userAndGroupService.setName(NAME_OF_USER_GROUP_SERVICE);
+        userAndGroupService.setName(NAME_OF_USER_AND_GROUP_SERVICE);
         microserviceRepository.save(userAndGroupService);
 
         microservices.forEach(microservice -> {
