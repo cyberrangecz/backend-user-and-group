@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -25,7 +26,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
     Page<IDMGroup> findAllByName(String name, Pageable pageable);
 
     @Query("SELECT g FROM IDMGroup AS g INNER JOIN g.roles AS r WHERE r.roleType = :roleType")
-    List<IDMGroup> findAllByRoleType(@Param("roleType") String roleType);
+    List<IDMGroup> findAllByRoleType(@Param("roleType") RoleType roleType);
 
     @Query("SELECT g FROM IDMGroup AS g INNER JOIN g.roles AS r WHERE r.roleType = 'ADMINISTRATOR'")
     Optional<IDMGroup> findAdministratorGroup();

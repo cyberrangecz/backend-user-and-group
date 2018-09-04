@@ -33,25 +33,25 @@ public class RoleRepositoryTest {
     @Test
     public void findByRoleType() throws Exception {
         Role role = new Role();
-        role.setRoleType(RoleType.ADMINISTRATOR.name());
+        role.setRoleType(RoleType.ADMINISTRATOR);
         this.entityManager.persist(role);
-        Optional<Role> optionalRole = this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name());
+        Optional<Role> optionalRole = this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR);
         Role r = optionalRole.orElseThrow(() -> new Exception("Role shoul be found"));
         assertEquals(role, r);
-        assertEquals(RoleType.ADMINISTRATOR.name(), r.getRoleType());
+        assertEquals(RoleType.ADMINISTRATOR, r.getRoleType());
     }
 
     @Test
     public void findByRoleTypeNotFound() {
-        assertFalse(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name()).isPresent());
+        assertFalse(this.roleRepository.findByRoleType(RoleType.ADMINISTRATOR).isPresent());
     }
 
     @Test
     public void existByRoleType() {
         Role role = new Role();
-        role.setRoleType(RoleType.ADMINISTRATOR.name());
+        role.setRoleType(RoleType.ADMINISTRATOR);
         this.entityManager.persist(role);
-        assertTrue(roleRepository.existsByRoleType(RoleType.ADMINISTRATOR.name()));
-        assertFalse(roleRepository.existsByRoleType(RoleType.USER.name()));
+        assertTrue(roleRepository.existsByRoleType(RoleType.ADMINISTRATOR));
+        assertFalse(roleRepository.existsByRoleType(RoleType.USER));
     }
 }

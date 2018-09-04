@@ -28,6 +28,8 @@ public class StartUpRunner implements ApplicationRunner {
 
     private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
 
+    public static final String NAME_OF_USER_GROUP_SERVICE = "User and Group";
+
     @Value("${path.to.file.with.initial.users.and.services}")
     private String pathToFileWithInitialUsersAndServices;
 
@@ -67,6 +69,10 @@ public class StartUpRunner implements ApplicationRunner {
     private void loadMicroservices(List<Microservice> microservices) {
         microserviceRepository.deleteAll();
         LOGGER.info("All microservices managed by user-and-group service were deleted from database. (Only microservices which are in the file are active.)");
+
+        Microservice userAndGroupService = new Microservice();
+        userAndGroupService.setName(NAME_OF_USER_GROUP_SERVICE);
+        microserviceRepository.save(userAndGroupService);
 
         microservices.forEach(microservice -> {
             microserviceRepository.save(microservice);
@@ -119,11 +125,11 @@ public class StartUpRunner implements ApplicationRunner {
     }
 
     private void loadMainRoles() throws Exception {
-        adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR.name())
+        adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR)
                 .orElseThrow(() -> new Exception("Migration was not completed successfully, Administrator role was not found in database"));
-        userRole = roleRepository.findByRoleType(RoleType.USER.name())
+        userRole = roleRepository.findByRoleType(RoleType.USER)
                 .orElseThrow(() -> new Exception("Migration was not completed successfully, User role was not found in database"));
-        guestRole = roleRepository.findByRoleType(RoleType.GUEST.name())
+        guestRole = roleRepository.findByRoleType(RoleType.GUEST)
                 .orElseThrow(() -> new Exception("Migration was not completed successfully, Guest role was not found in database"));
     }
 
