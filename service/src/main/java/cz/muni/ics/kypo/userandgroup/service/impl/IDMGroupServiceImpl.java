@@ -292,6 +292,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
         if (!groupRepository.isIDMGroupInternal(group.getId()) && group.getStatus().equals(UserAndGroupStatus.VALID)) {
             return GroupDeletionStatus.EXTERNAL_VALID;
+        } else if (group.getName().equals(RoleType.ADMINISTRATOR.name()) ||
+                group.getName().equals(RoleType.USER.name()) ||
+                group.getName().equals(RoleType.GUEST.name())) {
+            return GroupDeletionStatus.ERROR_MAIN_GROUP;
         }
         return GroupDeletionStatus.SUCCESS;
     }

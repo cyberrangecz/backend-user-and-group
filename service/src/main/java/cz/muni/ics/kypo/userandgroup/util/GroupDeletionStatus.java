@@ -21,6 +21,6 @@ package cz.muni.ics.kypo.userandgroup.util;
 
 public enum GroupDeletionStatus {
     
-    EXTERNAL_VALID, SUCCESS, ERROR, NOT_FOUND, MICROSERVICE_ERROR
+    EXTERNAL_VALID, SUCCESS, ERROR, NOT_FOUND, MICROSERVICE_ERROR, ERROR_MAIN_GROUP
     
 }

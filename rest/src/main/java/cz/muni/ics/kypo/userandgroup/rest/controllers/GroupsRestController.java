@@ -119,7 +119,8 @@ public class GroupsRestController {
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete group with given id and returns if it was successful. \n" +
             "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role \n" +
             "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
-            "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice",
+            "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice\n" +
+            "5) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)",
             produces = "application/json")
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.",
             required = true) @PathVariable("id") final Long id) {
@@ -138,7 +139,9 @@ public class GroupsRestController {
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete groups with given ids and returns groups and statuses of their deletion. \n" +
             "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role\n" +
             "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
-            "4) ERROR - group could not be deleted, try it later\n 5) NOT_FOUND - group could not be found",
+            "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice\n" +
+            "5) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)\n" +
+            "6) ERROR - group could not be deleted, try it later\n 7) NOT_FOUND - group could not be found",
             consumes = "application/json", produces = "application/json")
     public ResponseEntity<List<GroupDeletionResponseDTO>> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
                                                                        @RequestBody List<Long> ids) {
