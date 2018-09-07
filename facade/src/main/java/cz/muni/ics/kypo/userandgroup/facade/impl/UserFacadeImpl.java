@@ -29,11 +29,14 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE;
 
 @Service
 @Transactional
@@ -127,50 +130,47 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     public Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException, MicroserviceException {
         try {
-            Set<RoleDTO> roles = beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
-            roles = roles.stream()
-                    .peek(roleDTO -> roleDTO.setNameOfMicroservice("User and Group"))
-                    .collect(Collectors.toSet());
-
+            Set<RoleDTO> roles = new HashSet<>();
             OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
             List<Microservice> microservices = microserviceService.getMicroservices();
             for (Microservice microservice : microservices) {
-                User u = userService.get(id);
-                StringBuilder groupsIds = new StringBuilder();
-
-                if (u.getGroups().size() > 0) {
-                    groupsIds.append(String.valueOf(u.getGroups().get(0).getId()));
-                }
-
-                for (int i = 1; i < u.getGroups().size(); i++) {
-                    groupsIds.append(",").append(u.getGroups().get(i).getId());
-                }
-
-                String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + groupsIds.toString();
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-                HttpEntity<List<Long>> entity = new HttpEntity<>(null, headers);
-                try {
-                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Role[].class, id);
-                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                        Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
-                                .map(role -> {
-                                    RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-                                    roleDTO.setNameOfMicroservice(microservice.getName());
-                                    return roleDTO;
-                                })
-                                .collect(Collectors.toSet());
-
-                        roles.addAll(rolesOfMicroservice);
-                    } else {
-                        LOG.error("Some error occured during getting roles of user with id {} from microservice {}", id, microservice.getName());
-                        throw new UserAndGroupFacadeException("Some error occured during getting roles of user with id " + id + " from microservice " + microservice.getName());
+                if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
+                    Set<RoleDTO> r = beanMapping.mapToSet(userService.getRolesOfUser(id), RoleDTO.class);
+                    roles.addAll(r.stream()
+                            .peek(roleDTO -> roleDTO.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE))
+                            .collect(Collectors.toSet()));
+                } else {
+                    User u = userService.get(id);
+                    StringBuilder groupsIds = new StringBuilder();
+                    if (u.getGroups().size() > 0) {
+                        groupsIds.append(String.valueOf(u.getGroups().get(0).getId()));
                     }
-                } catch (RestClientException e) {
-                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
-                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                    for (int i = 1; i < u.getGroups().size(); i++) {
+                        groupsIds.append(",").append(u.getGroups().get(i).getId());
+                    }
+                    String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + groupsIds.toString();
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+                    HttpEntity<List<Long>> entity = new HttpEntity<>(null, headers);
+                    try {
+                        ResponseEntity<RoleDTO[]> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, RoleDTO[].class, id);
+                        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                            Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
+                                    .peek(roleDTO -> roleDTO.setNameOfMicroservice(microservice.getName()))
+                                    .collect(Collectors.toSet());
+
+                            roles.addAll(rolesOfMicroservice);
+                        } else {
+                            LOG.error("Some error occured during getting roles of user with id {} from microservice {}. Status code: {}. Response {}",
+                                    microservice.getName(), responseEntity.getStatusCode().toString(), responseEntity.toString());
+                            throw new UserAndGroupFacadeException("Some error occured during getting roles of user with id " + id + " from microservice " + microservice.getName());
+                        }
+                    } catch (HttpClientErrorException e) {
+                        LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
+                                microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
+                        throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                    }
                 }
             }
 

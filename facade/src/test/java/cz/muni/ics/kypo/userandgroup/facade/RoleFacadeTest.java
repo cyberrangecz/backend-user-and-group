@@ -13,6 +13,7 @@ import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
+import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -134,8 +135,9 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetAllRoles() {
-        Microservice microservice = new Microservice("Training", "/training");
-        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(microservice));
+        Microservice m1 = new Microservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE, "/");
+        Microservice m2 = new Microservice("training", "/training");
+        given(microserviceService.getMicroservices()).willReturn(Arrays.asList(m1, m2));
 
         Role role = new Role();
         role.setId(1L);
@@ -143,9 +145,9 @@ public class RoleFacadeTest {
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(1L);
         roleDTO.setRoleType(RoleType.GUEST.toString());
-        roleDTO.setNameOfMicroservice(microservice.getName());
+        roleDTO.setNameOfMicroservice(m2.getName());
 
-        roleDTO1.setNameOfMicroservice("User and Group");
+        roleDTO1.setNameOfMicroservice(m1.getName());
 
         Role[] rolesArray = new Role[1];
         rolesArray[0] = role;

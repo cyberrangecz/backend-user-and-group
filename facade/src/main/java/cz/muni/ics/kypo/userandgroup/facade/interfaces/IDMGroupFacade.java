@@ -6,10 +6,10 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
+import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 import java.util.Set;
@@ -133,6 +133,8 @@ public interface IDMGroupFacade {
      * @param microserviceId of microservice from which is role
      * @throws UserAndGroupFacadeException if microservice with given microserviceId could not be found
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @throws RoleCannotBeRemovedToGroupException if role could not be removed to group due to its dependency to other role
      */
-    void removeRoleToGroupInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException;
+    void removeRoleToGroupInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException,
+            MicroserviceException, RoleCannotBeRemovedToGroupException;
 }

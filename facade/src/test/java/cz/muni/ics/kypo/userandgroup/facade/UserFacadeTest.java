@@ -11,6 +11,7 @@ import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
+import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -112,8 +113,11 @@ public class UserFacadeTest {
         Role role = new Role();
         role.setId(1L);
         role.setRoleType(RoleType.GUEST);
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = role;
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(1L);
+        roleDTO.setRoleType(RoleType.GUEST.name());
+        RoleDTO[] rolesArray = new RoleDTO[1];
+        rolesArray[0] = roleDTO;
         mockSpringSecurityContextForGet(rolesArray);
         Page<User> rolePage = new PageImpl<>(Arrays.asList(user1, user2));
         PageResultResource<UserDTO> pageResult = new PageResultResource<>();
@@ -201,11 +205,15 @@ public class UserFacadeTest {
         Role role = new Role();
         role.setId(1L);
         role.setRoleType(RoleType.GUEST);
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = role;
+        RoleDTO roleDTO = new RoleDTO();
+        roleDTO.setId(1L);
+        roleDTO.setRoleType(RoleType.GUEST.name());
+        RoleDTO[] rolesArray = new RoleDTO[1];
+        rolesArray[0] = roleDTO;
         mockSpringSecurityContextForGet(rolesArray);
 
-        Microservice m = new Microservice("training", "/training");
+        Microservice m1 = new Microservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE, "/");
+        Microservice m2 = new Microservice("training", "/training");
         Role role1 = new Role();
         role1.setId(1L);
         role1.setRoleType(RoleType.ADMINISTRATOR);
@@ -221,16 +229,16 @@ public class UserFacadeTest {
         RoleDTO roleDTO1 = new RoleDTO();
         roleDTO1.setId(1L);
         roleDTO1.setRoleType(RoleType.ADMINISTRATOR.toString());
-        roleDTO1.setNameOfMicroservice("User and Group");
+        roleDTO1.setNameOfMicroservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE);
 
         RoleDTO roleDTO2 = new RoleDTO();
         roleDTO2.setId(2L);
         roleDTO2.setRoleType(RoleType.USER.toString());
-        roleDTO2.setNameOfMicroservice("User and Group");
+        roleDTO2.setNameOfMicroservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE);
 
         given(userService.get(anyLong())).willReturn(user1);
         given(userService.getRolesOfUser(anyLong())).willReturn(roles);
-        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(m));
+        given(microserviceService.getMicroservices()).willReturn(Arrays.asList(m1, m2));
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);
 
         assertEquals(3, responseRolesDTO.size());
@@ -260,8 +268,8 @@ public class UserFacadeTest {
         userFacade.isUserInternal(user1.getId());
     }
 
-    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
-        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
+    private void mockSpringSecurityContextForGet(RoleDTO[] rolesArray) {
+        ResponseEntity<RoleDTO[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails auth = Mockito.mock(OAuth2AuthenticationDetails.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -270,6 +278,6 @@ public class UserFacadeTest {
         SecurityContextHolder.setContext(securityContext);
         given(auth.getTokenType()).willReturn("");
         given(auth.getTokenValue()).willReturn("");
-        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role[].class), anyLong())).willReturn(responseEntity);
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(RoleDTO[].class), anyLong())).willReturn(responseEntity);
     }
 }

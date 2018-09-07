@@ -13,6 +13,7 @@ import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
+import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -219,8 +220,8 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetAllGroups() {
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = getRole();
+        RoleDTO[] rolesArray = new RoleDTO[1];
+        rolesArray[0] = getRoleDTO();
         mockSpringSecurityContextForGet(rolesArray);
         Page<IDMGroup> idmGroupPage = new PageImpl<>(Arrays.asList(g1));
         PageResultResource<GroupDTO> pages = new PageResultResource<>();
@@ -236,8 +237,8 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetGroup() {
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = getRole();
+        RoleDTO[] rolesArray = new RoleDTO[1];
+        rolesArray[0] = getRoleDTO();
         mockSpringSecurityContextForGet(rolesArray);
         given(groupService.get(anyLong())).willReturn(g1);
         GroupDTO groupDTO = groupFacade.getGroup(1L);
@@ -255,19 +256,20 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetRolesOfGroup() {
-        Microservice m = new Microservice("training", "/training");
+        Microservice m1 = new Microservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE, "/");
+        Microservice m2 = new Microservice("training", "/training");
         Set<Role> roles = new HashSet<>();
         roles.add(getRole());
         g1.addRole(getRole());
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = getRole();
+        RoleDTO[] rolesArray = new RoleDTO[1];
+        rolesArray[0] = getRoleDTO();
         mockSpringSecurityContextForGet(rolesArray);
 
         Set<RoleDTO> roleDTOS = new HashSet<>();
         roleDTOS.add(getRoleDTO());
 
         given(groupService.get(anyLong())).willReturn(g1);
-        given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(m));
+        given(microserviceService.getMicroservices()).willReturn(Arrays.asList(m1, m2));
         Set<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L);
         assertEquals(2, rolesDTO.size());
         assertEquals(RoleType.USER.toString(), new ArrayList<>(roleDTOS).get(0).getRoleType());
@@ -369,8 +371,8 @@ public class IDMGroupFacadeTest {
         given(auth.getTokenValue()).willReturn("");
     }
 
-    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
-        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
-        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role[].class), anyLong())).willReturn(responseEntity);
+    private void mockSpringSecurityContextForGet(RoleDTO[] rolesArray) {
+        ResponseEntity<RoleDTO[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.NO_CONTENT);
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(RoleDTO[].class), anyLong())).willReturn(responseEntity);
     }
 }

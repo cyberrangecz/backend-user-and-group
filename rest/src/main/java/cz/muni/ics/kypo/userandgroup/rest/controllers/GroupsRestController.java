@@ -8,6 +8,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
+import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -177,7 +178,7 @@ public class GroupsRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("Group with id " + id + " could not be found or some of microservice did not return status code 2xx.");
         } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
     }
 
@@ -206,7 +207,7 @@ public class GroupsRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
         } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
     }
 
@@ -221,6 +222,8 @@ public class GroupsRestController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
+        } catch (RoleCannotBeRemovedToGroupException e) {
+            throw new BadRequestException(e.getLocalizedMessage());
         } catch (MicroserviceException e) {
             throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }

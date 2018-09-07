@@ -21,6 +21,7 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -206,20 +207,38 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                 Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR)
                         .orElseThrow(() ->
                                 new UserAndGroupServiceException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
-                log.info("ADMINISTRATOR");
                 group.addRole(adminRole);
             case USER:
                 Role userRole = roleRepository.findByRoleType(RoleType.USER)
                         .orElseThrow(() ->
                                 new UserAndGroupServiceException(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 group.addRole(userRole);
-                log.info("USER");
             case GUEST:
                 Role guestRole = roleRepository.findByRoleType(RoleType.GUEST)
                         .orElseThrow(() ->
                                 new UserAndGroupServiceException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
                 group.addRole(guestRole);
-                log.info("GUEST");
+        }
+        return groupRepository.save(group);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    public IDMGroup removeRoleToGroup(Long groupId, RoleType roleType) throws UserAndGroupServiceException, RoleCannotBeRemovedToGroupException {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(roleType, "Input roleType must not be null");
+
+        IDMGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
+
+        if (roleType.equals(RoleType.ADMINISTRATOR)) {
+            Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR)
+                    .orElseThrow(() ->
+                            new UserAndGroupServiceException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
+            group.removeRole(adminRole);
+        } else {
+            throw new RoleCannotBeRemovedToGroupException("Roles USER and GUEST cannot be removed from group. These roles are main roles to give access to KYPO and if you" +
+                    "want to remove them from group you have to remove the group.");
         }
         return groupRepository.save(group);
     }

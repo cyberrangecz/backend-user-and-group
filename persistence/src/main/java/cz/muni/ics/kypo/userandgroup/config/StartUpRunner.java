@@ -70,8 +70,7 @@ public class StartUpRunner implements ApplicationRunner {
         microserviceRepository.deleteAll();
         LOGGER.info("All microservices managed by user-and-group service were deleted from database. (Only microservices which are in the file are active.)");
 
-        Microservice userAndGroupService = new Microservice();
-        userAndGroupService.setName(NAME_OF_USER_AND_GROUP_SERVICE);
+        Microservice userAndGroupService = new Microservice(NAME_OF_USER_AND_GROUP_SERVICE, "/");
         microserviceRepository.save(userAndGroupService);
 
         microservices.forEach(microservice -> {

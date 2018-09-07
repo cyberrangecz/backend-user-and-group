@@ -20,6 +20,7 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
@@ -142,6 +143,17 @@ public interface IDMGroupService {
      * @throws UserAndGroupServiceException if group or one of the main role could not be find
      */
     IDMGroup assignRole(Long groupId, RoleType roleType) throws UserAndGroupServiceException;
+
+    /**
+     * Removes role to group with given groupId
+     *
+     * @param groupId id of group which will lose role with role type
+     * @param roleType type of role
+     * @return group with lost role with given role type
+     * @throws UserAndGroupServiceException if group or one of the main role could not be find
+     * @throws RoleCannotBeRemovedToGroupException if role is GUEST or USER which cannot be removed to groups
+     */
+    IDMGroup removeRoleToGroup(Long groupId, RoleType roleType) throws UserAndGroupServiceException, RoleCannotBeRemovedToGroupException;
 
     /**
      * Removes members of group with given userIds from the group
