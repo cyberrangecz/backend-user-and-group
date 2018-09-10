@@ -146,6 +146,11 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                     microserviceForGroupDeletionDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
                     microserviceForGroupDeletionDTO.setResponseMessage("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                     LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                } catch (RestClientException e) {
+                    responseDTO.setStatus(GroupDeletionStatus.MICROSERVICE_ERROR);
+                    microserviceForGroupDeletionDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
+                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
                 microserviceForGroupDeletionDTOs.add(microserviceForGroupDeletionDTO);
             }
@@ -164,7 +169,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) {
+    public PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) throws UserAndGroupFacadeException, RestClientException {
         PageResultResource<GroupDTO> groups = beanMapping.mapToPageResultDTO(groupService.getAllIDMGroups(predicate, pageable), GroupDTO.class);
         List<GroupDTO> groupsWithRoles = groups.getContent().stream()
                 .peek(groupDTO -> groupDTO.setRoles(this.getRolesOfGroup(groupDTO.getId())))
@@ -174,7 +179,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public GroupDTO getGroup(Long id) throws UserAndGroupFacadeException {
+    public GroupDTO getGroup(Long id) throws UserAndGroupFacadeException, RestClientException {
         try {
             GroupDTO groupDTO = beanMapping.mapTo(groupService.get(id), GroupDTO.class);
             groupDTO.setRoles(this.getRolesOfGroup(id));
@@ -220,6 +225,9 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                         LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
                                 microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
                         throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                    } catch (RestClientException e) {
+                        LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                        throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                     }
                 }
             }
@@ -255,6 +263,9 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                 } catch (HttpClientErrorException e) {
                     LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
                             microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
+                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                } catch (RestClientException e) {
+                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
                     throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
             }

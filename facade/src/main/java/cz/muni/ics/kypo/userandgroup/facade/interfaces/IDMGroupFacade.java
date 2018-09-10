@@ -10,6 +10,7 @@ import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupExcepti
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 import java.util.Set;
@@ -75,7 +76,7 @@ public interface IDMGroupFacade {
      * @param pageable parameter with information about pagination
      * @return page of groups specified by given predicate and pageable
      */
-    PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable);
+    PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) throws UserAndGroupFacadeException, RestClientException;
 
     /**
      * Returns group with given id
@@ -84,7 +85,7 @@ public interface IDMGroupFacade {
      * @return group with given id
      * @throws UserAndGroupFacadeException if group with given id could not be found
      */
-    GroupDTO getGroup(Long id) throws UserAndGroupFacadeException;
+    GroupDTO getGroup(Long id) throws UserAndGroupFacadeException, RestClientException;
 
     /**
      * Returns all roles from all registered microservices of group with given id

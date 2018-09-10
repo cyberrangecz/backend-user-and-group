@@ -156,9 +156,13 @@ public class GroupsRestController {
                                             @RequestParam MultiValueMap<String, String> parameters,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
+        try {
+            PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
+            Squiggly.init(objectMapper, fields);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
+        }
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -169,6 +173,8 @@ public class GroupsRestController {
             return new ResponseEntity<>(groupFacade.getGroup(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException ex) {
             throw new ResourceNotFoundException("Group with id " + id + " could not be found.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
     }
 

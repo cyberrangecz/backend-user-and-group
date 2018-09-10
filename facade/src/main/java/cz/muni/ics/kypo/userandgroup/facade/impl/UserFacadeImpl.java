@@ -59,7 +59,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) {
+    public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) throws MicroserviceException {
         PageResultResource<UserDTO> users = beanMapping.mapToPageResultDTO(userService.getAllUsers(predicate, pageable), UserDTO.class);
         List<UserDTO> usersWithRoles = users.getContent().stream()
                 .peek(userDTO -> userDTO.setRoles(this.getRolesOfUser(userDTO.getId())))
@@ -169,6 +169,9 @@ public class UserFacadeImpl implements UserFacade {
                     } catch (HttpClientErrorException e) {
                         LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
                                 microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
+                        throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                    } catch (RestClientException e) {
+                        LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
                         throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                     }
                 }

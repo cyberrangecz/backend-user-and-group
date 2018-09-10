@@ -123,6 +123,9 @@ public class RoleFacadeImpl implements RoleFacade {
                     LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
                             microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
                     throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                } catch (RestClientException e) {
+                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
+                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
             }
         }

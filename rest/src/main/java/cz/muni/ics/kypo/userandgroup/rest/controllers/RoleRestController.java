@@ -57,7 +57,7 @@ public class RoleRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new InternalServerErrorException("Some of microservice did not return status code 2xx.");
         } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException("Client error occurs during calling other microservice, probably due to wrong URL");
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
 
     }
