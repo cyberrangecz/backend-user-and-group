@@ -47,9 +47,9 @@ users:
         
 microservices:
   - name: service1
-    endpoint: /service1
+    endpoint: http://full/url/to/service1
   - name: service2
-    endpoint: /service2
+    endpoint: http://full/url/to/service2  # without end of the url for roles (/roles/...)
 ```
 
 ### 3. Properties file
@@ -70,7 +70,7 @@ kypo.idp.4oauth.authorizationURI=https://oidc.ics.muni.cz/oidc/authorize
 kypo.idp.4oauth.resource.clientId={your client ID from Self-service protected resource}
 kypo.idp.4oauth.resource.clientSecret={your client secret from Self-service protected resource}
 kypo.idp.4oauth.client.clientId={your client ID from Self-service client}
-kypo.idp.4oauth.scopes=openid, email
+kypo.idp.4oauth.scopes=openid, email, profile
 # you can add more scopes according to settings from step 1.
 
 # DATASOURCE
