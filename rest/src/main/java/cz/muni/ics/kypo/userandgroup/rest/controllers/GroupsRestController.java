@@ -185,19 +185,6 @@ public class GroupsRestController {
         }
     }
 
-    @PutMapping(path = "/{groupId}/assign/{roleType}")
-    @ApiOperation(httpMethod = "PUT", value = "Assigns role to group with given groupId")
-    public ResponseEntity<Void> assignRole(
-            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
-            @ApiParam(value = "roleType", required = true) @PathVariable("roleType") RoleType roleType) {
-        try {
-            groupFacade.assignRole(groupId, roleType);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Group with id: " + groupId + " or one of the main roles (ADMINISTRATOR, USER, GUEST) could not be found.");
-        }
-    }
-
     @PutMapping("/{groupId}/assign/{roleId}/in/microservice/{microserviceId}")
     @ApiOperation(httpMethod = "PUT", value = "Assign role with given role ID to group with given ID in chosen microservice")
     public ResponseEntity<Void> assignRoleInMicroservice(

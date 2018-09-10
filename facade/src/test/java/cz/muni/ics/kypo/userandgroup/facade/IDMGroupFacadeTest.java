@@ -283,25 +283,6 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void testAssignRole() {
-        Role userRole = new Role();
-        userRole.setId(1L);
-        userRole.setRoleType(RoleType.USER);
-        g1.addRole(userRole);
-        given(groupService.assignRole(anyLong(), any(RoleType.class))).willReturn(g1);
-        groupFacade.assignRole(1L, RoleType.USER);
-
-        then(groupService).should().assignRole(1L, RoleType.USER);
-    }
-
-    @Test
-    public void testAssignRoleWithServiceException() {
-        given(groupService.assignRole(anyLong(), any(RoleType.class))).willThrow(new UserAndGroupServiceException());
-        thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.assignRole(1L, RoleType.USER);
-    }
-
-    @Test
     public void isGroupInternal() {
         given(groupService.isGroupInternal(g1.getId())).willReturn(true);
         assertTrue(groupFacade.isGroupInternal(g1.getId()));

@@ -231,16 +231,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     }
 
     @Override
-    public void assignRole(Long groupId, RoleType roleType) throws UserAndGroupFacadeException {
-        try {
-            groupService.assignRole(groupId, roleType);
-        } catch (UserAndGroupServiceException e) {
-            LOG.error(e.getLocalizedMessage());
-            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
-        }
-    }
-
-    @Override
     public void assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");

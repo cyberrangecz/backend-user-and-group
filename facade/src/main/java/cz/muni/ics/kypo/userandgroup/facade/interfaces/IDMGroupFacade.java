@@ -97,15 +97,6 @@ public interface IDMGroupFacade {
     Set<RoleDTO> getRolesOfGroup(Long id) throws UserAndGroupFacadeException, MicroserviceException;
 
     /**
-     * Assigns role with given roleType to group with given groupId in this microservice
-     *
-     * @param groupId of group
-     * @param roleType to be assigned to group
-     * @throws UserAndGroupFacadeException if group or one of the main role could not be find
-     */
-    void assignRole(Long groupId, RoleType roleType) throws UserAndGroupFacadeException;
-
-    /**
      * Assigns role with given roleId in microservice with microserviceID to group with given groupId
      *
      * @param groupId of group
