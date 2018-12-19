@@ -14,6 +14,7 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
+import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -32,6 +33,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+/**
+ * @author Jan Duda & Pavel Seda
+ */
 @RestController
 @RequestMapping(path = "/users")
 @Api(value = "Endpoint for Users")
@@ -48,8 +52,9 @@ public class UsersRestController {
         this.objectMapper = objectMapper;
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiPageableSwagger
     @ApiOperation(httpMethod = "GET", value = "Gets all users.", produces = "application/json")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsers(@QuerydslPredicate(root = Role.class) Predicate predicate,
                                            Pageable pageable,
                                            @RequestParam MultiValueMap<String, String> parameters,
@@ -66,8 +71,8 @@ public class UsersRestController {
         }
     }
 
-    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets user with given id.", produces = "application/json")
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.",
             required = true) @PathVariable("id") final Long id) {
         try {
@@ -79,8 +84,9 @@ public class UsersRestController {
         }
     }
 
-    @GetMapping(path = "/except/in/group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiPageableSwagger
     @ApiOperation(httpMethod = "GET", value = "Gets all users except users in given group.", produces = "application/json")
+    @GetMapping(path = "/except/in/group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getAllUsersNotInGivenGroup(
             @ApiParam(value = "Id of group whose users do not get.", required = true)
             @PathVariable("groupId") final Long groupId,
@@ -98,10 +104,10 @@ public class UsersRestController {
         }
     }
 
-    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete user with given screen name and returns if it was successful. \n" +
             "Statuses: 1) SUCCESS - user was deleted\n 2) EXTERNAL_VALID - user is from external source and was not marked as deleted",
             produces = "application/json")
+    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDeletionResponseDTO> deleteUser(
             @ApiParam(value = "Screen name of user to be deleted.", required = true)
             @PathVariable("id") final Long id) {
@@ -120,19 +126,19 @@ public class UsersRestController {
         }
     }
 
-    @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete users with given ids and returns users and statuses of their deletion. \n" +
             "Statuses: 1) SUCCESS - user was deleted\n 2) EXTERNAL_VALID - user is from external source and was not marked as deleted\n" +
             "3) ERROR - user could not be deleted, try it later\n 4) NOT_FOUND - user could not be found",
             consumes = "application/json", produces = "application/json")
+    @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<UserDeletionResponseDTO>> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
                                                                      @RequestBody List<Long> ids) {
         Preconditions.checkNotNull(ids);
         return new ResponseEntity<>(userFacade.deleteUsers(ids), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/{id}/roles")
     @ApiOperation(httpMethod = "GET", value = "Returns all roles of user with given id.")
+    @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfUser(
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
         try {
@@ -144,8 +150,8 @@ public class UsersRestController {
         }
     }
 
-    @GetMapping(path = "/info")
     @ApiOperation(httpMethod = "GET", value = "Returns details of user who is logged in")
+    @GetMapping(path = "/info")
     public ResponseEntity<UserInfoDTO> getUserInfo(OAuth2Authentication authentication) {
         try {
             return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
