@@ -9,7 +9,6 @@ import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -127,7 +126,7 @@ public class GroupsRestControllerTest {
     public void testCreateGroup() throws Exception {
         given(groupFacade.createGroup(any(NewGroupDTO.class))).willReturn(groupDTO1);
         mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                post("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(newGroupDTO)))
                 .andExpect(status().isCreated())
@@ -140,7 +139,7 @@ public class GroupsRestControllerTest {
     public void testCreateGroupCouldNotBeCreated() throws Exception {
         given(groupFacade.createGroup(any(NewGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
         Exception ex = mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                post("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                         .content(convertObjectToJsonBytes(getNewGroupDTO())))
                 .andExpect(status().isNotFound())
@@ -152,7 +151,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testCreateGroupWithNullRequestBody() throws Exception {
         mockMvc.perform(
-                post(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                post("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
@@ -163,7 +162,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testUpdateGroup() throws Exception {
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                put("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNoContent());
@@ -174,7 +173,7 @@ public class GroupsRestControllerTest {
     public void testUpdateExternalGroup() throws Exception {
         willThrow(ExternalSourceException.class).given(groupFacade).updateGroup(any(UpdateGroupDTO.class));
         Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                put("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNotModified())
@@ -188,7 +187,7 @@ public class GroupsRestControllerTest {
         GroupDTO groupDTO = new GroupDTO();
         groupDTO.setId(1L);
         Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                put("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(groupDTO)))
                 .andExpect(status().isNotAcceptable())
@@ -200,7 +199,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testRemoveUsers() throws Exception {
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeUsers", groupDTO1.getId())
+                put("/groups" + "/{id}/removeUsers", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
                 .andExpect(status().isNoContent());
@@ -211,7 +210,7 @@ public class GroupsRestControllerTest {
     public void testRemoveUsersWithUserAndGroupFacadeException() throws Exception {
         willThrow(UserAndGroupFacadeException.class).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
         Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeUsers", 100L)
+                put("/groups" + "/{id}/removeUsers", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotFound())
@@ -224,7 +223,7 @@ public class GroupsRestControllerTest {
     public void testRemoveUsersWithExternalSourceException() throws Exception {
         willThrow(ExternalSourceException.class).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
         Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeUsers", 100L)
+                put("/groups" + "/{id}/removeUsers", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotModified())
@@ -236,7 +235,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testRemoveUsersWithNullRequestBody() throws Exception {
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/removeUsers", 1L)
+                put("/groups" + "/{id}/removeUsers", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
@@ -254,7 +253,7 @@ public class GroupsRestControllerTest {
         groupDTO1.setUsers(Collections.singletonList(user));
 
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addUsers")
+                put("/groups" + "/addUsers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNoContent());
@@ -265,7 +264,7 @@ public class GroupsRestControllerTest {
     public void testAddUsersWithNotFoundError() throws Exception {
         willThrow(new UserAndGroupFacadeException()).given(groupFacade).addUsers(any(AddUsersToGroupDTO.class));
         Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addUsers")
+                put("/groups" + "/addUsers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotFound())
@@ -277,7 +276,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testAddUsersWithNullRequestBody() throws Exception {
         mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addUsers")
+                put("/groups" + "/addUsers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
@@ -289,7 +288,7 @@ public class GroupsRestControllerTest {
     public void testAddUsersWithExternalSourceException() throws Exception {
         willThrow(ExternalSourceException.class).given(groupFacade).addUsers(any(AddUsersToGroupDTO.class));
         Exception ex = mockMvc.perform(
-                put(ApiEndpointsUserAndGroup.GROUPS_URL + "/addUsers")
+                put("/groups" + "/addUsers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotModified())
@@ -302,7 +301,7 @@ public class GroupsRestControllerTest {
     public void testDeleteGroup() throws Exception {
         given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(getGroupDeletionResponse());
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId())
+                delete("/groups" + "/{id}", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -316,7 +315,7 @@ public class GroupsRestControllerTest {
         deletionResponseDTO.setStatus(GroupDeletionStatus.EXTERNAL_VALID);
         given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(deletionResponseDTO);
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId())
+                delete("/groups" + "/{id}", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
@@ -328,7 +327,7 @@ public class GroupsRestControllerTest {
     public void testDeleteGroups() throws Exception {
         given(groupFacade.deleteGroups(Collections.singletonList(1L))).willReturn(Collections.singletonList(getGroupDeletionResponse()));
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                delete("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
                 .andExpect(status().isOk())
@@ -340,7 +339,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testDeleteGroupsWithNoRequestBody() throws Exception {
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.GROUPS_URL + "/")
+                delete("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
         then(groupFacade).should(never()).deleteGroups(anyList());
@@ -353,7 +352,7 @@ public class GroupsRestControllerTest {
         given(groupFacade.getAllGroups(any(Predicate.class), any(Pageable.class))).willReturn(groupPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/"))
+                get("/groups" + "/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
@@ -365,7 +364,7 @@ public class GroupsRestControllerTest {
     public void testGetGroup() throws Exception {
         given(groupFacade.getGroup(groupDTO1.getId())).willReturn(groupDTO1);
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId()))
+                get("/groups" + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
@@ -376,7 +375,7 @@ public class GroupsRestControllerTest {
     public void testGetGroupWithGroupNotFound() throws Exception {
         given(groupFacade.getGroup(groupDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}", groupDTO1.getId()))
+                get("/groups" + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
@@ -386,7 +385,7 @@ public class GroupsRestControllerTest {
     public void testGetRolesOfGroup() throws Exception {
         given(groupFacade.getRolesOfGroup(groupDTO1.getId())).willReturn(getRolesDTO());
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", groupDTO1.getId()))
+                get("/groups" + "/{id}/roles", groupDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
@@ -397,7 +396,7 @@ public class GroupsRestControllerTest {
     public void testGetRolesOfGroupWithExceptionFromFacade() throws Exception {
         given(groupFacade.getRolesOfGroup(groupDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.GROUPS_URL + "/{id}/roles", groupDTO1.getId()))
+                get("/groups" + "/{id}/roles", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("Group with id " + groupDTO1.getId() + " could not be found or some of microservice did not return status code 2xx.", ex.getLocalizedMessage());

@@ -7,7 +7,6 @@ import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.NewUserDTO;
@@ -35,7 +34,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -119,7 +117,7 @@ public class UsersRestControllerTest {
         given(userFacade.getUsers(any(Predicate.class), any(Pageable.class))).willReturn(userPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/"))
+                get("/users" + "/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
@@ -131,7 +129,7 @@ public class UsersRestControllerTest {
     public void testGetUser() throws Exception {
         given(userFacade.getUser(userDTO1.getId())).willReturn(userDTO1);
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId()))
+                get("/users" + "/{id}", userDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
@@ -142,7 +140,7 @@ public class UsersRestControllerTest {
     public void testGetUserWithUserNotFound() throws Exception {
         given(userFacade.getUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId()))
+                get("/users" + "/{id}", userDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
@@ -155,7 +153,7 @@ public class UsersRestControllerTest {
         given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willReturn(userPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", 1L))
+                get("/users" + "/except/in/group/{groupId}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
@@ -167,7 +165,7 @@ public class UsersRestControllerTest {
     public void testGetAllUsersNotInGivenGroupWithError() throws Exception {
         given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/except/in/group/{groupId}", getGroup().getId())
+                get("/users" + "/except/in/group/{groupId}", getGroup().getId())
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())
@@ -179,7 +177,7 @@ public class UsersRestControllerTest {
     public void testDeleteUser() throws Exception {
         given(userFacade.deleteUser(userDTO1.getId())).willReturn(getUserDeletionResponseDTO());
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId())
+                delete("/users" + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -191,7 +189,7 @@ public class UsersRestControllerTest {
     public void testDeleteUserNotFound() throws Exception {
         given(userFacade.deleteUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId())
+                delete("/users" + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
@@ -205,7 +203,7 @@ public class UsersRestControllerTest {
         userDeletionResponseDTO.setStatus(UserDeletionStatus.EXTERNAL_VALID);
         given(userFacade.deleteUser(userDTO1.getId())).willReturn(userDeletionResponseDTO);
         Exception ex = mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/{id}", userDTO1.getId())
+                delete("/users" + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
                 .andReturn().getResolvedException();
@@ -220,7 +218,7 @@ public class UsersRestControllerTest {
         deletionResponseDTO.setStatus(UserDeletionStatus.EXTERNAL_VALID);
         given(userFacade.deleteUsers(Arrays.asList(userDTO1.getId(), userDTO2.getId()))).willReturn(Arrays.asList(getUserDeletionResponseDTO(), deletionResponseDTO));
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                delete("/users" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(userDTO1.getId(), userDTO2.getId()))))
                 .andExpect(status().isOk())
@@ -232,7 +230,7 @@ public class UsersRestControllerTest {
     @Test
     public void testDeleteUsersWithNullRequestBody() throws Exception {
         mockMvc.perform(
-                delete(ApiEndpointsUserAndGroup.USERS_URL + "/")
+                delete("/users" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
@@ -243,7 +241,7 @@ public class UsersRestControllerTest {
     public void testGetRolesOfGroup() throws Exception {
         given(userFacade.getRolesOfUser(userDTO1.getId())).willReturn(getRolesDTO());
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", userDTO1.getId()))
+                get("/users" + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
@@ -253,7 +251,7 @@ public class UsersRestControllerTest {
     public void testGetRolesOfGroupWithExceptionFromFacade() throws Exception {
         given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.USERS_URL + "/{id}/roles", userDTO1.getId()))
+                get("/users" + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());

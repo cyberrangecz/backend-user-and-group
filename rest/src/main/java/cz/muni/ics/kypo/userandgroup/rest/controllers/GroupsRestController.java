@@ -12,7 +12,6 @@ import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupExcepti
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
@@ -34,10 +33,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup.GROUPS_URL;
-
 @RestController
-@RequestMapping(path = GROUPS_URL)
+@RequestMapping(path = "/groups")
 @Api(value = "Endpoint for Groups")
 public class GroupsRestController {
 
@@ -69,11 +66,9 @@ public class GroupsRestController {
     public ResponseEntity<Void> updateGroup(
             @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO updateGroupDTO) {
         Preconditions.checkNotNull(updateGroupDTO);
-
         if (updateGroupDTO.getDescription() == null || updateGroupDTO.getName() == null) {
             throw new InvalidParameterException("Group name neither group description cannot be null.");
         }
-
         try {
             groupFacade.updateGroup(updateGroupDTO);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -88,7 +83,6 @@ public class GroupsRestController {
             @ApiParam(value = "Id of group to remove users.", required = true) @PathVariable("id") final Long id,
             @ApiParam(value = "Ids of members to be removed from group.", required = true) @RequestBody List<Long> userIds) {
         Preconditions.checkNotNull(userIds);
-
         try {
             groupFacade.removeUsers(id, userIds);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -104,7 +98,6 @@ public class GroupsRestController {
     public ResponseEntity<GroupDTO> addUsers(
             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddUsersToGroupDTO addUsers) {
         Preconditions.checkNotNull(addUsers);
-
         try {
             groupFacade.addUsers(addUsers);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -125,7 +118,6 @@ public class GroupsRestController {
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.",
             required = true) @PathVariable("id") final Long id) {
         GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
-
         switch (groupDeletionResponseDTO.getStatus()) {
             case SUCCESS:
                 return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);

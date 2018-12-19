@@ -1,12 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
-import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
@@ -16,30 +14,24 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
-import static cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup.ROLES_URL;
-
 @RestController
-@RequestMapping(path = ROLES_URL)
+@RequestMapping(path = "/roles")
 @Api(value = "Endpoint for roles")
 public class RoleRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RoleRestController.class);
 
     private RoleFacade roleFacade;
-
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -59,7 +51,6 @@ public class RoleRestController {
         } catch (MicroserviceException e) {
             throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
-
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -71,6 +62,5 @@ public class RoleRestController {
         } catch (UserAndGroupFacadeException ex) {
             throw new ResourceNotFoundException("Role with given id " + id + " could not be found");
         }
-
     }
 }
