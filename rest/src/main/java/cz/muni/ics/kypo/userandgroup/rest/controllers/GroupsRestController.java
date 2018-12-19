@@ -15,6 +15,7 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
+import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -24,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +33,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+/**
+ * @author Jan Duda & Pavel Seda
+ */
 @RestController
 @RequestMapping(path = "/groups")
 @Api(value = "Endpoint for Groups")
@@ -48,7 +51,6 @@ public class GroupsRestController {
         this.groupFacade = groupFacade;
         this.objectMapper = objectMapper;
     }
-
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "POST", value = "Creates new group.", consumes = "application/json", produces = "application/json")
@@ -141,10 +143,11 @@ public class GroupsRestController {
         return new ResponseEntity<>(groupFacade.deleteGroups(ids), HttpStatus.OK);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get groups.", produces = "application/json")
+    @ApiPageableSwagger
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getGroups(@QuerydslPredicate(root = Role.class) Predicate predicate,
-                                            @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                            Pageable pageable,
                                             @RequestParam MultiValueMap<String, String> parameters,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
@@ -157,8 +160,8 @@ public class GroupsRestController {
         }
     }
 
-    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Get group with given id", produces = "application/json")
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.",
             required = true) @PathVariable("id") Long id) {
         try {
@@ -170,8 +173,8 @@ public class GroupsRestController {
         }
     }
 
-    @GetMapping(path = "/{id}/roles")
     @ApiOperation(httpMethod = "GET", value = "Returns all roles of group with given id.")
+    @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
         try {
@@ -183,8 +186,8 @@ public class GroupsRestController {
         }
     }
 
-    @PutMapping("/{groupId}/assign/{roleId}/in/microservice/{microserviceId}")
     @ApiOperation(httpMethod = "PUT", value = "Assign role with given role ID to group with given ID in chosen microservice")
+    @PutMapping("/{groupId}/assign/{roleId}/in/microservice/{microserviceId}")
     public ResponseEntity<Void> assignRoleInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
@@ -199,8 +202,8 @@ public class GroupsRestController {
         }
     }
 
-    @PutMapping("/{groupId}/remove/{roleId}/in/microservice/{microserviceId}")
     @ApiOperation(httpMethod = "PUT", value = "Cancel role with given role ID to group with given ID in chosen microservice")
+    @PutMapping("/{groupId}/remove/{roleId}/in/microservice/{microserviceId}")
     public ResponseEntity<Void> removeRoleToGroupInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
