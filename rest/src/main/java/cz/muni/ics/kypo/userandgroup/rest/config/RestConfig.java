@@ -44,8 +44,4 @@ public class RestConfig {
         return PropertyNamingStrategy.SNAKE_CASE;
     }
 
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
 }
