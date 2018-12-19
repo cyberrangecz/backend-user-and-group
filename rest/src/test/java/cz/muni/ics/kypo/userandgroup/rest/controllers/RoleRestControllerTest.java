@@ -49,7 +49,6 @@ public class RoleRestControllerTest {
     private RoleFacade roleFacade;
 
     @MockBean
-    @Qualifier("objMapperRESTApi")
     private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;

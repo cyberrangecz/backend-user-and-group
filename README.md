@@ -59,9 +59,6 @@ After step 2 you have to create properties file according to format below and sa
 server.port={port for service}
 server.servlet.context-path=/{context path for service}
 
-# spring-cloud
-spring.cloud.refresh.enabled = false
-
 # OpenID Connect
 kypo.idp.4oauth.introspectionURI=https://oidc.ics.muni.cz/oidc/introspect
 kypo.idp.4oauth.authorizationURI=https://oidc.ics.muni.cz/oidc/authorize
@@ -70,6 +67,15 @@ kypo.idp.4oauth.resource.clientSecret={your client secret from Self-service prot
 kypo.idp.4oauth.client.clientId={your client ID from Self-service client}
 kypo.idp.4oauth.scopes=openid, email, profile
 # you can add more scopes according to settings from step 1.
+
+
+# spring-cloud
+spring.cloud.refresh.enabled = false
+
+# Jackson (e.g. converting Java 8 dates to ISO format
+spring.jackson.serialization.write_dates_as_timestamps=false 
+spring.jackson.property-naming-strategy=SNAKE_CASE
+
 
 # DATASOURCE
 spring.datasource.url=jdbc:postgresql://{url to DB}

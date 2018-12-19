@@ -22,7 +22,6 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
@@ -47,7 +46,7 @@ public class GroupsRestController {
     private ObjectMapper objectMapper;
 
     @Autowired
-    public GroupsRestController(IDMGroupFacade groupFacade, @Qualifier("objMapperRESTApi") ObjectMapper objectMapper) {
+    public GroupsRestController(IDMGroupFacade groupFacade, ObjectMapper objectMapper) {
         this.groupFacade = groupFacade;
         this.objectMapper = objectMapper;
     }
