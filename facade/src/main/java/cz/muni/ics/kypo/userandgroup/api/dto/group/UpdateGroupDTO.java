@@ -45,7 +45,6 @@ public class UpdateGroupDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getName(), getDescription());
     }
 

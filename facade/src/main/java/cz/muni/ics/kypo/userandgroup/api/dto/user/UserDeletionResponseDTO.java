@@ -37,7 +37,6 @@ public class UserDeletionResponseDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getUser(), getStatus());
     }
 

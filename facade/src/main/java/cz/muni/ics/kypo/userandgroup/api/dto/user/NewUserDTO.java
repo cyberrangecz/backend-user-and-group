@@ -5,9 +5,7 @@ import java.util.Objects;
 public class NewUserDTO {
 
     private String fullName;
-
     private String login;
-
     private String mail;
 
     public String getFullName() {
@@ -50,7 +48,6 @@ public class NewUserDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getFullName(), getLogin(), getMail());
     }
 

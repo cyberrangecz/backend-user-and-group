@@ -5,17 +5,13 @@ import java.util.Objects;
 public class UserForGroupsDTO {
 
     private Long id;
-
     private String fullName;
-
     private String login;
-
     private String mail;
 
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -55,7 +51,6 @@ public class UserForGroupsDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getLogin());
     }
 

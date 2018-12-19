@@ -55,7 +55,6 @@ public class GroupForUsersDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getName());
     }
 

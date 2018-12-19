@@ -42,8 +42,12 @@ public class RoleRestController {
         this.objectMapper = objectMapper;
     }
 
+
+    @ApiOperation(httpMethod = "GET",
+            value = "Get all roles",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ApiPageableSwagger
-    @ApiOperation(httpMethod = "GET", value = "Get all roles", produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getRoles(Pageable pageable) {
         try {
@@ -56,7 +60,10 @@ public class RoleRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "GET", value = "Get role with given id", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(httpMethod = "GET",
+            value = "Get role with given id",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getRole(
             @ApiParam(value = "Id of role to be returned", required = true) @PathVariable("id") final Long id) {

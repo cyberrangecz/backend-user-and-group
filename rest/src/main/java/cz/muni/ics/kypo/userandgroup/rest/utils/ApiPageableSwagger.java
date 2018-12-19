@@ -21,4 +21,3 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
                 + "Default sort order is ascending. " + "Multiple sort criteria are supported.", example = "asc")})
 public @interface ApiPageableSwagger {
 }
-

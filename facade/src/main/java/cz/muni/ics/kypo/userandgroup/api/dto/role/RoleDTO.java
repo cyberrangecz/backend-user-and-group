@@ -3,10 +3,9 @@ package cz.muni.ics.kypo.userandgroup.api.dto.role;
 import java.util.Objects;
 
 public class RoleDTO {
+
     private Long id;
-
     private String roleType;
-
     private String nameOfMicroservice;
 
     public Long getId() {
@@ -45,7 +44,6 @@ public class RoleDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getRoleType(), getNameOfMicroservice());
     }
 

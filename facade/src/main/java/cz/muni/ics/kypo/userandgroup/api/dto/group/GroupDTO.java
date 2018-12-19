@@ -109,7 +109,6 @@ public class GroupDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getName(), getDescription());
     }
 

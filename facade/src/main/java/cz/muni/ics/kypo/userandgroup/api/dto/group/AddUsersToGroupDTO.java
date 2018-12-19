@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @author Jan Duda & Pavel Seda
+ */
 public class AddUsersToGroupDTO {
+
     private Long groupId;
-
     private List<Long> idsOfUsersToBeAdd = new ArrayList<>();
-
     private List<Long> idsOfGroupsOfImportedUsers = new ArrayList<>();
 
     public Long getGroupId() {
@@ -47,7 +49,6 @@ public class AddUsersToGroupDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getGroupId(), getIdsOfUsersToBeAdd(), getIdsOfGroupsOfImportedUsers());
     }
 

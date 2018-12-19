@@ -11,7 +11,6 @@ import java.util.*;
 
 /**
  * @author Pavel Šeda (441048)
- *
  */
 @Component
 public class BeanMappingImpl implements BeanMapping {
@@ -74,8 +73,8 @@ public class BeanMappingImpl implements BeanMapping {
         return (obj instanceof Collection) || (obj instanceof Map);
     }
 
-    private <T> PageResultResource.Pagination<T> createPagination(Page<?> objects) {
-        PageResultResource.Pagination<T> pageMetadata = new PageResultResource.Pagination<T>();
+    private <T> PageResultResource.Pagination createPagination(Page<?> objects) {
+        PageResultResource.Pagination pageMetadata = new PageResultResource.Pagination();
         pageMetadata.setNumber(objects.getNumber());
         pageMetadata.setNumberOfElements(objects.getNumberOfElements());
         pageMetadata.setSize(objects.getSize());

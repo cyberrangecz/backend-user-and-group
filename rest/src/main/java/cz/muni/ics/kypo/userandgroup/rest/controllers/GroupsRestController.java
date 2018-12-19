@@ -16,9 +16,9 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+
+import io.swagger.annotations.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +51,16 @@ public class GroupsRestController {
         this.objectMapper = objectMapper;
     }
 
+    @ApiOperation(httpMethod = "POST",
+            value = "Create new group.",
+            response = GroupDTO.class,
+            nickname = "createNewGroup",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Given group created.", response = GroupDTO.class),
+    })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "POST", value = "Creates new group.", consumes = "application/json", produces = "application/json")
     public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true) @RequestBody NewGroupDTO newGroupDTO) {
         Preconditions.checkNotNull(newGroupDTO);
         try {
@@ -62,8 +70,12 @@ public class GroupsRestController {
         }
     }
 
+    @ApiOperation(httpMethod = "PUT",
+            value = "Updates input group.",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "PUT", value = "Updates input group.", consumes = "application/json", produces = "application/json")
     public ResponseEntity<Void> updateGroup(
             @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO updateGroupDTO) {
         Preconditions.checkNotNull(updateGroupDTO);
@@ -78,8 +90,11 @@ public class GroupsRestController {
         }
     }
 
+    @ApiOperation(httpMethod = "PUT",
+            value = "Remove users from input group.",
+            consumes = MediaType.APPLICATION_JSON_VALUE
+    )
     @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "PUT", value = "Remove users from input group.")
     public ResponseEntity<Void> removeUsers(
             @ApiParam(value = "Id of group to remove users.", required = true) @PathVariable("id") final Long id,
             @ApiParam(value = "Ids of members to be removed from group.", required = true) @RequestBody List<Long> userIds) {
@@ -94,8 +109,12 @@ public class GroupsRestController {
         }
     }
 
+    @ApiOperation(httpMethod = "PUT",
+            value = "Add users to group.",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @PutMapping(path = "/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "PUT", value = "Add users to group.")
     public ResponseEntity<GroupDTO> addUsers(
             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddUsersToGroupDTO addUsers) {
         Preconditions.checkNotNull(addUsers);
@@ -109,13 +128,16 @@ public class GroupsRestController {
         }
     }
 
+    @ApiOperation(httpMethod = "DELETE",
+            value = "Tries to delete group with given id and returns if it was successful. \n" +
+                    "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role \n" +
+                    "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
+                    "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice\n" +
+                    "5) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE
+    )
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "DELETE", value = "Tries to delete group with given id and returns if it was successful. \n" +
-            "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role \n" +
-            "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
-            "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice\n" +
-            "5) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)",
-            produces = "application/json")
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.",
             required = true) @PathVariable("id") final Long id) {
         GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
@@ -128,25 +150,31 @@ public class GroupsRestController {
         }
     }
 
+    @ApiOperation(httpMethod = "DELETE",
+            value = "Tries to delete groups with given ids and returns groups and statuses of their deletion. \n" +
+                    "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role\n" +
+                    "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
+                    "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice\n" +
+                    "5) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)\n" +
+                    "6) ERROR - group could not be deleted, try it later\n 7) NOT_FOUND - group could not be found",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(httpMethod = "DELETE", value = "Tries to delete groups with given ids and returns groups and statuses of their deletion. \n" +
-            "Statuses: 1) SUCCESS - group was deleted\n 2) HAS_ROLE - group has at least one role\n" +
-            "3) EXTERNAL_VALID - group is from external source and was not marked as deleted\n" +
-            "4) MICROSERVICE_ERROR - some error occurred during deleting group in some microservice\n" +
-            "5) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)\n" +
-            "6) ERROR - group could not be deleted, try it later\n 7) NOT_FOUND - group could not be found",
-            consumes = "application/json", produces = "application/json")
     public ResponseEntity<List<GroupDeletionResponseDTO>> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
                                                                        @RequestBody List<Long> ids) {
         Preconditions.checkNotNull(ids);
         return new ResponseEntity<>(groupFacade.deleteGroups(ids), HttpStatus.OK);
     }
 
-    @ApiOperation(httpMethod = "GET", value = "Get groups.", produces = "application/json")
+    @ApiOperation(httpMethod = "GET",
+            value = "Get groups.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ApiPageableSwagger
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getGroups(@QuerydslPredicate(root = Role.class) Predicate predicate,
                                             Pageable pageable,
+                                            @ApiParam(value = "Parameters for filtering the objects.", required = false)
                                             @RequestParam MultiValueMap<String, String> parameters,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
@@ -159,7 +187,10 @@ public class GroupsRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "GET", value = "Get group with given id", produces = "application/json")
+    @ApiOperation(httpMethod = "GET",
+            value = "Get group with given id",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.",
             required = true) @PathVariable("id") Long id) {
@@ -172,7 +203,10 @@ public class GroupsRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "GET", value = "Returns all roles of group with given id.")
+    @ApiOperation(httpMethod = "GET",
+            value = "Returns all roles of group with given id.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
@@ -185,7 +219,9 @@ public class GroupsRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "PUT", value = "Assign role with given role ID to group with given ID in chosen microservice")
+    @ApiOperation(httpMethod = "PUT",
+            value = "Assign role with given role ID to group with given ID in chosen microservice"
+    )
     @PutMapping("/{groupId}/assign/{roleId}/in-microservices/{microserviceId}")
     public ResponseEntity<Void> assignRoleInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
@@ -201,7 +237,9 @@ public class GroupsRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "PUT", value = "Cancel role with given role ID to group with given ID in chosen microservice")
+    @ApiOperation(httpMethod = "PUT",
+            value = "Cancel role with given role ID to group with given ID in chosen microservice"
+    )
     @PutMapping("/{groupId}/remove/{roleId}/in-microservices/{microserviceId}")
     public ResponseEntity<Void> removeRoleToGroupInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,

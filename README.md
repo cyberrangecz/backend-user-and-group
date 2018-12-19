@@ -56,8 +56,8 @@ microservices:
 
 After step 2 you have to create properties file according to format below and save it.
 ```properties
-server.port={port for service}
-server.servlet.context-path=/{context path for service}
+server.port={port for service} # e.g., 8081
+server.servlet.context-path=/kypo2-rest-user-and-group/api/v1
 
 # OpenID Connect
 kypo.idp.4oauth.introspectionURI=https://oidc.ics.muni.cz/oidc/introspect

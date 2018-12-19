@@ -24,16 +24,17 @@ public class PageResultResource<E> {
     private List<E> content;
     @JsonProperty(required = true)
     @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
-    private Pagination<E> pagination;
+    private Pagination pagination;
 
-    public PageResultResource() {}
+    public PageResultResource() {
+    }
 
     public PageResultResource(List<E> content) {
         super();
         this.content = content;
     }
 
-    public PageResultResource(List<E> content, Pagination<E> pageMetadata) {
+    public PageResultResource(List<E> content, Pagination pageMetadata) {
         super();
         this.content = content;
         this.pagination = pageMetadata;
@@ -47,32 +48,34 @@ public class PageResultResource<E> {
         this.content = content;
     }
 
-    public Pagination<E> getPagination() {
+    public Pagination getPagination() {
         return pagination;
     }
 
-    public void setPagination(Pagination<E> pagination) {
+    public void setPagination(Pagination pagination) {
         this.pagination = pagination;
     }
 
-    public static class Pagination<T> {
-        @ApiModelProperty(value = "Page number.")
+    public static class Pagination {
+
+        @ApiModelProperty(value = "Page number.", example = "1")
         @JsonProperty(required = true)
         private int number;
-        @ApiModelProperty(value = "Number of elements in page.")
+        @ApiModelProperty(value = "Number of elements in page.", example = "20")
         @JsonProperty(required = true)
         private int numberOfElements;
-        @ApiModelProperty(value = "Page size.")
+        @ApiModelProperty(value = "Page size.", example = "20")
         @JsonProperty(required = true)
         private int size;
-        @ApiModelProperty(value = "Total number of elements in this resource (in all Pages).")
+        @ApiModelProperty(value = "Total number of elements in this resource (in all Pages).", example = "100")
         @JsonProperty(required = true)
         private long totalElements;
-        @ApiModelProperty(value = "Total number of pages.")
+        @ApiModelProperty(value = "Total number of pages.", example = "5")
         @JsonProperty(required = true)
         private int totalPages;
 
-        public Pagination() {}
+        public Pagination() {
+        }
 
         public Pagination(int number, int numberOfElements, int size, long totalElements, int totalPages) {
             super();
@@ -125,16 +128,15 @@ public class PageResultResource<E> {
 
         @Override
         public String toString() {
-            return "PageMetadata [number=" + number + ", numberOfElements=" + numberOfElements + ", size=" + size + ", totalElements=" + totalElements
-                    + ", totalPages=" + totalPages + "]";
+            return "PageMetadata [number=" + number + ", numberOfElements=" + numberOfElements + ", size=" + size + ", totalElements="
+                    + totalElements + ", totalPages=" + totalPages + "]";
         }
     }
 
     @Override
     public String toString() {
-        return "PageResultDTO [content=" + content + ", pageMetadata=" + pagination + ", getContent()=" + getContent() + ", getPageMetadata()=" + getPagination()
-                + "]";
+        return "PageResultDTO [content=" + content + ", pageMetadata=" + pagination + ", getContent()=" + getContent() + ", getPageMetadata()="
+                + getPagination() + "]";
     }
 
 }
-

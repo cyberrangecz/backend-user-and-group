@@ -7,11 +7,8 @@ import java.util.Objects;
 public class MicroserviceForGroupDeletionDTO {
 
     private Long id;
-
     private String name;
-
     private HttpStatus httpStatus;
-
     private String responseMessage;
 
     public Long getId() {
