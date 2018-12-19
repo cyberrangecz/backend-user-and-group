@@ -57,7 +57,6 @@ public class UsersRestControllerTest {
     private UsersRestController usersRestController;
 
     @MockBean
-    @Qualifier("objMapperRESTApi")
     private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;

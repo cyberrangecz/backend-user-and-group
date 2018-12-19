@@ -60,7 +60,6 @@ public class GroupsRestControllerTest {
     private IDMGroupFacade groupFacade;
 
     @MockBean
-    @Qualifier("objMapperRESTApi")
     private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;
