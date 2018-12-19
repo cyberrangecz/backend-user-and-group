@@ -59,10 +59,8 @@ After step 2 you have to create properties file according to format below and sa
 server.port={port for service}
 server.servlet.context-path=/{context path for service}
 
-# Logging
-logging.level.org.springframework.web=DEBUG
-logging.level.org.hibernate=ERROR
-logging.level.org.mitre.openid.connect.binder.service=DEBUG
+# spring-cloud
+spring.cloud.refresh.enabled = false
 
 # OpenID Connect
 kypo.idp.4oauth.introspectionURI=https://oidc.ics.muni.cz/oidc/introspect
@@ -86,6 +84,11 @@ spring.flyway.url=jdbc:postgresql://{url to DB}
 spring.flyway.user={user in DB}
 spring.flyway.password={password for user to DB}
 spring.flyway.table=schema_version
+
+# Logging
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate=ERROR
+logging.level.org.mitre.openid.connect.binder.service=DEBUG
 
 path.to.file.with.initial.users.and.service={path to YAML file from step 2}
 ```
