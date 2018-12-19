@@ -27,10 +27,15 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.version>3.8.0</maven.compiler.version>
 
-        <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
-        <swagger.version>2.8.0</swagger.version>
+        <!--swagger versions -->
+        <swagger.version>2.9.2</swagger.version>
+        <swagger.annotations>1.5.21</swagger.annotations>
+
         <mitre.oidc.version>1.3.2</mitre.oidc.version>
+        <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
+
         <modelmapper.version>0.7.5</modelmapper.version>
+
         <jackson.version>2.9.5</jackson.version>
         <squiggly.filter.jackson.version>1.3.11</squiggly.filter.jackson.version>
     </properties>
@@ -69,6 +74,41 @@
                 <version>${swagger.version}</version>
                 <scope>compile</scope>
             </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-bean-validators</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-core</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-schema</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-spi</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-spring-web</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger.annotations}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>${swagger.annotations}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.modelmapper</groupId>
@@ -83,6 +123,23 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <modules>
         <module>persistence</module>

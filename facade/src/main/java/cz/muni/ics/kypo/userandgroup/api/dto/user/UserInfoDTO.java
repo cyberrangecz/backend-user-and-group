@@ -9,13 +9,9 @@ import java.util.Set;
 public class UserInfoDTO {
 
     private Long id;
-
     private String fullName;
-
     private String login;
-
     private String mail;
-
     private Set<RoleDTO> roles = new HashSet<>();
 
     public Long getId() {

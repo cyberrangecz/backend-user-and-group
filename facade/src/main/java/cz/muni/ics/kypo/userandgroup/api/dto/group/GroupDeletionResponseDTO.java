@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class GroupDeletionResponseDTO {
-    private Long id;
 
+    private Long id;
     private List<MicroserviceForGroupDeletionDTO> microserviceForGroupDeletionDTOs;
 
     private GroupDeletionStatus status;
@@ -56,7 +56,6 @@ public class GroupDeletionResponseDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getStatus());
     }
 

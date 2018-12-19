@@ -72,6 +72,38 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-models</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-bean-validators</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-schema</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-spi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-spring-web</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -107,17 +139,17 @@
                         <apiSource>
                             <springmvc>true</springmvc>
                             <locations>
-                                <location>cz.muni.ics.kypo.training.rest.controllers</location>
+                                <location>cz.muni.ics.kypo.userandgroup.rest.controllers</location>
                             </locations>
                             <schemes>http,https</schemes>
                             <host>localhost:8080</host>
-                            <basePath>/kypo2-user-and-group/api/v1</basePath>
+                            <basePath>/kypo2-rest-user-and-group/api/v1</basePath>
                             <info>
-                                <title>KYPO2 Trainings - API Reference</title>
+                                <title>KYPO2 User and Group - API Reference</title>
                                 <version>Version: 1.0.0</version>
-                                <description>Kypo Training API Reference Description.</description>
+                                <description>Kypo User and Group Reference Description.</description>
                                 <contact>
-                                    <email>pavelseda@email.cz</email>
+                                    <email>441048@mail.muni.cz</email>
                                     <name>Pavel Seda</name>
                                     <url>https://is.muni.cz/auth/osoba/441048</url>
                                 </contact>

@@ -59,7 +59,6 @@ public class NewGroupDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getName(), getDescription());
     }
 
