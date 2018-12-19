@@ -68,14 +68,12 @@ kypo.idp.4oauth.client.clientId={your client ID from Self-service client}
 kypo.idp.4oauth.scopes=openid, email, profile
 # you can add more scopes according to settings from step 1.
 
-
 # spring-cloud
 spring.cloud.refresh.enabled = false
 
 # Jackson (e.g. converting Java 8 dates to ISO format
 spring.jackson.serialization.write_dates_as_timestamps=false 
 spring.jackson.property-naming-strategy=SNAKE_CASE
-
 
 # DATASOURCE
 spring.datasource.url=jdbc:postgresql://{url to DB}

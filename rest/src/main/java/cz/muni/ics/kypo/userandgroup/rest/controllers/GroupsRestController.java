@@ -78,7 +78,7 @@ public class GroupsRestController {
         }
     }
 
-    @PutMapping(path = "/{id}/removeUsers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Remove users from input group.")
     public ResponseEntity<Void> removeUsers(
             @ApiParam(value = "Id of group to remove users.", required = true) @PathVariable("id") final Long id,
@@ -94,7 +94,7 @@ public class GroupsRestController {
         }
     }
 
-    @PutMapping(path = "/addUsers", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "PUT", value = "Add users to group.")
     public ResponseEntity<GroupDTO> addUsers(
             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddUsersToGroupDTO addUsers) {
@@ -186,7 +186,7 @@ public class GroupsRestController {
     }
 
     @ApiOperation(httpMethod = "PUT", value = "Assign role with given role ID to group with given ID in chosen microservice")
-    @PutMapping("/{groupId}/assign/{roleId}/in/microservice/{microserviceId}")
+    @PutMapping("/{groupId}/assign/{roleId}/in-microservices/{microserviceId}")
     public ResponseEntity<Void> assignRoleInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
@@ -202,7 +202,7 @@ public class GroupsRestController {
     }
 
     @ApiOperation(httpMethod = "PUT", value = "Cancel role with given role ID to group with given ID in chosen microservice")
-    @PutMapping("/{groupId}/remove/{roleId}/in/microservice/{microserviceId}")
+    @PutMapping("/{groupId}/remove/{roleId}/in-microservices/{microserviceId}")
     public ResponseEntity<Void> removeRoleToGroupInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,

@@ -85,7 +85,7 @@ public class UsersRestController {
 
     @ApiPageableSwagger
     @ApiOperation(httpMethod = "GET", value = "Gets all users except users in given group.", produces = "application/json")
-    @GetMapping(path = "/except/in/group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/not-in-groups/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getAllUsersNotInGivenGroup(
             @ApiParam(value = "Id of group whose users do not get.", required = true)
             @PathVariable("groupId") final Long groupId,
