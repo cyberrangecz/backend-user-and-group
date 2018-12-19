@@ -2,13 +2,10 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
-import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import org.junit.Before;
@@ -19,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
@@ -105,7 +101,7 @@ public class RoleRestControllerTest {
         given(roleFacade.getAllRoles(any(Pageable.class))).willReturn(rolePageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.ROLES_URL + "/"))
+                get("/roles" + "/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
@@ -117,7 +113,7 @@ public class RoleRestControllerTest {
     public void getRole() throws Exception {
         given(roleFacade.getById(adminRoleDTO.getId())).willReturn(adminRoleDTO);
         mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRoleDTO.getId()))
+                get("/roles" + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(adminRoleDTO)));
@@ -128,7 +124,7 @@ public class RoleRestControllerTest {
     public void getRoleNotFoundShouldThrowException() throws Exception {
         given(roleFacade.getById(adminRoleDTO.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get(ApiEndpointsUserAndGroup.ROLES_URL + "/{id}", adminRoleDTO.getId()))
+                get("/roles" + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals("Role with given id " + adminRoleDTO.getId() + " could not be found", ex.getLocalizedMessage());

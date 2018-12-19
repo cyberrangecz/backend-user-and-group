@@ -9,16 +9,11 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.rest.ApiEndpointsUserAndGroup;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
-import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -28,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,10 +31,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(path = ApiEndpointsUserAndGroup.USERS_URL)
+@RequestMapping(path = "/users")
 @Api(value = "Endpoint for Users")
 public class UsersRestController {
 
@@ -58,7 +51,7 @@ public class UsersRestController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets all users.", produces = "application/json")
     public ResponseEntity<Object> getUsers(@QuerydslPredicate(root = Role.class) Predicate predicate,
-                                           @PageableDefault(size = 10, page = 0) Pageable pageable,
+                                           Pageable pageable,
                                            @RequestParam MultiValueMap<String, String> parameters,
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
@@ -88,11 +81,12 @@ public class UsersRestController {
 
     @GetMapping(path = "/except/in/group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(httpMethod = "GET", value = "Gets all users except users in given group.", produces = "application/json")
-    public ResponseEntity<Object> getAllUsersNotInGivenGroup(@ApiParam(value = "Id of group whose users do not get.",
-            required = true) @PathVariable("groupId") final Long groupId,
-                                                             @PageableDefault(size = 10, page = 0) Pageable pageable,
-                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                             @RequestParam(value = "fields", required = false) String fields) {
+    public ResponseEntity<Object> getAllUsersNotInGivenGroup(
+            @ApiParam(value = "Id of group whose users do not get.", required = true)
+            @PathVariable("groupId") final Long groupId,
+            Pageable pageable,
+            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+            @RequestParam(value = "fields", required = false) String fields) {
         try {
             PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, pageable);
             Squiggly.init(objectMapper, fields);
@@ -108,8 +102,9 @@ public class UsersRestController {
     @ApiOperation(httpMethod = "DELETE", value = "Tries to delete user with given screen name and returns if it was successful. \n" +
             "Statuses: 1) SUCCESS - user was deleted\n 2) EXTERNAL_VALID - user is from external source and was not marked as deleted",
             produces = "application/json")
-    public ResponseEntity<UserDeletionResponseDTO> deleteUser(@ApiParam(value = "Screen name of user to be deleted.",
-            required = true) @PathVariable("id") final Long id) {
+    public ResponseEntity<UserDeletionResponseDTO> deleteUser(
+            @ApiParam(value = "Screen name of user to be deleted.", required = true)
+            @PathVariable("id") final Long id) {
         try {
             UserDeletionResponseDTO userDeletionResponseDTO = userFacade.deleteUser(id);
 
@@ -131,7 +126,7 @@ public class UsersRestController {
             "3) ERROR - user could not be deleted, try it later\n 4) NOT_FOUND - user could not be found",
             consumes = "application/json", produces = "application/json")
     public ResponseEntity<List<UserDeletionResponseDTO>> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
-                                                                         @RequestBody List<Long> ids) {
+                                                                     @RequestBody List<Long> ids) {
         Preconditions.checkNotNull(ids);
         return new ResponseEntity<>(userFacade.deleteUsers(ids), HttpStatus.OK);
     }
