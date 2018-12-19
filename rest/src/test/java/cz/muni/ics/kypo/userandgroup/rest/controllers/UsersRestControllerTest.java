@@ -152,7 +152,7 @@ public class UsersRestControllerTest {
         given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willReturn(userPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
-                get("/users" + "/except/in/group/{groupId}", 1L))
+                get("/users" + "/not-in-groups/{groupId}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
@@ -164,7 +164,7 @@ public class UsersRestControllerTest {
     public void testGetAllUsersNotInGivenGroupWithError() throws Exception {
         given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
-                get("/users" + "/except/in/group/{groupId}", getGroup().getId())
+                get("/users" + "/not-in-groups/{groupId}", getGroup().getId())
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isServiceUnavailable())

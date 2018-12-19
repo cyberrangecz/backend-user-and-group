@@ -198,7 +198,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testRemoveUsers() throws Exception {
         mockMvc.perform(
-                put("/groups" + "/{id}/removeUsers", groupDTO1.getId())
+                put("/groups" + "/{id}" + "/users", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
                 .andExpect(status().isNoContent());
@@ -209,7 +209,7 @@ public class GroupsRestControllerTest {
     public void testRemoveUsersWithUserAndGroupFacadeException() throws Exception {
         willThrow(UserAndGroupFacadeException.class).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
         Exception ex = mockMvc.perform(
-                put("/groups" + "/{id}/removeUsers", 100L)
+                put("/groups" + "/{id}" + "/users", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotFound())
@@ -222,7 +222,7 @@ public class GroupsRestControllerTest {
     public void testRemoveUsersWithExternalSourceException() throws Exception {
         willThrow(ExternalSourceException.class).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
         Exception ex = mockMvc.perform(
-                put("/groups" + "/{id}/removeUsers", 100L)
+                put("/groups" + "/{id}" + "/users", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotModified())
@@ -234,7 +234,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testRemoveUsersWithNullRequestBody() throws Exception {
         mockMvc.perform(
-                put("/groups" + "/{id}/removeUsers", 1L)
+                put("/groups" + "/{id}/users", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
@@ -252,7 +252,7 @@ public class GroupsRestControllerTest {
         groupDTO1.setUsers(Collections.singletonList(user));
 
         mockMvc.perform(
-                put("/groups" + "/addUsers")
+                put("/groups" + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNoContent());
@@ -263,7 +263,7 @@ public class GroupsRestControllerTest {
     public void testAddUsersWithNotFoundError() throws Exception {
         willThrow(new UserAndGroupFacadeException()).given(groupFacade).addUsers(any(AddUsersToGroupDTO.class));
         Exception ex = mockMvc.perform(
-                put("/groups" + "/addUsers")
+                put("/groups" + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotFound())
@@ -275,7 +275,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testAddUsersWithNullRequestBody() throws Exception {
         mockMvc.perform(
-                put("/groups" + "/addUsers")
+                put("/groups" + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
@@ -287,7 +287,7 @@ public class GroupsRestControllerTest {
     public void testAddUsersWithExternalSourceException() throws Exception {
         willThrow(ExternalSourceException.class).given(groupFacade).addUsers(any(AddUsersToGroupDTO.class));
         Exception ex = mockMvc.perform(
-                put("/groups" + "/addUsers")
+                put("/groups" + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotModified())
