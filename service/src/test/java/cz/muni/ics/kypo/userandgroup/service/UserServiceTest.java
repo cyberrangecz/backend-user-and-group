@@ -23,6 +23,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.service.impl.UserServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
@@ -32,15 +33,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityNotFoundException;
@@ -52,15 +48,11 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
 public class UserServiceTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Autowired
     private UserService userService;
 
     @MockBean
@@ -78,12 +70,10 @@ public class UserServiceTest {
     private Pageable pageable;
     private Predicate predicate;
 
-    @SpringBootApplication
-    static class TestConfiguration {
-    }
-
     @Before
     public void init() {
+
+        userService = new UserServiceImpl(userRepository, groupRepository);
 
         user1 = new User();
         user1.setId(1L);

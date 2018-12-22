@@ -26,6 +26,7 @@ import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.service.impl.IDMGroupServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
@@ -35,20 +36,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
@@ -59,16 +51,11 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
-@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.service"})
 public class IDMGroupServiceTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Autowired
     private IDMGroupService groupService;
 
     @MockBean
@@ -90,12 +77,10 @@ public class IDMGroupServiceTest {
     private Pageable pageable;
     private Predicate predicate;
 
-    @SpringBootApplication
-    static class TestConfiguration {
-    }
-
     @Before
     public void init() {
+        groupService = new IDMGroupServiceImpl(groupRepository, roleRepository, userRepository);
+
         group1 = new IDMGroup("group1", "Great group1");
         group1.setId(1L);
 

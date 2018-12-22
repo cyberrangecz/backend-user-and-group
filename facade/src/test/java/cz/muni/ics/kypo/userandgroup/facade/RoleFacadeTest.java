@@ -3,10 +3,12 @@ package cz.muni.ics.kypo.userandgroup.facade;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.config.FacadeTestConfig;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.facade.impl.RoleFacadeImpl;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
@@ -19,19 +21,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
+import org.mockito.MockitoAnnotations;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -44,53 +41,45 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
-@ComponentScan(basePackages = {
-        "cz.muni.ics.kypo.userandgroup.facade",
-        "cz.muni.ics.kypo.userandgroup.service",
-        "cz.muni.ics.kypo.userandgroup.mapping"
-})
-@Import(FacadeTestConfig.class)
 public class RoleFacadeTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Autowired
     private RoleFacade roleFacade;
 
-    @MockBean
+    @Mock
     private RoleService roleService;
 
-    @MockBean
+    @Mock
     private RestTemplate restTemplate;
 
-    @MockBean
+    @Mock
     private MicroserviceService microserviceService;
 
-    @MockBean
+    @Mock
     private IDMGroupService idmGroupService;
+
+    private BeanMapping beanMapping;
 
     private Role r1 ;
     private RoleDTO roleDTO1;
     private Predicate predicate;
     private Pageable pageable;
 
-    @SpringBootApplication
-    static class TestConfiguration {
-    }
-
     @Before
     public void init() {
+        MockitoAnnotations.initMocks(this);
+
+        beanMapping = new BeanMappingImpl(new ModelMapper());
+        roleFacade = new RoleFacadeImpl(roleService, microserviceService, restTemplate, beanMapping);
+
         r1 = new Role();
         r1.setId(1L);
         r1.setRoleType(RoleType.ADMINISTRATOR);
