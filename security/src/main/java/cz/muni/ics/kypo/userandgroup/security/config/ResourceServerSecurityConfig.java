@@ -21,7 +21,6 @@ import java.util.Set;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Import({PersistenceConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.security"})
-@PropertySource("file:${path-to-config-file}")
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
     @Value("${kypo.idp.4oauth.introspectionURI}")

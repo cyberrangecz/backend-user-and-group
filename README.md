@@ -71,6 +71,9 @@ kypo.idp.4oauth.scopes=openid, email, profile
 # spring-cloud
 spring.cloud.refresh.enabled = false
 
+#to fix: Method jmxMBeanExporter
+spring.jmx.enabled = false
+
 # Jackson (e.g. converting Java 8 dates to ISO format
 spring.jackson.serialization.write_dates_as_timestamps=false 
 spring.jackson.property-naming-strategy=SNAKE_CASE

@@ -26,9 +26,9 @@ import org.springframework.web.bind.annotation.*;
 /**
  * @author Jan Duda & Pavel Seda
  */
+@Api(value = "Endpoint for roles")
 @RestController
 @RequestMapping(path = "/roles")
-@Api(value = "Endpoint for roles")
 public class RoleRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(RoleRestController.class);
