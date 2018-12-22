@@ -5,13 +5,16 @@ import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.config.FacadeTestConfig;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.facade.impl.IDMGroupFacadeImpl;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.mapping.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import org.junit.Before;
@@ -19,18 +22,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
+import org.mockito.MockitoAnnotations;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -44,38 +42,32 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
-@EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
-@ComponentScan(basePackages = {
-        "cz.muni.ics.kypo.userandgroup.facade",
-        "cz.muni.ics.kypo.userandgroup.service",
-        "cz.muni.ics.kypo.userandgroup.mapping"
-})
-@Import(FacadeTestConfig.class)
 public class IDMGroupFacadeTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Autowired
     private IDMGroupFacade groupFacade;
 
-    @MockBean
+    @Mock
     private IDMGroupService groupService;
 
-    @MockBean
+    @Mock
     private MicroserviceService microserviceService;
 
-    @MockBean
+    @Mock
     private RestTemplate restTemplate;
+
+    @Mock
+    private RoleService roleService;
+
+    private BeanMapping beanMapping;
 
     private IDMGroup g1, g2;
     private GroupDTO groupDTO;
@@ -86,12 +78,13 @@ public class IDMGroupFacadeTest {
     private Predicate predicate;
     private Pageable pageable;
 
-    @SpringBootApplication
-    static class TestConfiguration {
-    }
-
     @Before
     public void init() {
+        MockitoAnnotations.initMocks(this);
+
+        beanMapping = new BeanMappingImpl(new ModelMapper());
+        groupFacade = new IDMGroupFacadeImpl(groupService, microserviceService, roleService, beanMapping, restTemplate);
+
         user1 = new User();
         user1.setId(1L);
         user1.setLogin("user1");
