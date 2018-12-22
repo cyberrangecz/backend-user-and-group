@@ -12,6 +12,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "cz.muni.ics.kypo.userandgroup.repository")
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup"})
 @EntityScan(basePackages = "cz.muni.ics.kypo.userandgroup.model")
-@PropertySource("file:${path-to-config-file}")
+@PropertySource("file:${path.to.config.file}")
 public class PersistenceConfig {
 }

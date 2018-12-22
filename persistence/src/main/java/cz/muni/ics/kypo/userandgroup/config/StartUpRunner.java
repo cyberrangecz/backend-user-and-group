@@ -25,7 +25,6 @@ import java.util.*;
 import static cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE;
 
 @Component
-@PropertySource("file:${path-to-config-file}")
 public class StartUpRunner implements ApplicationRunner {
 
     private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);

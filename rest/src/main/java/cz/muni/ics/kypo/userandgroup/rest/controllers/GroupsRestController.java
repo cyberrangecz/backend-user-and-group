@@ -35,9 +35,9 @@ import java.util.*;
 /**
  * @author Jan Duda & Pavel Seda
  */
+@Api(value = "Endpoint for Groups")
 @RestController
 @RequestMapping(path = "/groups")
-@Api(value = "Endpoint for Groups")
 public class GroupsRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(GroupsRestController.class);

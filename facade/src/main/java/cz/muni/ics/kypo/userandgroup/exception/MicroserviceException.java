@@ -2,8 +2,6 @@ package cz.muni.ics.kypo.userandgroup.exception;
 
 public class MicroserviceException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
-
     public MicroserviceException() {
         super();
     }

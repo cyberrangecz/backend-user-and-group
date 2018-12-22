@@ -42,28 +42,23 @@
             <artifactId>kypo2-facade-user-and-group</artifactId>
             <version>1.0.0</version>
         </dependency>
-
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
             <artifactId>kypo2-security-user-and-group</artifactId>
             <version>1.0.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
         </dependency>
-
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
@@ -104,18 +99,11 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-spring-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.modelmapper</groupId>
-            <artifactId>modelmapper</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.github.bohnman</groupId>
             <artifactId>squiggly-filter-jackson</artifactId>
@@ -143,11 +131,11 @@
                             </locations>
                             <schemes>http,https</schemes>
                             <host>localhost:8080</host>
-                            <basePath>/kypo2-rest-user-and-group/api/v1</basePath>
+                            <basePath>/kypo2-rest-training/api/v1</basePath>
                             <info>
-                                <title>KYPO2 User and Group - API Reference</title>
+                                <title>KYPO2 Trainings - API Reference</title>
                                 <version>Version: 1.0.0</version>
-                                <description>Kypo User and Group Reference Description.</description>
+                                <description>Kypo Training API Reference Description.</description>
                                 <contact>
                                     <email>441048@mail.muni.cz</email>
                                     <name>Pavel Seda</name>
@@ -196,22 +184,22 @@
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
-                <version>1.5.3</version>
+                <version>1.5.6</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.asciidoctor</groupId>
                         <artifactId>asciidoctorj</artifactId>
-                        <version>1.5.4</version>
+                        <version>1.5.8.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.asciidoctor</groupId>
                         <artifactId>asciidoctorj-pdf</artifactId>
-                        <version>1.5.0-alpha.11</version>
+                        <version>1.5.0-alpha.16</version>
                     </dependency>
                     <dependency>
                         <groupId>org.jruby</groupId>
                         <artifactId>jruby-complete</artifactId>
-                        <version>1.7.21</version>
+                        <version>9.2.4.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>

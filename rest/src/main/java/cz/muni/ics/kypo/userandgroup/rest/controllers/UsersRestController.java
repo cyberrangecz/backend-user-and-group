@@ -35,9 +35,9 @@ import java.util.*;
 /**
  * @author Jan Duda & Pavel Seda
  */
+@Api(value = "Endpoint for Users")
 @RestController
 @RequestMapping(path = "/users")
-@Api(value = "Endpoint for Users")
 public class UsersRestController {
 
     private static Logger LOGGER = LoggerFactory.getLogger(UsersRestController.class);
