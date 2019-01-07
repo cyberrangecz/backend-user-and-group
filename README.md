@@ -100,12 +100,31 @@ logging.level.org.mitre.openid.connect.binder.service=DEBUG
 path.to.file.with.initial.users.and.service={path to YAML file from step 2}
 ```
 
+
+
 ## Start the project
 
+### Installing the project
 First install it with command bellow:
 ```
-mvn install -Dpath-to-config-file={path to properties file from step 3}
+mvn clean install
 ```
+
+### Database migration
+Prerequisites running PostgreSQL and created the database named 'user-and-group' with schema 'public'.
+To migrate database data it is necessary to run these two scripts:
+
+```
+$ mvn flyway:migrate -Djdbc.url=jdbc:postgresql://{url to DB}/user-and-group -Djdbc.username={username in DB} -Djdbc.password={password to DB}
+```
+e.g.:
+```
+$ mvn flyway:migrate -Djdbc.url=jdbc:postgresql://localhost:5432/user-and-group -Djdbc.username=postgres -Djdbc.password=postgre
+```
+
+NOTE: This script must be run in [persistence] (https://gitlab.ics.muni.cz/kypo2/services-and-portlets/kypo2-user-and-group/tree/master/persistence) module.
+
+### Start the project
 
 To start the project you have to go to module `rest` and start it:
 ```
