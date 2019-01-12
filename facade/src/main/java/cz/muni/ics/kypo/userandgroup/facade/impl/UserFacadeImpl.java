@@ -149,7 +149,7 @@ public class UserFacadeImpl implements UserFacade {
                     for (int i = 1; i < u.getGroups().size(); i++) {
                         groupsIds.append(",").append(u.getGroups().get(i).getId());
                     }
-                    String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + groupsIds.toString();
+                    String url = microservice.getEndpoint() + "/roles/roles-of-groups?ids=" + groupsIds.toString();
                     HttpHeaders headers = new HttpHeaders();
                     headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                     HttpEntity<List<Long>> entity = new HttpEntity<>(null, headers);
