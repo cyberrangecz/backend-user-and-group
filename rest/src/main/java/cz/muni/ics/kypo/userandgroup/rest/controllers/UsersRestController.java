@@ -182,4 +182,21 @@ public class UsersRestController {
             throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
     }
+
+    @ApiOperation(httpMethod = "GET",
+            value = "Returns basic details of user who is logged in",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @GetMapping(path = "/basic-info")
+    public ResponseEntity<UserBasicInfoDTO> getBasicUserInfo(OAuth2Authentication authentication) {
+        try {
+            return new ResponseEntity<>(userFacade.getUserBasicInfo(authentication), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
+            String sub = credentials.get("sub").getAsString();
+            throw new ResourceNotFoundException("Logged in user with login " + sub + " could not be found in database.");
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
+        }
+    }
 }

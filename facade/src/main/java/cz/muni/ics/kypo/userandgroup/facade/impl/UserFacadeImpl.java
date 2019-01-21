@@ -10,6 +10,7 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -185,18 +186,18 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     public UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException {
-        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-        String sub = credentials.get("sub").getAsString();
-        User loggedInUser = null;
-        try {
-            loggedInUser = userService.getUserByLogin(sub);
-        } catch (UserAndGroupServiceException ex) {
-            LOG.error("Error while getting info about user with sub: " + sub + ".");
-            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
-        }
+        User loggedInUser = getLoggedInUser(authentication);
         Set<RoleDTO> rolesOfUser = getRolesOfUser(loggedInUser.getId());
 
         return convertToUserInfoDTO(loggedInUser, rolesOfUser);
+    }
+
+    @Override
+    public UserBasicInfoDTO getUserBasicInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException {
+        User loggedInUser = getLoggedInUser(authentication);
+        Set<RoleDTO> rolesOfUser = beanMapping.mapToSet(userService.getRolesOfUser(loggedInUser.getId()), RoleDTO.class);
+
+        return convertToUserBasicInfoDTO(loggedInUser, rolesOfUser);
     }
 
     @Override
@@ -210,10 +211,31 @@ public class UserFacadeImpl implements UserFacade {
 
     private UserInfoDTO convertToUserInfoDTO(User user, Set<RoleDTO> roles) {
         UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
-
-        Set<RoleDTO> rolesDTOs = roles.stream().map(role -> beanMapping.mapTo(role, RoleDTO.class)).collect(Collectors.toSet());
         u.setRoles(roles);
 
         return u;
+    }
+
+    private UserBasicInfoDTO convertToUserBasicInfoDTO(User user, Set<RoleDTO> roles) {
+        UserBasicInfoDTO u = beanMapping.mapTo(user, UserBasicInfoDTO.class);
+        u.setRoles(roles);
+
+        Set<Long> groupIds = user.getGroups().stream().map(IDMGroup::getId).collect(Collectors.toSet());
+        u.setGroupIds(groupIds);
+        return u;
+    }
+
+
+    private User getLoggedInUser(OAuth2Authentication authentication) {
+        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
+        String sub = credentials.get("sub").getAsString();
+        User loggedInUser = null;
+        try {
+            loggedInUser = userService.getUserByLogin(sub);
+        } catch (UserAndGroupServiceException ex) {
+            LOG.error("Error while getting info about user with sub: " + sub + ".");
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
+        return loggedInUser;
     }
 }
