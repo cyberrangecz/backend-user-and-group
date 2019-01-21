@@ -222,7 +222,7 @@ public class GroupsRestController {
     @ApiOperation(httpMethod = "PUT",
             value = "Assign role with given role ID to group with given ID in chosen microservice"
     )
-    @PutMapping("/{groupId}/assign/{roleId}/in-microservices/{microserviceId}")
+    @PutMapping("/{groupId}/roles/{roleId}/microservices/{microserviceId}")
     public ResponseEntity<Void> assignRoleInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
@@ -237,10 +237,10 @@ public class GroupsRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "PUT",
+    @ApiOperation(httpMethod = "DELETE",
             value = "Cancel role with given role ID to group with given ID in chosen microservice"
     )
-    @PutMapping("/{groupId}/remove/{roleId}/in-microservices/{microserviceId}")
+    @DeleteMapping("/{groupId}/roles/{roleId}/microservices/{microserviceId}")
     public ResponseEntity<Void> removeRoleToGroupInMicroservice(
             @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
             @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,

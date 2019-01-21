@@ -91,4 +91,14 @@ public interface UserFacade {
      * @throws UserAndGroupFacadeException if user was not found
      */
     boolean isUserInternal(Long id) throws UserAndGroupFacadeException;
+
+    /**
+     * Returns basic info about currently logged in user
+     *
+     * @param authentication spring's authentication
+     * @return basic information about logged in user (ids of groups to which is assigned and basic roles)
+     * @throws UserAndGroupFacadeException if logged in user could not be found in database
+     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     */
+    UserBasicInfoDTO getUserBasicInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException;
 }
