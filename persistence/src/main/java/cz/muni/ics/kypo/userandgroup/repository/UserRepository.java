@@ -35,4 +35,8 @@ public interface UserRepository extends JpaRepository<User, Long>,
 
     @Query("SELECT u FROM User u WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups")
     Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
+
+    @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g WHERE g.id IN :groupsIds",
+            countQuery = "SELECT u FROM User u INNER JOIN u.groups g WHERE g.id IN :groupsIds")
+    Page<User> usersInGivenGroups(@Param("groupsIds") Set<Long> groupsIds, Pageable pageable);
 }

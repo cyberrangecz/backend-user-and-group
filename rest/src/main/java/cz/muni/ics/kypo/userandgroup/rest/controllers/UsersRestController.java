@@ -75,6 +75,30 @@ public class UsersRestController {
     }
 
     @ApiOperation(httpMethod = "GET",
+            value = "Gets users in given groups.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiPageableSwagger
+    @GetMapping(value = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getUsersInGroups(@QuerydslPredicate(root = Role.class) Predicate predicate, Pageable pageable,
+                                           @ApiParam(value = "Parameters for filtering the objects.", required = false)
+                                           @RequestParam MultiValueMap<String, String> parameters,
+                                           @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                           @RequestParam(value = "fields", required = false) String fields,
+                                           @ApiParam(value = "Ids of groups where users are assigned.", required = true)
+                                           @RequestParam("ids") Set<Long> groupsIds) {
+        try {
+            PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, pageable);
+            Squiggly.init(objectMapper, fields);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new InternalServerErrorException(e.getLocalizedMessage());
+        } catch (MicroserviceException e) {
+            throw new ServiceUnavailableException(e.getLocalizedMessage());
+        }
+    }
+
+    @ApiOperation(httpMethod = "GET",
             value = "Gets user with given id.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

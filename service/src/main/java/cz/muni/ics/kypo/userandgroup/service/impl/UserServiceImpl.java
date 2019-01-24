@@ -203,6 +203,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.getRolesOfUser(id);
     }
 
+    @Override
+    public Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable) {
+        Page<User> users = userRepository.usersInGivenGroups(groupsIds, pageable);
+        log.info("All Users in given groups loaded");
+        return users;
+    }
+
     private UserDeletionStatus checkKypoUserBeforeDelete(User user) {
         if (user.getExternalId() != null && user.getStatus().equals(UserAndGroupStatus.VALID)) {
             return UserDeletionStatus.EXTERNAL_VALID;

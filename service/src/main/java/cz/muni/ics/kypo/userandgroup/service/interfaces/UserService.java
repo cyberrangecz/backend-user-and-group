@@ -141,4 +141,11 @@ public interface UserService {
      * @throws UserAndGroupServiceException if user could not be found
      */
     Set<Role> getRolesOfUser(Long id) throws UserAndGroupServiceException;
+
+    /**
+     * Returns all users in given groups.
+     * @param groupsIds ids of groups to which are users assigned
+     * @return users in given groups
+     */
+    Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
 }

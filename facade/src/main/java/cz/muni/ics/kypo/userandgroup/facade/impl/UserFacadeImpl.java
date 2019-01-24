@@ -209,6 +209,11 @@ public class UserFacadeImpl implements UserFacade {
         }
     }
 
+    @Override
+    public PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Pageable pageable) {
+        return beanMapping.mapToPageResultDTO(userService.getUsersInGroups(groupsIds, pageable), UserForGroupsDTO.class);
+    }
+
     private UserInfoDTO convertToUserInfoDTO(User user, Set<RoleDTO> roles) {
         UserInfoDTO u = beanMapping.mapTo(user, UserInfoDTO.class);
         u.setRoles(roles);
