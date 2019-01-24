@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +33,7 @@ public class UserRepositoryTest {
     private UserRepository userRepository;
 
     private Role adminRole, guestRole;
-    private IDMGroup group;
+    private IDMGroup group1, group2;
     private User user;
 
     @SpringBootApplication
@@ -47,8 +48,11 @@ public class UserRepositoryTest {
         guestRole = new Role();
         guestRole.setRoleType(RoleType.GUEST);
 
-        group = new IDMGroup("group1", "group 1");
-        group.setStatus(UserAndGroupStatus.VALID);
+        group1 = new IDMGroup("group1", "group1 1");
+        group1.setStatus(UserAndGroupStatus.VALID);
+
+        group2 = new IDMGroup("group2", "group1 2");
+        group2.setStatus(UserAndGroupStatus.VALID);
 
         user = new User("user");
         user.setFullName("User one");
@@ -105,8 +109,8 @@ public class UserRepositoryTest {
         entityManager.persistAndFlush(adminRole);
         entityManager.persistAndFlush(guestRole);
 
-        group.setRoles(Stream.of(adminRole).collect(Collectors.toSet()));
-        IDMGroup g = entityManager.persistAndFlush(group);
+        group1.setRoles(Stream.of(adminRole).collect(Collectors.toSet()));
+        IDMGroup g = entityManager.persistAndFlush(group1);
 
         user.addGroup(g);
         User u = entityManager.persistAndFlush(user);
@@ -120,8 +124,8 @@ public class UserRepositoryTest {
     @Test
     public void usersNotInGivenGroup() {
         entityManager.persistAndFlush(user);
-        group.addUser(user);
-        IDMGroup g = entityManager.persistAndFlush(group);
+        group1.addUser(user);
+        IDMGroup g = entityManager.persistAndFlush(group1);
 
         User user2 = new User("user2");
         user2.setFullName("User two");
@@ -134,11 +138,37 @@ public class UserRepositoryTest {
         user3.setStatus(UserAndGroupStatus.VALID);
         entityManager.persistAndFlush(user3);
 
-        List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group.getId(), PageRequest.of(0, 10)).getContent();
+        List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group1.getId(), PageRequest.of(0, 10)).getContent();
         assertEquals(2, usersNotInGroup.size());
         assertFalse(usersNotInGroup.contains(user));
         assertTrue(usersNotInGroup.contains(user2));
         assertTrue(usersNotInGroup.contains(user3));
+    }
+
+    @Test
+    public void usersInGivenGroups() {
+        entityManager.persistAndFlush(user);
+        group1.addUser(user);
+        IDMGroup g1 = entityManager.persistAndFlush(group1);
+        IDMGroup g2 = entityManager.persistAndFlush(group2);
+
+        User user2 = new User("user2");
+        user2.setFullName("User two");
+        user2.setMail("user.two@mail.com");
+        user2.setStatus(UserAndGroupStatus.VALID);
+        entityManager.persistAndFlush(user2);
+        User user3 = new User("user3");
+        user3.setFullName("User three");
+        user3.setMail("user.three@mail.com");
+        user3.setStatus(UserAndGroupStatus.VALID);
+        entityManager.persistAndFlush(user3);
+        g2.addUser(user2);
+
+        List<User> usersInGroups = userRepository.usersInGivenGroups(Set.of(g1.getId(), g2.getId()), PageRequest.of(0, 10)).getContent();
+        assertEquals(2, usersInGroups.size());
+        assertTrue(usersInGroups.contains(user));
+        assertTrue(usersInGroups.contains(user2));
+        assertFalse(usersInGroups.contains(user3));
     }
 
 }

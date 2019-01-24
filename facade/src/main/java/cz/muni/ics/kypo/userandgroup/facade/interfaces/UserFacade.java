@@ -101,4 +101,12 @@ public interface UserFacade {
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
     UserBasicInfoDTO getUserBasicInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException;
+
+    /**
+     * Returns users in given groups
+     *
+     * @param groupsIds ids of groups to which are users assigned
+     * @return list of users in given groups
+     */
+    PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
 }
