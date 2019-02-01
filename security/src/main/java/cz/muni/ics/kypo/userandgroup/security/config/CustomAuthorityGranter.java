@@ -57,7 +57,6 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
             }
             roles = userRepository.getRolesOfUser(user.getId());
         }
-
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleType().name()))
                 .collect(Collectors.toList());
