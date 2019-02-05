@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +41,9 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -138,8 +141,8 @@ public class RoleFacadeTest {
 
         roleDTO1.setNameOfMicroservice(m1.getName());
 
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = role;
+        List<RoleDTO> rolesArray = new ArrayList<>();
+        rolesArray.add(roleDTO);
         mockSpringSecurityContextForGet(rolesArray);
 
         Page<Role> rolePage = new PageImpl<>(Arrays.asList(r1));
@@ -154,8 +157,7 @@ public class RoleFacadeTest {
         assertTrue(pageResultResource.getContent().contains(roleDTO));
     }
 
-    private void mockSpringSecurityContextForGet(Role[] rolesArray) {
-        ResponseEntity<Role[]> responseEntity = new ResponseEntity<>(rolesArray, HttpStatus.OK);
+    private void mockSpringSecurityContextForGet(List<RoleDTO> rolesArray) {
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails auth = Mockito.mock(OAuth2AuthenticationDetails.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -164,6 +166,6 @@ public class RoleFacadeTest {
         SecurityContextHolder.setContext(securityContext);
         given(auth.getTokenType()).willReturn("");
         given(auth.getTokenValue()).willReturn("");
-        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role[].class))).willReturn(responseEntity);
+        given(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(new ResponseEntity<PageResultResource<RoleDTO>>(new PageResultResource<>(rolesArray), HttpStatus.OK));
     }
 }
