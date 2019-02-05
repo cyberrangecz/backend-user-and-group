@@ -19,6 +19,7 @@ import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
@@ -31,6 +32,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE;
@@ -90,7 +92,7 @@ public class RoleFacadeImpl implements RoleFacade {
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
         List<Microservice> microservices = microserviceService.getMicroservices();
-        for (Microservice microservice : microservices) {
+        for (Microservice microservice : microservices)
             if (microservice.getName().equals(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE)) {
                 Set<RoleDTO> r = beanMapping.mapToSet(roleService.getAllRoles(pageable).getContent(), RoleDTO.class);
                 roles.addAll(r.stream()
@@ -103,18 +105,13 @@ public class RoleFacadeImpl implements RoleFacade {
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                 HttpEntity<String> entity = new HttpEntity<>(null, headers);
                 try {
-                    ResponseEntity<Role[]> responseEntity = restTemplate.exchange(url + "/roles", HttpMethod.GET, entity, Role[].class);
+                    ResponseEntity<PageResultResource<RoleDTO>> responseEntity = restTemplate.exchange(url + "/roles", HttpMethod.GET, entity, new ParameterizedTypeReference<PageResultResource<RoleDTO>>() {});
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                        Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
-                                .map(role -> {
-                                    RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-                                    roleDTO.setNameOfMicroservice(microservice.getName());
-                                    return roleDTO;
-                                })
-                                .collect(Collectors.toSet());
-
+                        Set<RoleDTO> rolesOfMicroservice = responseEntity.getBody().getContent().stream().peek(
+                                role -> role.setNameOfMicroservice(microservice.getName())).collect(Collectors.toSet());
                         roles.addAll(rolesOfMicroservice);
                     } else {
+                        LOG.info(responseEntity.toString());
                         LOG.error("Some error occured during getting all roles from microservice {}. Status code: {}. Response {}",
                                 microservice.getName(), responseEntity.getStatusCode().toString(), responseEntity.toString());
                         throw new UserAndGroupFacadeException("Some error occured during getting all roles from microservice " + microservice.getName());
@@ -124,11 +121,12 @@ public class RoleFacadeImpl implements RoleFacade {
                             microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
                     throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 } catch (RestClientException e) {
+                    LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
+                            microservice.getName(), e.getCause().toString(), e.getMessage());
                     LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
                     throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
                 }
             }
-        }
         LOG.info("All roles have been loaded");
         return beanMapping.mapToPageResultDTO(new PageImpl<>(roles, pageable, roles.size()), RoleDTO.class);
     }

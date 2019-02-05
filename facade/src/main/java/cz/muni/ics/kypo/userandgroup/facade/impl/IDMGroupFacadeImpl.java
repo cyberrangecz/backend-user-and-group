@@ -203,7 +203,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                             .peek(roleDTO -> roleDTO.setNameOfMicroservice(microservice.getName()))
                             .collect(Collectors.toSet()));
                 } else {
-                    String url = microservice.getEndpoint() + "/roles/of/groups?ids=" + id;
+                    String url = microservice.getEndpoint() + "/roles/roles-of-groups?ids=" + id;
 
                     HttpHeaders headers = new HttpHeaders();
                     headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
@@ -243,19 +243,18 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         Assert.notNull(microserviceId, "Input microserviceId must not be null");
-
         try {
             Microservice microservice = microserviceService.get(microserviceId);
             if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
                 groupService.assignRole(groupId, roleService.getById(roleId).getRoleType());
             } else {
-                final String url = microservice.getEndpoint() + "/roles/{roleId}/assign/to/{groupId}";
+                final String url = microservice.getEndpoint() + "/groups/{groupId}/roles/{roleId}";
                 OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                 HttpEntity<String> entity = new HttpEntity<>(null, headers);
                 try {
-                    ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class, roleId, groupId);
+                    ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class, groupId, roleId);
                     if (!responseEntity.getStatusCode().is2xxSuccessful()) {
                         throw new UserAndGroupFacadeException("Some error occured during assigning role with " + roleId + " to group with id " + groupId + " in microservice " +
                                 "with name " + microservice.getName());
@@ -297,13 +296,13 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
                 groupService.removeRoleToGroup(groupId, roleService.getById(roleId).getRoleType());
             } else {
-                final String url = microservice.getEndpoint() + "/roles/{roleId}/remove/to/{groupId}";
+                final String url = microservice.getEndpoint() + "/groups/{groupId}/roles/{roleId}";
                 OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                 HttpEntity<String> entity = new HttpEntity<>(null, headers);
                 try {
-                    ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, entity, Void.class, roleId, groupId);
+                    ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.DELETE, entity, Void.class, groupId, roleId);
                 } catch (HttpClientErrorException e) {
                     JsonObject responseBody = new JsonParser().parse(e.getResponseBodyAsString()).getAsJsonObject();
                     if (e.getStatusCode().equals(HttpStatus.CONFLICT)) {
