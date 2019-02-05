@@ -1,10 +1,13 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.role;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class RoleDTO {
 
     private Long id;
+    @JsonProperty("role_type")
     private String roleType;
     private String nameOfMicroservice;
 
