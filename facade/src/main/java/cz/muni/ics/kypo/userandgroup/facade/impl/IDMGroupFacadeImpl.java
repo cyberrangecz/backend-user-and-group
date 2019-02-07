@@ -201,6 +201,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                 if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
                     roles.addAll(group.getRoles().stream()
                             .peek(roleDTO -> roleDTO.setNameOfMicroservice(microservice.getName()))
+                            .peek(roleDTO -> roleDTO.setIdOfMicroservice(microservice.getId()))
                             .collect(Collectors.toSet()));
                 } else {
                     String url = microservice.getEndpoint() + "/roles/roles-of-groups?ids=" + id;
@@ -213,6 +214,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                         if (responseEntity.getStatusCode().is2xxSuccessful()) {
                             Set<RoleDTO> rolesOfMicroservice = Arrays.stream(responseEntity.getBody())
                                     .peek(roleDTO -> roleDTO.setNameOfMicroservice(microservice.getName()))
+                                    .peek(roleDTO -> roleDTO.setIdOfMicroservice(microservice.getId()))
                                     .collect(Collectors.toSet());
 
                             roles.addAll(rolesOfMicroservice);

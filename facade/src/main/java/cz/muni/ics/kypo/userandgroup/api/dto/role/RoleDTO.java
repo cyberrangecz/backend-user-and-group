@@ -9,6 +9,7 @@ public class RoleDTO {
     private Long id;
     @JsonProperty("role_type")
     private String roleType;
+    private Long idOfMicroservice;
     private String nameOfMicroservice;
 
     public Long getId() {
@@ -25,6 +26,14 @@ public class RoleDTO {
 
     public void setRoleType(String roleType) {
         this.roleType = roleType;
+    }
+
+    public Long getIdOfMicroservice() {
+        return idOfMicroservice;
+    }
+
+    public void setIdOfMicroservice(Long idOfMicroservice) {
+        this.idOfMicroservice = idOfMicroservice;
     }
 
     public String getNameOfMicroservice() {
@@ -55,7 +64,8 @@ public class RoleDTO {
         return "RoleDTO{" +
                 "id=" + id +
                 ", roleType='" + roleType + '\'' +
-                ", nameOfMicroservice='" + nameOfMicroservice + "\'" +
+                ", idOfMicroservice=" + idOfMicroservice +
+                ", nameOfMicroservice='" + nameOfMicroservice + '\'' +
                 '}';
     }
 }

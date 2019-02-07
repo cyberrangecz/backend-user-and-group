@@ -69,7 +69,6 @@ public class RoleFacadeImpl implements RoleFacade {
             LOG.error("Role with id: " + id + " could not be found.");
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
-
     }
 
     @Override
@@ -97,6 +96,7 @@ public class RoleFacadeImpl implements RoleFacade {
                 Set<RoleDTO> r = beanMapping.mapToSet(roleService.getAllRoles(pageable).getContent(), RoleDTO.class);
                 roles.addAll(r.stream()
                         .peek(roleDTO -> roleDTO.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE))
+                        .peek(roleDTO -> roleDTO.setIdOfMicroservice(microservice.getId()))
                         .collect(Collectors.toList()));
             } else {
                 String url = microservice.getEndpoint();
@@ -105,10 +105,15 @@ public class RoleFacadeImpl implements RoleFacade {
                 headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
                 HttpEntity<String> entity = new HttpEntity<>(null, headers);
                 try {
-                    ResponseEntity<PageResultResource<RoleDTO>> responseEntity = restTemplate.exchange(url + "/roles", HttpMethod.GET, entity, new ParameterizedTypeReference<PageResultResource<RoleDTO>>() {});
+                    ResponseEntity<PageResultResource<RoleDTO>> responseEntity = restTemplate.exchange(url + "/roles", HttpMethod.GET, entity, new ParameterizedTypeReference<PageResultResource<RoleDTO>>() {
+                    });
                     if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                        Set<RoleDTO> rolesOfMicroservice = responseEntity.getBody().getContent().stream().peek(
-                                role -> role.setNameOfMicroservice(microservice.getName())).collect(Collectors.toSet());
+                        Set<RoleDTO> rolesOfMicroservice = responseEntity
+                                .getBody().getContent()
+                                .stream()
+                                .peek(role -> role.setNameOfMicroservice(microservice.getName()))
+                                .peek(role -> role.setIdOfMicroservice(microservice.getId()))
+                                .collect(Collectors.toSet());
                         roles.addAll(rolesOfMicroservice);
                     } else {
                         LOG.info(responseEntity.toString());
