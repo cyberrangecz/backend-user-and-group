@@ -70,6 +70,7 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     public ResourceServerTokenServices tokenServices() {
         IntrospectingTokenService tokenService = new IntrospectingTokenService();
         tokenService.setIntrospectionConfigurationService(introspectionConfigurationService());
+        tokenService.setCacheTokens(false);
         tokenService.setIntrospectionAuthorityGranter(customAuthorityGranter);
         return tokenService;
     }
