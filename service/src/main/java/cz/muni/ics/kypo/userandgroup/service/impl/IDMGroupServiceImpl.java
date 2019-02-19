@@ -84,6 +84,11 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             });
         });
 
+        Role guestRole = roleRepository.findByRoleType(RoleType.GUEST)
+                .orElseThrow(() ->
+                        new UserAndGroupServiceException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
+        group.addRole(guestRole);
+
         IDMGroup g = groupRepository.save(group);
         log.info(group + " created.");
         return g;
