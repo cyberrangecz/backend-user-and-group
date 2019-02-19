@@ -148,6 +148,7 @@ public class IDMGroupServiceTest {
     @Test
     public void createGroup() {
         given(groupRepository.save(group1)).willReturn(group1);
+        given(roleRepository.findByRoleType(RoleType.GUEST)).willReturn(Optional.ofNullable(guestRole));
         IDMGroup g = groupService.create(group1, new ArrayList<>());
         deepEqruals(group1, g);
 

@@ -61,7 +61,19 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         IDMGroup group = beanMapping.mapTo(newGroupDTO, IDMGroup.class);
         try {
             IDMGroup createdGroup = groupService.create(group, newGroupDTO.getGroupIdsOfImportedUsers());
-            return beanMapping.mapTo(createdGroup, GroupDTO.class);
+            GroupDTO createdGroupDTO = beanMapping.mapTo(createdGroup, GroupDTO.class);
+            Set<RoleDTO> roles = new HashSet<>();
+            List<Microservice> microservices = microserviceService.getMicroservices();
+            for (Microservice microservice : microservices) {
+                if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
+                    roles.addAll(createdGroupDTO.getRoles().stream()
+                            .peek(roleDTO -> roleDTO.setNameOfMicroservice(microservice.getName()))
+                            .peek(roleDTO -> roleDTO.setIdOfMicroservice(microservice.getId()))
+                            .collect(Collectors.toSet()));
+                }
+            }
+            createdGroupDTO.setRoles(roles);
+            return  createdGroupDTO;
         } catch (UserAndGroupServiceException e) {
             LOG.error(e.getLocalizedMessage());
             throw new UserAndGroupFacadeException(e.getLocalizedMessage());
