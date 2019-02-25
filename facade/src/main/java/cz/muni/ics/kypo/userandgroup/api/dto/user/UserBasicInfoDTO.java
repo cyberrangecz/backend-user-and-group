@@ -6,10 +6,14 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ */
 public class UserBasicInfoDTO {
 
     private Long id;
     private String login;
+    private String fullName;
     private Set<RoleDTO> roles = new HashSet<>();
     private Set<Long> groupIds = new HashSet<>();
 
@@ -27,6 +31,14 @@ public class UserBasicInfoDTO {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public void convertScreenNameToLogin(String screenName) {
@@ -60,7 +72,6 @@ public class UserBasicInfoDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getLogin());
     }
 
