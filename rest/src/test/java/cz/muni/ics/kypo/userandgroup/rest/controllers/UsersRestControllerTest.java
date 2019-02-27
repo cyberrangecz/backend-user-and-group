@@ -4,21 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.facade.interfaces.UserFacade;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.NewUserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
-import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -199,7 +198,7 @@ public class UsersRestControllerTest {
     @Test
     public void testDeleteUserExternalValid() throws Exception {
         UserDeletionResponseDTO userDeletionResponseDTO = getUserDeletionResponseDTO();
-        userDeletionResponseDTO.setStatus(UserDeletionStatus.EXTERNAL_VALID);
+        userDeletionResponseDTO.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
         given(userFacade.deleteUser(userDTO1.getId())).willReturn(userDeletionResponseDTO);
         Exception ex = mockMvc.perform(
                 delete("/users" + "/{id}", userDTO1.getId())
@@ -214,7 +213,7 @@ public class UsersRestControllerTest {
     public void testDeleteUsers() throws Exception {
         UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
         deletionResponseDTO.setUser(userDTO2);
-        deletionResponseDTO.setStatus(UserDeletionStatus.EXTERNAL_VALID);
+        deletionResponseDTO.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
         given(userFacade.deleteUsers(Arrays.asList(userDTO1.getId(), userDTO2.getId()))).willReturn(Arrays.asList(getUserDeletionResponseDTO(), deletionResponseDTO));
         mockMvc.perform(
                 delete("/users" + "/")
@@ -274,7 +273,7 @@ public class UsersRestControllerTest {
     private UserDeletionResponseDTO getUserDeletionResponseDTO() {
         UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
         deletionResponseDTO.setUser(userDTO1);
-        deletionResponseDTO.setStatus(UserDeletionStatus.SUCCESS);
+        deletionResponseDTO.setStatus(UserDeletionStatusDTO.SUCCESS);
         return deletionResponseDTO;
     }
 

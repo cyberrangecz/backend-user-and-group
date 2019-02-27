@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
-import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;

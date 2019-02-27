@@ -160,9 +160,9 @@
     <modules>
         <module>persistence</module>
         <module>service</module>
-        <module>facade</module>
         <module>security</module>
         <module>rest</module>
+        <module>api</module>
     </modules>
 
 </project>

@@ -1,31 +1,12 @@
-/*
- *  Project   : Cybernetic Proving Ground
- *
- *  Tool      : Identity Management Service
- *
- *  Author(s) : Filip Bogyai 395959@mail.muni.cz, Jan Duda 394179@mail.muni.cz
- *
- *  Date      : 31.5.2016
- *
- *  (c) Copyright 2016 MASARYK UNIVERSITY
- *  All rights reserved.
- *
- *  This software is freely available for non-commercial use under license
- *  specified in following license agreement in LICENSE file. Please review the terms
- *  of the license agreement before using this software. If you are interested in
- *  using this software commercially orin ways not allowed in aforementioned
- *  license, feel free to contact Technology transfer office of the Masaryk university
- *  in order to negotiate ad-hoc license agreement.
- */
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.UserServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
-import cz.muni.ics.kypo.userandgroup.util.UserDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import org.junit.After;
 import org.junit.Before;
@@ -132,8 +113,8 @@ public class UserServiceTest {
 
     @Test
     public void deleteUser() {
-        UserDeletionStatus status = userService.delete(user1);
-        assertEquals(UserDeletionStatus.SUCCESS, status);
+        UserDeletionStatusDTO status = userService.delete(user1);
+        assertEquals(UserDeletionStatusDTO.SUCCESS, status);
 
         then(userRepository).should().delete(user1);
     }
@@ -141,7 +122,7 @@ public class UserServiceTest {
     @Test
     public void deleteExternalUserAndValid() {
         user1.setExternalId(1L);
-        assertEquals(UserDeletionStatus.EXTERNAL_VALID, userService.delete(user1));
+        assertEquals(UserDeletionStatusDTO.EXTERNAL_VALID, userService.delete(user1));
         then(userRepository).should(never()).delete(any(User.class));
     }
 
@@ -149,7 +130,7 @@ public class UserServiceTest {
     public void deleteExternalUserAndNotValid() {
         user1.setExternalId(1L);
         user1.setStatus(UserAndGroupStatus.DELETED);
-        assertEquals(UserDeletionStatus.SUCCESS, userService.delete(user1));
+        assertEquals(UserDeletionStatusDTO.SUCCESS, userService.delete(user1));
         then(userRepository).should().delete(any(User.class));
     }
 
@@ -173,10 +154,10 @@ public class UserServiceTest {
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
         willThrow(UserAndGroupServiceException.class).given(userRepository).getOne(user3.getId());
 
-        Map<User, UserDeletionStatus> response = userService.deleteUsers(idsOfUsers);
-        assertEquals(UserDeletionStatus.SUCCESS, response.get(user1));
-        assertEquals(UserDeletionStatus.EXTERNAL_VALID, response.get(user2));
-        assertEquals(UserDeletionStatus.NOT_FOUND, response.get(user3));
+        Map<User, UserDeletionStatusDTO> response = userService.deleteUsers(idsOfUsers);
+        assertEquals(UserDeletionStatusDTO.SUCCESS, response.get(user1));
+        assertEquals(UserDeletionStatusDTO.EXTERNAL_VALID, response.get(user2));
+        assertEquals(UserDeletionStatusDTO.NOT_FOUND, response.get(user3));
 
         then(userRepository).should(times(3)).findById(anyLong());
         then(userRepository).should().delete(user1);

@@ -1,37 +1,17 @@
-/*
- *  Project   : Cybernetic Proving Ground
- *
- *  Tool      : Identity Management Service
- *
- *  Author(s) : Filip Bogyai 395959@mail.muni.cz
- *
- *  Date      : 31.5.2016
- *
- *  (c) Copyright 2016 MASARYK UNIVERSITY
- *  All rights reserved.
- *
- *  This software is freely available for non-commercial use under license
- *  specified in following license agreement in LICENSE file. Please review the terms
- *  of the license agreement before using this software. If you are interested in
- *  using this software commercially orin ways not allowed in aforementioned
- *  license, feel free to contact Technology transfer office of the Masaryk university
- *  in order to negotiate ad-hoc license agreement.
- */
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
-import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
-import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupException;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
-import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.querydsl.core.types.Predicate;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface IDMGroupService {
@@ -71,7 +51,7 @@ public interface IDMGroupService {
      * @param group group to be deleted
      * @return status of deletion
      */
-    GroupDeletionStatus delete(IDMGroup group);
+    GroupDeletionStatusDTO delete(IDMGroup group);
 
     /**
      * Returns all IDM groups from database.
