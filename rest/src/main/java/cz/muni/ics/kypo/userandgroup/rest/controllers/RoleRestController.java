@@ -2,10 +2,10 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.exception.MicroserviceException;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.facade.interfaces.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ServiceUnavailableException;

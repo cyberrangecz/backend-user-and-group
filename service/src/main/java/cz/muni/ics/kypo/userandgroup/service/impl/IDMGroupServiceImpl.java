@@ -1,33 +1,14 @@
-/*
- *  Project   : Cybernetic Proving Ground
- *
- *  Tool      : Identity Management Service
- *
- *  Author(s) : Filip Bogyai 395959@mail.muni.cz
- *
- *  Date      : 31.5.2016
- *
- *  (c) Copyright 2016 MASARYK UNIVERSITY
- *  All rights reserved.
- *
- *  This software is freely available for non-commercial use under license
- *  specified in following license agreement in LICENSE file. Please review the terms
- *  of the license agreement before using this software. If you are interested in
- *  using this software commercially orin ways not allowed in aforementioned
- *  license, feel free to contact Technology transfer office of the Masaryk university
- *  in order to negotiate ad-hoc license agreement.
- */
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
-import cz.muni.ics.kypo.userandgroup.exception.RoleCannotBeRemovedToGroupException;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,17 +88,16 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             log.info(group + " updated.");
             return g;
         } else {
-            log.error("Given idm group is external therefore it cannot be updated");
             throw new ExternalSourceException("Given idm group is external therefore it cannot be udpated");
         }
     }
 
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public GroupDeletionStatus delete(IDMGroup group) {
+    public GroupDeletionStatusDTO delete(IDMGroup group) {
         Assert.notNull(group, "Input group must not be null.");
-        GroupDeletionStatus deletionStatus = checkKypoGroupBeforeDelete(group);
-        if (deletionStatus.equals(GroupDeletionStatus.SUCCESS)) {
+        GroupDeletionStatusDTO deletionStatus = checkKypoGroupBeforeDelete(group);
+        if (deletionStatus.equals(GroupDeletionStatusDTO.SUCCESS)) {
             groupRepository.delete(group);
             log.info(group + " deleted.");
         }
@@ -294,14 +274,14 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         return groupRepository.save(groupToUpdate);
     }
 
-    private GroupDeletionStatus checkKypoGroupBeforeDelete(IDMGroup group) {
+    private GroupDeletionStatusDTO checkKypoGroupBeforeDelete(IDMGroup group) {
         if (!groupRepository.isIDMGroupInternal(group.getId()) && group.getStatus().equals(UserAndGroupStatus.VALID)) {
-            return GroupDeletionStatus.EXTERNAL_VALID;
+            return GroupDeletionStatusDTO.EXTERNAL_VALID;
         } else if (group.getName().equals(RoleType.ADMINISTRATOR.name()) ||
                 group.getName().equals(RoleType.USER.name()) ||
                 group.getName().equals(RoleType.GUEST.name())) {
-            return GroupDeletionStatus.ERROR_MAIN_GROUP;
+            return GroupDeletionStatusDTO.ERROR_MAIN_GROUP;
         }
-        return GroupDeletionStatus.SUCCESS;
+        return GroupDeletionStatusDTO.SUCCESS;
     }
 }

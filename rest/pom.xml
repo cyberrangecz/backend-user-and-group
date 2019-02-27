@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
-            <artifactId>kypo2-facade-user-and-group</artifactId>
+            <artifactId>kypo2-service-user-and-group</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>

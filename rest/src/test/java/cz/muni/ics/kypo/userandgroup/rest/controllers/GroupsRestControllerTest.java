@@ -4,22 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
-import cz.muni.ics.kypo.userandgroup.exception.ExternalSourceException;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.facade.interfaces.IDMGroupFacade;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.util.GroupDeletionStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -27,15 +26,12 @@ import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.*;
@@ -311,7 +307,7 @@ public class GroupsRestControllerTest {
     @Test
     public void testDeleteExternalGroup() throws Exception {
         GroupDeletionResponseDTO deletionResponseDTO = getGroupDeletionResponse();
-        deletionResponseDTO.setStatus(GroupDeletionStatus.EXTERNAL_VALID);
+        deletionResponseDTO.setStatus(GroupDeletionStatusDTO.EXTERNAL_VALID);
         given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(deletionResponseDTO);
         Exception ex = mockMvc.perform(
                 delete("/groups" + "/{id}", groupDTO1.getId())
@@ -430,7 +426,7 @@ public class GroupsRestControllerTest {
     private GroupDeletionResponseDTO getGroupDeletionResponse() {
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         groupDeletionResponseDTO.setId(1L);
-        groupDeletionResponseDTO.setStatus(GroupDeletionStatus.SUCCESS);
+        groupDeletionResponseDTO.setStatus(GroupDeletionStatusDTO.SUCCESS);
         return groupDeletionResponseDTO;
     }
 
