@@ -168,15 +168,7 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().delete(group1);
     }
 
-    @Test
-    public void testDeleteGroupExternalAndValid() {
-        group1.setStatus(UserAndGroupStatus.VALID);
-        group1.setExternalId(123L);
-        assertEquals(GroupDeletionStatusDTO.EXTERNAL_VALID, groupService.delete(group1));
-        then(groupRepository).should(never()).delete(group1);
-    }
-
-    @Test
+        @Test
     public void deleteGroupWithNullGroupShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input group must not be null");
