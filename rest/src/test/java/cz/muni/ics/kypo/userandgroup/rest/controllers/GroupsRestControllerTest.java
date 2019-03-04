@@ -305,20 +305,6 @@ public class GroupsRestControllerTest {
     }
 
     @Test
-    public void testDeleteExternalGroup() throws Exception {
-        GroupDeletionResponseDTO deletionResponseDTO = getGroupDeletionResponse();
-        deletionResponseDTO.setStatus(GroupDeletionStatusDTO.EXTERNAL_VALID);
-        given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(deletionResponseDTO);
-        Exception ex = mockMvc.perform(
-                delete("/groups" + "/{id}", groupDTO1.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isMethodNotAllowed())
-                .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " cannot be deleted because is from external source and is valid group.", ex.getLocalizedMessage());
-        then(groupFacade).should().deleteGroup(groupDTO1.getId());
-    }
-
-    @Test
     public void testDeleteGroups() throws Exception {
         given(groupFacade.deleteGroups(Collections.singletonList(1L))).willReturn(Collections.singletonList(getGroupDeletionResponse()));
         mockMvc.perform(

@@ -29,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.*;
 
@@ -144,9 +145,13 @@ public class GroupsRestController {
         switch (groupDeletionResponseDTO.getStatus()) {
             case SUCCESS:
                 return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);
-            case EXTERNAL_VALID:
+            case NOT_FOUND:
+                throw new ResourceNotFoundException("Group with id " + id + " cannot be found.");
+            case ERROR_MAIN_GROUP:
+                throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is main group.");
+            case MICROSERVICE_ERROR:
             default:
-                throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is from external source and is valid group.");
+                return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

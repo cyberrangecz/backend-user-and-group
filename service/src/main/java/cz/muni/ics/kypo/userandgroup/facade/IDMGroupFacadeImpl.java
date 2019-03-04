@@ -17,6 +17,7 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
@@ -118,18 +119,32 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         try {
             IDMGroup group = groupService.get(id);
-
-            if (group.getStatus().equals(UserAndGroupStatus.VALID) && group.getExternalId() != null) {
-                groupDeletionResponseDTO.setStatus(GroupDeletionStatusDTO.EXTERNAL_VALID);
-            } else {
-                groupDeletionResponseDTO = deleteGroupInAllMicroservices(id);
-                if (groupDeletionResponseDTO.getStatus() == null) {
-                    groupDeletionResponseDTO.setStatus(groupService.delete(group));
-                } else {
+            List<User> users = group.getUsers();
+            if (users == null || users.isEmpty()) {
+                try {
+                    groupDeletionResponseDTO = deleteGroupInAllMicroservices(id);
+                } catch (MicroserviceException e) {
                     group.setStatus(UserAndGroupStatus.DIRTY);
                     groupService.update(group);
+                    groupDeletionResponseDTO.setStatus(GroupDeletionStatusDTO.MICROSERVICE_ERROR);
                 }
+                groupDeletionResponseDTO.setStatus(groupService.delete(group));
+            } else {
+                throw new MicroserviceException("It is not possible to delete this group. This group must be empty (without persons)");
             }
+            //What does this VALID status means? All groups are by default valid, thus it is not possible to delete any....
+
+//            if (group.getStatus().equals(UserAndGroupStatus.VALID) && group.getExternalId() != null) {
+//                groupDeletionResponseDTO.setStatus(GroupDeletionStatusDTO.EXTERNAL_VALID);
+//            } else {
+//                groupDeletionResponseDTO = deleteGroupInAllMicroservices(id);
+//                if (groupDeletionResponseDTO.getStatus() == null) {
+//                    groupDeletionResponseDTO.setStatus(groupService.delete(group));
+//                } else {
+//                    group.setStatus(UserAndGroupStatus.DIRTY);
+//                    groupService.update(group);
+//                }
+//            }
         } catch (UserAndGroupServiceException e) {
             groupDeletionResponseDTO.setStatus(GroupDeletionStatusDTO.NOT_FOUND);
         }
@@ -160,15 +175,18 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                         responseDTO.setStatus(GroupDeletionStatusDTO.MICROSERVICE_ERROR);
                         throw new MicroserviceException("Some error occured during getting roles of group with id " + id + "from microservice: " + microservice.getName());
                     }
-                } catch (HttpClientErrorException e) {
+
+                } catch (HttpClientErrorException.NotFound ex) {
+                    microserviceForGroupDeletionDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+                    microserviceForGroupDeletionDTO.setResponseMessage(ex.getMessage());
+                }catch (HttpClientErrorException e) {
                     responseDTO.setStatus(GroupDeletionStatusDTO.MICROSERVICE_ERROR);
                     microserviceForGroupDeletionDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
                     microserviceForGroupDeletionDTO.setResponseMessage("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
-                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.", e);
                 } catch (RestClientException e) {
                     responseDTO.setStatus(GroupDeletionStatusDTO.MICROSERVICE_ERROR);
                     microserviceForGroupDeletionDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
-                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
+                    microserviceForGroupDeletionDTO.setResponseMessage(e.getCause().getMessage());
                 }
                 microserviceForGroupDeletionDTOs.add(microserviceForGroupDeletionDTO);
             }

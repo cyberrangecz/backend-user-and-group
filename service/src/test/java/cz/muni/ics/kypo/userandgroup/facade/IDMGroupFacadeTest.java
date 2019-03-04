@@ -6,6 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
@@ -180,8 +181,9 @@ public class IDMGroupFacadeTest {
         groupFacade.addUsers(getaddUsersToGroupDTO());
     }
 
-    @Test
-    public void testDeleteGroup() {
+    @Test(expected = MicroserviceException.class)
+    public void testDeleteGroupWithPersonsThrows() {
+        // group g1 contains persons thus it is no possible to remove this group
         given(groupService.get(anyLong())).willReturn(g1);
         given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(microservice));
         given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatusDTO.SUCCESS);
@@ -189,23 +191,17 @@ public class IDMGroupFacadeTest {
         given(restTemplate.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(String.class), anyLong())).willReturn(responseEntity);
 
         GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(1L);
-
-        assertEquals(GroupDeletionStatusDTO.SUCCESS, groupDeletionResponseDTO.getStatus());
-        then(groupService).should().delete(g1);
     }
 
-    @Test
-    public void testDeleteGroups() {
+    @Test(expected = MicroserviceException.class)
+    public void testDeleteGroupsWithPersonsThrows() {
+        // group g1 contains persons thus it is no possible to remove this group
         given(groupService.get(anyLong())).willReturn(g1);
         given(microserviceService.getMicroservices()).willReturn(Collections.singletonList(microservice));
         given(groupService.delete(any(IDMGroup.class))).willReturn(GroupDeletionStatusDTO.SUCCESS);
         ResponseEntity<String> responseEntity = new ResponseEntity<>("Group was deleted", HttpStatus.OK);
         given(restTemplate.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(String.class), anyLong())).willReturn(responseEntity);
         List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Arrays.asList(1L));
-
-        assertEquals(GroupDeletionStatusDTO.SUCCESS, responseDTOS.get(0).getStatus());
-        then(groupService).should().delete(any(IDMGroup.class));
-
     }
 
     @Test
