@@ -1,6 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.api.facade;
 
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
@@ -129,4 +131,6 @@ public interface IDMGroupFacade {
      */
     void removeRoleToGroupInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException,
             MicroserviceException, RoleCannotBeRemovedToGroupException;
+
+    List<ResponseRoleToGroupInMicroservicesDTO> assignRolesInMicroservices(Long groupId, List<RoleAndMicroserviceDTO> rolesAndMicroservices);
 }
