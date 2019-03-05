@@ -6,6 +6,8 @@ import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
@@ -19,6 +21,7 @@ import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 
 import io.swagger.annotations.*;
 
+import io.swagger.models.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,6 +243,22 @@ public class GroupsRestController {
         } catch (MicroserviceException e) {
             throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
+    }
+
+    @ApiOperation(httpMethod = "POST",
+            value = "Assign roles with given roles IDs to group with given ID in chosen microservices"
+    )
+    @PostMapping("/{groupId}/roles-collection")
+    public ResponseEntity<List<ResponseRoleToGroupInMicroservicesDTO>> assignRolesInMicroservices(
+            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
+            @ApiParam(value = "rolesAndMicroservices", required = true) @RequestBody List<RoleAndMicroserviceDTO> rolesAndMicroservices) {
+//        try {
+        return new ResponseEntity<>(groupFacade.assignRolesInMicroservices(groupId, rolesAndMicroservices), HttpStatus.OK);
+//        } catch (UserAndGroupFacadeException e) {
+//            throw new ResourceNotFoundException("Group with id: " + groupId + " or microserviceservice with id " + ram.getMicroserviceId() + " could not be found.");
+//        } catch (MicroserviceException e) {
+//            throw new ServiceUnavailableException(e.getLocalizedMessage());
+//        }
     }
 
     @ApiOperation(httpMethod = "DELETE",

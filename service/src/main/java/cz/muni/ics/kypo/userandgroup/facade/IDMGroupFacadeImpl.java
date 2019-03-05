@@ -5,6 +5,9 @@ import com.google.gson.JsonParser;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.MicroserviceForGroupDeletionDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.AssignRoleToGroupStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -301,6 +304,52 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             throw new UserAndGroupFacadeException(e);
         }
     }
+    @Override
+    public List<ResponseRoleToGroupInMicroservicesDTO> assignRolesInMicroservices(Long groupId, List<RoleAndMicroserviceDTO> rolesAndMicroservices) {
+        Assert.notNull(groupId, "Input groupId must not be null");
+        Assert.notNull(rolesAndMicroservices, "Input roles and microservices must not be null");
+        List<ResponseRoleToGroupInMicroservicesDTO> responses = new ArrayList<>();
+        for (RoleAndMicroserviceDTO ram : rolesAndMicroservices) {
+            ResponseRoleToGroupInMicroservicesDTO resp = new ResponseRoleToGroupInMicroservicesDTO();
+            resp.setRoleId(ram.getRoleId());
+            resp.setMicroserviceId(ram.getMicroserviceId());
+            try {
+                Microservice microservice = microserviceService.get(ram.getMicroserviceId());
+                groupService.get(groupId);
+                if (microservice.getName().equals(NAME_OF_USER_AND_GROUP_SERVICE)) {
+                    groupService.assignRole(groupId, roleService.getById(ram.getRoleId()).getRoleType());
+                    resp.setStatus(AssignRoleToGroupStatusDTO.SUCCESS);
+                } else {
+                    final String url = microservice.getEndpoint() + "/groups/{groupId}/roles/{roleId}";
+                    OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
+                    HttpEntity<String> entity = new HttpEntity<>(null, headers);
+                    try {
+                        ResponseEntity<Void> responseEntity = restTemplate.exchange(url, HttpMethod.POST, entity, Void.class, groupId, ram.getRoleId());
+                        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                            resp.setStatus(AssignRoleToGroupStatusDTO.MICROSERVICE_ERROR);
+                            resp.setResponseMessage("Status code: " + responseEntity.getStatusCode().toString() + " Body: " + responseEntity.getBody());
+                        }
+                        resp.setStatus(AssignRoleToGroupStatusDTO.SUCCESS);
+                    } catch (HttpClientErrorException e) {
+                        resp.setStatus(AssignRoleToGroupStatusDTO.MICROSERVICE_ERROR);
+                        resp.setResponseMessage("Cannot assign role to group in given microservice. It is return status code: " + e.getStatusCode() + ".");
+                    } catch (RestClientException e) {
+                        resp.setStatus(AssignRoleToGroupStatusDTO.REST_CLIENT_ERROR);
+                        resp.setResponseMessage(e.getCause().getMessage());
+                    }
+                }
+            } catch (UserAndGroupServiceException e) {
+                resp.setStatus(AssignRoleToGroupStatusDTO.NOT_FOUND);
+                resp.setResponseMessage(e.getMessage());
+            }
+            responses.add(resp);
+
+        }
+        return responses;
+    }
+
 
     @Override
     public boolean isGroupInternal(Long id) throws UserAndGroupFacadeException {
