@@ -34,30 +34,27 @@ roles of the microservices.
 
 Example of the YAML file can be seen below:
 ```yaml
-users:
-    - user:
-        login: userOne   # login for MU is UCO@muni.cz
-      roles:
-        - ADMINISTRATOR
-        - USER
-    - user:
-        login: userTwo
-      roles:
-        - GUEST
-        
-microservices:
-  - name: service1
-    endpoint: http://full/url/to/service1
-  - name: service2
-    endpoint: http://full/url/to/service2  # without end of the url for roles (/roles/...)
+- user:
+     login: userLogin1
+  roles:
+     - ROLE_USER_AND_GROUP_ADMINISTRATOR
+- user:
+     login: userLogin2
+  roles:
+     - ROLE_USER_AND_GROUP_USER
+- user:
+     login: userLogin3
+  roles:
+     - ROLE_USER_AND_GROUP_ADMINISTRATOR
 ```
 
 ### 3. Properties file
 
 After step 2 you have to create properties file according to format below and save it.
 ```properties
-server.port={port for service} # e.g., 8081
+server.port={port for service} # e.g., 8084
 server.servlet.context-path=/kypo2-rest-user-and-group/api/v1
+service.name=kypo2-user-and-group
 
 # OpenID Connect
 kypo.idp.4oauth.introspectionURI=https://oidc.ics.muni.cz/oidc/introspect
