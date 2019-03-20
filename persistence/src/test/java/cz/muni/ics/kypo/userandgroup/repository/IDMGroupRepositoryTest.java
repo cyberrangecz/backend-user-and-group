@@ -16,9 +16,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -37,6 +34,8 @@ public class IDMGroupRepositoryTest {
 
     private Role adminRole, userRole, guestRole;
 
+    private Microservice microservice;
+
     private Pageable pageable;
 
     @SpringBootApplication
@@ -45,14 +44,22 @@ public class IDMGroupRepositoryTest {
 
     @Before
     public void init() {
+        microservice = new Microservice();
+        microservice.setEndpoint("http://kypo2-training/api/v1");
+        microservice.setName("training");
+        this.entityManager.persistAndFlush(microservice);
+
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        adminRole.setMicroservice(microservice);
 
         userRole = new Role();
-        userRole.setRoleType(RoleType.USER);
+        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
+        userRole.setMicroservice(microservice);
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
+        guestRole.setMicroservice(microservice);
 
         group = new IDMGroup("groupWithRoles", "Group with roles");
 
@@ -79,33 +86,12 @@ public class IDMGroupRepositoryTest {
     }
 
     @Test
-    public void findAllByName() {
-        String expectedName = "group";
-        IDMGroup group1 = new IDMGroup(expectedName, "cool description");
-        IDMGroup group2 = new IDMGroup(expectedName, "awesome description");
-        this.entityManager.persist(group1);
-        this.entityManager.persist(group2);
-
-        Page<IDMGroup> groups = this.groupRepository.findAllByName(expectedName, pageable);
-        assertEquals(2, groups.getTotalElements());
-        assertTrue(groups.getContent().contains(group1));
-        assertTrue(groups.getContent().contains(group2));
-    }
-
-    @Test
-    public void findAllByNameNotFound() {
-        Page<IDMGroup> groups = this.groupRepository.findAllByName("group", pageable);
-        assertNotNull(groups);
-        assertEquals(0, groups.getTotalElements());
-    }
-
-    @Test
     public void findAllByRoleType() {
         entityManager.persistFlushFind(adminRole);
         group.addRole(adminRole);
         entityManager.persistFlushFind(group);
 
-        List<IDMGroup> groups = groupRepository.findAllByRoleType(RoleType.ADMINISTRATOR);
+        List<IDMGroup> groups = groupRepository.findAllByRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
         assertEquals(1, groups.size());
         assertEquals(this.group.getName(), groups.get(0).getName());
         assertEquals(this.group.getDescription(), groups.get(0).getDescription());
@@ -124,22 +110,6 @@ public class IDMGroupRepositoryTest {
         assertEquals(this.group.getDescription(), g.getDescription());
     }
 
-
-    @Test
-    public void getRolesOfGroup() {
-        entityManager.persistFlushFind(adminRole);
-        entityManager.persistFlushFind(userRole);
-        entityManager.persistFlushFind(guestRole);
-        group.setRoles(Stream.of(adminRole, userRole).collect(Collectors.toSet()));
-        entityManager.persistFlushFind(group);
-
-        Set<Role> rolesOfGroup = groupRepository.getRolesOfGroup(group.getId());
-        rolesOfGroup.forEach(role -> System.out.println(role.getRoleType()));
-        assertEquals(2, rolesOfGroup.size());
-        assertTrue(rolesOfGroup.contains(adminRole));
-        assertTrue(rolesOfGroup.contains(userRole));
-        assertFalse(rolesOfGroup.contains(guestRole));
-    }
 
     @Test
     public void getIDMGroupByNameWithUsers() throws Exception {

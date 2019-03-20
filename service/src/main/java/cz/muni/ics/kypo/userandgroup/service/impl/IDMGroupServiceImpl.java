@@ -1,15 +1,16 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +20,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class IDMGroupServiceImpl implements IDMGroupService {
 
-    private static Logger log = LoggerFactory.getLogger(IDMGroupServiceImpl.class.getName());
+    private static Logger LOG = LoggerFactory.getLogger(IDMGroupServiceImpl.class.getName());
 
     private final IDMGroupRepository groupRepository;
     private final UserRepository userRepository;
@@ -39,198 +43,149 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public IDMGroup get(Long id) throws UserAndGroupServiceException {
+    public IDMGroup get(Long id) {
+        LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
-        Optional<IDMGroup> optionalGroup = groupRepository.findById(id);
-        IDMGroup group = optionalGroup.orElseThrow(() -> new UserAndGroupServiceException("IDM group with id " + id + " not found"));
-        log.info(group + " loaded.");
-        return group;
+        return groupRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("IDM group with id " + id + " not found"));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers) throws UserAndGroupServiceException {
+    public IDMGroup getGroupForDefaultRoles() {
+        LOG.debug("getGroupForDefaultRoles()");
+        return groupRepository.findByName("DEFAULT_GROUP").orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found"));
+    }
+
+    @Override
+    @IsAdmin
+    public IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers) {
+        LOG.debug("create({}, {})", group, groupIdsOfImportedMembers);
         Assert.notNull(group, "Input group must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
 
         groupIdsOfImportedMembers.forEach(groupId -> {
-            IDMGroup gr = groupRepository.findById(groupId)
+            IDMGroup idmGroup = groupRepository.findById(groupId)
                     .orElseThrow(() -> new UserAndGroupServiceException("Group with id " + groupId + " counld not be found"));
-            gr.getUsers().forEach(user -> {
+            idmGroup.getUsers().forEach(user -> {
                 if (!group.getUsers().contains(user)) {
                     group.addUser(user);
                 }
             });
         });
 
-        Role guestRole = roleRepository.findByRoleType(RoleType.GUEST)
+        Role guestRole = roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString())
                 .orElseThrow(() ->
-                        new UserAndGroupServiceException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
+                        new UserAndGroupServiceException(RoleType.ROLE_USER_AND_GROUP_GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
         group.addRole(guestRole);
 
-        IDMGroup g = groupRepository.save(group);
-        log.info(group + " created.");
-        return g;
+        return groupRepository.save(group);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup update(IDMGroup group) throws ExternalSourceException {
+    @IsAdmin
+    public IDMGroup update(IDMGroup group) {
+        LOG.debug("update({})", group);
         Assert.notNull(group, "Input group must not be null.");
 
         if (groupRepository.isIDMGroupInternal(group.getId())) {
             IDMGroup groupInDatabase = get(group.getId());
             groupInDatabase.setDescription(group.getDescription());
             groupInDatabase.setName(group.getName());
-            IDMGroup g = groupRepository.save(groupInDatabase);
-            log.info(group + " updated.");
-            return g;
+            return groupRepository.save(groupInDatabase);
         } else {
             throw new ExternalSourceException("Given idm group is external therefore it cannot be udpated");
         }
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    @IsAdmin
     public GroupDeletionStatusDTO delete(IDMGroup group) {
+        LOG.debug("delete({})", group);
         Assert.notNull(group, "Input group must not be null.");
         GroupDeletionStatusDTO deletionStatus = checkKypoGroupBeforeDelete(group);
         if (deletionStatus.equals(GroupDeletionStatusDTO.SUCCESS)) {
             groupRepository.delete(group);
-            log.info(group + " deleted.");
         }
         return deletionStatus;
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    @IsAdmin
     public Page<IDMGroup> getAllIDMGroups(Predicate predicate, Pageable pageable) {
-        Page<IDMGroup> groups = groupRepository.findAll(predicate, pageable);
-        log.info("All IDM Groups loaded");
-        return groups;
+        LOG.debug("getAllIDMGroups()");
+        return groupRepository.findAll(predicate, pageable);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
-    public IDMGroup getIDMGroupByName(String name) throws UserAndGroupServiceException {
+    public IDMGroup getIDMGroupByName(String name) {
+        LOG.debug("getIDMGroupByName({})", name);
         Assert.hasLength(name, "Input name of group must not be empty");
-        Optional<IDMGroup> optionalGroup = groupRepository.findByName(name);
-        IDMGroup group = optionalGroup.orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found"));
-        log.info(group + " loaded.");
-        return group;
+        return groupRepository.findByName(name).orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found"));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
-            "or @securityService.isLoggedInUserInGroup(#name)")
-    public Page<IDMGroup> getIDMGroupsByName(String name, Pageable pageable) throws UserAndGroupServiceException {
-        Assert.hasLength(name, "Input name of group must not be empty");
-        Page<IDMGroup> groups = groupRepository.findAllByName(name, pageable);
-        if (groups != null && groups.getTotalElements() != 0) {
-            log.info(groups.toString() + " loaded.");
-        } else {
-            log.error("IDM Groups with name containing " + name + " not empty");
-            throw new UserAndGroupServiceException("IDM Groups with name containing " + name + " not found");
-        }
-        return groups;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public IDMGroup getIDMGroupWithUsers(Long id) throws UserAndGroupServiceException {
-        Assert.notNull(id, "Input id must not be null");
-        IDMGroup group = get(id);
-        group.getUsers().size();
-        return group;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
-            "or @securityService.isLoggedInUserInGroup(#name)")
-    public IDMGroup getIDMGroupWithUsers(String name) throws UserAndGroupServiceException {
-        Assert.hasLength(name, "Input name of group must not be empty");
-        IDMGroup group = getIDMGroupByName(name);
-        group.getUsers().size();
-        return group;
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
-            "or @securityService.isLoggedInUserInGroup(#id)")
-    public boolean isGroupInternal(Long id) throws UserAndGroupServiceException {
+    public boolean isGroupInternal(Long id) {
+        LOG.debug("isGroupInternal({})", id);
         Assert.notNull(id, "Input id must not be null");
         return groupRepository.isIDMGroupInternal(id);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
-    public Set<Role> getRolesOfGroup(Long id) throws UserAndGroupServiceException {
+    public Set<Role> getRolesOfGroup(Long id) {
+        LOG.debug("getRolesOfGroup({})", id);
         Assert.notNull(id, "Input id must not be null");
-        if (!groupRepository.existsById(id)) {
-            throw new UserAndGroupServiceException("Group with id " + id + " could not be found.");
-        }
-        Set<Role> roles = new HashSet<>(groupRepository.getRolesOfGroup(id));
-        return roles;
+        IDMGroup group = groupRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("Group with id: " + id + " could not be found."));
+        return group.getRoles();
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup assignRole(Long groupId, RoleType roleType) throws UserAndGroupServiceException {
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)")
+    public IDMGroup assignRole(Long groupId, Long roleId) {
+        LOG.debug("assignRole({}, {})", groupId, roleId);
         Assert.notNull(groupId, "Input groupId must not be null");
-        Assert.notNull(roleType, "Input roleType must not be null");
+        Assert.notNull(roleId, "Input roleId must not be null");
 
         IDMGroup group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
-
-        switch (roleType) {
-            case ADMINISTRATOR:
-                Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR)
-                        .orElseThrow(() ->
-                                new UserAndGroupServiceException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
-                group.addRole(adminRole);
-            case USER:
-                Role userRole = roleRepository.findByRoleType(RoleType.USER)
-                        .orElseThrow(() ->
-                                new UserAndGroupServiceException(RoleType.USER + " role could not be found. Start up of the project probably went wrong, please contact support."));
-                group.addRole(userRole);
-            case GUEST:
-                Role guestRole = roleRepository.findByRoleType(RoleType.GUEST)
-                        .orElseThrow(() ->
-                                new UserAndGroupServiceException(RoleType.GUEST + " role could not be found. Start up of the project probably went wrong, please contact support."));
-                group.addRole(guestRole);
-        }
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() ->
+                        new UserAndGroupServiceException("Role with id: " + roleId + " could not be found. Start up of the project or registering of microservice probably went wrong, please contact support."));
+        group.addRole(role);
         return groupRepository.save(group);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup removeRoleToGroup(Long groupId, RoleType roleType) throws UserAndGroupServiceException, RoleCannotBeRemovedToGroupException {
+    @IsAdmin
+    public IDMGroup removeRoleFromGroup(Long groupId, Long roleId) {
+        LOG.debug("removeRoleFromGroup({}, {})", groupId, roleId);
         Assert.notNull(groupId, "Input groupId must not be null");
-        Assert.notNull(roleType, "Input roleType must not be null");
+        Assert.notNull(roleId, "Input roleType must not be null");
 
         IDMGroup group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
 
-        if (roleType.equals(RoleType.ADMINISTRATOR)) {
-            Role adminRole = roleRepository.findByRoleType(RoleType.ADMINISTRATOR)
-                    .orElseThrow(() ->
-                            new UserAndGroupServiceException(RoleType.ADMINISTRATOR + " role could not be found. Start up of the project probably went wrong, please contact support."));
-            group.removeRole(adminRole);
-        } else {
-            throw new RoleCannotBeRemovedToGroupException("Roles USER and GUEST cannot be removed from group. These roles are main roles to give access to KYPO and if you" +
-                    "want to remove them from group you have to remove the group.");
+
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() ->
+                        new UserAndGroupServiceException("Role with id: " + roleId + " could not be found. Start up of the project probably went wrong, please contact support."));
+        if (group.getName().equalsIgnoreCase(role.getRoleType().toUpperCase())) {
+            throw new RoleCannotBeRemovedToGroupException("Role " + role.getRoleType() + " cannot be removed from group. This role is main role of the group");
         }
+        group.removeRole(role);
         return groupRepository.save(group);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupServiceException, ExternalSourceException {
+    @IsAdmin
+    public IDMGroup removeUsers(Long groupId, List<Long> userIds) {
+        LOG.debug("removeUsers({}, {})", groupId, userIds);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
@@ -247,8 +202,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) throws UserAndGroupServiceException, ExternalSourceException {
+    @IsAdmin
+    public IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) {
+        LOG.debug("addUsers({}, {}, {})", groupId, idsOfGroupsOfImportedUsers, idsOfUsersToBeAdd);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");
@@ -264,9 +220,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         }
         for (Long id : idsOfGroupsOfImportedUsers) {
             IDMGroup groupOfImportedMembers = this.get(id);
-            groupOfImportedMembers.getUsers().forEach((u) -> {
-                if (!groupToUpdate.getUsers().contains(u)) {
-                    groupToUpdate.addUser(u);
+            groupOfImportedMembers.getUsers().forEach(user -> {
+                if (!groupToUpdate.getUsers().contains(user)) {
+                    groupToUpdate.addUser(user);
                 }
             });
         }
@@ -275,12 +231,8 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     private GroupDeletionStatusDTO checkKypoGroupBeforeDelete(IDMGroup group) {
-//        if (!groupRepository.isIDMGroupInternal(group.getId()) && group.getStatus().equals(UserAndGroupStatus.VALID)) {
-//            return GroupDeletionStatusDTO.EXTERNAL_VALID;
-//        } else
-        if (group.getName().equals(RoleType.ADMINISTRATOR.name()) ||
-                group.getName().equals(RoleType.USER.name()) ||
-                group.getName().equals(RoleType.GUEST.name())) {
+        List<String> roles = roleRepository.findAll().stream().map(Role::getRoleType).collect(Collectors.toList());
+        if (roles.contains(group.getName())) {
             return GroupDeletionStatusDTO.ERROR_MAIN_GROUP;
         }
         return GroupDeletionStatusDTO.SUCCESS;

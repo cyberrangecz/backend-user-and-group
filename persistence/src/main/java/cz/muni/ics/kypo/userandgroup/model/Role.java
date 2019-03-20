@@ -20,20 +20,22 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "ROLE")
+@Table(name = "role")
 public class Role {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
+    @Column(name = "role_type", unique = true, nullable = false)
+    private String roleType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ROLE_TYPE", unique = true, nullable = false)
-    private RoleType roleType;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Microservice microservice;
 
     public Long getId() {
         return id;
@@ -43,27 +45,34 @@ public class Role {
         this.id = id;
     }
 
-    public RoleType getRoleType() {
+    public String getRoleType() {
         return roleType;
     }
 
-    public void setRoleType(RoleType name) {
-        this.roleType = name;
+    public void setRoleType(String roleType) {
+        this.roleType = roleType;
+    }
+
+    public Microservice getMicroservice() {
+        return microservice;
+    }
+
+    public void setMicroservice(Microservice microservice) {
+        this.microservice = microservice;
+
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Role role = (Role) o;
-
-        return roleType.equals(role.roleType);
+        return Objects.equals(roleType, role.roleType);
     }
 
     @Override
     public int hashCode() {
-        return roleType != null ? roleType.hashCode() : 0;
+        return Objects.hashCode(roleType);
     }
 
     @Override

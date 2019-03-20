@@ -5,9 +5,10 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.UserServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
-import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,6 +41,9 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @MockBean
+    private RoleRepository roleRepository;
+
+    @MockBean
     private IDMGroupRepository groupRepository;
 
     private User user1, user2;
@@ -54,7 +58,7 @@ public class UserServiceTest {
     @Before
     public void init() {
 
-        userService = new UserServiceImpl(userRepository, groupRepository);
+        userService = new UserServiceImpl(userRepository, groupRepository, roleRepository);
 
         user1 = new User();
         user1.setId(1L);
@@ -72,11 +76,11 @@ public class UserServiceTest {
         adminGroup.setId(1L);
 
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
         adminRole.setId(1L);
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
         guestRole.setId(2L);
 
         pageable = PageRequest.of(0, 10);

@@ -70,11 +70,10 @@ public class SwaggerConfig {
                 .tokenName(NAME_OF_TOKEN)
                 .build();
 
-        SecurityScheme oauth = new OAuthBuilder().name(NAME_OF_SECURITY_SCHEME)
+        return new OAuthBuilder().name(NAME_OF_SECURITY_SCHEME)
                 .grantTypes(Arrays.asList(grantType))
                 .scopes(Arrays.asList(scopes()))
                 .build();
-        return oauth;
     }
 
     private AuthorizationScope[] scopes() {

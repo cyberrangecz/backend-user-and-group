@@ -1,10 +1,13 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -21,12 +24,12 @@ public interface UserService {
      * @return user with given id
      * @throws UserAndGroupServiceException if user was not found
      */
-    User get(Long id) throws UserAndGroupServiceException;
+    User get(Long id);
 
     /**
      * Deletes given user from database and returns status of deletion.
      * Return values: SUCCESS - successfully deleted
-     *                EXTERNAL_VALID - user is from external source and is not marked as DELETED
+     * EXTERNAL_VALID - user is from external source and is not marked as DELETED
      *
      * @param user to be deleted
      * @return status of deletion
@@ -37,9 +40,9 @@ public interface UserService {
     /**
      * Tries to delete users with given ids from database and returns map of users and statuses of their deletion.
      * Statuses: SUCCESS - successfully deleted
-     *           EXTERNAL_VALID - user is from external source and is not marked as DELETED
-     *           ERROR - when some exception occurred while deleting user
-     *           NOT_FOUND - user could not be found
+     * EXTERNAL_VALID - user is from external source and is not marked as DELETED
+     * ERROR - when some exception occurred while deleting user
+     * NOT_FOUND - user could not be found
      *
      * @param idsOfUsers ids of users to be deleted
      * @return map of users and statuses of their deletion
@@ -52,7 +55,7 @@ public interface UserService {
      * @param id of user to be changed their admin role.
      * @throws UserAndGroupServiceException when administrator group could not be  found
      */
-    void changeAdminRole(Long id) throws UserAndGroupServiceException;
+    void changeAdminRole(Long id);
 
     /**
      * Returns true if user with given id has administrator role, false otherwise.
@@ -60,7 +63,7 @@ public interface UserService {
      * @param id of user checked if they are administrator
      * @throws UserAndGroupServiceException when administrator group could not be  found
      */
-    boolean isUserAdmin(Long id) throws UserAndGroupServiceException;
+    boolean isUserAdmin(Long id);
 
     /**
      * Gets user with given user identity from database.
@@ -69,7 +72,7 @@ public interface UserService {
      * @return user with given user identity
      * @throws UserAndGroupServiceException if user with given login could not be found
      */
-    User getUserByLogin(String login) throws UserAndGroupServiceException;
+    User getUserByLogin(String login);
 
     /**
      * Returns all users from database.
@@ -81,7 +84,7 @@ public interface UserService {
     /**
      * Returns all users who are not in group with given groupId
      *
-     * @param groupId id of group
+     * @param groupId  id of group
      * @param pageable parameter with information about pagination
      * @return page of users who are not in group with given groupId
      */
@@ -94,7 +97,7 @@ public interface UserService {
      * @return user with IDM groups in database
      * @throws UserAndGroupServiceException if some error occurred when loading user with groups
      */
-    User getUserWithGroups(Long id) throws UserAndGroupServiceException;
+    User getUserWithGroups(Long id);
 
     /**
      * Returns user with IDM groups from database
@@ -103,7 +106,7 @@ public interface UserService {
      * @return user with IDM groups in database
      * @throws UserAndGroupServiceException if some error occurred when loading user with groups
      */
-    User getUserWithGroups(String login) throws UserAndGroupServiceException;
+    User getUserWithGroups(String login);
 
     /**
      * Returns true if user is internal otherwise false
@@ -112,7 +115,7 @@ public interface UserService {
      * @return true if user is internal otherwise false
      * @throws UserAndGroupServiceException if user could not be found
      */
-    boolean isUserInternal(Long id) throws UserAndGroupServiceException;
+    boolean isUserInternal(Long id);
 
     /**
      * Returns all roles of user with given id
@@ -121,12 +124,24 @@ public interface UserService {
      * @return all roles of user with given id
      * @throws UserAndGroupServiceException if user could not be found
      */
-    Set<Role> getRolesOfUser(Long id) throws UserAndGroupServiceException;
+    Set<Role> getRolesOfUser(Long id);
 
     /**
      * Returns all users in given groups.
+     *
      * @param groupsIds ids of groups to which are users assigned
      * @return users in given groups
      */
     Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
+
+    /**
+     * Returns page of users specified by given role type, predicate and pageable
+     *
+     * @param pageable parameter with information about pagination
+     * @param roleId id of role to get users for
+     * @return page of users specified by given predicate and pageable
+     * @throws UserAndGroupServiceException if role is not found in DB
+     */
+    Page<User> getUsersWithGivenRole(Long roleId, Pageable pageable);
+
 }

@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ public class UserDeletionResponseDTO {
     private UserDTO user;
     private UserDeletionStatusDTO status;
 
+    @ApiModelProperty(value = "User to be deleted.")
     public UserDTO getUser() {
         return user;
     }
@@ -17,6 +19,7 @@ public class UserDeletionResponseDTO {
         this.user = user;
     }
 
+    @ApiModelProperty(value = "Status about result of deletion.", example = "SUCCESS")
     public UserDeletionStatusDTO getStatus() {
         return status;
     }

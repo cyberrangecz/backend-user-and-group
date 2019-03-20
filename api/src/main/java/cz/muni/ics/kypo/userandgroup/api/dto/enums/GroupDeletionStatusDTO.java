@@ -21,6 +21,6 @@ package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
 public enum GroupDeletionStatusDTO {
     
-    EXTERNAL_VALID, SUCCESS, ERROR, NOT_FOUND, MICROSERVICE_ERROR, ERROR_MAIN_GROUP
+    EXTERNAL_VALID, SUCCESS, ERROR, NOT_FOUND, ERROR_MAIN_GROUP
     
 }

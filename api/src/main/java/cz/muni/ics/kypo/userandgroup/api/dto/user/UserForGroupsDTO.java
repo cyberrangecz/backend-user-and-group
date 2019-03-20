@@ -1,5 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.util.Objects;
 
 public class UserForGroupsDTO {
@@ -9,13 +11,16 @@ public class UserForGroupsDTO {
     private String login;
     private String mail;
 
+    @ApiModelProperty(value = "Main identifiers of the user.", example = "1")
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
 
+    @ApiModelProperty(value = "Full name of the user.", example = "Peter Novak.")
     public String getFullName() {
         return fullName;
     }
@@ -24,6 +29,7 @@ public class UserForGroupsDTO {
         this.fullName = fullName;
     }
 
+    @ApiModelProperty(value = "Login of the user.", example = "michaelsmith")
     public String getLogin() {
         return login;
     }
@@ -32,6 +38,7 @@ public class UserForGroupsDTO {
         this.login = login;
     }
 
+    @ApiModelProperty(value = "Email of the user.", example = "michaelsmith@mail.muni.cz.")
     public String getMail() {
         return mail;
     }

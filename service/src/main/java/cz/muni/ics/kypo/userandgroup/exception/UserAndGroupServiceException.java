@@ -21,8 +21,6 @@ package cz.muni.ics.kypo.userandgroup.exception;
 
 public class UserAndGroupServiceException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
-
     public UserAndGroupServiceException() {
         super();
     }

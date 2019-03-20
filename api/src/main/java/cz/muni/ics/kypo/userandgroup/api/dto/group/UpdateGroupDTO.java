@@ -1,14 +1,21 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
+import io.swagger.annotations.ApiModelProperty;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class UpdateGroupDTO {
+
+    @NotNull(message = "{updateGroupDto.id.NotNull.message}")
     private Long id;
-
+    @NotEmpty(message = "{updateGroupDto.name.NotEmpty.message}")
     private String name;
-
+    @NotEmpty(message = "{updateGroupDto.description.NotEmpty.message}")
     private String description;
 
+    @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1")
     public Long getId() {
         return id;
     }
@@ -17,6 +24,7 @@ public class UpdateGroupDTO {
         this.id = id;
     }
 
+    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group.")
     public String getName() {
         return name;
     }
@@ -25,6 +33,7 @@ public class UpdateGroupDTO {
         this.name = name;
     }
 
+    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     public String getDescription() {
         return description;
     }

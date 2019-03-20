@@ -16,7 +16,7 @@ import java.util.Optional;
 @Service
 public class MicroserviceServiceImpl implements MicroserviceService {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(MicroserviceServiceImpl.class);
+    private static Logger LOG = LoggerFactory.getLogger(MicroserviceServiceImpl.class);
 
     private MicroserviceRepository microserviceRepository;
 
@@ -26,18 +26,28 @@ public class MicroserviceServiceImpl implements MicroserviceService {
     }
 
     @Override
-    public Microservice get(Long id) throws UserAndGroupServiceException {
+    public Microservice get(Long id) {
+        LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
-        Optional<Microservice> optionalMicroservice = microserviceRepository.findById(id);
-        Microservice microservice = optionalMicroservice.orElseThrow(() -> new UserAndGroupServiceException("Microservice with id " + id + " not found"));
-        LOGGER.info(microservice + " loaded.");
-        return microservice;
+        return microserviceRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("Microservice with id " + id + " not found"));
     }
 
     @Override
     public List<Microservice> getMicroservices() {
-        List<Microservice> microservices = microserviceRepository.findAll();
-        LOGGER.info("All microservices loaded");
-        return microservices;
+        LOG.debug("getMicroservices()");
+        return microserviceRepository.findAll();
+    }
+
+    @Override
+    public Microservice create(Microservice microserviceToCreate) {
+        LOG.debug("create({})", microserviceToCreate);
+        Assert.notNull(microserviceToCreate, "Input microservice must not be null.");
+        Optional<Microservice> optionalMicroservice = microserviceRepository.findByName(microserviceToCreate.getName());
+        if (optionalMicroservice.isPresent()) {
+            optionalMicroservice.get().setEndpoint(microserviceToCreate.getEndpoint());
+            return optionalMicroservice.get();
+        } else {
+            return microserviceRepository.save(microserviceToCreate);
+        }
     }
 }

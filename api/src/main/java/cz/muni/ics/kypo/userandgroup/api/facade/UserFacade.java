@@ -24,7 +24,7 @@ public interface UserFacade {
      * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) throws UserAndGroupFacadeException, MicroserviceException;
+    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable);
 
     /**
      * Returns user with given id
@@ -34,7 +34,7 @@ public interface UserFacade {
      * @throws UserAndGroupFacadeException if user with id could not be found
      * @throws MicroserviceException if client error occurs during getting roles from other microservices, probably due to wrong URL
      */
-    UserDTO getUser(Long id) throws UserAndGroupFacadeException, MicroserviceException;
+    UserDTO getUser(Long id);
 
     /**
      * Returns all users who are not in group with given groupId
@@ -45,7 +45,7 @@ public interface UserFacade {
      * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) throws UserAndGroupFacadeException, MicroserviceException;
+    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
 
     /**
      * Deletes user with given id from database and returns status of deletion with user.
@@ -54,7 +54,7 @@ public interface UserFacade {
      * @return status of deletion with user
      * @throws UserAndGroupFacadeException if error occurs during deleting user
      */
-    UserDeletionResponseDTO deleteUser(Long id) throws UserAndGroupFacadeException;
+    UserDeletionResponseDTO deleteUser(Long id);
 
     /**
      * Deletes users with given ids from database and returns statuses of deletion users
@@ -72,7 +72,7 @@ public interface UserFacade {
      * @throws UserAndGroupFacadeException if user was not found
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    Set<RoleDTO> getRolesOfUser(Long id) throws UserAndGroupFacadeException, MicroserviceException;
+    Set<RoleDTO> getRolesOfUser(Long id);
 
     /**
      * Returns info about currently logged in user
@@ -82,7 +82,7 @@ public interface UserFacade {
      * @throws UserAndGroupFacadeException if logged in user could not be found in database
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    UserInfoDTO getUserInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException;
+    UserDTO getUserInfo(OAuth2Authentication authentication);
 
     /**
      * Returns true if user is internal otherwise false
@@ -91,17 +91,7 @@ public interface UserFacade {
      * @return true if user is internal otherwise false
      * @throws UserAndGroupFacadeException if user was not found
      */
-    boolean isUserInternal(Long id) throws UserAndGroupFacadeException;
-
-    /**
-     * Returns basic info about currently logged in user
-     *
-     * @param authentication spring's authentication
-     * @return basic information about logged in user (ids of groups to which is assigned and basic roles)
-     * @throws UserAndGroupFacadeException if logged in user could not be found in database
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
-     */
-    UserBasicInfoDTO getUserBasicInfo(OAuth2Authentication authentication) throws UserAndGroupFacadeException, MicroserviceException;
+    boolean isUserInternal(Long id);
 
     /**
      * Returns users in given groups
@@ -110,4 +100,15 @@ public interface UserFacade {
      * @return list of users in given groups
      */
     PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
+
+    /**
+     * Returns page of users specified by given role type, predicate and pageable
+     *
+     * @param pageable parameter with information about pagination
+     * @param roleId id of role to get users for
+     * @return page of users specified by given predicate and pageable
+     * @throws UserAndGroupFacadeException if role is not found in DB
+     */
+    PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable);
+
 }

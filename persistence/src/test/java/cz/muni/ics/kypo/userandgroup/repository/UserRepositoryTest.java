@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +34,7 @@ public class UserRepositoryTest {
     private Role adminRole, guestRole;
     private IDMGroup group1, group2;
     private User user;
+    private Microservice microservice;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -42,11 +42,18 @@ public class UserRepositoryTest {
 
     @Before
     public void setup() {
+        microservice = new Microservice();
+        microservice.setEndpoint("http://kypo2-training/api/v1");
+        microservice.setName("training");
+        this.entityManager.persistAndFlush(microservice);
+
         adminRole = new Role();
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        adminRole.setMicroservice(microservice);
 
         guestRole = new Role();
-        guestRole.setRoleType(RoleType.GUEST);
+        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
+        guestRole.setMicroservice(microservice);
 
         group1 = new IDMGroup("group1", "group1 1");
         group1.setStatus(UserAndGroupStatus.VALID);

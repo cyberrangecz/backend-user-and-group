@@ -17,7 +17,6 @@ import java.util.Optional;
 public class SecurityService {
 
     private UserRepository userRepository;
-
     private IDMGroupRepository groupRepository;
 
     @Autowired
@@ -30,28 +29,25 @@ public class SecurityService {
         return login.equals(getSubOfLoggedInUser());
     }
 
-    public boolean hasLoggedInUserSameId(Long userId) throws SecurityException {
+    public boolean hasLoggedInUserSameId(Long userId) {
         User loggedInUser = getLoggedInUser();
-
         return userId.equals(loggedInUser.getId());
     }
 
-    public boolean isLoggedInUserInGroup(Long groupId) throws SecurityException {
+    public boolean isLoggedInUserInGroup(Long groupId) {
         User loggedInUser = getLoggedInUser();
         IDMGroup group = groupRepository.getOne(groupId);
-
         return group.getUsers().contains(loggedInUser);
     }
 
-    public boolean isLoggedInUserInGroup(String groupName) throws SecurityException {
+    public boolean isLoggedInUserInGroup(String groupName) {
         User loggedInUser = getLoggedInUser();
         Optional<IDMGroup> optionalGroup = groupRepository.findByName(groupName);
         IDMGroup group = optionalGroup.orElseThrow(() -> new SecurityException("Group with name " + groupName + " could not be found"));
-
         return group.getUsers().contains(loggedInUser);
     }
 
-    private User getLoggedInUser() throws SecurityException {
+    private User getLoggedInUser() {
         String sub = getSubOfLoggedInUser();
         Optional<User> optionalUser = userRepository.findByLogin(sub);
         return optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + sub + " could not be found in database"));

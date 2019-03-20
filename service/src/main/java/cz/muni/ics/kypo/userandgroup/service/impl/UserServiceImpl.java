@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -8,6 +9,7 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
+import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.slf4j.Logger;
@@ -24,64 +26,62 @@ import java.util.*;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class.getName());
+    private static Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class.getName());
 
     private UserRepository userRepository;
-
     private IDMGroupRepository groupRepository;
+    private RoleRepository roleRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, IDMGroupRepository groupRepository) {
+    public UserServiceImpl(UserRepository userRepository, IDMGroupRepository groupRepository,
+                            RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public User get(Long id) throws UserAndGroupServiceException {
+    public User get(Long id) {
+        LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
-        Optional<User> optionalUser = userRepository.findById(id);
-        User user = optionalUser.orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
-        log.info(user + " loaded.");
-        return user;
+        return userRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    @IsAdmin
     public UserDeletionStatusDTO delete(User user) {
         Assert.notNull(user, "Input user must not be null");
         UserDeletionStatusDTO deletionCheck = checkKypoUserBeforeDelete(user);
-        StringBuilder message = new StringBuilder();
-
         if (deletionCheck.equals(UserDeletionStatusDTO.SUCCESS)) {
             userRepository.delete(user);
-            message.append("IDM user with id: ").append(user.getId()).append(" was successfully deleted.");
-            log.info(message.toString());
+            LOG.debug("IDM user with id: {} was successfully deleted.", user.getId());
         }
         return deletionCheck;
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    @IsAdmin
     public Map<User, UserDeletionStatusDTO> deleteUsers(List<Long> idsOfUsers) {
+        LOG.debug("deleteUsers({}) ", idsOfUsers);
         Assert.notNull(idsOfUsers, "Input ids of users must not be null");
         Map<User, UserDeletionStatusDTO> response = new HashMap<>();
 
         idsOfUsers.forEach(id -> {
-            User u = null;
+            User user = null;
             try {
-                u = get(id);
+                user = get(id);
                 try {
-                    UserDeletionStatusDTO status = delete(u);
-                    response.put(u, status);
+                    UserDeletionStatusDTO status = delete(user);
+                    response.put(user, status);
                 } catch (Exception ex) {
-                    response.put(u, UserDeletionStatusDTO.ERROR);
+                    response.put(user, UserDeletionStatusDTO.ERROR);
                 }
             } catch (UserAndGroupServiceException ex) {
-                u = new User();
-                u.setId(id);
-                response.put(u, UserDeletionStatusDTO.NOT_FOUND);
+                user = new User();
+                user.setId(id);
+                response.put(user, UserDeletionStatusDTO.NOT_FOUND);
             }
         });
 
@@ -89,8 +89,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
-    public void changeAdminRole(Long id) throws UserAndGroupServiceException {
+    @IsAdmin
+    public void changeAdminRole(Long id) {
+        LOG.debug("changeAdminRole({})", id);
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
@@ -104,9 +105,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public boolean isUserAdmin(Long id) throws UserAndGroupServiceException {
+    public boolean isUserAdmin(Long id) {
+        LOG.debug("isUserAdmin({})", id);
         Assert.notNull(id, "Input id must not be null");
         User user = get(id);
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
@@ -116,56 +118,59 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserByLogin(String login) throws UserAndGroupServiceException {
+    public User getUserByLogin(String login) {
+        LOG.debug("getUserByLogin({})", login);
         Assert.hasLength(login, "Input login must not be empty");
-        Optional<User> optionalUser = userRepository.findByLogin(login);
-        User user = optionalUser.orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " could not be found"));
-        log.info(user + " loaded.");
-        return user;
+        return userRepository.findByLogin(login).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " could not be found"));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    @IsAdmin
     public Page<User> getAllUsers(Predicate predicate, Pageable pageable) {
-        Page<User> users = userRepository.findAll(predicate, pageable);
-        log.info("All Users loaded");
-        return users;
+        LOG.debug("getAllUsers()");
+        return userRepository.findAll(predicate, pageable);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)")
+    @IsAdmin
     public Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
-        Page<User> usersNotInGivenGroup = userRepository.usersNotInGivenGroup(groupId, pageable);
-        log.info("All users who are not in group with id {} was loaded", groupId);
-        return usersNotInGivenGroup;
+        LOG.debug("getAllUsersNotInGivenGroup({})", groupId);
+        return userRepository.usersNotInGivenGroup(groupId, pageable);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public User getUserWithGroups(Long id) throws UserAndGroupServiceException {
+    public User getUserWithGroups(Long id) {
+        LOG.debug("getUserWithGroups({})", id);
         Assert.notNull(id, "Input id must not be null");
+
+        //PREDELAT HNUS!
         User user = get(id);
         user.getGroups().size();
         return user;
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserWithGroups(String login) throws UserAndGroupServiceException {
+    public User getUserWithGroups(String login) {
+        LOG.debug("getUserWithGroups({})", login);
         Assert.hasLength(login, "Input login must not be empty");
+
+        //PREDELAT HNUS! FETCH JOIN OR ENTITY GRAPH PREFER FETCH JOIN
         User user = this.getUserByLogin(login);
         user.getGroups().size();
         return user;
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public boolean isUserInternal(Long id) throws UserAndGroupServiceException {
+    public boolean isUserInternal(Long id) {
+        LOG.debug("isUserInternal({})", id);
         Assert.notNull(id, "Input id must not be null");
         if (!userRepository.existsById(id)) {
             throw new UserAndGroupServiceException("User with id " + id + " could not be found.");
@@ -174,9 +179,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
-    public Set<Role> getRolesOfUser(Long id) throws UserAndGroupServiceException {
+    public Set<Role> getRolesOfUser(Long id) {
+        LOG.debug("getRolesOfUser({})", id);
         Assert.notNull(id, "Input id must not be null");
         if (!userRepository.existsById(id)) {
             throw new UserAndGroupServiceException("User with id " + id + " could not be found.");
@@ -186,9 +192,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable) {
-        Page<User> users = userRepository.usersInGivenGroups(groupsIds, pageable);
-        log.info("All Users in given groups loaded");
-        return users;
+        LOG.debug("getUsersInGroups({})", groupsIds);
+        return userRepository.usersInGivenGroups(groupsIds, pageable);
     }
 
     private UserDeletionStatusDTO checkKypoUserBeforeDelete(User user) {
@@ -196,5 +201,15 @@ public class UserServiceImpl implements UserService {
             return UserDeletionStatusDTO.EXTERNAL_VALID;
         }
         return UserDeletionStatusDTO.SUCCESS;
+    }
+
+    @Override
+    public Page<User> getUsersWithGivenRole(Long roleId, Pageable pageable) {
+        LOG.debug("getUsersWithGivenRole({})", roleId);
+        Assert.notNull(roleId, "Input role type must not be null");
+        if (!roleRepository.existsById(roleId)) {
+            throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found.");
+        }
+        return userRepository.findAllByRoleId(roleId, pageable);
     }
 }

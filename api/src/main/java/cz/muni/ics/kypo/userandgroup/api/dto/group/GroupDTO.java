@@ -4,24 +4,20 @@ import cz.muni.ics.kypo.userandgroup.api.dto.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserAndGroupStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.*;
 
 
 public class GroupDTO {
 
+
     private Long id;
-
     private String name;
-
     private String description;
-
     private Set<RoleDTO> roles = new HashSet<>();
-
     private List<UserForGroupsDTO> users = new ArrayList<>();
-
     private Source source;
-
     private boolean canBeDeleted;
 
     public void convertExternalIdToSource(Long externalId) {
@@ -41,6 +37,7 @@ public class GroupDTO {
         }
     }
 
+    @ApiModelProperty(value = "Main identifier of group.", example = "1")
     public Long getId() {
         return id;
     }
@@ -49,6 +46,7 @@ public class GroupDTO {
         this.id = id;
     }
 
+    @ApiModelProperty(value = "A name of the group.", example = "Main group of organizers")
     public String getName() {
         return name;
     }
@@ -57,6 +55,7 @@ public class GroupDTO {
         this.name = name;
     }
 
+    @ApiModelProperty(value = "A description of the group.", example = "Organizers group for training run in June.")
     public String getDescription() {
         return description;
     }
@@ -65,6 +64,7 @@ public class GroupDTO {
         this.description = description;
     }
 
+    @ApiModelProperty(value = "List of users in group.")
     public List<UserForGroupsDTO> getUsers() {
         return users;
     }
@@ -73,6 +73,7 @@ public class GroupDTO {
         this.users = users;
     }
 
+    @ApiModelProperty(value = "Set of roles of  group.")
     public Set<RoleDTO> getRoles() {
         return roles;
     }
@@ -81,6 +82,7 @@ public class GroupDTO {
         this.roles = roles;
     }
 
+    @ApiModelProperty(value = "Source of the group, whether its internal or from perun.", example = "Internal")
     public Source getSource() {
         return source;
     }
@@ -89,6 +91,7 @@ public class GroupDTO {
         this.source = source;
     }
 
+    @ApiModelProperty(value = "Sign if the group can be deleted.", example = "false")
     public boolean isCanBeDeleted() {
         return canBeDeleted;
     }

@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -14,6 +15,7 @@ public class UserDTO {
     private String mail;
     private Set<RoleDTO> roles = new HashSet<>();
 
+    @ApiModelProperty(value = "Main identifier of the user.", example = "1")
     public Long getId() {
         return id;
     }
@@ -22,6 +24,7 @@ public class UserDTO {
         this.id = id;
     }
 
+    @ApiModelProperty(value = "Full name of the user.", example = "Michael Smith.")
     public String getFullName() {
         return fullName;
     }
@@ -30,6 +33,7 @@ public class UserDTO {
         this.fullName = fullName;
     }
 
+    @ApiModelProperty(value = "Login of the user.", example = "michaelsmith")
     public String getLogin() {
         return login;
     }
@@ -38,6 +42,7 @@ public class UserDTO {
         this.login = login;
     }
 
+    @ApiModelProperty(value = "Email of the user.", example = "michaelsmith@mail.muni.cz.")
     public String getMail() {
         return mail;
     }
@@ -46,6 +51,7 @@ public class UserDTO {
         this.mail = mail;
     }
 
+    @ApiModelProperty(value = "Roles of user assigned through the groups which user is in.")
     public Set<RoleDTO> getRoles() {
         return roles;
     }

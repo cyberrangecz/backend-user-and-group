@@ -1,147 +1,86 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalRO;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
-import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import static cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE;
 
 @Service
 @Transactional
 public class RoleFacadeImpl implements RoleFacade {
 
+    @Value("${service.name}")
+    private String nameOfUserAndGroupService;
     Logger LOG = LoggerFactory.getLogger(RoleFacadeImpl.class);
 
     private RoleService roleService;
-    private MicroserviceService microserviceService;
-    private RestTemplate restTemplate;
-    private BeanMapping beanMapping;
+    private RoleMapper roleMapper;
 
     @Autowired
-    public RoleFacadeImpl(RoleService roleService, MicroserviceService microserviceService,
-                          RestTemplate restTemplate, BeanMapping beanMapping) {
+    public RoleFacadeImpl(RoleService roleService, RoleMapper roleMapper) {
         this.roleService = roleService;
-        this.microserviceService = microserviceService;
-        this.restTemplate = restTemplate;
-        this.beanMapping = beanMapping;
+        this.roleMapper = roleMapper;
     }
 
     @Override
-    public RoleDTO getById(Long id) throws UserAndGroupFacadeException {
+    @TransactionalRO
+    public RoleDTO getById(Long id) {
+        LOG.debug("getById({})", id);
         try {
             Role role = roleService.getById(id);
-            LOG.info("Role with id: " + id + "has been loaded.");
-            RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-            roleDTO.setNameOfMicroservice("User and Group");
-            return roleDTO;
+            return convertToRoleDTO(role);
         } catch (UserAndGroupServiceException ex) {
-            LOG.error("Role with id: " + id + " could not be found.");
+            LOG.error("Role with id: {} could not be found.", id);
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
     }
 
     @Override
-    public RoleDTO getByRoleType(RoleTypeDTO roleType) throws UserAndGroupFacadeException {
+    @TransactionalRO
+    public RoleDTO getByRoleType(String roleType) {
+        LOG.debug("getByRoleType({})", roleType);
         try {
-            Role role = null;
-            if (roleType.equals(RoleTypeDTO.ADMINISTRATOR)) {
-                role = roleService.getByRoleType(RoleType.ADMINISTRATOR);
-            } else if (roleType.equals(RoleTypeDTO.USER)) {
-                role = roleService.getByRoleType(RoleType.USER);
-            } else if (roleType.equals(RoleTypeDTO.GUEST)) {
-                role = roleService.getByRoleType(RoleType.GUEST);
-            }
-
-            LOG.info("Role with role type: " + roleType + "has been loaded.");
-            RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-            roleDTO.setNameOfMicroservice("User and Group");
-            return roleDTO;
+            Role role = roleService.getByRoleType(roleType.toUpperCase());
+            LOG.info("Role with role type: {} has been loaded.", roleType);
+            return convertToRoleDTO(role);
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException("Role with role type: " + roleType + " could not be found.", ex);
         }
     }
 
     @Override
-    public PageResultResource<RoleDTO> getAllRoles(Pageable pageable) throws UserAndGroupFacadeException, MicroserviceException {
-        List<RoleDTO> roles = new ArrayList<>();
-        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    @TransactionalRO
+    public PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable) {
+        LOG.debug("getAllRoles()");
+        List<RoleDTO> rolesDTO = new ArrayList<>();
+        List<Role> roles = roleService.getAllRoles(predicate, pageable).getContent();
+        roles.forEach(role -> {
+            rolesDTO.add(convertToRoleDTO(role));
+        });
+        return new PageResultResource<>(rolesDTO);
+    }
 
-        List<Microservice> microservices = microserviceService.getMicroservices();
-        for (Microservice microservice : microservices)
-            if (microservice.getName().equals(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE)) {
-                Set<RoleDTO> r = beanMapping.mapToSet(roleService.getAllRoles(pageable).getContent(), RoleDTO.class);
-                roles.addAll(r.stream()
-                        .peek(roleDTO -> roleDTO.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE))
-                        .peek(roleDTO -> roleDTO.setIdOfMicroservice(microservice.getId()))
-                        .collect(Collectors.toList()));
-            } else {
-                String url = microservice.getEndpoint();
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("Authorization", auth.getTokenType() + " " + auth.getTokenValue());
-                HttpEntity<String> entity = new HttpEntity<>(null, headers);
-                try {
-                    ResponseEntity<PageResultResource<RoleDTO>> responseEntity = restTemplate.exchange(url + "/roles", HttpMethod.GET, entity, new ParameterizedTypeReference<PageResultResource<RoleDTO>>() {
-                    });
-                    if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                        Set<RoleDTO> rolesOfMicroservice = responseEntity
-                                .getBody().getContent()
-                                .stream()
-                                .peek(role -> role.setNameOfMicroservice(microservice.getName()))
-                                .peek(role -> role.setIdOfMicroservice(microservice.getId()))
-                                .collect(Collectors.toSet());
-                        roles.addAll(rolesOfMicroservice);
-                    } else {
-                        LOG.info(responseEntity.toString());
-                        LOG.error("Some error occured during getting all roles from microservice {}. Status code: {}. Response {}",
-                                microservice.getName(), responseEntity.getStatusCode().toString(), responseEntity.toString());
-                        throw new UserAndGroupFacadeException("Some error occured during getting all roles from microservice " + microservice.getName());
-                    }
-                } catch (HttpClientErrorException e) {
-                    LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
-                            microservice.getName(), e.getStatusCode().toString(), e.getResponseBodyAsString());
-                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
-                } catch (RestClientException e) {
-                    LOG.error("Client side error when calling microservice {}. Status code: {}. Response Body {}",
-                            microservice.getName(), e.getCause().toString(), e.getMessage());
-                    LOG.error("Client side error when calling microservice {}. Probably wrong URL of service.", microservice.getName());
-                    throw new MicroserviceException("Client side error when calling microservice " + microservice.getName() + ". Probably wrong URL of service.");
-                }
-            }
-        LOG.info("All roles have been loaded");
-        return beanMapping.mapToPageResultDTO(new PageImpl<>(roles, pageable, roles.size()), RoleDTO.class);
+    private RoleDTO convertToRoleDTO(Role role) {
+        RoleDTO roleDTO = roleMapper.mapToDTO(role);
+        roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
+        roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
+        return roleDTO;
     }
 }

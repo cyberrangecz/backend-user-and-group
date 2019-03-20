@@ -14,7 +14,7 @@ public interface MicroserviceService {
      * @return microservice with given id
      * @throws UserAndGroupServiceException if microservice was not found
      */
-    Microservice get(Long id) throws UserAndGroupServiceException;
+    Microservice get(Long id);
 
     /**
      * Returns all Microservices from database.
@@ -22,4 +22,12 @@ public interface MicroserviceService {
      * @return Microservices in database
      */
     List<Microservice> getMicroservices();
+
+    /**
+     * Create new microservice.
+     *
+     * @param microservice to be created
+     * @return Created microservice
+     */
+    Microservice create(Microservice microservice);
 }

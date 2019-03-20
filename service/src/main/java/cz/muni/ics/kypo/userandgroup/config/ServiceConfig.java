@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@Import({ResourceServerSecurityConfig.class})
+@Import({ResourceServerSecurityConfig.class, ValidationMessagesConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.service", "cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.mapping"})
 public class ServiceConfig {
 

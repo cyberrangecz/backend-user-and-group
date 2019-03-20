@@ -27,35 +27,30 @@ import java.util.*;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "IDM_GROUP")
-@NamedEntityGraph(name = "IDMGroup.users",
-        attributeNodes = @NamedAttributeNode("users"))
+@Table(name = "idm_group")
 public class IDMGroup {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
-    @Column(name = "NAME", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
-    
-    @Column(name = "STATUS", nullable = false)
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserAndGroupStatus status;
-
-    @Column(name = "EXTERNAL_ID", unique = true)
+    @Column(name = "external_id", unique = true)
     private Long externalId;
-
-    @Column(name ="DESCRIPTION", nullable = false)
+    @Column(name = "description", nullable = false)
     private String description;
-
     @ManyToMany
-    @JoinTable(name = "USER_IDM_GROUP", joinColumns = {@JoinColumn(name = "IDM_GROUP_ID")}, 
-            inverseJoinColumns = {@JoinColumn(name = "USER_ID")})
+    @JoinTable(name = "user_idm_group",
+            joinColumns = {@JoinColumn(name = "idm_group_id")},
+            inverseJoinColumns = {@JoinColumn(name = "user_id")})
     private List<User> users = new ArrayList<>();
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "IDM_GROUP_ROLE", joinColumns = @JoinColumn(name = "IDM_GROUP_ID"), inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "idm_group_role",
+            joinColumns = @JoinColumn(name = "idm_group_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     public IDMGroup() {
@@ -102,7 +97,7 @@ public class IDMGroup {
     }
 
     public List<User> getUsers() {
-        return users;
+        return Collections.unmodifiableList(users);
     }
 
     public void setUsers(List<User> users) {
@@ -126,7 +121,7 @@ public class IDMGroup {
     }
 
     public Set<Role> getRoles() {
-        return roles;
+        return Collections.unmodifiableSet(roles);
     }
 
     public void setRoles(Set<Role> roles) {
@@ -142,11 +137,6 @@ public class IDMGroup {
     }
 
     @Override
-    public String toString() {
-        return "IDM Group [id=" + id + ",name=" + name + ",descritpion=" + description + "]";
-    }
-
-    @Override
     public int hashCode() {
         return Objects.hash(name);
     }
@@ -157,9 +147,17 @@ public class IDMGroup {
             return false;
         }
         IDMGroup other = (IDMGroup) object;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.id, other.id);
+    }
+
+    @Override
+    public String toString() {
+        return "IDMGroup{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", status=" + status +
+                ", externalId=" + externalId +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

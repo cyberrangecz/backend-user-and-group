@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.mapping;
+package cz.muni.ics.kypo.userandgroup.mapping.modelmapper;
 
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import org.springframework.data.domain.Page;

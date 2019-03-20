@@ -7,7 +7,7 @@ import cz.muni.ics.kypo.userandgroup.model.User;
 import java.util.HashSet;
 import java.util.Set;
 
-public class UserWrapper {
+public class UsersWrapper {
 
     @JsonIgnoreProperties({"id"})
     private User user;
@@ -27,6 +27,14 @@ public class UserWrapper {
     }
 
     public void setRoles(Set<RoleType> roles) {
-        this.roles = roles;
+        this.roles = new HashSet<>(roles);
+    }
+
+    @Override
+    public String toString() {
+        return "UsersWrapper{" +
+                "user=" + user +
+                ", roles=" + roles +
+                '}';
     }
 }

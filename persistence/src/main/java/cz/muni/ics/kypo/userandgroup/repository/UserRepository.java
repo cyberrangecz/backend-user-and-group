@@ -26,12 +26,11 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @Query("SELECT CASE WHEN u.externalId IS NULL THEN true ELSE false END FROM User u WHERE u.id = :userId")
     boolean isUserInternal(@Param("userId") Long id);
 
-    @Query("SELECT DISTINCT r FROM IDMGroup g INNER JOIN g.roles r INNER JOIN g.users u WHERE u.id = :userId")
-    Set<Role> getRolesOfUser(@Param("userId") Long id);
+    @Query("SELECT DISTINCT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r INNER JOIN r.microservice WHERE u.id = :userId")
+    Set<Role> getRolesOfUser(@Param("userId") Long userId);
 
-    @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT u FROM User u WHERE u.login = :login")
-    Optional<User> getUserByLoginWithUsers(@Param("login") String login);
+    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login")
+    Optional<User> getUserByLoginWithGroups(@Param("login") String login);
 
     @Query("SELECT u FROM User u WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups")
     Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
@@ -39,4 +38,8 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g WHERE g.id IN :groupsIds",
             countQuery = "SELECT u FROM User u INNER JOIN u.groups g WHERE g.id IN :groupsIds")
     Page<User> usersInGivenGroups(@Param("groupsIds") Set<Long> groupsIds, Pageable pageable);
+
+    @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g JOIN FETCH g.roles r WHERE r.id = :roleId",
+            countQuery = "SELECT u FROM User u INNER JOIN u.groups g  INNER JOIN g.roles r WHERE r.id = :roleId")
+    Page<User> findAllByRoleId(@Param("roleId") Long roleId, Pageable pageable);
 }

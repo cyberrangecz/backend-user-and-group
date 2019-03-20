@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.role;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
 
@@ -12,6 +13,7 @@ public class RoleDTO {
     private Long idOfMicroservice;
     private String nameOfMicroservice;
 
+    @ApiModelProperty(value = "Main identifier of the role.", example = "1")
     public Long getId() {
         return id;
     }
@@ -20,6 +22,7 @@ public class RoleDTO {
         this.id = id;
     }
 
+    @ApiModelProperty(value = "Role type of role.", example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     public String getRoleType() {
         return roleType;
     }
@@ -28,6 +31,7 @@ public class RoleDTO {
         this.roleType = roleType;
     }
 
+    @ApiModelProperty(value = "Id of microservice which use this role.", example = "5")
     public Long getIdOfMicroservice() {
         return idOfMicroservice;
     }
@@ -36,6 +40,7 @@ public class RoleDTO {
         this.idOfMicroservice = idOfMicroservice;
     }
 
+    @ApiModelProperty(value = "A name of microservice which use this role.", example = "kypo2-training")
     public String getNameOfMicroservice() {
         return nameOfMicroservice;
     }

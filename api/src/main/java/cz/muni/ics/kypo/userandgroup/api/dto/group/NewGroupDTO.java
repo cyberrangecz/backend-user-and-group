@@ -1,21 +1,24 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
-
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class NewGroupDTO {
 
+    @NotEmpty(message = "{newGroupDto.name.NotEmpty.message}")
     private String name;
-
+    @NotEmpty(message = "{newGroupDto.description.NotEmpty.message}")
     private String description;
 
     private List<UserForGroupsDTO> users = new ArrayList<>();
 
     private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
+    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")
     public String getName() {
         return name;
     }
@@ -24,6 +27,7 @@ public class NewGroupDTO {
         this.name = name;
     }
 
+    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     public String getDescription() {
         return description;
     }
@@ -32,6 +36,7 @@ public class NewGroupDTO {
         this.description = description;
     }
 
+    @ApiModelProperty(value = "List of users who is assigned to group.")
     public List<UserForGroupsDTO> getUsers() {
         return users;
     }
@@ -40,6 +45,7 @@ public class NewGroupDTO {
         this.users = users;
     }
 
+    @ApiModelProperty(value = "Main identifiers of group.", example = "1")
     public List<Long> getGroupIdsOfImportedUsers() {
         return groupIdsOfImportedUsers;
     }

@@ -2,12 +2,13 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -74,11 +75,11 @@ public class RoleRestControllerTest {
 
         adminRoleDTO = new RoleDTO();
         adminRoleDTO.setId(1L);
-        adminRoleDTO.setRoleType(RoleType.ADMINISTRATOR.name());
+        adminRoleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
 
         userRoleDTO = new RoleDTO();
         userRoleDTO.setId(2L);
-        userRoleDTO.setRoleType(RoleType.USER.name());
+        userRoleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.name());
 
         rolePageResultResource = new PageResultResource<>(Arrays.asList(adminRoleDTO, userRoleDTO));
 
@@ -96,7 +97,7 @@ public class RoleRestControllerTest {
     public void getRoles() throws Exception {
         String valueAs = convertObjectToJsonBytes(rolePageResultResource);
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
-        given(roleFacade.getAllRoles(any(Pageable.class))).willReturn(rolePageResultResource);
+        given(roleFacade.getAllRoles(any(Predicate.class), any(Pageable.class))).willReturn(rolePageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
                 get("/roles" + "/"))
@@ -104,7 +105,7 @@ public class RoleRestControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
         assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(rolePageResultResource)), result.getContentAsString());
-        then(roleFacade).should().getAllRoles(any(Pageable.class));
+        then(roleFacade).should().getAllRoles(any(Predicate.class), any(Pageable.class));
     }
 
     @Test
