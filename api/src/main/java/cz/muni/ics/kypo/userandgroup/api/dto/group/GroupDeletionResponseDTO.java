@@ -1,18 +1,16 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
-import cz.muni.ics.kypo.userandgroup.api.dto.MicroserviceForGroupDeletionDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
+import io.swagger.annotations.ApiModelProperty;
 
-import java.util.List;
 import java.util.Objects;
 
 public class GroupDeletionResponseDTO {
 
     private Long id;
-    private List<MicroserviceForGroupDeletionDTO> microserviceForGroupDeletionDTOs;
-
     private GroupDeletionStatusDTO status;
 
+    @ApiModelProperty(value = "Main identifiers of deleted group.", example = "1")
     public Long getId() {
         return id;
     }
@@ -21,22 +19,7 @@ public class GroupDeletionResponseDTO {
         this.id = id;
     }
 
-    public List<MicroserviceForGroupDeletionDTO> getMicroserviceForGroupDeletionDTOs() {
-        return microserviceForGroupDeletionDTOs;
-    }
-
-    public void setMicroserviceForGroupDeletionDTOs(List<MicroserviceForGroupDeletionDTO> microserviceForGroupDeletionDTOs) {
-        this.microserviceForGroupDeletionDTOs = microserviceForGroupDeletionDTOs;
-    }
-
-    public void addMicroserviceForGroupDeletionDTO(MicroserviceForGroupDeletionDTO microserviceForGroupDeletionDTO) {
-        this.microserviceForGroupDeletionDTOs.add(microserviceForGroupDeletionDTO);
-    }
-
-    public void removeMicroserviceForGroupDeletionDTO(MicroserviceForGroupDeletionDTO microserviceForGroupDeletionDTO) {
-        this.microserviceForGroupDeletionDTOs.remove(microserviceForGroupDeletionDTO);
-    }
-
+    @ApiModelProperty(value = "Result of deleting group.", example = "SUCCESS")
     public GroupDeletionStatusDTO getStatus() {
         return status;
     }

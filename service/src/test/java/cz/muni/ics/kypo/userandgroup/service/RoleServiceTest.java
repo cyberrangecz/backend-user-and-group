@@ -1,8 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.RoleServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
@@ -39,6 +40,7 @@ public class RoleServiceTest {
     private Role adminRole, userRole;
 
     private Pageable pageable;
+    private Predicate predicate;
 
     @Before
     public void init() {
@@ -46,10 +48,10 @@ public class RoleServiceTest {
 
         adminRole = new Role();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR);
+        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
 
         userRole = new Role();
-        userRole.setRoleType(RoleType.USER);
+        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
         userRole.setId(2L);
 
         pageable = PageRequest.of(0, 10);
@@ -102,19 +104,19 @@ public class RoleServiceTest {
 
     @Test
     public void getAllRoles() {
-        given(roleRepository.findAll(pageable))
+        given(roleRepository.findAll(predicate, pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
 
         Role role = new Role();
-        role.setRoleType(RoleType.GUEST);
+        role.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
 
-        List<Role> roles = roleService.getAllRoles(pageable).getContent();
+        List<Role> roles = roleService.getAllRoles(predicate, pageable).getContent();
         assertEquals(2, roles.size());
         assertTrue(roles.contains(adminRole));
         assertTrue(roles.contains(userRole));
         assertFalse(roles.contains(role));
 
-        then(roleRepository).should().findAll(pageable);
+        then(roleRepository).should().findAll(predicate, pageable);
     }
 
     @After

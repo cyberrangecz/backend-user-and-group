@@ -4,23 +4,20 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-
 import java.util.Objects;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "MICROSERVICE")
+@Table(name = "microservice")
 public class Microservice {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
-    @Column(name = "NAME", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
-
-    @Column(name = "ENDPOINT", nullable = false)
+    @Column(name = "endpoint", nullable = false)
     private String endpoint;
 
     public Microservice() {
@@ -69,7 +66,6 @@ public class Microservice {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(name, endpoint);
     }
 

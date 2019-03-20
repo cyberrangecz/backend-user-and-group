@@ -7,14 +7,13 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMapping;
-import cz.muni.ics.kypo.userandgroup.mapping.BeanMappingImpl;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
-import cz.muni.ics.kypo.userandgroup.util.UserAndGroupConstants;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,7 +22,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +44,7 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
+@SpringBootTest(classes = {RoleMapperImpl.class, UserMapperImpl.class})
 public class UserFacadeTest {
 
     @Rule
@@ -60,19 +61,22 @@ public class UserFacadeTest {
     @Mock
     private MicroserviceService microserviceService;
 
-    private BeanMapping beanMapping;
+    @Autowired
+    private UserMapperImpl userMapper;
+    @Autowired
+    private RoleMapperImpl roleMapper;
 
     private User user1, user2;
     private UserDTO userDTO1, userDTO2;
     private Predicate predicate;
     private Pageable pageable;
+    private static final String NAME_OF_USER_AND_GROUP_SERVICE = "kypo2-user-and-group";
 
     @Before
     public void init() {
 
         MockitoAnnotations.initMocks(this);
-        beanMapping = new BeanMappingImpl(new ModelMapper());
-        userFacade = new UserFacadeImpl(userService, microserviceService, restTemplate, beanMapping);
+        userFacade = new UserFacadeImpl(userService, userMapper, roleMapper);
 
         user1 = new User("user1");
         user1.setId(1L);
@@ -103,10 +107,10 @@ public class UserFacadeTest {
     public void testGetUsers() {
         Role role = new Role();
         role.setId(1L);
-        role.setRoleType(RoleType.GUEST);
+        role.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(1L);
-        roleDTO.setRoleType(RoleType.GUEST.name());
+        roleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.name());
         RoleDTO[] rolesArray = new RoleDTO[1];
         rolesArray[0] = roleDTO;
         mockSpringSecurityContextForGet(rolesArray);
@@ -193,46 +197,44 @@ public class UserFacadeTest {
 
     @Test
     public void testGetRolesOfUser() {
-        Role role = new Role();
-        role.setId(1L);
-        role.setRoleType(RoleType.GUEST);
+        Microservice microservice = new Microservice();
+        microservice.setName(NAME_OF_USER_AND_GROUP_SERVICE);
+        microservice.setEndpoint("/");
+        microservice.setId(1L);
         RoleDTO roleDTO = new RoleDTO();
         roleDTO.setId(1L);
-        roleDTO.setRoleType(RoleType.GUEST.name());
+        roleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.name());
         RoleDTO[] rolesArray = new RoleDTO[1];
         rolesArray[0] = roleDTO;
         mockSpringSecurityContextForGet(rolesArray);
 
-        Microservice m1 = new Microservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE, "/");
-        Microservice m2 = new Microservice("training", "/training");
         Role role1 = new Role();
         role1.setId(1L);
-        role1.setRoleType(RoleType.ADMINISTRATOR);
+        role1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        role1.setMicroservice(microservice);
 
         Role role2 = new Role();
         role2.setId(2L);
-        role2.setRoleType(RoleType.USER);
+        role2.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
+        role2.setMicroservice(microservice);
 
-        Set<Role> roles = new HashSet<>();
-        roles.add(role1);
-        roles.add(role2);
+        Set<Role> roles = Set.of(role1, role2);
 
         RoleDTO roleDTO1 = new RoleDTO();
         roleDTO1.setId(1L);
-        roleDTO1.setRoleType(RoleType.ADMINISTRATOR.toString());
-        roleDTO1.setNameOfMicroservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE);
+        roleDTO1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        roleDTO1.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE);
 
         RoleDTO roleDTO2 = new RoleDTO();
         roleDTO2.setId(2L);
-        roleDTO2.setRoleType(RoleType.USER.toString());
-        roleDTO2.setNameOfMicroservice(UserAndGroupConstants.NAME_OF_USER_AND_GROUP_SERVICE);
+        roleDTO2.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
+        roleDTO2.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE);
 
         given(userService.get(anyLong())).willReturn(user1);
         given(userService.getRolesOfUser(anyLong())).willReturn(roles);
-        given(microserviceService.getMicroservices()).willReturn(Arrays.asList(m1, m2));
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);
 
-        assertEquals(3, responseRolesDTO.size());
+        assertEquals(2, responseRolesDTO.size());
         assertTrue(responseRolesDTO.contains(roleDTO1));
         assertTrue(responseRolesDTO.contains(roleDTO2));
     }

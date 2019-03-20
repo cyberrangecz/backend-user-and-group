@@ -22,42 +22,38 @@ package cz.muni.ics.kypo.userandgroup.model;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "USERS")
-@NamedEntityGraph(name = "User.groups",
-        attributeNodes = @NamedAttributeNode("groups"))
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
-    @Column(name = "LOGIN", unique = true, nullable = false)
+    @Column(name = "login", unique = true, nullable = false)
     private String login;
-
-    @Column(name = "FULL_NAME")
+    @Column(name = "full_name")
     private String fullName;
-
-    @Column(name = "EXTERNAL_ID", unique = true)
+    @Column(name = "external_id", unique = true)
     private Long externalId;
-
-    @Column(name = "MAIL")
+    @Column(name = "mail")
     private String mail;
-
-    @Column(name = "STATUS")
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private UserAndGroupStatus status;
-
     @ManyToMany
-    @JoinTable(name = "USER_IDM_GROUP", joinColumns = {@JoinColumn(name = "USER_ID")}, 
-            inverseJoinColumns = {@JoinColumn(name = "IDM_GROUP_ID")})
-    private List<IDMGroup> groups = new ArrayList<>();
+    @JoinTable(name = "user_idm_group",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "idm_group_id")})
+    private Set<IDMGroup> groups = new HashSet<>();
 
-    public User(){
+    public User() {
     }
 
     public User(String login) {
@@ -114,8 +110,12 @@ public class User {
         this.status = status;
     }
 
-    public List<IDMGroup> getGroups() {
-        return groups;
+    public Set<IDMGroup> getGroups() {
+        return Collections.unmodifiableSet(groups);
+    }
+
+    public void setGroups(Set<IDMGroup> groups) {
+        this.groups = groups;
     }
 
     public void addGroup(IDMGroup group) {
@@ -127,13 +127,8 @@ public class User {
     }
 
     @Override
-    public String toString() {
-        return "User [id=" + id + ", login=" + login + "]";
-    }
-
-    @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hashCode(id);
     }
 
     @Override
@@ -142,9 +137,18 @@ public class User {
             return false;
         }
         User other = (User) object;
-        if (!Objects.equals(this.login, other.login)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.login, other.login);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", login='" + login + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", externalId=" + externalId +
+                ", mail='" + mail + '\'' +
+                ", status=" + status +
+                '}';
     }
 }

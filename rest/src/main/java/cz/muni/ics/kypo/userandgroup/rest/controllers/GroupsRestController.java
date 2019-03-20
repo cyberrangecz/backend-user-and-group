@@ -6,22 +6,18 @@ import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
-
 import io.swagger.annotations.*;
-
-import io.swagger.models.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +28,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.*;
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Jan Duda & Pavel Seda
@@ -44,7 +41,7 @@ import java.util.*;
 @RequestMapping(path = "/groups")
 public class GroupsRestController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(GroupsRestController.class);
+    private static Logger LOG = LoggerFactory.getLogger(GroupsRestController.class);
 
     private IDMGroupFacade groupFacade;
     private ObjectMapper objectMapper;
@@ -65,7 +62,9 @@ public class GroupsRestController {
             @ApiResponse(code = 200, message = "Given group created.", response = GroupDTO.class),
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true) @RequestBody NewGroupDTO newGroupDTO) {
+    public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true)
+                                                   @Valid @RequestBody NewGroupDTO newGroupDTO) {
+        LOG.debug("createNewGroup({})", newGroupDTO);
         Preconditions.checkNotNull(newGroupDTO);
         try {
             return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
@@ -80,8 +79,9 @@ public class GroupsRestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateGroup(
-            @ApiParam(value = "Group to be updated.", required = true) @RequestBody UpdateGroupDTO updateGroupDTO) {
+    public ResponseEntity<Void> updateGroup(@ApiParam(value = "Group to be updated.", required = true)
+                                            @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
+        LOG.debug("updateGroup({})", updateGroupDTO);
         Preconditions.checkNotNull(updateGroupDTO);
         if (updateGroupDTO.getDescription() == null || updateGroupDTO.getName() == null) {
             throw new InvalidParameterException("Group name neither group description cannot be null.");
@@ -94,20 +94,22 @@ public class GroupsRestController {
         }
     }
 
-    @ApiOperation(httpMethod = "PUT",
+    @ApiOperation(httpMethod = "DELETE",
             value = "Remove users from input group.",
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> removeUsers(
-            @ApiParam(value = "Id of group to remove users.", required = true) @PathVariable("id") final Long id,
-            @ApiParam(value = "Ids of members to be removed from group.", required = true) @RequestBody List<Long> userIds) {
+    @DeleteMapping(path = "/{id}/users")
+    public ResponseEntity<Void> removeUsers(@ApiParam(value = "Id of group to remove users.", required = true)
+                                            @PathVariable("id") final Long id,
+                                            @ApiParam(value = "Ids of members to be removed from group.", required = true)
+                                            @RequestBody List<Long> userIds) {
+        LOG.debug("removeUsers({}, {})", id, userIds);
         Preconditions.checkNotNull(userIds);
         try {
             groupFacade.removeUsers(id, userIds);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Given group or users could not be found");
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         } catch (ExternalSourceException e) {
             throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
         }
@@ -118,15 +120,18 @@ public class GroupsRestController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    @PutMapping(path = "/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> addUsers(
-            @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true) @RequestBody AddUsersToGroupDTO addUsers) {
+    @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GroupDTO> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
+                                             @PathVariable("id") final Long groupId,
+                                             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
+                                             @Valid @RequestBody AddUsersToGroupDTO addUsers) {
+        LOG.debug("addUsers({})", addUsers);
         Preconditions.checkNotNull(addUsers);
         try {
-            groupFacade.addUsers(addUsers);
+            groupFacade.addUsers(groupId, addUsers);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Given group or users could not be found");
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         } catch (ExternalSourceException e) {
             throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
         }
@@ -142,8 +147,9 @@ public class GroupsRestController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.",
-            required = true) @PathVariable("id") final Long id) {
+    public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
+                                                                @PathVariable("id") final Long id) {
+        LOG.debug("deleteGroup({})", id);
         GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
         switch (groupDeletionResponseDTO.getStatus()) {
             case SUCCESS:
@@ -152,7 +158,7 @@ public class GroupsRestController {
                 throw new ResourceNotFoundException("Group with id " + id + " cannot be found.");
             case ERROR_MAIN_GROUP:
                 throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is main group.");
-            case MICROSERVICE_ERROR:
+            case ERROR:
             default:
                 return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -170,6 +176,7 @@ public class GroupsRestController {
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<GroupDeletionResponseDTO>> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
                                                                        @RequestBody List<Long> ids) {
+        LOG.debug("deleteGroups({})", ids);
         Preconditions.checkNotNull(ids);
         return new ResponseEntity<>(groupFacade.deleteGroups(ids), HttpStatus.OK);
     }
@@ -186,13 +193,10 @@ public class GroupsRestController {
                                             @RequestParam MultiValueMap<String, String> parameters,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
-        try {
-            PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
-            Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
-        }
+        LOG.debug("getGroups()");
+        PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
     }
 
     @ApiOperation(httpMethod = "GET",
@@ -200,14 +204,13 @@ public class GroupsRestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.",
-            required = true) @PathVariable("id") Long id) {
+    public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
+                                             @PathVariable("id") Long id) {
+        LOG.debug("getGroup({})", id);
         try {
             return new ResponseEntity<>(groupFacade.getGroup(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException ex) {
-            throw new ResourceNotFoundException("Group with id " + id + " could not be found.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
+            throw new ResourceNotFoundException(ex.getLocalizedMessage());
         }
     }
 
@@ -216,68 +219,49 @@ public class GroupsRestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @GetMapping(path = "/{id}/roles")
-    public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(
-            @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
+    public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
+                                                        @PathVariable("id") final Long id) {
+        LOG.debug("getRolesOfGroup({})", id);
         try {
             return new ResponseEntity<>(groupFacade.getRolesOfGroup(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Group with id " + id + " could not be found or some of microservice did not return status code 2xx.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
     }
 
     @ApiOperation(httpMethod = "PUT",
-            value = "Assign role with given role ID to group with given ID in chosen microservice"
+            value = "Assign role with given role ID to group with given ID"
     )
-    @PutMapping("/{groupId}/roles/{roleId}/microservices/{microserviceId}")
-    public ResponseEntity<Void> assignRoleInMicroservice(
-            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
-            @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
-            @ApiParam(value = "microserviceId", required = true) @PathVariable("microserviceId") Long microserviceId) {
+    @PutMapping("/{groupId}/roles/{roleId}")
+    public ResponseEntity<Void> assignRoleToGroup(@ApiParam(value = "groupId", required = true)
+                                                  @PathVariable("groupId") Long groupId,
+                                                  @ApiParam(value = "roleId", required = true)
+                                                  @PathVariable("roleId") Long roleId) {
+        LOG.debug("assignRoleToGroup");
         try {
-            groupFacade.assignRoleInMicroservice(groupId, roleId, microserviceId);
+            groupFacade.assignRole(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
     }
 
-    @ApiOperation(httpMethod = "POST",
-            value = "Assign roles with given roles IDs to group with given ID in chosen microservices"
-    )
-    @PostMapping("/{groupId}/roles-collection")
-    public ResponseEntity<List<ResponseRoleToGroupInMicroservicesDTO>> assignRolesInMicroservices(
-            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
-            @ApiParam(value = "rolesAndMicroservices", required = true) @RequestBody List<RoleAndMicroserviceDTO> rolesAndMicroservices) {
-//        try {
-        return new ResponseEntity<>(groupFacade.assignRolesInMicroservices(groupId, rolesAndMicroservices), HttpStatus.OK);
-//        } catch (UserAndGroupFacadeException e) {
-//            throw new ResourceNotFoundException("Group with id: " + groupId + " or microserviceservice with id " + ram.getMicroserviceId() + " could not be found.");
-//        } catch (MicroserviceException e) {
-//            throw new ServiceUnavailableException(e.getLocalizedMessage());
-//        }
-    }
-
     @ApiOperation(httpMethod = "DELETE",
-            value = "Cancel role with given role ID to group with given ID in chosen microservice"
+            value = "Cancel role with given role ID to group with given ID"
     )
-    @DeleteMapping("/{groupId}/roles/{roleId}/microservices/{microserviceId}")
-    public ResponseEntity<Void> removeRoleToGroupInMicroservice(
-            @ApiParam(value = "groupId", required = true) @PathVariable("groupId") Long groupId,
-            @ApiParam(value = "roleId", required = true) @PathVariable("roleId") Long roleId,
-            @ApiParam(value = "microserviceId", required = true) @PathVariable("microserviceId") Long microserviceId) {
+    @DeleteMapping("/{groupId}/roles/{roleId}")
+    public ResponseEntity<Void> removeRoleFromGroup(@ApiParam(value = "groupId", required = true)
+                                                    @PathVariable("groupId") Long groupId,
+                                                    @ApiParam(value = "roleId", required = true)
+                                                    @PathVariable("roleId") Long roleId) {
+        LOG.debug("removeRoleToGroup()");
         try {
-            groupFacade.removeRoleToGroupInMicroservice(groupId, roleId, microserviceId);
+            groupFacade.removeRoleFromGroup(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Group with id: " + groupId + " or service with id " + microserviceId + " could not be found.");
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         } catch (RoleCannotBeRemovedToGroupException e) {
             throw new BadRequestException(e.getLocalizedMessage());
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException("client error occurs during calling other microservice, probably due to wrong URL");
         }
     }
 }

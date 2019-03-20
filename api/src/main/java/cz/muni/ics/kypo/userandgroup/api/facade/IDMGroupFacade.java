@@ -26,7 +26,7 @@ public interface IDMGroupFacade {
      * @return created group
      * @throws UserAndGroupFacadeException if some of group could not be found from given list of group ids
      */
-    GroupDTO createGroup(NewGroupDTO newGroupDTO) throws UserAndGroupFacadeException;
+    GroupDTO createGroup(NewGroupDTO newGroupDTO);
 
     /**
      * Updates given IDM group in database.
@@ -34,7 +34,7 @@ public interface IDMGroupFacade {
      * @param updateGroupDTO group to be updated
      * @throws ExternalSourceException if group with given group is external and cannot be edited
      */
-    void updateGroup(UpdateGroupDTO updateGroupDTO) throws ExternalSourceException;
+    void updateGroup(UpdateGroupDTO updateGroupDTO);
 
     /**
      * Removes members of group with given userIds from the group
@@ -44,16 +44,17 @@ public interface IDMGroupFacade {
      * @throws UserAndGroupFacadeException if some group or user could not be found
      * @throws ExternalSourceException if group with given group is external and cannot be edited
      */
-    void removeUsers(Long groupId, List<Long> userIds) throws UserAndGroupFacadeException, ExternalSourceException;
+    void removeUsers(Long groupId, List<Long> userIds);
 
     /**
      * Adds users and users from groups to group with given groupId in input parameter addMember
      *
-     * @param addUsers parameter containing users to be added, groups which users will be added to group with groupId which is also specify in this parameter
+     * @param groupId id of group to add users
+     * @param addUsers parameter containing users to be added, groups which users will be added to group with groupId
      * @throws UserAndGroupFacadeException if some group or user could not be found
      * @throws ExternalSourceException if group with given group is external and cannot be edited
      */
-    void addUsers(AddUsersToGroupDTO addUsers) throws UserAndGroupFacadeException, ExternalSourceException;
+    void addUsers(Long groupId, AddUsersToGroupDTO addUsers);
 
     /**
      * Deletes group with given id from database and returns status of deletion with group name and id.
@@ -78,7 +79,7 @@ public interface IDMGroupFacade {
      * @param pageable parameter with information about pagination
      * @return page of groups specified by given predicate and pageable
      */
-    PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) throws UserAndGroupFacadeException, RestClientException;
+    PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable);
 
     /**
      * Returns group with given id
@@ -87,7 +88,7 @@ public interface IDMGroupFacade {
      * @return group with given id
      * @throws UserAndGroupFacadeException if group with given id could not be found
      */
-    GroupDTO getGroup(Long id) throws UserAndGroupFacadeException, RestClientException;
+    GroupDTO getGroup(Long id);
 
     /**
      * Returns all roles from all registered microservices of group with given id
@@ -97,18 +98,17 @@ public interface IDMGroupFacade {
      * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    Set<RoleDTO> getRolesOfGroup(Long id) throws UserAndGroupFacadeException, MicroserviceException;
+    Set<RoleDTO> getRolesOfGroup(Long id);
 
     /**
      * Assigns role with given roleId in microservice with microserviceID to group with given groupId
      *
      * @param groupId of group
-     * @param roleId of role to be assigned to group from specific microservice
-     * @param microserviceId of microservice from which is role
-     * @throws UserAndGroupFacadeException if microservice with given microserviceId could not be found
+     * @param roleId of role to be assigned to group
+     * @throws UserAndGroupFacadeException if group or role could not be found
      * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
      */
-    void assignRoleInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException, MicroserviceException;
+    void assignRole(Long groupId, Long roleId);
 
     /**
      * Returns true if group is internal otherwise false
@@ -117,20 +117,15 @@ public interface IDMGroupFacade {
      * @return true if group is internal otherwise false
      * @throws UserAndGroupFacadeException if group was not found
      */
-    boolean isGroupInternal(Long id) throws UserAndGroupFacadeException;
+    boolean isGroupInternal(Long id);
 
     /**
-     * Cancel role with given roleId in microservice with microserviceID to group with given groupId
+     * Cancel role with given roleId from group with given groupId
      *
      * @param groupId of group
-     * @param roleId of role to be assigned to group from specific microservice
-     * @param microserviceId of microservice from which is role
-     * @throws UserAndGroupFacadeException if microservice with given microserviceId could not be found
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
-     * @throws RoleCannotBeRemovedToGroupException if role could not be removed to group due to its dependency to other role
+     * @param roleId of role to be assigned to group
+     * @throws UserAndGroupFacadeException if group or role could not be found
      */
-    void removeRoleToGroupInMicroservice(Long groupId, Long roleId, Long microserviceId) throws UserAndGroupFacadeException,
-            MicroserviceException, RoleCannotBeRemovedToGroupException;
+    void removeRoleFromGroup(Long groupId, Long roleId);
 
-    List<ResponseRoleToGroupInMicroservicesDTO> assignRolesInMicroservices(Long groupId, List<RoleAndMicroserviceDTO> rolesAndMicroservices);
 }

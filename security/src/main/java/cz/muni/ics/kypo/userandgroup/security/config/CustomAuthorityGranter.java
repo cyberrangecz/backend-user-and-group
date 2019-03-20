@@ -3,10 +3,8 @@ package cz.muni.ics.kypo.userandgroup.security.config;
 import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
-import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
@@ -30,24 +28,20 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     private UserRepository userRepository;
     private IDMGroupRepository groupRepository;
-    private RoleRepository roleRepository;
 
     @Autowired
-    public CustomAuthorityGranter(UserRepository userRepository, IDMGroupRepository groupRepository,
-                                  RoleRepository roleRepository) {
+    public CustomAuthorityGranter(UserRepository userRepository, IDMGroupRepository groupRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
-        this.roleRepository = roleRepository;
     }
 
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
         String login = introspectionResponse.get("sub").getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
-        Set<Role> roles = new HashSet<>();
+        Set<Role> roles;
         if (!optionalUser.isPresent()) {
-            saveNewUser(login, introspectionResponse.get("name").getAsString(), introspectionResponse.get("email").getAsString());
-            roles.add(roleRepository.findByRoleType(RoleType.GUEST).orElseThrow(() -> new SecurityException("Guest role could not be found")));
+            roles = new HashSet<>(saveNewUser(login, introspectionResponse.get("name").getAsString(), introspectionResponse.get("email").getAsString()));
         } else {
             User user = optionalUser.get();
             if (user.getFullName() == null || user.getMail() == null) {
@@ -58,16 +52,17 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
             roles = userRepository.getRolesOfUser(user.getId());
         }
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.getRoleType().name()))
+                .map(role -> new SimpleGrantedAuthority(role.getRoleType()))
                 .collect(Collectors.toList());
     }
 
-    private User saveNewUser(String login, String fullName, String email) {
-        IDMGroup guestGroup = groupRepository.findByName(RoleType.GUEST.name()).orElseThrow(() -> new SecurityException("Guest group could not be found"));
+    private Set<Role> saveNewUser(String login, String fullName, String email) {
+        IDMGroup defaultGroup = groupRepository.findByName("DEFAULT_GROUP").orElseThrow(() -> new SecurityException("Guest group could not be found"));
         User newUser = new User(login);
         newUser.setFullName(fullName);
         newUser.setMail(email);
-        newUser.addGroup(guestGroup);
-        return userRepository.save(newUser);
+        newUser.addGroup(defaultGroup);
+        userRepository.save(newUser);
+        return defaultGroup.getRoles();
     }
 }

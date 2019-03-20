@@ -5,14 +5,15 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.NewUserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +44,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 public class UsersRestControllerTest {
@@ -61,7 +64,6 @@ public class UsersRestControllerTest {
     private MockMvc mockMvc;
 
     private UserDTO userDTO1, userDTO2;
-    private NewUserDTO newUserDTO;
     private int page, size;
     private PageResultResource<UserDTO> userPageResultResource;
 
@@ -90,11 +92,6 @@ public class UsersRestControllerTest {
         userDTO2.setLogin("user2");
         userDTO2.setFullName("User Two");
         userDTO2.setMail("user.two@mail.com");
-
-        newUserDTO = new NewUserDTO();
-        newUserDTO.setLogin("user1");
-        newUserDTO.setFullName("User One");
-        newUserDTO.setMail("user.one@mail.com");
 
         userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
 
@@ -280,14 +277,14 @@ public class UsersRestControllerTest {
     private RoleDTO getAdminRoleDTO() {
         RoleDTO adminRole = new RoleDTO();
         adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ADMINISTRATOR.name());
+        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
         return adminRole;
     }
 
     private RoleDTO getGuestRoleDTO() {
         RoleDTO guestRole = new RoleDTO();
         guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.GUEST.name());
+        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.name());
         return guestRole;
     }
 

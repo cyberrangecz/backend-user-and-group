@@ -2,8 +2,6 @@ package cz.muni.ics.kypo.userandgroup.exceptions;
 
 public class LoadingRolesAndUserException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
-
     public LoadingRolesAndUserException() {
         super();
     }
