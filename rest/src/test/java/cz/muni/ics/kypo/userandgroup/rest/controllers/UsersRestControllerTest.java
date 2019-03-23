@@ -8,17 +8,27 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapper;
+import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -26,6 +36,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -34,13 +45,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
@@ -50,19 +61,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
+@SpringBootTest(classes = {UserMapperImpl.class, RoleMapperImpl.class})
 public class UsersRestControllerTest {
 
     @MockBean
     private UserFacade userFacade;
-
     @InjectMocks
     private UsersRestController usersRestController;
-
     @MockBean
     private ObjectMapper objectMapper;
+    @Autowired
+    UserMapper userMapper;
 
     private MockMvc mockMvc;
-
     private UserDTO userDTO1, userDTO2;
     private int page, size;
     private PageResultResource<UserDTO> userPageResultResource;
@@ -233,7 +244,7 @@ public class UsersRestControllerTest {
     }
 
     @Test
-    public void testGetRolesOfGroup() throws Exception {
+    public void testGetRolesOfUser() throws Exception {
         given(userFacade.getRolesOfUser(userDTO1.getId())).willReturn(getRolesDTO());
         mockMvc.perform(
                 get("/users" + "/{id}/roles", userDTO1.getId()))
@@ -243,7 +254,7 @@ public class UsersRestControllerTest {
     }
 
     @Test
-    public void testGetRolesOfGroupWithExceptionFromFacade() throws Exception {
+    public void testGetRolesOfUserWithExceptionFromFacade() throws Exception {
         given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
         Exception ex = mockMvc.perform(
                 get("/users" + "/{id}/roles", userDTO1.getId()))

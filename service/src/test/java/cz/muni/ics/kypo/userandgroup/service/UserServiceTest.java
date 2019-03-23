@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,24 +35,17 @@ public class UserServiceTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
     private UserService userService;
-
     @MockBean
     private UserRepository userRepository;
-
     @MockBean
     private RoleRepository roleRepository;
-
     @MockBean
     private IDMGroupRepository groupRepository;
 
     private User user1, user2;
-
-    private IDMGroup adminGroup;
-
+    private IDMGroup adminGroup, userGroup;
     private Role adminRole, guestRole;
-
     private Pageable pageable;
     private Predicate predicate;
 
@@ -75,6 +69,9 @@ public class UserServiceTest {
         adminGroup = new IDMGroup("adminGroup", "Administrator group");
         adminGroup.setId(1L);
 
+        userGroup = new IDMGroup("userGroup", "User group");
+        userGroup.setId(10L);
+
         adminRole = new Role();
         adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
         adminRole.setId(1L);
@@ -82,6 +79,11 @@ public class UserServiceTest {
         guestRole = new Role();
         guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
         guestRole.setId(2L);
+
+        adminGroup.addRole(adminRole);
+        adminGroup.addUser(user1);
+
+
 
         pageable = PageRequest.of(0, 10);
     }
@@ -272,20 +274,20 @@ public class UserServiceTest {
 
     @Test
     public void getUserWithGroups() {
-        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
+        given(userRepository.getUserByIdWithGroups(user1.getId())).willReturn(Optional.of(user1));
         User u = userService.getUserWithGroups(user1.getId());
         assertEquals(user1, u);
-        then(userRepository).should().findById(user1.getId());
+        then(userRepository).should().getUserByIdWithGroups(user1.getId());
     }
 
     @Test
     public void getUserWithGroupsByLogin() {
-        given(userRepository.findByLogin(user1.getLogin())).willReturn(Optional.of(user1));
+        given(userRepository.getUserByLoginWithGroups(user1.getLogin())).willReturn(Optional.of(user1));
 
         User u = userService.getUserWithGroups(user1.getLogin());
         assertEquals(user1, u);
 
-        then(userRepository).should().findByLogin(user1.getLogin());
+        then(userRepository).should().getUserByLoginWithGroups(user1.getLogin());
     }
 
     @Test
@@ -352,6 +354,25 @@ public class UserServiceTest {
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with id " + user1.getId() + " could not be found.");
         userService.getRolesOfUser(user1.getId());
+    }
+
+    @Test
+    public void getUsersWithGivenRole() {
+        given(userRepository.findAllByRoleId(adminRole.getId(), pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        given(roleRepository.existsById(adminRole.getId())).willReturn(true);
+
+        Page<User> userContent = userService.getUsersWithGivenRole(adminRole.getId(), pageable);
+        assertEquals(user1, userContent.getContent().get(0));
+        then(userRepository).should().findAllByRoleId(adminRole.getId(), pageable);
+    }
+
+    @Test
+    public void getUsersWithGivenRoleWithRoleNotFound() {
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Role with id: " + 1L + " could not be found.");
+        given(roleRepository.existsById(1L)).willReturn(false);
+
+        userService.getUsersWithGivenRole(adminRole.getId(), pageable);
     }
 
     @After

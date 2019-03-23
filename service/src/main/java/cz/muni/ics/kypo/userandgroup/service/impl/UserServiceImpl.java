@@ -146,11 +146,7 @@ public class UserServiceImpl implements UserService {
     public User getUserWithGroups(Long id) {
         LOG.debug("getUserWithGroups({})", id);
         Assert.notNull(id, "Input id must not be null");
-
-        //PREDELAT HNUS!
-        User user = get(id);
-        user.getGroups().size();
-        return user;
+        return userRepository.getUserByIdWithGroups(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
     }
 
     @Override
@@ -159,11 +155,7 @@ public class UserServiceImpl implements UserService {
     public User getUserWithGroups(String login) {
         LOG.debug("getUserWithGroups({})", login);
         Assert.hasLength(login, "Input login must not be empty");
-
-        //PREDELAT HNUS! FETCH JOIN OR ENTITY GRAPH PREFER FETCH JOIN
-        User user = this.getUserByLogin(login);
-        user.getGroups().size();
-        return user;
+        return userRepository.getUserByLoginWithGroups(login).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found"));
     }
 
     @Override

@@ -23,7 +23,7 @@ public class IDMGroupEntityTest {
     private TestEntityManager entityManager;
 
     private String name = "group";
-    private String description = "aswesome group";
+    private String description = "awesome group";
 
     @SpringBootApplication
     static class TestConfiguration {

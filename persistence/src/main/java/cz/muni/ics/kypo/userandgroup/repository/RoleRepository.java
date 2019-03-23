@@ -27,5 +27,5 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
     boolean existsByRoleType(String roleType);
 
     @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName" )
-    Set<Role> getAllRolesByMicroservice(@Param("microserviceName") String microserviceName);
+    Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
 }

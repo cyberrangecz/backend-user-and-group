@@ -22,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
@@ -31,14 +32,11 @@ public class RoleServiceTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
     private RoleService roleService;
-
     @MockBean
     private RoleRepository roleRepository;
 
     private Role adminRole, userRole;
-
     private Pageable pageable;
     private Predicate predicate;
 
@@ -117,6 +115,22 @@ public class RoleServiceTest {
         assertFalse(roles.contains(role));
 
         then(roleRepository).should().findAll(predicate, pageable);
+    }
+
+    @Test
+    public void getAllRolesOfMicroservice() {
+        given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
+        Set<Role> roles = roleService.getAllRolesOfMicroservice("kypo2-training");
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains(adminRole));
+        assertTrue(roles.contains(userRole));
+    }
+
+    @Test
+    public void getAllRolesOfMicroserviceWithNullName() {
+        thrown.expect(IllegalArgumentException.class);
+        given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
+        roleService.getAllRolesOfMicroservice(null);
     }
 
     @After

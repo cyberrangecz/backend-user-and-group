@@ -178,4 +178,36 @@ public class UserRepositoryTest {
         assertFalse(usersInGroups.contains(user3));
     }
 
+    @Test
+    public void findAllByRoleId() {
+        this.entityManager.persistAndFlush(user);
+        this.entityManager.persistAndFlush(adminRole);
+        this.entityManager.persistAndFlush(guestRole);
+        group1.addUser(user);
+        group1.setRoles(Set.of(adminRole));
+        this.entityManager.persistAndFlush(group1);
+        group2.addUser(user);
+        group2.setRoles(Set.of(guestRole));
+        this.entityManager.persistAndFlush(group2);
+
+        Set<Role> roles = userRepository.getRolesOfUser(user.getId());
+        assertEquals(2, roles.size());
+        assertTrue(roles.contains(adminRole));
+        assertTrue(roles.contains(guestRole));
+    }
+
+    @Test
+    public void getUserWithGroups() {
+        entityManager.persistAndFlush(group1);
+        entityManager.persistAndFlush(group2);
+        user.addGroup(group2);
+        user.addGroup(group1);
+        entityManager.persistAndFlush(user);
+
+        Optional<User> userWithGroups = userRepository.getUserByIdWithGroups(user.getId());
+        assertEquals(2, userWithGroups.get().getGroups().size());
+        assertTrue(userWithGroups.get().getGroups().contains(group1));
+        assertTrue(userWithGroups.get().getGroups().contains(group2));
+    }
+
 }

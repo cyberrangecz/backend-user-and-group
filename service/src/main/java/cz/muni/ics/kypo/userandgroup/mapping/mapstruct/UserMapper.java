@@ -11,7 +11,7 @@ import org.springframework.data.domain.PageImpl;
 
 import java.util.*;
 
-@Mapper(componentModel = "spring", uses = {RoleDTO.class})
+@Mapper(componentModel = "spring", uses = {RoleMapper.class})
 public interface UserMapper extends ParentMapper {
     User mapToEntity(UserDTO dto);
 

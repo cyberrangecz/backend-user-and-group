@@ -66,6 +66,6 @@ public class RoleServiceImpl implements RoleService {
     public Set<Role> getAllRolesOfMicroservice(String nameOfMicroservice) {
         LOG.debug("getAllRolesOfMicroservice({})", nameOfMicroservice);
         Assert.notNull(nameOfMicroservice, "Input name of microservice must not be null");
-        return roleRepository.getAllRolesByMicroservice(nameOfMicroservice);
+        return roleRepository.getAllRolesByMicroserviceName(nameOfMicroservice);
     }
 }

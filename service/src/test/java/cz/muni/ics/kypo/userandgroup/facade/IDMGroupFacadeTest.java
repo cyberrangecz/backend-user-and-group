@@ -52,20 +52,13 @@ public class IDMGroupFacadeTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
     private IDMGroupFacade groupFacade;
-
     @Mock
     private IDMGroupService groupService;
-
     @Mock
     private MicroserviceService microserviceService;
-
     @Mock
     private RestTemplate restTemplate;
-
-    @Mock
-    private RoleService roleService;
 
     @Autowired
     private RoleMapperImpl roleMapper;
@@ -81,7 +74,6 @@ public class IDMGroupFacadeTest {
     private Microservice microservice;
     private Predicate predicate;
     private Pageable pageable;
-    private static final String NAME_OF_USER_AND_GROUP_SERVICE = "kypo2-user-and-group";
 
     @Before
     public void init() {
@@ -163,36 +155,36 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testRemoveUsers() {
-        given(groupService.removeUsers(1L, Arrays.asList(1L))).willReturn(g2);
-        groupFacade.removeUsers(1L, Arrays.asList(1L));
+        given(groupService.removeUsers(1L, Collections.singletonList(1L))).willReturn(g2);
+        groupFacade.removeUsers(1L, Collections.singletonList(1L));
 
         assertEquals(0, groupDTO.getUsers().size());
-        then(groupService).should().removeUsers(1L, Arrays.asList(1L));
+        then(groupService).should().removeUsers(1L, Collections.singletonList(1L));
 
     }
 
     @Test
-    public void testRemoveUsersWithServiceExcpetion() {
-        given(groupService.removeUsers(1L, Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
+    public void testRemoveUsersWithServiceException() {
+        given(groupService.removeUsers(1L, Collections.singletonList(1L))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.removeUsers(1L, Arrays.asList(1L));
+        groupFacade.removeUsers(1L, Collections.singletonList(1L));
     }
 
     @Test
     public void testAddUsers() {
         GroupDTO g = groupDTO;
-        g.setUsers(Arrays.asList(new UserForGroupsDTO()));
-        given(groupService.addUsers(1L, Arrays.asList(1L), Arrays.asList(1L))).willReturn(g1);
+        g.setUsers(Collections.singletonList(new UserForGroupsDTO()));
+        given(groupService.addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L))).willReturn(g1);
         groupFacade.addUsers(1L, getaddUsersToGroupDTO());
 
         assertEquals(1, groupDTO.getUsers().size());
-        then(groupService).should().addUsers(1L, Arrays.asList(1L), Arrays.asList(1L));
+        then(groupService).should().addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L));
 
     }
 
     @Test
     public void testAddUsersWithServiceException() {
-        given(groupService.addUsers(1L, Arrays.asList(1L), Arrays.asList(1L))).willThrow(new UserAndGroupServiceException());
+        given(groupService.addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L))).willThrow(new UserAndGroupServiceException());
         thrown.expect(UserAndGroupFacadeException.class);
         groupFacade.addUsers(1L, getaddUsersToGroupDTO());
     }
@@ -208,7 +200,7 @@ public class IDMGroupFacadeTest {
     public void testDeleteGroupsWithPersonsThrows() {
         // group g1 contains persons thus it is no possible to remove this group
         given(groupService.get(anyLong())).willReturn(g1);
-        List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Arrays.asList(1L));
+        List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Collections.singletonList(1L));
     }
 
     @Test
@@ -216,9 +208,9 @@ public class IDMGroupFacadeTest {
         RoleDTO[] rolesArray = new RoleDTO[1];
         rolesArray[0] = getRoleDTO();
         mockSpringSecurityContextForGet(rolesArray);
-        Page<IDMGroup> idmGroupPage = new PageImpl<>(Arrays.asList(g1));
+        Page<IDMGroup> idmGroupPage = new PageImpl<>(Collections.singletonList(g1));
         PageResultResource<GroupDTO> pages = new PageResultResource<>();
-        pages.setContent(Arrays.asList(groupDTO));
+        pages.setContent(Collections.singletonList(groupDTO));
 
         given(groupService.getAllIDMGroups(predicate, pageable)).willReturn(idmGroupPage);
         given(groupService.get(anyLong())).willReturn(g1);
@@ -294,8 +286,8 @@ public class IDMGroupFacadeTest {
 
     private AddUsersToGroupDTO getaddUsersToGroupDTO() {
         AddUsersToGroupDTO addUsers = new AddUsersToGroupDTO();
-        addUsers.setIdsOfUsersToBeAdd(Arrays.asList(1L));
-        addUsers.setIdsOfGroupsOfImportedUsers(Arrays.asList(1L));
+        addUsers.setIdsOfUsersToBeAdd(Collections.singletonList(1L));
+        addUsers.setIdsOfGroupsOfImportedUsers(Collections.singletonList(1L));
         return addUsers;
     }
 
