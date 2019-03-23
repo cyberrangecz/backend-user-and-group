@@ -34,22 +34,17 @@ public class IDMGroupServiceTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
     private IDMGroupService groupService;
-
     @MockBean
     private IDMGroupRepository groupRepository;
-
     @MockBean
     private RoleRepository roleRepository;
-
     @MockBean
     private MicroserviceRepository microserviceRepository;
-
     @MockBean
     private UserRepository userRepository;
 
-    private IDMGroup group1, group2;
+    private IDMGroup group1, group2, mainGroup;
     private Role adminRole, userRole, guestRole;
     private User user1, user2, user3;
 
@@ -65,6 +60,9 @@ public class IDMGroupServiceTest {
 
         group2 = new IDMGroup("group2", "Great group2");
         group2.setId(2L);
+
+        mainGroup = new IDMGroup("ROLE_USER_AND_GROUP_ADMINISTRATOR", "Main group of administrators");
+        mainGroup.setId(3L);
 
         adminRole = new Role();
         adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
@@ -104,7 +102,7 @@ public class IDMGroupServiceTest {
     public void getGroup() {
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         IDMGroup g = groupService.get(group1.getId());
-        deepEqruals(group1, g);
+        deepEquals(group1, g);
 
         then(groupRepository).should().findById(group1.getId());
     }
@@ -130,7 +128,7 @@ public class IDMGroupServiceTest {
         given(groupRepository.save(group1)).willReturn(group1);
         given(roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString())).willReturn(Optional.ofNullable(guestRole));
         IDMGroup g = groupService.create(group1, new ArrayList<>());
-        deepEqruals(group1, g);
+        deepEquals(group1, g);
 
         then(groupRepository).should().save(group1);
     }
@@ -148,7 +146,7 @@ public class IDMGroupServiceTest {
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(groupRepository.save(group1)).willReturn(group1);
         IDMGroup g = groupService.update(group1);
-        deepEqruals(group1, g);
+        deepEquals(group1, g);
 
         then(groupRepository).should().save(group1);
     }
@@ -165,6 +163,13 @@ public class IDMGroupServiceTest {
         given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         assertEquals(GroupDeletionStatusDTO.SUCCESS, groupService.delete(group1));
         then(groupRepository).should().delete(group1);
+    }
+
+    @Test
+    public void testDeleteGroupErrorMainGroup() {
+        given(roleRepository.findAll()).willReturn(Collections.singletonList(adminRole));
+        assertEquals(GroupDeletionStatusDTO.ERROR_MAIN_GROUP, groupService.delete(mainGroup));
+        then(groupRepository).should(never()).delete(mainGroup);
     }
 
     @Test
@@ -196,7 +201,7 @@ public class IDMGroupServiceTest {
         given(groupRepository.findByName(group1.getName())).willReturn(Optional.of(group1));
 
         IDMGroup group = groupService.getIDMGroupByName(group1.getName());
-        deepEqruals(group1, group);
+        deepEquals(group1, group);
         assertNotEquals(group2, group);
 
         then(groupRepository).should().findByName(group1.getName());
@@ -433,7 +438,7 @@ public class IDMGroupServiceTest {
         groupService.addUsers(group1.getId(), Collections.singletonList(group2.getId()), Arrays.asList(user1.getId(), user2.getId()));
     }
 
-    private void deepEqruals(IDMGroup expectedGroup, IDMGroup actualGroup) {
+    private void deepEquals(IDMGroup expectedGroup, IDMGroup actualGroup) {
         assertEquals(expectedGroup.getId(), actualGroup.getId());
         assertEquals(expectedGroup.getName(), actualGroup.getName());
         assertEquals(expectedGroup.getDescription(), actualGroup.getDescription());

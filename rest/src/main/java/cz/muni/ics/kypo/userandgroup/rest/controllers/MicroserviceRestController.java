@@ -24,7 +24,7 @@ import javax.validation.Valid;
  * @author Dominik Pilar
  */
 @Api(value = "Endpoint for Microservices", hidden = true)
-//@ApiIgnore
+@ApiIgnore
 @RestController
 @RequestMapping(path = "/microservices")
 public class MicroserviceRestController {

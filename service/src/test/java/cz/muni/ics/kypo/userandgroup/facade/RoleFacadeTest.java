@@ -38,12 +38,9 @@ public class RoleFacadeTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
     private RoleFacade roleFacade;
-
     @Mock
     private RoleService roleService;
-
     @Autowired
     private RoleMapperImpl roleMapper;
 

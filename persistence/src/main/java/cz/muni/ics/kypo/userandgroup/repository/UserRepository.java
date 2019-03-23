@@ -42,4 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g JOIN FETCH g.roles r WHERE r.id = :roleId",
             countQuery = "SELECT u FROM User u INNER JOIN u.groups g  INNER JOIN g.roles r WHERE r.id = :roleId")
     Page<User> findAllByRoleId(@Param("roleId") Long roleId, Pageable pageable);
+
+    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId")
+    Optional<User> getUserByIdWithGroups(@Param("userId") Long userId);
 }

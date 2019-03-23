@@ -49,17 +49,11 @@ public class UserFacadeTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
     private UserFacade userFacade;
-
     @Mock
     private UserService userService;
-
     @Mock
     private RestTemplate restTemplate;
-
-    @Mock
-    private MicroserviceService microserviceService;
 
     @Autowired
     private UserMapperImpl userMapper;
@@ -68,6 +62,7 @@ public class UserFacadeTest {
 
     private User user1, user2;
     private UserDTO userDTO1, userDTO2;
+    private Role adminRole, userRole;
     private Predicate predicate;
     private Pageable pageable;
     private static final String NAME_OF_USER_AND_GROUP_SERVICE = "kypo2-user-and-group";
@@ -199,38 +194,25 @@ public class UserFacadeTest {
     public void testGetRolesOfUser() {
         Microservice microservice = new Microservice();
         microservice.setName(NAME_OF_USER_AND_GROUP_SERVICE);
-        microservice.setEndpoint("/");
-        microservice.setId(1L);
-        RoleDTO roleDTO = new RoleDTO();
-        roleDTO.setId(1L);
-        roleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.name());
-        RoleDTO[] rolesArray = new RoleDTO[1];
-        rolesArray[0] = roleDTO;
-        mockSpringSecurityContextForGet(rolesArray);
 
-        Role role1 = new Role();
-        role1.setId(1L);
-        role1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        role1.setMicroservice(microservice);
+        Role role1 = Mockito.mock(Role.class);
+        given(role1.getMicroservice()).willReturn(microservice);
+        given(role1.getId()).willReturn(1L);
 
-        Role role2 = new Role();
-        role2.setId(2L);
-        role2.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
-        role2.setMicroservice(microservice);
+        Role role2 = Mockito.mock(Role.class);
+        given(role2.getMicroservice()).willReturn(microservice);
+        given(role2.getId()).willReturn(2L);
 
         Set<Role> roles = Set.of(role1, role2);
 
         RoleDTO roleDTO1 = new RoleDTO();
         roleDTO1.setId(1L);
-        roleDTO1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
         roleDTO1.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE);
 
         RoleDTO roleDTO2 = new RoleDTO();
         roleDTO2.setId(2L);
-        roleDTO2.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
         roleDTO2.setNameOfMicroservice(NAME_OF_USER_AND_GROUP_SERVICE);
 
-        given(userService.get(anyLong())).willReturn(user1);
         given(userService.getRolesOfUser(anyLong())).willReturn(roles);
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);
 
@@ -259,6 +241,19 @@ public class UserFacadeTest {
         given(userService.isUserInternal(user1.getId())).willThrow(UserAndGroupServiceException.class);
         thrown.expect(UserAndGroupFacadeException.class);
         userFacade.isUserInternal(user1.getId());
+    }
+
+    @Test
+    public void getUsersWithGivenRole() {
+        given(userService.getUsersWithGivenRole(1L, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        given(userService.getRolesOfUser(user1.getId())).willReturn(Collections.emptySet());
+        given(userService.getRolesOfUser(user2.getId())).willReturn(Collections.emptySet());
+
+        PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRole(1L, pageable);
+
+        assertEquals(2, usersDTO.getContent().size());
+        assertTrue(usersDTO.getContent().contains(userDTO1));
+        assertTrue(usersDTO.getContent().contains(userDTO2));
     }
 
     private void mockSpringSecurityContextForGet(RoleDTO[] rolesArray) {

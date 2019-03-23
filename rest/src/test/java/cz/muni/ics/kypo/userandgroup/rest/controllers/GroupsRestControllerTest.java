@@ -10,10 +10,13 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -382,6 +384,53 @@ public class GroupsRestControllerTest {
                 .andReturn().getResolvedException();
         assertEquals("Group with id " + groupDTO1.getId() + " could not be found or some of microservice did not return status code 2xx.", ex.getLocalizedMessage());
         then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
+    }
+
+    @Test
+    public void assignRoleToGroup() throws Exception {
+        mockMvc.perform(
+                put("/groups/{groupId}/roles/{roleId}", 1, 2))
+                .andExpect(status().isNoContent());
+        then(groupFacade).should().assignRole(1L, 2L);
+    }
+
+    @Test
+    public void assignRoleToGroupWithUserAndGroupException() throws Exception {
+        willThrow(UserAndGroupFacadeException.class).given(groupFacade).assignRole(1L, 2L);
+        Exception exception = mockMvc.perform(
+                put("/groups/{groupId}/roles/{roleId}", 1L, 2L))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assertEquals(ResourceNotFoundException.class, exception.getClass());
+    }
+
+    @Test
+    public void testRemoveRoleFromGroup() throws Exception {
+        mockMvc.perform(
+                delete("/groups/{groupId}/roles/{roleId}", 1, 2))
+                .andExpect(status().isNoContent());
+        then(groupFacade).should().removeRoleFromGroup(1L, 2L);
+    }
+
+    @Test
+    public void testRemoveRoleWithUserAndGroupException() throws Exception {
+        willThrow(UserAndGroupFacadeException.class).given(groupFacade).removeRoleFromGroup(1L, 2L);
+        Exception exception = mockMvc.perform(
+                delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assertEquals(ResourceNotFoundException.class, exception.getClass());
+    }
+
+    @Test
+    public void testRemoveRoleFromGroupWithRoleCannotBeRemovedException() throws Exception {
+        willThrow(RoleCannotBeRemovedToGroupException.class).given(groupFacade).removeRoleFromGroup(1L, 2L);
+        Exception exception = mockMvc.perform(
+                delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException();
+        assertEquals(BadRequestException.class, exception.getClass());
+
     }
 
     private static String convertObjectToJsonBytes(Object object) throws IOException {
