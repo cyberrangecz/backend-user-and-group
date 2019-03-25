@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -30,7 +28,6 @@ import java.util.Set;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Import({PersistenceConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.security"})
-//@Order(3)
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
     @Value("${kypo.idp.4oauth.introspectionURI}")

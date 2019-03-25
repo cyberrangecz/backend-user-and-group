@@ -10,15 +10,13 @@ import java.util.*;
 
 
 public class GroupDTO {
-
-
     private Long id;
     private String name;
     private String description;
     private Set<RoleDTO> roles = new HashSet<>();
     private List<UserForGroupsDTO> users = new ArrayList<>();
     private Source source;
-    private boolean canBeDeleted;
+    private boolean canBeDeleted = true;
 
     public void convertExternalIdToSource(Long externalId) {
         if (externalId == null) {
