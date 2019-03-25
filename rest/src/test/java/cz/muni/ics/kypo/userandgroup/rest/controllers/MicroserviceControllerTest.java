@@ -1,16 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.Source;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
@@ -18,13 +11,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -35,23 +26,19 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 public class MicroserviceControllerTest {
 
     @InjectMocks
-    private MicroserviceRestController microserviceRestController;
+    private MicroservicesRestController microservicesRestController;
     @MockBean
     private MicroserviceFacade microserviceFacade;
     @MockBean
@@ -73,7 +60,7 @@ public class MicroserviceControllerTest {
 
         MockitoAnnotations.initMocks(this);
 
-        this.mockMvc = MockMvcBuilders.standaloneSetup(microserviceRestController)
+        this.mockMvc = MockMvcBuilders.standaloneSetup(microservicesRestController)
                 .setCustomArgumentResolvers(
                         new PageableHandlerMethodArgumentResolver(),
                         new QuerydslPredicateArgumentResolver(
@@ -87,7 +74,7 @@ public class MicroserviceControllerTest {
 
     @Test
     public void contextLoads() {
-        assertNotNull(microserviceRestController);
+        assertNotNull(microservicesRestController);
     }
 
     @Test
