@@ -19,7 +19,11 @@ public class GroupDeletionResponseDTO {
         this.id = id;
     }
 
-    @ApiModelProperty(value = "Result of deleting group.", example = "SUCCESS")
+    @ApiModelProperty(value = "Result of deleting group: \n" +
+            "1) SUCCESS - group was deleted\n " +
+            "2) NOT_FOUND - group has not found\n" +
+            "3) ERROR - group could not be deleted, try it later\n" +
+            "4) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)", example = "SUCCESS")
     public GroupDeletionStatusDTO getStatus() {
         return status;
     }

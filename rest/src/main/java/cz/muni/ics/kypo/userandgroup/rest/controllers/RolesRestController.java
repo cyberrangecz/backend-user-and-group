@@ -37,16 +37,16 @@ import org.springframework.web.bind.annotation.*;
 @Api(value = "Endpoint for roles")
 @RestController
 @RequestMapping(path = "/roles")
-public class RoleRestController {
+public class RolesRestController {
 
-    private static Logger LOG = LoggerFactory.getLogger(RoleRestController.class);
+    private static Logger LOG = LoggerFactory.getLogger(RolesRestController.class);
 
     private RoleFacade roleFacade;
     private UserFacade userFacade;
     private ObjectMapper objectMapper;
 
     @Autowired
-    public RoleRestController(RoleFacade roleFacade, UserFacade userFacade, ObjectMapper objectMapper) {
+    public RolesRestController(RoleFacade roleFacade, UserFacade userFacade, ObjectMapper objectMapper) {
         this.roleFacade = roleFacade;
         this.objectMapper = objectMapper;
         this.userFacade = userFacade;

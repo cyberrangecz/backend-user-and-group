@@ -27,14 +27,14 @@ import javax.validation.Valid;
 @ApiIgnore
 @RestController
 @RequestMapping(path = "/microservices")
-public class MicroserviceRestController {
+public class MicroservicesRestController {
 
-    private static Logger LOG = LoggerFactory.getLogger(RoleRestController.class);
+    private static Logger LOG = LoggerFactory.getLogger(RolesRestController.class);
 
     private MicroserviceFacade microserviceFacade;
 
     @Autowired
-    public MicroserviceRestController(MicroserviceFacade microserviceFacade) {
+    public MicroservicesRestController(MicroserviceFacade microserviceFacade) {
         this.microserviceFacade = microserviceFacade;
     }
 
