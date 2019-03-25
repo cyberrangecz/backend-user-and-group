@@ -8,8 +8,6 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
@@ -120,8 +118,8 @@ public class GroupsRestController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
+    @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
                                              @PathVariable("id") final Long groupId,
                                              @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
                                              @Valid @RequestBody AddUsersToGroupDTO addUsers) {
