@@ -116,7 +116,7 @@ $ mvn flyway:migrate -Djdbc.url=jdbc:postgresql://{url to DB}/user-and-group -Dj
 ```
 e.g.:
 ```
-$ mvn flyway:migrate -Djdbc.url=jdbc:postgresql://localhost:5432/user-and-group -Djdbc.username=postgres -Djdbc.password=postgre
+$ mvn flyway:migrate -Djdbc.url=jdbc:postgresql://localhost:5432/user-and-group -Djdbc.username=postgres -Djdbc.password=postgres
 ```
 
 NOTE: This script must be run in [persistence] (https://gitlab.ics.muni.cz/kypo2/services-and-portlets/kypo2-user-and-group/tree/master/persistence) module.
