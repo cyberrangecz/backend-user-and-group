@@ -144,4 +144,14 @@ public interface UserService {
      */
     Page<User> getUsersWithGivenRole(Long roleId, Pageable pageable);
 
+    /**
+     * Returns page of users specified by given role type, predicate and pageable
+     *
+     * @param pageable parameter with information about pagination
+     * @param roleType id of role to get users for
+     * @return page of users specified by given predicate and pageable
+     * @throws UserAndGroupServiceException if role is not found in DB
+     */
+    Page<User> getUsersWithGivenRole(String roleType, Pageable pageable);
+
 }

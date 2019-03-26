@@ -111,4 +111,14 @@ public interface UserFacade {
      */
     PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable);
 
+    /**
+     * Returns page of users specified by given role type, predicate and pageable
+     *
+     * @param pageable parameter with information about pagination
+     * @param roleType type of role to get users for
+     * @return page of users specified by given predicate and pageable
+     * @throws UserAndGroupFacadeException if role is not found in DB
+     */
+    PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable);
+
 }
