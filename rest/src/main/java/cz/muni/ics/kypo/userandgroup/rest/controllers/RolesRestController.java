@@ -114,4 +114,28 @@ public class RolesRestController {
             throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
     }
+
+    @ApiOperation(httpMethod = "GET",
+            value = "Gets all users with given role.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiPageableSwagger
+    @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getUsersWithGivenRoleType(@QuerydslPredicate(root = User.class) Predicate predicate,
+                                                        Pageable pageable,
+                                                        @ApiParam(value = "Parameters for filtering the objects.", required = false)
+                                                        @RequestParam MultiValueMap<String, String> parameters,
+                                                        @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                        @RequestParam(value = "fields", required = false) String fields,
+                                                        @ApiParam(value = "Type of role to get users for.", required = true)
+                                                        @RequestParam("roleType") String roleType) {
+        LOG.debug("getUsersWithGivenRoleType()");
+        try {
+            PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleType, pageable);
+            Squiggly.init(objectMapper, fields);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
+        }
+    }
 }

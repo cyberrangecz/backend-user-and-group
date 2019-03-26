@@ -204,4 +204,13 @@ public class UserServiceImpl implements UserService {
         }
         return userRepository.findAllByRoleId(roleId, pageable);
     }
+
+    @Override
+    public Page<User> getUsersWithGivenRole(String roleType, Pageable pageable) {
+        LOG.debug("getUsersWithGivenRole({})", roleType);
+        Assert.notNull(roleType, "Input role type must not be null");
+        Role role = roleRepository.findByRoleType(roleType).orElseThrow(() ->
+                new UserAndGroupServiceException("Role with role type: " + roleType + " could not be found."));
+        return userRepository.findAllByRoleId(role.getId(), pageable);
+    }
 }

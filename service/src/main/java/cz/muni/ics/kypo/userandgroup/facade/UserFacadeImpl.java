@@ -184,8 +184,23 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable) {
-        LOG.debug("getUsersWithGivenRole()");
+        LOG.debug("getUsersWithGivenRole({})", roleId);
         PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
+        List<UserDTO> usersWithRoles = users.getContent().stream()
+                .map(userDTO -> {
+                    userDTO.setRoles(this.getRolesOfUser(userDTO.getId()));
+                    return userDTO;
+                })
+                .collect(Collectors.toList());
+        users.setContent(usersWithRoles);
+        return users;
+    }
+
+    @Override
+    @TransactionalRO
+    public PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable) {
+        LOG.debug("getUsersWithGivenRole({})", roleType);
+        PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
         List<UserDTO> usersWithRoles = users.getContent().stream()
                 .map(userDTO -> {
                     userDTO.setRoles(this.getRolesOfUser(userDTO.getId()));
