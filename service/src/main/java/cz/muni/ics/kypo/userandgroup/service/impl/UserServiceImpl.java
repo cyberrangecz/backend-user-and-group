@@ -171,8 +171,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
-            "or @securityService.hasLoggedInUserSameId(#id)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_GUEST)")
     public Set<Role> getRolesOfUser(Long id) {
         LOG.debug("getRolesOfUser({})", id);
         Assert.notNull(id, "Input id must not be null");
