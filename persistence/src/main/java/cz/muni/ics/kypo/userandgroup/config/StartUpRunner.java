@@ -80,15 +80,14 @@ public class StartUpRunner implements ApplicationRunner {
             Optional<User> optionalUser = userRepository.getUserByLoginWithGroups(usersWrapper.getUser().getLogin());
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
-                user.setGroups(new HashSet<>());
 
                 if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR)) {
-                    user.setGroups(Set.of(adminGroup, userGroup, defaultGroup));
+                    user.addGroup(adminGroup);
+                    user.addGroup(userGroup);
                 } else if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_USER)) {
-                    user.setGroups(Set.of(userGroup, defaultGroup));
-                } else {
-                    user.addGroup(defaultGroup);
+                    user.addGroup(userGroup);
                 }
+                user.addGroup(defaultGroup);
                 userRepository.save(user);
                 LOGGER.info("Roles of user with screen name {} were updated.", user.getLogin());
             } else {
@@ -100,7 +99,7 @@ public class StartUpRunner implements ApplicationRunner {
                 } else if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_USER)) {
                     newUser.setGroups(Set.of(userGroup, defaultGroup));
                 } else if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_GUEST) || usersWrapper.getRoles().isEmpty()) {
-                    newUser.addGroup(defaultGroup);
+                    newUser.setGroups(Set.of(defaultGroup));
                 } else {
                     LOGGER.error("User cannot have roles other than these: {}, {}, {}", RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), RoleType.ROLE_USER_AND_GROUP_USER.name(), RoleType.ROLE_USER_AND_GROUP_GUEST.name());
                     throw new LoadingRolesAndUserException("User cannot have roles other than these: " + RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name() +
