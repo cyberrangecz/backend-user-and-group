@@ -247,7 +247,7 @@ public class GroupsRestControllerTest {
         user.setLogin("user");
         user.setFullName("user one");
         user.setMail("user.one@mail.com");
-        groupDTO1.setUsers(Collections.singletonList(user));
+        groupDTO1.setUsers(Set.of(user));
 
         mockMvc.perform(
                 put("/groups" + "/{id}/users", 1L)
@@ -452,7 +452,7 @@ public class GroupsRestControllerTest {
         newGroupDTO.setName("GroupOne");
         newGroupDTO.setDescription("Group One");
         newGroupDTO.setGroupIdsOfImportedUsers(Arrays.asList(1L));
-        newGroupDTO.setUsers(Arrays.asList(getUserForGroupsDTO()));
+        newGroupDTO.setUsers(Set.of(getUserForGroupsDTO()));
 
         return newGroupDTO;
     }

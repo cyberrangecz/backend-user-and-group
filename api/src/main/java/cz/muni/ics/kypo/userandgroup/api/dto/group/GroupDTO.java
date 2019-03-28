@@ -14,7 +14,7 @@ public class GroupDTO {
     private String name;
     private String description;
     private Set<RoleDTO> roles = new HashSet<>();
-    private List<UserForGroupsDTO> users = new ArrayList<>();
+    private Set<UserForGroupsDTO> users = new HashSet<>();
     private Source source;
     private boolean canBeDeleted = true;
 
@@ -63,11 +63,11 @@ public class GroupDTO {
     }
 
     @ApiModelProperty(value = "List of users in group.")
-    public List<UserForGroupsDTO> getUsers() {
+    public Set<UserForGroupsDTO> getUsers() {
         return users;
     }
 
-    public void setUsers(List<UserForGroupsDTO> users) {
+    public void setUsers(Set<UserForGroupsDTO> users) {
         this.users = users;
     }
 

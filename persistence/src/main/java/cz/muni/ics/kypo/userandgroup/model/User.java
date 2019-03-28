@@ -47,10 +47,7 @@ public class User {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private UserAndGroupStatus status;
-    @ManyToMany
-    @JoinTable(name = "user_idm_group",
-            joinColumns = {@JoinColumn(name = "user_id")},
-            inverseJoinColumns = {@JoinColumn(name = "idm_group_id")})
+    @ManyToMany(mappedBy = "users")
     private Set<IDMGroup> groups = new HashSet<>();
 
     public User() {
@@ -120,10 +117,12 @@ public class User {
 
     public void addGroup(IDMGroup group) {
         groups.add(group);
+        group.addUser(this);
     }
 
     public void removeGroup(IDMGroup group) {
         groups.remove(group);
+        group.removeUser(this);
     }
 
     @Override

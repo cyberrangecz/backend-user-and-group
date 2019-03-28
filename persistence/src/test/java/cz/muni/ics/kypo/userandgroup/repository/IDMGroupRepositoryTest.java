@@ -129,7 +129,7 @@ public class IDMGroupRepositoryTest {
         assertEquals(expectedName, g.getName());
         assertEquals(expectedDescription, g.getDescription());
         assertEquals(1, g.getUsers().size());
-        assertEquals(user, g.getUsers().get(0));
+        assertTrue(g.getUsers().contains(user));
     }
 
     @Test

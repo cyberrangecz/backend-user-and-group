@@ -46,7 +46,7 @@ public class IDMGroup {
     @JoinTable(name = "user_idm_group",
             joinColumns = {@JoinColumn(name = "idm_group_id")},
             inverseJoinColumns = {@JoinColumn(name = "user_id")})
-    private List<User> users = new ArrayList<>();
+    private Set<User> users = new HashSet<>();
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "idm_group_role",
             joinColumns = @JoinColumn(name = "idm_group_id"),
@@ -96,11 +96,11 @@ public class IDMGroup {
         this.externalId = externalId;
     }
 
-    public List<User> getUsers() {
-        return Collections.unmodifiableList(users);
+    public Set<User> getUsers() {
+        return users;
     }
 
-    public void setUsers(List<User> users) {
+    public void setUsers(Set<User> users) {
         this.users = users;
     }
 
