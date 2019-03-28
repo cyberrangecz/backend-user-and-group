@@ -108,7 +108,7 @@ public class IDMGroupFacadeTest {
 
         newGroupDTO = new NewGroupDTO();
         newGroupDTO.setName("Group 1");
-        newGroupDTO.setUsers(Collections.singletonList(userForGroupsDTO));
+        newGroupDTO.setUsers(Set.of(userForGroupsDTO));
 
         microservice = new Microservice("training", "www.ttt.com/trainings");
 
@@ -173,7 +173,7 @@ public class IDMGroupFacadeTest {
     @Test
     public void testAddUsers() {
         GroupDTO g = groupDTO;
-        g.setUsers(Collections.singletonList(new UserForGroupsDTO()));
+        g.setUsers(Set.of(new UserForGroupsDTO()));
         given(groupService.addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L))).willReturn(g1);
         groupFacade.addUsers(1L, getaddUsersToGroupDTO());
 

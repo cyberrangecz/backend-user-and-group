@@ -3,9 +3,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class NewGroupDTO {
 
@@ -14,7 +12,7 @@ public class NewGroupDTO {
     @NotEmpty(message = "{newGroupDto.description.NotEmpty.message}")
     private String description;
 
-    private List<UserForGroupsDTO> users = new ArrayList<>();
+    private Set<UserForGroupsDTO> users = new HashSet<>();
 
     private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
@@ -37,11 +35,11 @@ public class NewGroupDTO {
     }
 
     @ApiModelProperty(value = "List of users who is assigned to group.")
-    public List<UserForGroupsDTO> getUsers() {
+    public Set<UserForGroupsDTO> getUsers() {
         return users;
     }
 
-    public void setUsers(List<UserForGroupsDTO> users) {
+    public void setUsers(Set<UserForGroupsDTO> users) {
         this.users = users;
     }
 

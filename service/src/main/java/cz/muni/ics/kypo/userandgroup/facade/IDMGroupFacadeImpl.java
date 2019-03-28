@@ -119,7 +119,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         try {
             IDMGroup group = groupService.get(id);
-            List<User> users = group.getUsers();
+            Set<User> users = group.getUsers();
             if (users == null || users.isEmpty()) {
                 groupDeletionResponseDTO.setStatus(groupService.delete(group));
             } else {
