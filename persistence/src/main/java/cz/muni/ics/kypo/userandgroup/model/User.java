@@ -112,7 +112,15 @@ public class User {
     }
 
     public void setGroups(Set<IDMGroup> groups) {
+        if(!this.groups.isEmpty()) {
+            for (IDMGroup idmGroup : this.groups) {
+                idmGroup.removeUser(this);
+            }
+        }
         this.groups = groups;
+        for (IDMGroup idmGroup : groups) {
+            idmGroup.addUser(this);
+        }
     }
 
     public void addGroup(IDMGroup group) {
