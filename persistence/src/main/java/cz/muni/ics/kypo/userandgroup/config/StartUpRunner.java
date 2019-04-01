@@ -16,11 +16,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.*;
 
 @Component
+@Transactional
 public class StartUpRunner implements ApplicationRunner {
 
     private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
@@ -93,6 +95,8 @@ public class StartUpRunner implements ApplicationRunner {
             } else {
                 User newUser = new User(usersWrapper.getUser().getLogin());
                 newUser.setStatus(UserAndGroupStatus.VALID);
+                userRepository.save(newUser);
+                LOGGER.info("User with screen name {} was created.", newUser.getLogin());
 
                 if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR)) {
                     newUser.setGroups(Set.of(adminGroup, userGroup, defaultGroup));
@@ -105,7 +109,6 @@ public class StartUpRunner implements ApplicationRunner {
                     throw new LoadingRolesAndUserException("User cannot have roles other than these: " + RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name() +
                             ", " + RoleType.ROLE_USER_AND_GROUP_USER.name() + ", " + RoleType.ROLE_USER_AND_GROUP_GUEST.name());
                 }
-                userRepository.save(newUser);
                 LOGGER.info("User with screen name {} was created.", newUser.getLogin());
             }
         });
