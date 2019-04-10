@@ -86,7 +86,11 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @TransactionalWO
     public void updateGroup(UpdateGroupDTO updateGroupDTO) {
         LOG.debug("updateGroup({})", updateGroupDTO);
-        groupService.update(groupMapper.mapUpdateToEntity(updateGroupDTO));
+        try {
+            groupService.update(groupMapper.mapUpdateToEntity(updateGroupDTO));
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
     }
 
     @Override
