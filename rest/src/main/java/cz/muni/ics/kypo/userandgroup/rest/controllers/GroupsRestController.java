@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -81,9 +82,6 @@ public class GroupsRestController {
                                             @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
         LOG.debug("updateGroup({})", updateGroupDTO);
         Preconditions.checkNotNull(updateGroupDTO);
-        if (updateGroupDTO.getDescription() == null || updateGroupDTO.getName() == null) {
-            throw new InvalidParameterException("Group name neither group description cannot be null.");
-        }
         try {
             groupFacade.updateGroup(updateGroupDTO);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
