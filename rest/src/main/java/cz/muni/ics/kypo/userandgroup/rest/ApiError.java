@@ -33,7 +33,7 @@ import java.util.Objects;
  * @author Pavel Šeda
  * 
  */
-public class APIError {
+public class ApiError {
 
   protected long timestamp;
   protected HttpStatus status;
@@ -74,12 +74,12 @@ public class APIError {
       return this;
     }
 
-    public APIError build() {
-      return new APIError(this);
+    public ApiError build() {
+      return new ApiError(this);
     }
   }
 
-  protected APIError(APIErrorBuilder builder) {
+  protected ApiError(APIErrorBuilder builder) {
     super();
     this.timestamp = System.currentTimeMillis();
     this.status = builder.status;
@@ -134,7 +134,7 @@ public class APIError {
 
   @Override
   public String toString() {
-    return "APIError [timestamp=" + timestamp + ", status=" + status + ", message=" + message + ", errors=" + errors + ", path=" + path + "]";
+    return "ApiError [timestamp=" + timestamp + ", status=" + status + ", message=" + message + ", errors=" + errors + ", path=" + path + "]";
   }
 
   @Override
@@ -148,9 +148,9 @@ public class APIError {
       return true;
     if (obj == null)
       return false;
-    if (!(obj instanceof APIError))
+    if (!(obj instanceof ApiError))
       return false;
-    APIError other = (APIError) obj;
+    ApiError other = (ApiError) obj;
     if (errors == null) {
       if (other.errors != null)
         return false;
