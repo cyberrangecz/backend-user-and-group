@@ -1,0 +1,32 @@
+kypo2-user-and-group (0.0.0) stable; urgency=medium
+
+  * [feacb3b1] Create new endpoint for assigning and removing groups to
+    from microservices
+  * [a36b3020] Possibility to delete group when no user is present
+  * [1144c9df] Redesign facade and service layer to service and api
+    modules
+  * [77098a20] Add user full name to the userinfo endpoint
+  * [07bcc1a3] Disable cache of tokens
+  * [aba5906e] Add id and name of microservices into dtos
+  * [b29d1de3] Default guest role is not added to created group
+  * [52d636da] Repair test in rolefacadetest
+  * [448ab39c] Change url of microservices in idmgroupfacade
+  * [f0e41eed] Implement cors
+  * [897a97a1] Endpoint for getting users in given groups
+  * [b6987dc8] Endpoint for basic info about user for security commons
+  * [ac3c1ee7] Change url for obtaining roles from other microservices
+  * [a1fc9806] Migrate to java 11 openjdk 11
+  * [4d25a534] Rework scanning in tests
+  * [18b2f14e] Add swagger annotations to the dto classes to fill the
+    documentation
+  * [88c38520] Redesign rest api endpoints
+  * [2d940a14] Set autoconfiguration for objectmapper and snake_case
+    property naming strategy
+  * [020869a4] Add apipageableswagger annotation to the findall
+    controller methods to fill swagger documentation
+  * [7efccb90] Remove abstract class with endpoints and use directly the
+    names of the endpoints without api v1
+  * [0a018d2a] Add swagger documentation to the rest controller methods
+    and also the plugin for generating the swagger documentation
+
+ -- Martin Machac <machacm@ics.muni.cz>  Wed, 13 Mar 2019 15:43:50 +0100
