@@ -248,7 +248,7 @@ public class GroupsRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException(e.getLocalizedMessage());
         } catch (RoleCannotBeRemovedToGroupException e) {
-            throw new BadRequestException(e.getLocalizedMessage());
+            throw new ConflictException(e.getLocalizedMessage());
         }
     }
 }
