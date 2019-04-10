@@ -66,14 +66,8 @@ public class RolesRestController {
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
         LOG.debug("getRoles()");
-        try {
-            PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw new InternalServerErrorException("Some of microservice did not return status code 2xx.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
-        }
+        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
     }
 
     @ApiOperation(httpMethod = "GET",

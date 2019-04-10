@@ -105,7 +105,8 @@ public class GroupsRestController {
             groupFacade.removeUsers(id, userIds);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
+            if(e.getMessage().contains("could not be found")) { throw new ResourceNotFoundException(e.getLocalizedMessage()); }
+            throw new ConflictException(e.getLocalizedMessage());
         } catch (ExternalSourceException e) {
             throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
         }

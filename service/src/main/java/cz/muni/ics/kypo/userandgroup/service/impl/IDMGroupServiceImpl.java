@@ -189,6 +189,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         if (!groupRepository.isIDMGroupInternal(groupId)) {
             throw new ExternalSourceException("Group is external therefore it could not be updated");
         }
+        if(groupToUpdate.getName().equals("DEFAULT_GROUP")) {
+            throw new UserAndGroupServiceException("Cannot remove users from default group.");
+        }
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));

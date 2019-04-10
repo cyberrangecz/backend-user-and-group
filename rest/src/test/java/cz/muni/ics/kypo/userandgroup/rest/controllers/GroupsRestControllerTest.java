@@ -16,6 +16,7 @@ import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +36,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.util.*;
@@ -427,9 +429,9 @@ public class GroupsRestControllerTest {
         willThrow(RoleCannotBeRemovedToGroupException.class).given(groupFacade).removeRoleFromGroup(1L, 2L);
         Exception exception = mockMvc.perform(
                 delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
-        assertEquals(BadRequestException.class, exception.getClass());
+        assertEquals(ConflictException.class, exception.getClass());
 
     }
 
