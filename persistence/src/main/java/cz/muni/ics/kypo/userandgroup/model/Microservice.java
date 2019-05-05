@@ -8,6 +8,9 @@ import java.util.Objects;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
+/**
+ * @author Pavel Seda
+ */
 @Entity
 @Table(name = "microservice")
 public class Microservice {
