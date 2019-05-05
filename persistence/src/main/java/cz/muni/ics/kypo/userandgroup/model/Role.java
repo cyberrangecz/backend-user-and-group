@@ -24,6 +24,9 @@ import java.util.Objects;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
+/**
+ * @author Pavel Seda
+ */
 @Entity
 @Table(name = "role")
 public class Role {
@@ -33,7 +36,6 @@ public class Role {
     private Long id;
     @Column(name = "role_type", unique = true, nullable = false)
     private String roleType;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Microservice microservice;
 
