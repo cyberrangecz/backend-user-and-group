@@ -12,6 +12,7 @@ variables:
 stages:
     - unitTests
     - installJava
+    - editVersion
     - deployJava
     - buildDebian
     - deployDebian
@@ -48,7 +49,21 @@ installJava:
         - triggers
         - branches
         - tags
-        
+
+editVersion:
+    stage: editVersion
+    script:
+        - export GIT_SSH_COMMAND='ssh -i ~/.ssh/kyposervicekey'
+        - ssh -o "StrictHostKeyChecking no" git@gitlab.ics.muni.cz && sleep 1
+        - git clone git@gitlab.ics.muni.cz:kypo2/services-and-portlets/kypo2-user-and-group.git
+        - cd $CI_PROJECT_NAME
+        - git config --global user.name "KYPO CI" && git config --global user.email "kyposervice@ics.muni.cz"
+        - grep -Rl '</version>' . --exclude-dir=.git --exclude=README.md --exclude=.gitlab-ci.yml | xargs sed -i "0,/<version>/{s:<version>.*:<version>$VERSION</version>:g}"
+        - git commit -am "Update pom.xml version based on GitLab tag. Done by CI" && sleep 1
+        - git push
+    only:
+        - tags
+
 deployJava:
     image: javadeploy
     stage: deployJava
