@@ -166,11 +166,11 @@
     </build>
 
     <modules>
-        <module>persistence</module>
-        <module>service</module>
-        <module>security</module>
-        <module>rest</module>
-        <module>api</module>
+        <module>kypo2-persistence-user-and-group</module>
+        <module>kypo2-service-user-and-group</module>
+        <module>kypo2-security-user-and-group</module>
+        <module>kypo2-rest-user-and-group</module>
+        <module>kypo2-api-user-and-group</module>
     </modules>
 
 </project>
