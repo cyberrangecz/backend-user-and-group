@@ -70,7 +70,8 @@ deployJava:
     image: javadeploy
     stage: deployJava
     script:
-        - mvn deploy -Dmaven.test.skip=true
+        - git checkout master && git pull
+        - mvn clean deploy -Dmaven.test.skip=true
     only:
         - tags
 
