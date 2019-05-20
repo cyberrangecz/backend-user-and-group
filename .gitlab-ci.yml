@@ -52,6 +52,8 @@ installJava:
 
 createJar:
     stage: installJava
+    artifacts:
+        untracked: true
     script:
         - ls
         - pwd
@@ -89,6 +91,8 @@ deployJava:
 buildDebian:
     image: gitbuildpackage
     stage: buildDebian
+    dependencies:
+        - build
     script:
         - ls
         - pwd
