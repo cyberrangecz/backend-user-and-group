@@ -50,17 +50,6 @@ installJava:
         - branches
         - tags
 
-createJar:
-    stage: installJava
-    script:
-        - ls
-        - pwd
-        - mvn clean package -Dmaven.test.skip=true
-    only:
-        - triggers
-        - branches
-        - tags
-
 editVersion:
     stage: editVersion
     script:
@@ -90,7 +79,7 @@ buildDebian:
     stage: buildDebian
     script:
         - ls 
-        - pwd
+        - mvn clean package -Dmaven.test.skip=true
         # --distribution $DEBIAN_DISTRIBUTION
         - >
             gbp dch
