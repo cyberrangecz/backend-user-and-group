@@ -92,7 +92,7 @@ buildDebian:
     image: gitbuildpackage
     stage: buildDebian
     dependencies:
-        - build
+        - installJava
     script:
         - ls
         - pwd
