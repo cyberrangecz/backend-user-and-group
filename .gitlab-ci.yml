@@ -50,6 +50,13 @@ installJava:
         - branches
         - tags
 
+createJar:
+    stage: installJava
+    script:
+        - ls
+        - pwd
+        - mvn clean package -Dmaven.test.skip=true
+
 editVersion:
     stage: editVersion
     script:
@@ -79,6 +86,8 @@ buildDebian:
     image: gitbuildpackage
     stage: buildDebian
     script:
+        - ls
+        - pwd
         # --distribution $DEBIAN_DISTRIBUTION
         - >
             gbp dch
