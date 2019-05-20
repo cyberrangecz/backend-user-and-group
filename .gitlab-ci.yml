@@ -56,6 +56,10 @@ createJar:
         - ls
         - pwd
         - mvn clean package -Dmaven.test.skip=true
+    only:
+        - triggers
+        - branches
+        - tags
 
 editVersion:
     stage: editVersion
