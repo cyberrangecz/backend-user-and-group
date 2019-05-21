@@ -25,11 +25,11 @@ override_dh_install:
 	@echo "kypo2-security-user-and-group/target/kypo2-security-user-and-group*.jar ${JARS_DIR}" >> debian/install
 	@echo "kypo2-service-user-and-group/target/kypo2-service-user-and-group*.jar ${JARS_DIR}" >> debian/install
 	@echo '#!/bin/sh\ncd ${PROJECT_DIR}\nmvn clean install' > debian/postinst
-	@echo '\ncd ${JARS_DIR}\nAPI_JAR=$(ls kypo2-api-user-and-group*.jar | tail -n 1)\nln -s ${API_JAR} kypo2-api-user-and-group.jar' >> debian/postinst
-	@echo '\nPERSISTENCE_JAR=$(ls kypo2-persistence-user-and-group*.jar | tail -n 1)\nln -s ${PERSISTENCE_JAR} kypo2-persistence-user-and-group.jar' >> debian/postinst
-	@echo '\nREST_JAR=$(ls kypo2-rest-user-and-group*.jar | tail -n 1)\nln -s ${REST_JAR} kypo2-rest-user-and-group.jar' >> debian/postinst
-	@echo '\nSECURITY_JAR=$(ls kypo2-security-user-and-group*.jar | tail -n 1)\nln -s ${SECURITY_JAR} kypo2-security-user-and-group.jar' >> debian/postinst
-	@echo '\nSERVICE_JAR=$(ls kypo2-service-user-and-group*.jar | tail -n 1)\nln -s ${SERVICE_JAR} kypo2-service-user-and-group.jar' >> debian/postinst
+	@echo '\ncd ${JARS_DIR}\nAPI_JAR=$$(ls kypo2-api-user-and-group*.jar | tail -n 1)\nif ! [ "$$API_JAR" = "kypo2-api-user-and-group.jar" ]; then ln -sf $$API_JAR kypo2-api-user-and-group.jar; fi' >> debian/postinst
+	@echo '\nPERSISTENCE_JAR=$$(ls kypo2-persistence-user-and-group*.jar | tail -n 1)\nif ! [ "$$PERSISTENCE_JAR" = "kypo2-persistence-user-and-group" ]; then ln -sf $$PERSISTENCE_JAR kypo2-persistence-user-and-group.jar; fi' >> debian/postinst
+	@echo '\nREST_JAR=$$(ls kypo2-rest-user-and-group*.jar | tail -n 1)\nif ! [ "$$REST_JAR" = "kypo2-rest-user-and-group.jar" ]; then ln -sf $$REST_JAR kypo2-rest-user-and-group.jar; fi' >> debian/postinst
+	@echo '\nSECURITY_JAR=$$(ls kypo2-security-user-and-group*.jar | tail -n 1)\nif ! [ "$$SECURITY_JAR" = "kypo2-security-user-and-group.jar" ]; then ln -sf $$SECURITY_JAR kypo2-security-user-and-group.jar; fi' >> debian/postinst
+	@echo '\nSERVICE_JAR=$$(ls kypo2-service-user-and-group*.jar | tail -n 1)\nif ! [ "$$SERVICE_JAR" = "kypo2-service-user-and-group.jar" ]; then ln -sf $$SERVICE_JAR kypo2-service-user-and-group.jar; fi' >> debian/postinst
 	dh_install
 
 override_dh_installinit:
