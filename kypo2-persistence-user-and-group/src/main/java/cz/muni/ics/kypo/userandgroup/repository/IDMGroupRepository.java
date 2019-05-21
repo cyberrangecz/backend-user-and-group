@@ -1,6 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,20 +14,26 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author Pavel Seda & Dominik Pilar
+ */
 @Repository
 public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
         QuerydslPredicateExecutor<IDMGroup> {
 
-    @EntityGraph(attributePaths = {"roles", "users"})
+    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
     Optional<IDMGroup> findByName(String name);
 
-    @EntityGraph(attributePaths = {"roles", "users"})
+    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
     Optional<IDMGroup> findById(Long id);
 
-    @Query("SELECT g FROM IDMGroup AS g INNER JOIN g.roles AS r WHERE r.roleType = :roleType")
+    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
+    Page<IDMGroup> findAll(Predicate predicate, Pageable pageable);
+
+    @Query("SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType")
     List<IDMGroup> findAllByRoleType(@Param("roleType") String roleType);
 
-    @Query("SELECT g FROM IDMGroup AS g INNER JOIN g.roles AS r WHERE r.roleType = 'ROLE_USER_AND_GROUP_ADMINISTRATOR'")
+    @Query("SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = 'ROLE_USER_AND_GROUP_ADMINISTRATOR'")
     Optional<IDMGroup> findAdministratorGroup();
 
     @Query("SELECT g FROM IDMGroup g JOIN FETCH g.users WHERE g.name = :name")
