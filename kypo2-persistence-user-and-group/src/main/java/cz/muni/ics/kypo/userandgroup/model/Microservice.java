@@ -23,6 +23,7 @@ public class Microservice {
     @Column(name = "endpoint", nullable = false)
     private String endpoint;
 
+
     public Microservice() {
     }
 

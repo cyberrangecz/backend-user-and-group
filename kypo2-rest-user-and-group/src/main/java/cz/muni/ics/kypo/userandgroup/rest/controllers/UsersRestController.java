@@ -16,6 +16,7 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;

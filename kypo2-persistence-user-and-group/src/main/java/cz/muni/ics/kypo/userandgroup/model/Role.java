@@ -20,7 +20,9 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -61,7 +63,6 @@ public class Role {
 
     public void setMicroservice(Microservice microservice) {
         this.microservice = microservice;
-
     }
 
     @Override

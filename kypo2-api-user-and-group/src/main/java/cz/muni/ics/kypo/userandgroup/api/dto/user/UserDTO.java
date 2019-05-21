@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ */
 public class UserDTO {
 
     private Long id;
@@ -14,6 +17,25 @@ public class UserDTO {
     private String login;
     private String mail;
     private Set<RoleDTO> roles = new HashSet<>();
+
+    public UserDTO() {
+        // no-args constructor
+    }
+
+    public UserDTO(Long id, String fullName, String login, String mail) {
+        this.id = id;
+        this.fullName = fullName;
+        this.login = login;
+        this.mail = mail;
+    }
+
+    public UserDTO(Long id, String fullName, String login, String mail, Set<RoleDTO> roles) {
+        this.id = id;
+        this.fullName = fullName;
+        this.login = login;
+        this.mail = mail;
+        this.roles = roles;
+    }
 
     @ApiModelProperty(value = "Main identifier of the user.", example = "1")
     public Long getId() {
@@ -60,6 +82,10 @@ public class UserDTO {
         this.roles = roles;
     }
 
+    public void addRole(RoleDTO roleDTO){
+        this.roles.add(roleDTO);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -71,7 +97,6 @@ public class UserDTO {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(getId(), getLogin());
     }
 

@@ -24,6 +24,9 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
     @EntityGraph(attributePaths = {"microservice"})
     Page<Role> findAll(Predicate predicate, Pageable pageable);
 
+    @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice WHERE r.id= :id")
+    Optional<Role> findById(@Param("id") Long id);
+
     boolean existsByRoleType(String roleType);
 
     @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName" )
