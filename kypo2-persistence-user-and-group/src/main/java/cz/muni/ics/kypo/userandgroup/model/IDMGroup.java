@@ -26,7 +26,7 @@ public class IDMGroup {
     private Long externalId;
     @Column(name = "description", nullable = false)
     private String description;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_idm_group",
             joinColumns = {@JoinColumn(name = "idm_group_id")},
             inverseJoinColumns = {@JoinColumn(name = "user_id")})

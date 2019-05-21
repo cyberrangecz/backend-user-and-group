@@ -1,10 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -14,6 +14,9 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * @author Dominik Pilar & Pavel Seda
+ */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>,
         QuerydslPredicateExecutor<User> {
