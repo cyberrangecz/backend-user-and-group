@@ -2,7 +2,7 @@
 Description=KYPO User and Group service
 
 [Service]
-User=debian
+User=kypo
 ExecStart=/usr/bin/java -Dpath.to.config.file=/etc/kypo2/java-projects/properties/user-and-group/user-and-group-project.properties -jar /opt/kypo2/kypo2-user-and-group/jars/kypo2-rest-user-and-group.jar
 StandardOutput=syslog
 StandardError=syslog
