@@ -79,6 +79,7 @@ buildDebian:
     stage: buildDebian
     script:
         - ls 
+        - git checkout master && git pul
         - mvn clean package -Dmaven.test.skip=true
         # --distribution $DEBIAN_DISTRIBUTION
         - >
