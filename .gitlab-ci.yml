@@ -77,8 +77,7 @@ deployJava:
 
 buildDebian:
     stage: buildDebian
-    script:
-        - ls 
+    script: 
         - git checkout master && git pull
         - mvn clean package -Dmaven.test.skip=true
         # --distribution $DEBIAN_DISTRIBUTION
