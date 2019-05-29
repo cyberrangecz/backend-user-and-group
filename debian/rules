@@ -20,7 +20,6 @@ override_dh_auto_build override_dh_auto_install:
 
 override_dh_install:
 	@echo "pom.xml ${PROJECT_DIR}" > debian/install
-	@echo "debian/user-and-group.properties ${CONFIG_DIR}" >> debian/install
 	@echo "kypo2-api-user-and-group/target/kypo2-api-user-and-group*.jar ${JARS_DIR}" >> debian/install
 	@echo "kypo2-persistence-user-and-group/target/kypo2-persistence-user-and-group*.jar ${JARS_DIR}" >> debian/install
 	@echo "kypo2-rest-user-and-group/target/kypo2-rest-user-and-group*.jar ${JARS_DIR}" >> debian/install
