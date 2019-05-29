@@ -76,9 +76,10 @@ deployJava:
         - tags
 
 buildDebian:
-    image: gitbuildpackage
     stage: buildDebian
-    script:
+    script: 
+        - git checkout master && git pull
+        - mvn clean package -Dmaven.test.skip=true
         # --distribution $DEBIAN_DISTRIBUTION
         - >
             gbp dch
