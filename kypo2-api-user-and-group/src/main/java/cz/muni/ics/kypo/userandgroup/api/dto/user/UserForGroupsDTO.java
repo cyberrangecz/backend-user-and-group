@@ -12,6 +12,8 @@ public class UserForGroupsDTO {
 
     private Long id;
     private String fullName;
+    private String givenName;
+    private String familyName;
     private String login;
     private String mail;
 
@@ -24,7 +26,7 @@ public class UserForGroupsDTO {
         this.id = id;
     }
 
-    @ApiModelProperty(value = "Full name of the user.", example = "Peter Novak.")
+    @ApiModelProperty(value = "Full name of the user including his titles.", example = "Peter Novak.")
     public String getFullName() {
         return fullName;
     }
@@ -49,6 +51,24 @@ public class UserForGroupsDTO {
 
     public void setMail(String mail) {
         this.mail = mail;
+    }
+
+    @ApiModelProperty(value = "First name of a user.", example = "Pavel")
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    @ApiModelProperty(value = "Surname of a user.", example = "Seda")
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
     }
 
     @Override

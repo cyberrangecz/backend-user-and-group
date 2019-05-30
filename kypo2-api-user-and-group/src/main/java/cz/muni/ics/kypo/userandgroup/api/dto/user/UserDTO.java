@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.api.dto.user;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.persistence.Column;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -16,6 +17,8 @@ public class UserDTO {
     private String fullName;
     private String login;
     private String mail;
+    private String givenName;
+    private String familyName;
     private Set<RoleDTO> roles = new HashSet<>();
 
     public UserDTO() {
@@ -46,7 +49,7 @@ public class UserDTO {
         this.id = id;
     }
 
-    @ApiModelProperty(value = "Full name of the user.", example = "Michael Smith.")
+    @ApiModelProperty(value = "Full name of the user.", example = "Michael Smith")
     public String getFullName() {
         return fullName;
     }
@@ -82,8 +85,26 @@ public class UserDTO {
         this.roles = roles;
     }
 
-    public void addRole(RoleDTO roleDTO){
+    public void addRole(RoleDTO roleDTO) {
         this.roles.add(roleDTO);
+    }
+
+    @ApiModelProperty(value = "First name of a user.", example = "Pavel")
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    @ApiModelProperty(value = "Surname of a user.", example = "Seda")
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
     }
 
     @Override
@@ -104,8 +125,11 @@ public class UserDTO {
     public String toString() {
         return "UserDTO{" +
                 "id=" + id +
+                ", fullName='" + fullName + '\'' +
                 ", login='" + login + '\'' +
+                ", mail='" + mail + '\'' +
+                ", givenName='" + givenName + '\'' +
+                ", familyName='" + familyName + '\'' +
                 '}';
     }
-
 }

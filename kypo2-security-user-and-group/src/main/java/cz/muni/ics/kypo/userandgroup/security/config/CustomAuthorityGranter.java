@@ -48,12 +48,19 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
         Optional<User> optionalUser = userRepository.findByLogin(login);
         Set<Role> roles;
         if (!optionalUser.isPresent()) {
-            roles = new HashSet<>(saveNewUser(login, introspectionResponse.get("name").getAsString(), introspectionResponse.get("email").getAsString()));
+            roles = new HashSet<>(
+                    saveNewUser(login, introspectionResponse.get("name").getAsString(),
+                            introspectionResponse.get("email").getAsString(),
+                            introspectionResponse.get("given_name").getAsString(),
+                            introspectionResponse.get("family_name").getAsString()
+                    ));
         } else {
             User user = optionalUser.get();
             if (user.getFullName() == null || user.getMail() == null) {
                 user.setFullName(introspectionResponse.get("name").getAsString());
                 user.setMail(introspectionResponse.get("email").getAsString());
+                user.setGivenName(introspectionResponse.get("given_name").getAsString());
+                user.setFamilyName(introspectionResponse.get("family_name").getAsString());
                 userRepository.save(user);
             }
             roles = userRepository.getRolesOfUser(user.getId());
@@ -63,12 +70,14 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
                 .collect(Collectors.toList());
     }
 
-    private Set<Role> saveNewUser(String login, String fullName, String email) {
-        LOG.info("saveNewUser({},{},{})", login, fullName, email);
+    private Set<Role> saveNewUser(String login, String fullName, String email, String givenName, String familyName) {
+        LOG.info("saveNewUser({},{},{},{},{})", login, fullName, email, givenName, familyName);
         IDMGroup defaultGroup = groupRepository.findByName("DEFAULT_GROUP").orElseThrow(() -> new SecurityException("Guest group could not be found"));
         User newUser = new User(login);
         newUser.setFullName(fullName);
         newUser.setMail(email);
+        newUser.setGivenName(givenName);
+        newUser.setFamilyName(familyName);
         newUser.addGroup(defaultGroup);
         userRepository.save(newUser);
         return defaultGroup.getRoles();

@@ -10,6 +10,7 @@ import java.util.Objects;
  * @author Dominik Pilar
  */
 public class ResponseRoleToGroupInMicroservicesDTO {
+
     private Long roleId;
     private Long microserviceId;
     private AssignRoleToGroupStatusDTO status;
