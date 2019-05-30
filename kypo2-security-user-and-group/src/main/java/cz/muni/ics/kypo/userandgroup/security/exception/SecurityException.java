@@ -1,5 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.security.exception;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class SecurityException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;

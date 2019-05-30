@@ -13,16 +13,20 @@ import com.querydsl.core.types.Predicate;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface UserFacade {
 
     /**
      * Returns page of users specified by given predicate and pageable
      *
      * @param predicate specifies query to database
-     * @param pageable parameter with information about pagination
+     * @param pageable  parameter with information about pagination
      * @return page of users specified by given predicate and pageable
      * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @throws MicroserviceException       if client error occurs during calling other microservice, probably due to wrong URL
      */
     PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable);
 
@@ -32,18 +36,18 @@ public interface UserFacade {
      * @param id of user to be loaded
      * @return user with given id
      * @throws UserAndGroupFacadeException if user with id could not be found
-     * @throws MicroserviceException if client error occurs during getting roles from other microservices, probably due to wrong URL
+     * @throws MicroserviceException       if client error occurs during getting roles from other microservices, probably due to wrong URL
      */
     UserDTO getUser(Long id);
 
     /**
      * Returns all users who are not in group with given groupId
      *
-     * @param groupId id of group
+     * @param groupId  id of group
      * @param pageable parameter with information about pagination
      * @return page of users who are not in group with given groupId
      * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @throws MicroserviceException       if client error occurs during calling other microservice, probably due to wrong URL
      */
     PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
 
@@ -70,7 +74,7 @@ public interface UserFacade {
      * @param id of user
      * @return all roles of user with given id
      * @throws UserAndGroupFacadeException if user was not found
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @throws MicroserviceException       if client error occurs during calling other microservice, probably due to wrong URL
      */
     Set<RoleDTO> getRolesOfUser(Long id);
 
@@ -80,7 +84,7 @@ public interface UserFacade {
      * @param authentication spring's authentication
      * @return information about logged in user
      * @throws UserAndGroupFacadeException if logged in user could not be found in database
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @throws MicroserviceException       if client error occurs during calling other microservice, probably due to wrong URL
      */
     UserDTO getUserInfo(OAuth2Authentication authentication);
 
@@ -105,7 +109,7 @@ public interface UserFacade {
      * Returns page of users specified by given role type, predicate and pageable
      *
      * @param pageable parameter with information about pagination
-     * @param roleId id of role to get users for
+     * @param roleId   id of role to get users for
      * @return page of users specified by given predicate and pageable
      * @throws UserAndGroupFacadeException if role is not found in DB
      */

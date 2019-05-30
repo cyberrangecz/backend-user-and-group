@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Objects;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class ResponseRoleToGroupInMicroservicesDTO {
     private Long roleId;
     private Long microserviceId;

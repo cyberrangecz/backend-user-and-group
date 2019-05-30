@@ -23,6 +23,10 @@ import org.springframework.util.Assert;
 
 import java.util.*;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Service
 public class UserServiceImpl implements UserService {
 

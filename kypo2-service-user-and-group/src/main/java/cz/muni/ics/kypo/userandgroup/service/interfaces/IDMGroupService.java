@@ -13,6 +13,10 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface IDMGroupService {
     /**
      * Gets IDM group with given id from database.

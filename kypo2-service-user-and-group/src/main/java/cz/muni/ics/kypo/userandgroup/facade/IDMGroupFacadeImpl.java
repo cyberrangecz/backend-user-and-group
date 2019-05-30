@@ -35,7 +35,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Service
 @Transactional
 public class IDMGroupFacadeImpl implements IDMGroupFacade {

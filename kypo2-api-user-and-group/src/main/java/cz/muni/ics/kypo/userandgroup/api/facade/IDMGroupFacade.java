@@ -17,6 +17,10 @@ import com.querydsl.core.types.Predicate;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface IDMGroupFacade {
 
     /**

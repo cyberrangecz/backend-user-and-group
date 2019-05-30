@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface UserService {
 
     /**

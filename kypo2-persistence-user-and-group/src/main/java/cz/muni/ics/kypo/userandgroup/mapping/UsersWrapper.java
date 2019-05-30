@@ -7,6 +7,10 @@ import cz.muni.ics.kypo.userandgroup.model.User;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @author Jan Duda
+ * @author Pavel Seda
+ */
 public class UsersWrapper {
 
     @JsonIgnoreProperties({"id"})

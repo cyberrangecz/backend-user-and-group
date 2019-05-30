@@ -3,6 +3,10 @@ package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import org.springframework.data.domain.Page;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface ParentMapper {
 
     default PageResultResource.Pagination createPagination(Page<?> objects) {

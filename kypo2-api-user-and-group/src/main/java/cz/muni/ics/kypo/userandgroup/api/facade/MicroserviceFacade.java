@@ -3,6 +3,10 @@ package cz.muni.ics.kypo.userandgroup.api.facade;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface MicroserviceFacade {
 
     /**

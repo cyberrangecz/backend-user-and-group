@@ -6,6 +6,10 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class RoleForNewMicroserviceDTO {
 
     @NotEmpty(message = "{roleForNewMicroserviceDto.roleType.NotEmpty.message}")

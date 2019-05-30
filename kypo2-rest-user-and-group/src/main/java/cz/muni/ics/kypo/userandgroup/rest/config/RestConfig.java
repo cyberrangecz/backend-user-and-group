@@ -5,6 +5,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
+/**
+ * @author Pavel Seda
+ */
 @EnableSpringDataWebSupport
 @Import({ServiceConfig.class, SwaggerConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.rest"})

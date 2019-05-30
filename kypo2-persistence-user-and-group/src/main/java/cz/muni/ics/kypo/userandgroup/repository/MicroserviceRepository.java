@@ -6,6 +6,10 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import java.util.Optional;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface MicroserviceRepository extends JpaRepository<Microservice, Long>,
         QuerydslPredicateExecutor<Microservice> {
 

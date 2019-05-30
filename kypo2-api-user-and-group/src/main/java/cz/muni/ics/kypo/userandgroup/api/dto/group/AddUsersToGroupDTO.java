@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author Jan Duda & Pavel Seda
+ * @author Jan Duda
+ * @author Pavel Seda
  */
 public class AddUsersToGroupDTO {
 

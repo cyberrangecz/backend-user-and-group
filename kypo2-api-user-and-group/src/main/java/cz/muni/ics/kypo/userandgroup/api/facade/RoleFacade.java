@@ -8,6 +8,10 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface RoleFacade {
 
     /**
@@ -34,7 +38,7 @@ public interface RoleFacade {
      * @param pageable parameter with information about pagination
      * @return page of roles specified by given predicate and pageable
      * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @throws MicroserviceException       if client error occurs during calling other microservice, probably due to wrong URL
      */
     PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable);
 

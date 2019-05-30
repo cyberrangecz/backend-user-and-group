@@ -5,6 +5,10 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class RoleDTO {
 
     private Long id;

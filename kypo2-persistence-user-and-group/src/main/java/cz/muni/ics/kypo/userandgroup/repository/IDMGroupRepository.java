@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @author Pavel Seda & Dominik Pilar
+ * @author Pavel Seda
+ * @author Dominik Pilar
  */
 @Repository
 public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,

@@ -22,11 +22,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Component
 @Transactional
 public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(CustomAuthorityGranter.class);
+    private static Logger LOG = LoggerFactory.getLogger(CustomAuthorityGranter.class);
 
     private UserRepository userRepository;
     private IDMGroupRepository groupRepository;
@@ -39,6 +43,7 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
+        LOG.info("getAuthorities({})", introspectionResponse);
         String login = introspectionResponse.get("sub").getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
         Set<Role> roles;
@@ -59,6 +64,7 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
     }
 
     private Set<Role> saveNewUser(String login, String fullName, String email) {
+        LOG.info("saveNewUser({},{},{})", login, fullName, email);
         IDMGroup defaultGroup = groupRepository.findByName("DEFAULT_GROUP").orElseThrow(() -> new SecurityException("Guest group could not be found"));
         User newUser = new User(login);
         newUser.setFullName(fullName);

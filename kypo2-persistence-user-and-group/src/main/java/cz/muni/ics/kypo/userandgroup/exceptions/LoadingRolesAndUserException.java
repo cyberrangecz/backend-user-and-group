@@ -1,5 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.exceptions;
 
+/**
+ * @author Jan Duda
+ * @author Pavel Seda
+ */
 public class LoadingRolesAndUserException extends RuntimeException {
 
     public LoadingRolesAndUserException() {

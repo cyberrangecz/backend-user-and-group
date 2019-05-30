@@ -8,7 +8,10 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.*;
 
-
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class GroupDTO {
     private Long id;
     private String name;

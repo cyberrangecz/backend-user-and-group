@@ -1,5 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.api.exceptions;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class RoleCannotBeRemovedToGroupException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;

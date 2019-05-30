@@ -14,6 +14,10 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long>,
         QuerydslPredicateExecutor<Role> {
@@ -29,6 +33,6 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
 
     boolean existsByRoleType(String roleType);
 
-    @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName" )
+    @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName")
     Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
 }

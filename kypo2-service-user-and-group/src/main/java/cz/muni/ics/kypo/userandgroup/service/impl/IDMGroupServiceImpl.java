@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Service
 public class IDMGroupServiceImpl implements IDMGroupService {
 

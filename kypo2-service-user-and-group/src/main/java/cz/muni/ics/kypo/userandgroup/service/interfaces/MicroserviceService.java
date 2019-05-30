@@ -5,6 +5,10 @@ import cz.muni.ics.kypo.userandgroup.model.Microservice;
 
 import java.util.List;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public interface MicroserviceService {
 
     /**

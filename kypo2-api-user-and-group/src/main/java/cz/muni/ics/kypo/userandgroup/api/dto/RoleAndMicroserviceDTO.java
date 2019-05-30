@@ -2,6 +2,10 @@ package cz.muni.ics.kypo.userandgroup.api.dto;
 
 import java.util.Objects;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class RoleAndMicroserviceDTO {
 
     private Long roleId;

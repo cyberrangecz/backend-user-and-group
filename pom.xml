@@ -17,6 +17,19 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
+    <developers>
+        <developer>
+            <name>Pavel Šeda</name>
+            <email>441048@mail.muni.cz</email>
+            <organization>CSIRT</organization>
+            <organizationUrl>https://csirt.muni.cz/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>CET/Central European Time - offset: UTC +1</timezone>
+        </developer>
+    </developers>
+
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

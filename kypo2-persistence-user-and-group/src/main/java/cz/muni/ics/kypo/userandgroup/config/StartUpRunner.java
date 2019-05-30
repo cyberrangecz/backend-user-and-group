@@ -21,6 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.util.*;
 
+/**
+ * @author Jan Duda
+ * @author Pavel Seda
+ */
 @Component
 @Transactional
 public class StartUpRunner implements ApplicationRunner {
@@ -73,7 +77,7 @@ public class StartUpRunner implements ApplicationRunner {
                     mainMicroservice.setEndpoint("/");
                     mainMicroservice.setName(nameOfUserAndGroupService);
                     return microserviceRepository.save(mainMicroservice);
-                } );
+                });
         LOGGER.info("Main microservice for users and groups was registered", mainMicroservice.getName());
     }
 

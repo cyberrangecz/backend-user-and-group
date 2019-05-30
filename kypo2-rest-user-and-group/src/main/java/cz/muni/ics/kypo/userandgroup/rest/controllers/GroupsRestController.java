@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Jan Duda & Pavel Seda
+ * @author Jan Duda
+ * @author Pavel Seda
  */
 @Api(value = "Endpoint for Groups")
 @RestController

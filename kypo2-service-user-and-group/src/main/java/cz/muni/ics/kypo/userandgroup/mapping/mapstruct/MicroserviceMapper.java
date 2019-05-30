@@ -10,6 +10,10 @@ import org.springframework.data.domain.PageImpl;
 
 import java.util.*;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Mapper(componentModel = "spring")
 public interface    MicroserviceMapper extends ParentMapper {
 

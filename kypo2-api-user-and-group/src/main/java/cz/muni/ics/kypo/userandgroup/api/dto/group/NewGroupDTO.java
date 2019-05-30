@@ -1,10 +1,15 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
+
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.*;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public class NewGroupDTO {
 
     @NotEmpty(message = "{newGroupDto.name.NotEmpty.message}")

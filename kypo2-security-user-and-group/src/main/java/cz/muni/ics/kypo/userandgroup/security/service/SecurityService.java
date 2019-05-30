@@ -16,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 /**
- * @author Dominik Pilar & Pavel Seda
+ * @author Dominik Pilar
+ * @author Pavel Seda
  */
 @Service
 @Transactional(propagation = Propagation.REQUIRES_NEW)

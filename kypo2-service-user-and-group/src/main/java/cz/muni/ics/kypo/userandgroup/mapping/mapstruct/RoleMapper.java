@@ -9,6 +9,10 @@ import org.springframework.data.domain.PageImpl;
 
 import java.util.*;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Mapper(componentModel = "spring", uses = {MicroserviceMapper.class})
 public interface RoleMapper extends ParentMapper {
 

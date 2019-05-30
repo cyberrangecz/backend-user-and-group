@@ -7,15 +7,12 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ServiceUnavailableException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,7 +29,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * @author Jan Duda & Pavel Seda
+ * @author Jan Duda
+ * @author Pavel Seda
  */
 @Api(value = "Endpoint for roles")
 @RestController

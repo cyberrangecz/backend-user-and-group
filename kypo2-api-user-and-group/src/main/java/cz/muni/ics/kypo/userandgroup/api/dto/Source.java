@@ -1,5 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.api.dto;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 public enum Source {
 
     INTERNAL("Internal"),

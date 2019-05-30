@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.domain.Page;
@@ -15,7 +14,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author Dominik Pilar & Pavel Seda
+ * @author Pavel Seda
+ * @author Dominik Pilar
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>,

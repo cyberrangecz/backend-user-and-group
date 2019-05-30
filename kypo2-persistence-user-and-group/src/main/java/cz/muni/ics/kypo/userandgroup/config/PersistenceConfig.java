@@ -9,6 +9,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ * @author Jan Duda
+ */
 @Configuration
 @Import(ApiConfig.class)
 @EnableTransactionManagement

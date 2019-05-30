@@ -8,6 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * @author Pavel Seda
+ * @author Dominik Pilar
+ */
 @Configuration
 @Import({ResourceServerSecurityConfig.class, ValidationMessagesConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.service", "cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.mapping"})

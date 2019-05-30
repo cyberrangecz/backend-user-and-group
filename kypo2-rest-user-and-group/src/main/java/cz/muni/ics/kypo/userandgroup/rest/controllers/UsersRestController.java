@@ -16,7 +16,6 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
@@ -41,7 +40,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Jan Duda & Pavel Seda
+ * @author Jan Duda
+ * @author Pavel Seda
  */
 @Api(value = "Endpoint for Users")
 @RestController
