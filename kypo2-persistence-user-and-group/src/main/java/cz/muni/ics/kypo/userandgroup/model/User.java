@@ -24,6 +24,10 @@ public class User {
     private String login;
     @Column(name = "full_name")
     private String fullName;
+    @Column(name = "given_name")
+    private String givenName;
+    @Column(name = "family_name")
+    private String familyName;
     @Column(name = "external_id", unique = true)
     private Long externalId;
     @Column(name = "mail")
@@ -95,6 +99,22 @@ public class User {
         return Collections.unmodifiableSet(groups);
     }
 
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
+    }
+
     public void setGroups(Set<IDMGroup> groups) {
         if (!this.groups.isEmpty()) {
             for (IDMGroup idmGroup : this.groups) {
@@ -119,7 +139,7 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hashCode(getId());
     }
 
     @Override
@@ -128,7 +148,7 @@ public class User {
             return false;
         }
         User other = (User) object;
-        return Objects.equals(this.login, other.login);
+        return Objects.equals(this.login, other.getLogin());
     }
 
     @Override
@@ -137,9 +157,10 @@ public class User {
                 "id=" + id +
                 ", login='" + login + '\'' +
                 ", fullName='" + fullName + '\'' +
+                ", givenName='" + givenName + '\'' +
+                ", familyName='" + familyName + '\'' +
                 ", externalId=" + externalId +
                 ", mail='" + mail + '\'' +
-                ", status=" + status +
                 '}';
     }
 }
