@@ -149,30 +149,30 @@ public class StartUpRunner implements ApplicationRunner {
     }
 
     private void loadGroupsForMainRole() {
-        adminGroup = groupRepository.getIDMGroupByNameWithUsers("USER_AND_GROUP_ADMINISTRATOR")
+        adminGroup = groupRepository.getIDMGroupByNameWithUsers("USER-AND-GROUP_ADMINISTRATOR")
                 .orElseGet(() -> {
                     adminGroup = new IDMGroup();
                     adminGroup.setDescription("Initial group for users with ADMINISTRATOR role");
                     adminGroup.setStatus(UserAndGroupStatus.VALID);
-                    adminGroup.setName("USER_AND_GROUP_ADMINISTRATOR");
+                    adminGroup.setName("USER-AND-GROUP_ADMINISTRATOR");
                     adminGroup.setRoles(Set.of(adminRole));
                     return groupRepository.save(adminGroup);
                 });
-        userGroup = groupRepository.getIDMGroupByNameWithUsers("USER_AND_GROUP_USER")
+        userGroup = groupRepository.getIDMGroupByNameWithUsers("USER-AND-GROUP_USER")
                 .orElseGet(() -> {
                     userGroup = new IDMGroup();
                     userGroup.setDescription("Initial group for users with USER role");
                     userGroup.setStatus(UserAndGroupStatus.VALID);
-                    userGroup.setName("USER_AND_GROUP_USER");
+                    userGroup.setName("USER-AND-GROUP_USER");
                     userGroup.setRoles(Set.of(userRole));
                     return groupRepository.save(userGroup);
                 });
-        defaultGroup = groupRepository.getIDMGroupByNameWithUsers("DEFAULT_GROUP")
+        defaultGroup = groupRepository.getIDMGroupByNameWithUsers("DEFAULT-GROUP")
                 .orElseGet(() -> {
                     defaultGroup = new IDMGroup();
                     defaultGroup.setDescription("Group for users with default roles");
                     defaultGroup.setStatus(UserAndGroupStatus.VALID);
-                    defaultGroup.setName("DEFAULT_GROUP");
+                    defaultGroup.setName("DEFAULT-GROUP");
                     defaultGroup.setRoles(Set.of(guestRole));
                     return groupRepository.save(defaultGroup);
                 });
