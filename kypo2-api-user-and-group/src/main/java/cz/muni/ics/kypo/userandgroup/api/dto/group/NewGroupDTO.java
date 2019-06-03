@@ -1,9 +1,12 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import cz.muni.ics.kypo.userandgroup.api.converters.LocalDateTimeUTCSerializer;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -16,6 +19,8 @@ public class NewGroupDTO {
     private String name;
     @NotEmpty(message = "{newGroupDto.description.NotEmpty.message}")
     private String description;
+    @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
+    private LocalDateTime expirationDate;
 
     private Set<UserForGroupsDTO> users = new HashSet<>();
 
@@ -64,6 +69,15 @@ public class NewGroupDTO {
         GroupDTO groupDTO = (GroupDTO) o;
         return Objects.equals(getName(), groupDTO.getName()) &&
                 Objects.equals(getDescription(), groupDTO.getDescription());
+    }
+
+    @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
+    public LocalDateTime getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(LocalDateTime expirationDate) {
+        this.expirationDate = expirationDate;
     }
 
     @Override

@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.config.ServiceConfig;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * @author Pavel Seda
@@ -11,6 +12,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 @EnableSpringDataWebSupport
 @Import({ServiceConfig.class, SwaggerConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.rest"})
-public class RestConfig {
+public class WebConfigRestUserAndGroup implements WebMvcConfigurer {
+
 
 }

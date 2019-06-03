@@ -146,21 +146,21 @@ public class StartUpRunner implements ApplicationRunner {
     }
 
     private void loadGroupsForMainRole() {
-        adminGroup = groupRepository.getIDMGroupByNameWithUsers(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name())
+        adminGroup = groupRepository.getIDMGroupByNameWithUsers("USER_AND_GROUP_ADMINISTRATOR")
                 .orElseGet(() -> {
                     adminGroup = new IDMGroup();
                     adminGroup.setDescription("Initial group for users with ADMINISTRATOR role");
                     adminGroup.setStatus(UserAndGroupStatus.VALID);
-                    adminGroup.setName(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+                    adminGroup.setName("USER_AND_GROUP_ADMINISTRATOR");
                     adminGroup.setRoles(Set.of(adminRole));
                     return groupRepository.save(adminGroup);
                 });
-        userGroup = groupRepository.getIDMGroupByNameWithUsers(RoleType.ROLE_USER_AND_GROUP_USER.name())
+        userGroup = groupRepository.getIDMGroupByNameWithUsers("USER_AND_GROUP_USER")
                 .orElseGet(() -> {
                     userGroup = new IDMGroup();
                     userGroup.setDescription("Initial group for users with USER role");
                     userGroup.setStatus(UserAndGroupStatus.VALID);
-                    userGroup.setName(RoleType.ROLE_USER_AND_GROUP_USER.toString());
+                    userGroup.setName("USER_AND_GROUP_USER");
                     userGroup.setRoles(Set.of(userRole));
                     return groupRepository.save(userGroup);
                 });
