@@ -1,11 +1,14 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import cz.muni.ics.kypo.userandgroup.api.converters.LocalDateTimeUTCSerializer;
 import cz.muni.ics.kypo.userandgroup.api.dto.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserAndGroupStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -20,6 +23,8 @@ public class GroupDTO {
     private Set<UserForGroupsDTO> users = new HashSet<>();
     private Source source;
     private boolean canBeDeleted = true;
+    @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
+    private LocalDateTime expirationDate;
 
     public void convertExternalIdToSource(Long externalId) {
         if (externalId == null) {
@@ -99,6 +104,15 @@ public class GroupDTO {
 
     public void setCanBeDeleted(boolean canBeDeleted) {
         this.canBeDeleted = canBeDeleted;
+    }
+
+    @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
+    public LocalDateTime getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(LocalDateTime expirationDate) {
+        this.expirationDate = expirationDate;
     }
 
     @Override

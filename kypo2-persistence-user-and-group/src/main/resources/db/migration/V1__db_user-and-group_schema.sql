@@ -26,6 +26,7 @@ CREATE TABLE idm_group (
    external_id    int8 UNIQUE,
    status         varchar(255) NOT NULL,
    description    varchar(4096) NOT NULL,
+   expiration_date timestamp  NULL,
    PRIMARY KEY (id));
 
 CREATE TABLE idm_group_role (

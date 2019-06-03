@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.model;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -36,6 +37,8 @@ public class IDMGroup {
             joinColumns = @JoinColumn(name = "idm_group_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+    @Column(name = "expiration_date")
+    private LocalDateTime expirationDate;
 
     public IDMGroup() {
     }
@@ -118,6 +121,14 @@ public class IDMGroup {
 
     public void removeRole(Role role) {
         this.roles.remove(role);
+    }
+
+    public LocalDateTime getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(LocalDateTime expirationDate) {
+        this.expirationDate = expirationDate;
     }
 
     @Override
