@@ -86,7 +86,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(group, "Input group must not be null.");
         if (groupRepository.isIDMGroupInternal(group.getId())) {
             IDMGroup groupInDatabase = get(group.getId());
-            if(List.of("DEFAULT_GROUP", RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), RoleType.ROLE_USER_AND_GROUP_USER.name())
+            if(List.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER")
                     .contains(groupInDatabase.getName()) && !groupInDatabase.getName().equals(group.getName())) {
                 throw new UserAndGroupServiceException("Cannot change name of main group " + groupInDatabase.getName() +  " to " + group.getName() + ".");
             }

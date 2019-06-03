@@ -162,7 +162,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
                 })
                 .collect(Collectors.toList());
         groups.getContent().forEach(groupDTO -> {
-            if(Set.of("DEFAULT_GROUP", "USER_AND_GROUP_ADMINISTRATOR", "USER_AND_GROUP_USER").contains(groupDTO.getName())) {
+            if(Set.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER").contains(groupDTO.getName())) {
                 groupDTO.setCanBeDeleted(false);
             }
         });
@@ -177,7 +177,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         try {
             GroupDTO groupDTO = groupMapper.mapToDTO(groupService.get(id));
             groupDTO.setRoles(this.getRolesOfGroup(id));
-            if(Set.of("DEFAULT_GROUP", "USER_AND_GROUP_ADMINISTRATOR", "USER_AND_GROUP_USER").contains(groupDTO.getName())) {
+            if(Set.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER").contains(groupDTO.getName())) {
                 groupDTO.setCanBeDeleted(false);
             }
             return groupDTO;
