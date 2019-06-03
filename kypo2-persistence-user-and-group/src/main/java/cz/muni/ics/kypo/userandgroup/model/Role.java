@@ -40,6 +40,8 @@ public class Role {
     private String roleType;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Microservice microservice;
+    @Column(name = "description", nullable = false)
+    private String description;
 
     public Long getId() {
         return id;
@@ -63,6 +65,14 @@ public class Role {
 
     public void setMicroservice(Microservice microservice) {
         this.microservice = microservice;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

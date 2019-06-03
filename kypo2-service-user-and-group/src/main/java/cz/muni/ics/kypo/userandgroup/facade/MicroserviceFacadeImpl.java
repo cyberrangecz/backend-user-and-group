@@ -67,6 +67,7 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
             for (RoleForNewMicroserviceDTO newRole : newMicroserviceDTO.getRoles()) {
                 Role role = new Role();
                 role.setRoleType(newRole.getRoleType());
+                role.setDescription(newRole.getDescription());
                 role.setMicroservice(microservice);
                 roleService.create(role);
                 if (newRole.isDefault()) {

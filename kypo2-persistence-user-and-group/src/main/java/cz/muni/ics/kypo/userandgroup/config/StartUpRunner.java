@@ -124,6 +124,7 @@ public class StartUpRunner implements ApplicationRunner {
                     adminRole = new Role();
                     adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
                     adminRole.setMicroservice(mainMicroservice);
+                    adminRole.setDescription("This role will allow you to create, edit, delete and manage users, groups and roles in KYPO.");
                     return roleRepository.save(adminRole);
                 });
         adminRole.setMicroservice(mainMicroservice);
@@ -132,6 +133,7 @@ public class StartUpRunner implements ApplicationRunner {
                     userRole = new Role();
                     userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
                     userRole.setMicroservice(mainMicroservice);
+                    userRole.setDescription("");
                     return roleRepository.save(userRole);
                 });
         userRole.setMicroservice(mainMicroservice);
@@ -140,6 +142,7 @@ public class StartUpRunner implements ApplicationRunner {
                     guestRole = new Role();
                     guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
                     guestRole.setMicroservice(mainMicroservice);
+                    guestRole.setDescription("This role is default role.");
                     return roleRepository.save(guestRole);
                 });
         guestRole.setMicroservice(mainMicroservice);

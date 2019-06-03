@@ -52,6 +52,7 @@ public class MicroserviceControllerTest {
     public void setup() throws RuntimeException {
         role = new RoleForNewMicroserviceDTO();
         role.setRoleType("ROLE_TRAINING_DESIGNER");
+        role.setDescription("This role will allow you ...");
         newMicroserviceDTO = new NewMicroserviceDTO();
         newMicroserviceDTO.setName("kypo2-training");
         newMicroserviceDTO.setEndpoint("http://localhost:8080/kypo2-rest-training/api/v1");

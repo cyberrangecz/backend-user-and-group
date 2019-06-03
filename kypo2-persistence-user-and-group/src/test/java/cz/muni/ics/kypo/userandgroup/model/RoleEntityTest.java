@@ -64,11 +64,13 @@ public class RoleEntityTest {
         Role role2 = new Role();
         role2.setRoleType(roleType2.toString());
         role2.setMicroservice(microservice);
+        role2.setDescription("This role will allow you ...");
         this.entityManager.persistAndFlush(role2);
 
         Role role1 = new Role();
         role1.setRoleType(roleType1.toString());
         role1.setMicroservice(microservice);
+        role1.setDescription("This role will allow you ...");
         Role r = this.entityManager.persistFlushFind(role1);
         assertEquals(roleType1.toString(), r.getRoleType());
     }
