@@ -40,7 +40,7 @@ public class Role {
     private String roleType;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Microservice microservice;
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 
     public Long getId() {

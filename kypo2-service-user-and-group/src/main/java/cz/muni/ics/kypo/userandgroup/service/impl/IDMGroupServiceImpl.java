@@ -57,7 +57,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     public IDMGroup getGroupForDefaultRoles() {
         LOG.debug("getGroupForDefaultRoles()");
-        return groupRepository.findByName("DEFAULT_GROUP").orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found"));
+        return groupRepository.findByName("DEFAULT-GROUP").orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found"));
     }
 
     @Override
@@ -193,7 +193,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         if (!groupRepository.isIDMGroupInternal(groupId)) {
             throw new ExternalSourceException("Group is external therefore it could not be updated");
         }
-        if(groupToUpdate.getName().equals("DEFAULT_GROUP")) {
+        if(groupToUpdate.getName().equals("DEFAULT-GROUP")) {
             throw new UserAndGroupServiceException("Cannot remove users from default group.");
         }
         for (Long userId : userIds) {
