@@ -13,6 +13,7 @@ CREATE TABLE role (
    id          BIGSERIAL NOT NULL,
    role_type   varchar(255) NOT NULL UNIQUE,
    microservice_id int8 NOT NULL,
+   description    varchar(4096) NOT NULL,
    PRIMARY KEY (id));
 
 CREATE TABLE user_idm_group (

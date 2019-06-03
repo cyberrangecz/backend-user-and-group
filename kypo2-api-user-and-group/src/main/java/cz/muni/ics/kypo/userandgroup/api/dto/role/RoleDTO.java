@@ -16,6 +16,7 @@ public class RoleDTO {
     private String roleType;
     private Long idOfMicroservice;
     private String nameOfMicroservice;
+    private String description;
 
     @ApiModelProperty(value = "Main identifier of the role.", example = "1")
     public Long getId() {
@@ -51,6 +52,15 @@ public class RoleDTO {
 
     public void setNameOfMicroservice(String nameOfMicroservice) {
         this.nameOfMicroservice = nameOfMicroservice;
+    }
+
+    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

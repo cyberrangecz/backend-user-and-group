@@ -50,10 +50,12 @@ public class UserRepositoryTest {
         adminRole = new Role();
         adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
         adminRole.setMicroservice(microservice);
+        adminRole.setDescription("This role will allow you everything ...");
 
         guestRole = new Role();
         guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
         guestRole.setMicroservice(microservice);
+        guestRole.setDescription("This is default role ... ");
 
         group1 = new IDMGroup("group1", "group1 1");
         group1.setStatus(UserAndGroupStatus.VALID);

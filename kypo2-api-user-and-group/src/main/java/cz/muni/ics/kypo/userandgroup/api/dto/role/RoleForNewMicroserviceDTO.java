@@ -16,6 +16,8 @@ public class RoleForNewMicroserviceDTO {
     private String roleType;
     @NotNull(message = "{roleForNewMicroserviceDto.isDefault.NotNull.message}")
     private boolean isDefault;
+    @NotEmpty(message = "{roleForNewMicroserviceDto.description1.NotEmpty.message}")
+    private String description;
 
     @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     public String getRoleType() {
@@ -33,6 +35,15 @@ public class RoleForNewMicroserviceDTO {
 
     public void setDefault(boolean aDefault) {
         isDefault = aDefault;
+    }
+
+    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
@@ -54,6 +65,7 @@ public class RoleForNewMicroserviceDTO {
         return "RoleForNewMicroserviceDTO{" +
                 "roleType='" + roleType + '\'' +
                 ", isDefault=" + isDefault +
+                ", description='" + description + '\'' +
                 '}';
     }
 }

@@ -52,16 +52,19 @@ public class RoleRepositoryTest {
         adminRole = new Role();
         adminRole.setMicroservice(kypoUserAndGroup);
         adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
+        adminRole.setDescription("This role will allow you everything.");
         this.entityManager.persistAndFlush(adminRole);
 
         designerRole = new Role();
         designerRole.setMicroservice(kypoTraining);
         designerRole.setRoleType("ROLE_TRAINING_DESIGNER");
+        designerRole.setDescription("This role will allow you manage training definitions.");
         this.entityManager.persistAndFlush(designerRole);
 
         traineeRole = new Role();
         traineeRole.setMicroservice(kypoTraining);
         traineeRole.setRoleType("ROLE_TRAINING_TRAINEE");
+        traineeRole.setDescription("This role will allow you access training run and play game.");
         this.entityManager.persistAndFlush(traineeRole);
     }
 

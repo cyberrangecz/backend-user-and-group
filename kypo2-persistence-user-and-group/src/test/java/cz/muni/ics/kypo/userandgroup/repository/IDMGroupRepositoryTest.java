@@ -52,14 +52,17 @@ public class IDMGroupRepositoryTest {
         adminRole = new Role();
         adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
         adminRole.setMicroservice(microservice);
+        adminRole.setDescription("This role will allow you everything.");
 
         userRole = new Role();
         userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
         userRole.setMicroservice(microservice);
+        userRole.setDescription("");
 
         guestRole = new Role();
         guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
         guestRole.setMicroservice(microservice);
+        guestRole.setDescription("This role is default.");
 
         group = new IDMGroup("groupWithRoles", "Group with roles");
 
