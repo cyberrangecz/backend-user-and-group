@@ -16,7 +16,6 @@ public class RoleForNewMicroserviceDTO {
     private String roleType;
     @NotNull(message = "{roleForNewMicroserviceDto.isDefault.NotNull.message}")
     private boolean isDefault;
-    @NotEmpty(message = "{roleForNewMicroserviceDto.description1.NotEmpty.message}")
     private String description;
 
     @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
