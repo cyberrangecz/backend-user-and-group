@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
@@ -42,4 +43,8 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
 
     @Query("SELECT CASE WHEN g.externalId IS NULL THEN true ELSE false END FROM IDMGroup g WHERE g.id = :groupId")
     boolean isIDMGroupInternal(@Param("groupId") Long id);
+
+    @Modifying
+    @Query("DELETE FROM IDMGroup g WHERE g.expirationDate <= CURRENT_TIMESTAMP")
+    void deleteExpiredIDMGroups();
 }
