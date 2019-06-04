@@ -26,7 +26,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -88,6 +87,8 @@ public class GroupsRestController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (ExternalSourceException e) {
             throw new ResourceNotModifiedException("Group is external therefore they could not be updated");
+        } catch (UserAndGroupFacadeException e) {
+            throw new ConflictException(e.getMessage());
         }
     }
 

@@ -46,9 +46,9 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
         LOG.info("getAuthorities({})", introspectionResponse);
         String login = introspectionResponse.get("sub").getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
-        Set<Role> roles;
+        Set<Role> roles = new HashSet<>();
         if (!optionalUser.isPresent()) {
-            roles = new HashSet<>(
+            roles.addAll(
                     saveNewUser(login, introspectionResponse.get("name").getAsString(),
                             introspectionResponse.get("email").getAsString(),
                             introspectionResponse.get("given_name").getAsString(),
@@ -62,8 +62,11 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
                 user.setGivenName(introspectionResponse.get("given_name").getAsString());
                 user.setFamilyName(introspectionResponse.get("family_name").getAsString());
                 userRepository.save(user);
+
             }
-            roles = userRepository.getRolesOfUser(user.getId());
+            for (IDMGroup groupOfUser: user.getGroups()) {
+                roles.addAll(groupOfUser.getRoles());
+            }
         }
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleType()))

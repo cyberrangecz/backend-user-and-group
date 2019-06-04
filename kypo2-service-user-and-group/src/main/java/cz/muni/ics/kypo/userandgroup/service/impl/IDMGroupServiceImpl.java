@@ -11,6 +11,11 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.ejb.HibernateEntityManager;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +25,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,15 +74,10 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(group, "Input group must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
 
-        groupIdsOfImportedMembers.forEach(groupId -> {
-            IDMGroup idmGroup = groupRepository.findById(groupId)
-                    .orElseThrow(() -> new UserAndGroupServiceException("Group with id " + groupId + " counld not be found"));
-            idmGroup.getUsers().forEach(user -> {
-                if (!group.getUsers().contains(user)) {
-                    group.addUser(user);
-                }
-            });
-        });
+        Set<User> importedMembersFromGroups = groupRepository.findUsersOfGivenGroups(groupIdsOfImportedMembers);
+        for (User importedUserFromGroup: importedMembersFromGroups) {
+            group.addUser(importedUserFromGroup);
+        }
         return groupRepository.save(group);
     }
 
@@ -172,14 +174,16 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                 .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
 
 
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() ->
-                        new UserAndGroupServiceException("Role with id: " + roleId + " could not be found. Start up of the project probably went wrong, please contact support."));
-        if (group.getName().equalsIgnoreCase(role.getRoleType().toUpperCase())) {
-            throw new RoleCannotBeRemovedToGroupException("Role " + role.getRoleType() + " cannot be removed from group. This role is main role of the group");
+        for (Role role : group.getRoles()) {
+            if (role.getId().equals(roleId)) {
+                if (group.getName().equalsIgnoreCase(role.getRoleType().toUpperCase())) {
+                    throw new RoleCannotBeRemovedToGroupException("Role " + role.getRoleType() + " cannot be removed from group. This role is main role of the group");
+                }
+                group.removeRole(role);
+                return groupRepository.save(group);
+            }
         }
-        group.removeRole(role);
-        return groupRepository.save(group);
+        throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found in given group.");
     }
 
     @Override

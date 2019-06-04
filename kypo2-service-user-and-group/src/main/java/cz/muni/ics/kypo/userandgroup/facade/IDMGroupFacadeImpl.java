@@ -4,9 +4,6 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalRO;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalWO;
 import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.AssignRoleToGroupStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -16,7 +13,6 @@ import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.IDMGroupMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
@@ -68,18 +64,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         IDMGroup group = groupMapper.mapCreateToEntity(newGroupDTO);
         try {
             IDMGroup createdGroup = groupService.create(group, newGroupDTO.getGroupIdsOfImportedUsers());
-            GroupDTO createdGroupDTO = groupMapper.mapToDTO(createdGroup);
-            List<Microservice> microservices = microserviceService.getMicroservices();
-            for (Microservice microservice : microservices) {
-                if (microservice.getName().equals(nameOfUserAndGroupService)) {
-                    createdGroupDTO.getRoles()
-                            .forEach(roleDTO -> {
-                                roleDTO.setNameOfMicroservice(microservice.getName());
-                                roleDTO.setIdOfMicroservice(microservice.getId());
-                            });
-                }
-            }
-            return createdGroupDTO;
+            return groupMapper.mapToDTO(createdGroup);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
