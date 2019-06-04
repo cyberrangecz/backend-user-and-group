@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.repository;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Pavel Seda
@@ -47,4 +49,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
     @Modifying
     @Query("DELETE FROM IDMGroup g WHERE g.expirationDate <= CURRENT_TIMESTAMP")
     void deleteExpiredIDMGroups();
+
+    @Query("SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds")
+    Set<User> findUsersOfGivenGroups(@Param("groupsIds") List<Long> groupIds);
 }

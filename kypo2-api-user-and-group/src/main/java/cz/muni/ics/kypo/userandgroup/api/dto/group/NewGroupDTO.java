@@ -53,7 +53,7 @@ public class NewGroupDTO {
         this.users = users;
     }
 
-    @ApiModelProperty(value = "Main identifiers of group.", example = "1")
+    @ApiModelProperty(value = "Main identifiers of group.", example = "[1]")
     public List<Long> getGroupIdsOfImportedUsers() {
         return groupIdsOfImportedUsers;
     }

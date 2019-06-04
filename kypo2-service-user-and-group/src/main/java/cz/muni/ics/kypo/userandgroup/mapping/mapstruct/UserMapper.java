@@ -4,12 +4,16 @@ import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Seda
@@ -18,6 +22,8 @@ import java.util.*;
 @Mapper(componentModel = "spring", uses = {RoleMapper.class})
 public interface UserMapper extends ParentMapper {
     User mapToEntity(UserDTO dto);
+
+    RoleDTO mapRoleToDTO(Role entity);
 
     UserDTO mapToDTO(User entity);
 
@@ -53,7 +59,7 @@ public interface UserMapper extends ParentMapper {
 
     default PageResultResource<UserDTO> mapToPageResultResource(Page<User> objects) {
         List<UserDTO> mapped = new ArrayList<>();
-        objects.forEach(object -> mapped.add(mapToDTO(object)));
+        objects.forEach(object -> mapped.add(mapToUserDTOWithRoles(object)));
         return new PageResultResource<>(mapped, createPagination(objects));
     }
 
@@ -61,5 +67,25 @@ public interface UserMapper extends ParentMapper {
         List<UserForGroupsDTO> mapped = new ArrayList<>();
         objects.forEach(object -> mapped.add(mapEntityToUserForGroupsDTO(object)));
         return new PageResultResource<>(mapped, createPagination(objects));
+    }
+
+    @Named("mapToUserDTOWithRoles")
+    default UserDTO mapToUserDTOWithRoles(User user) {
+        UserDTO userDTO = mapToDTO(user);
+        Set<Role> rolesOfUser = new HashSet<>();
+        for (IDMGroup groupOfUser: user.getGroups()) {
+            rolesOfUser.addAll(groupOfUser.getRoles());
+        }
+        userDTO.setRoles(rolesOfUser.stream()
+                .map(this::convertToRoleDTO)
+                .collect(Collectors.toSet()));
+        return userDTO;
+    }
+
+    private RoleDTO convertToRoleDTO(Role role) {
+        RoleDTO roleDTO = mapRoleToDTO(role);
+        roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
+        roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
+        return roleDTO;
     }
 }

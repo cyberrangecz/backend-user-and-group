@@ -27,10 +27,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,15 +57,7 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) {
         LOG.debug("getUsers()");
-        PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable));
-        List<UserDTO> usersWithRoles = users.getContent().stream()
-                .map(userDTO -> {
-                    userDTO.setRoles(this.getRolesOfUser(userDTO.getId()));
-                    return userDTO;
-                })
-                .collect(Collectors.toList());
-        users.setContent(usersWithRoles);
-        return users;
+        return  userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable));
     }
 
     @Override
@@ -76,9 +65,7 @@ public class UserFacadeImpl implements UserFacade {
     public UserDTO getUser(Long id) {
         LOG.debug("getUser({})", id);
         try {
-            UserDTO userDTO = userMapper.mapToDTO(userService.get(id));
-            userDTO.setRoles(getRolesOfUser(id));
-            return userDTO;
+            return userMapper.mapToUserDTOWithRoles(userService.get(id));
         } catch (UserAndGroupServiceException ex) {
             LOG.error("Error while loading user with id: {}.", id);
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
@@ -146,7 +133,7 @@ public class UserFacadeImpl implements UserFacade {
         LOG.debug("getRolesOfUser({})", id);
         Set<Role> roles = userService.getRolesOfUser(id);
         return roles.stream()
-                .map(this::convertToRoleDTO)
+                .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
                 .collect(Collectors.toSet());
     }
 
@@ -154,9 +141,7 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public UserDTO getUserInfo(OAuth2Authentication authentication) {
         LOG.debug("getUserInfo()");
-        User loggedInUser = getLoggedInUser(authentication);
-        Set<RoleDTO> rolesOfUser = this.getRolesOfUser(loggedInUser.getId());
-        return convertToUserDTO(loggedInUser, rolesOfUser);
+        return userMapper.mapToUserDTOWithRoles(getLoggedInUser(authentication));
     }
 
 
@@ -178,41 +163,19 @@ public class UserFacadeImpl implements UserFacade {
         return userMapper.mapToPageResultResourceForGroups(userService.getUsersInGroups(groupsIds, pageable));
     }
 
-    private UserDTO convertToUserDTO(User user, Set<RoleDTO> roles) {
-        UserDTO userDTO = userMapper.mapToDTO(user);
-        userDTO.setRoles(roles);
-
-        return userDTO;
-    }
-
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable) {
         LOG.debug("getUsersWithGivenRole({})", roleId);
-        PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
-        List<UserDTO> usersWithRoles = users.getContent().stream()
-                .map(userDTO -> {
-                    userDTO.setRoles(this.getRolesOfUser(userDTO.getId()));
-                    return userDTO;
-                })
-                .collect(Collectors.toList());
-        users.setContent(usersWithRoles);
-        return users;
+        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
     }
 
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable) {
         LOG.debug("getUsersWithGivenRole({})", roleType);
-        PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
-        List<UserDTO> usersWithRoles = users.getContent().stream()
-                .map(userDTO -> {
-                    userDTO.setRoles(this.getRolesOfUser(userDTO.getId()));
-                    return userDTO;
-                })
-                .collect(Collectors.toList());
-        users.setContent(usersWithRoles);
-        return users;
+        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
+
     }
 
     private User getLoggedInUser(OAuth2Authentication authentication) {
@@ -227,10 +190,4 @@ public class UserFacadeImpl implements UserFacade {
         return loggedInUser;
     }
 
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO = roleMapper.mapToDTO(role);
-        roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
-        roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
-        return roleDTO;
-    }
 }

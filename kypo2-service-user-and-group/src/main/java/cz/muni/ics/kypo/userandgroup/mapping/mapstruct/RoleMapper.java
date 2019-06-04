@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.mapstruct.Mapper;
+import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
@@ -27,6 +28,14 @@ public interface RoleMapper extends ParentMapper {
     Set<Role> mapToSet(Collection<RoleDTO> dtos);
 
     Set<RoleDTO> mapToSetDTO(Collection<Role> entities);
+
+    @Named("roleToRoleDTOWithMicroservice")
+    default RoleDTO mapToRoleDTOWithMicroservice(Role entity) {
+        RoleDTO roleDTO = mapToDTO(entity);
+        roleDTO.setIdOfMicroservice(entity.getMicroservice().getId());
+        roleDTO.setNameOfMicroservice(entity.getMicroservice().getName());
+        return roleDTO;
+    }
 
     default Optional<Role> mapToOptional(RoleDTO dto) {
         return Optional.ofNullable(mapToEntity(dto));
