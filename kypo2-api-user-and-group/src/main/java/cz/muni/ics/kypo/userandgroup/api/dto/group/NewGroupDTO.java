@@ -71,7 +71,7 @@ public class NewGroupDTO {
                 Objects.equals(getDescription(), groupDTO.getDescription());
     }
 
-    @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
+    @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }
