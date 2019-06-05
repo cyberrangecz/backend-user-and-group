@@ -84,19 +84,24 @@ public class IDMGroup {
     }
 
     public Set<User> getUsers() {
-        return Collections.unmodifiableSet(users);
+        return new HashSet<>(users);
     }
 
     public void setUsers(Set<User> users) {
         this.users = users;
+        for (User user : users) {
+            user.addGroup(this);
+        }
     }
 
     public void addUser(User user) {
         users.add(user);
+        user.addGroup(this);
     }
 
     public void removeUser(User user) {
         users.remove(user);
+        user.removeGroup(this);
     }
 
     public String getDescription() {
@@ -108,7 +113,7 @@ public class IDMGroup {
     }
 
     public Set<Role> getRoles() {
-        return Collections.unmodifiableSet(roles);
+        return new HashSet<>(roles);
     }
 
     public void setRoles(Set<Role> roles) {
@@ -142,7 +147,7 @@ public class IDMGroup {
             return false;
         }
         IDMGroup other = (IDMGroup) object;
-        return Objects.equals(this.id, other.id);
+        return Objects.equals(this.name, other.name);
     }
 
     @Override

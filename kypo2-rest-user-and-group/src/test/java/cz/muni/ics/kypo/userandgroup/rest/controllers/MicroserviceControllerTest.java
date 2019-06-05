@@ -80,6 +80,7 @@ public class MicroserviceControllerTest {
 
     @Test
     public void testRegisterNewMicroservice() throws Exception {
+        System.out.println(convertObjectToJsonBytes(newMicroserviceDTO));
         mockMvc.perform(
                 MockMvcRequestBuilders.post("/microservices")
                         .contentType(MediaType.APPLICATION_JSON)

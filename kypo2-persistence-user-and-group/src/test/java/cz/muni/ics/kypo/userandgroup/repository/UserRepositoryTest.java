@@ -118,11 +118,12 @@ public class UserRepositoryTest {
         entityManager.persistAndFlush(adminRole);
         entityManager.persistAndFlush(guestRole);
 
+        User u = entityManager.persistAndFlush(user);
+
+        group1.addUser(u);
         group1.setRoles(Stream.of(adminRole).collect(Collectors.toSet()));
         IDMGroup g = entityManager.persistAndFlush(group1);
 
-        user.addGroup(g);
-        User u = entityManager.persistAndFlush(user);
 
         Set<Role> userRoles = userRepository.getRolesOfUser(u.getId());
         assertEquals(1, userRoles.size());
@@ -200,11 +201,11 @@ public class UserRepositoryTest {
 
     @Test
     public void getUserWithGroups() {
-        entityManager.persistAndFlush(group1);
-        entityManager.persistAndFlush(group2);
-        user.addGroup(group2);
-        user.addGroup(group1);
         entityManager.persistAndFlush(user);
+        group1.addUser(user);
+        group2.addUser(user);
+        entityManager.persistAndFlush(group2);
+        entityManager.persistAndFlush(group1);
 
         Optional<User> userWithGroups = userRepository.getUserByIdWithGroups(user.getId());
         assertEquals(2, userWithGroups.get().getGroups().size());

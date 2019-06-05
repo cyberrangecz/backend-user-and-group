@@ -96,7 +96,7 @@ public class User {
     }
 
     public Set<IDMGroup> getGroups() {
-        return Collections.unmodifiableSet(groups);
+        return new HashSet<>(groups);
     }
 
     public String getGivenName() {
@@ -116,25 +116,17 @@ public class User {
     }
 
     public void setGroups(Set<IDMGroup> groups) {
-        if (!this.groups.isEmpty()) {
-            for (IDMGroup idmGroup : this.groups) {
-                idmGroup.removeUser(this);
-            }
-        }
-        this.groups = groups;
-        for (IDMGroup idmGroup : groups) {
-            idmGroup.addUser(this);
+        for (IDMGroup group: groups) {
+            group.addUser(this);
         }
     }
 
     public void addGroup(IDMGroup group) {
         groups.add(group);
-        group.addUser(this);
     }
 
     public void removeGroup(IDMGroup group) {
         groups.remove(group);
-        group.removeUser(this);
     }
 
     @Override

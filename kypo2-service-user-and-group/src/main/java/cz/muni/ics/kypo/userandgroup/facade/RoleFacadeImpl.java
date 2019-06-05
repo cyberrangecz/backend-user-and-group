@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Seda
@@ -72,12 +73,8 @@ public class RoleFacadeImpl implements RoleFacade {
     @TransactionalRO
     public PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable) {
         LOG.debug("getAllRoles()");
-        List<RoleDTO> rolesDTO = new ArrayList<>();
         List<Role> roles = roleService.getAllRoles(predicate, pageable).getContent();
-        roles.forEach(role -> {
-            rolesDTO.add(convertToRoleDTO(role));
-        });
-        return new PageResultResource<>(rolesDTO);
+        return  new PageResultResource<>(roles.stream().map(this::convertToRoleDTO).collect(Collectors.toList()));
     }
 
     private RoleDTO convertToRoleDTO(Role role) {

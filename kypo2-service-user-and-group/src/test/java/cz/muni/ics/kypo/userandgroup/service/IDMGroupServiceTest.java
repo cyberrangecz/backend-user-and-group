@@ -62,7 +62,7 @@ public class IDMGroupServiceTest {
         group2 = new IDMGroup("group2", "Great group2");
         group2.setId(2L);
 
-        mainGroup = new IDMGroup("ROLE_USER_AND_GROUP_ADMINISTRATOR", "Main group of administrators");
+        mainGroup = new IDMGroup("USER-AND-GROUP_ADMINISTRATOR", "Main group of administrators");
         mainGroup.setId(3L);
 
         adminRole = new Role();
@@ -112,8 +112,8 @@ public class IDMGroupServiceTest {
     public void getGroupNotFoundShouldThrowException() {
         Long id = 3L;
         thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("IDM group with id " + id + " not found");
-        willThrow(EntityNotFoundException.class).given(groupRepository).getOne(id);
+        thrown.expectMessage("IDMGroup with id " + id + " not found");
+        given(groupRepository.findById(id)).willReturn(Optional.empty());
         groupService.get(id);
     }
 
@@ -309,7 +309,7 @@ public class IDMGroupServiceTest {
     @Test
     public void assignRoleWihtGroupNotFoundShouldThrowException() {
         thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Group with " + group1.getId() + " could not be found.");
+        thrown.expectMessage("Group with id: " + group1.getId() + " could not be found.");
         given(groupRepository.findById(group1.getId())).willReturn(Optional.empty());
         groupService.assignRole(group1.getId(), 1L);
     }

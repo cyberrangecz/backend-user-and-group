@@ -88,12 +88,12 @@ public class StartUpRunner implements ApplicationRunner {
                 User user = optionalUser.get();
 
                 if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR)) {
-                    user.addGroup(adminGroup);
-                    user.addGroup(userGroup);
+                    adminGroup.addUser(user);
+                    userGroup.addUser(user);
                 } else if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_USER)) {
-                    user.addGroup(userGroup);
+                    userGroup.addUser(user);
                 }
-                user.addGroup(defaultGroup);
+                defaultGroup.addUser(user);
                 userRepository.save(user);
                 LOGGER.info("Roles of user with screen name {} were updated.", user.getLogin());
             } else {

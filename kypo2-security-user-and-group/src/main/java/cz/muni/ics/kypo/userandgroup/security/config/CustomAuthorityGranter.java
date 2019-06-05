@@ -75,14 +75,14 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     private Set<Role> saveNewUser(String login, String fullName, String email, String givenName, String familyName) {
         LOG.info("saveNewUser({},{},{},{},{})", login, fullName, email, givenName, familyName);
-        IDMGroup defaultGroup = groupRepository.findByName("DEFAULT_GROUP").orElseThrow(() -> new SecurityException("Guest group could not be found"));
+        IDMGroup defaultGroup = groupRepository.findByName("DEFAULT-GROUP").orElseThrow(() -> new SecurityException("Guest group could not be found"));
         User newUser = new User(login);
         newUser.setFullName(fullName);
         newUser.setMail(email);
         newUser.setGivenName(givenName);
         newUser.setFamilyName(familyName);
-        newUser.addGroup(defaultGroup);
         userRepository.save(newUser);
+        defaultGroup.addUser(newUser);
         return defaultGroup.getRoles();
     }
 }

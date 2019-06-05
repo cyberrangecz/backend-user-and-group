@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     public User get(Long id) {
         LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
-        return userRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
+        return userRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " could not be found."));
     }
 
     @Override
@@ -59,6 +59,9 @@ public class UserServiceImpl implements UserService {
         Assert.notNull(user, "Input user must not be null");
         UserDeletionStatusDTO deletionCheck = checkKypoUserBeforeDelete(user);
         if (deletionCheck.equals(UserDeletionStatusDTO.SUCCESS)) {
+            for(IDMGroup group : user.getGroups()) {
+                group.removeUser(user);
+            }
             userRepository.delete(user);
             LOG.debug("IDM user with id: {} was successfully deleted.", user.getId());
         }
@@ -101,9 +104,9 @@ public class UserServiceImpl implements UserService {
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
         IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be  found."));
         if (user.getGroups().contains(administratorGroup)) {
-            user.removeGroup(administratorGroup);
+            administratorGroup.removeUser(user);
         } else {
-            user.addGroup(administratorGroup);
+            administratorGroup.addUser(user);
         }
         userRepository.save(user);
     }

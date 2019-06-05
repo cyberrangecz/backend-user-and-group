@@ -88,7 +88,7 @@ public class GroupsRestController {
         } catch (ExternalSourceException e) {
             throw new ResourceNotModifiedException("Group is external therefore they could not be updated");
         } catch (UserAndGroupFacadeException e) {
-            throw new ConflictException(e.getMessage());
+            throw new ConflictException(e.getLocalizedMessage());
         }
     }
 
@@ -145,17 +145,21 @@ public class GroupsRestController {
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
                                                                 @PathVariable("id") final Long id) {
         LOG.debug("deleteGroup({})", id);
-        GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
-        switch (groupDeletionResponseDTO.getStatus()) {
-            case SUCCESS:
-                return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);
-            case NOT_FOUND:
-                throw new ResourceNotFoundException("Group with id " + id + " cannot be found.");
-            case ERROR_MAIN_GROUP:
-                throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is main group.");
-            case ERROR:
-            default:
-                return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
+            switch (groupDeletionResponseDTO.getStatus()) {
+                case SUCCESS:
+                    return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);
+                case NOT_FOUND:
+                    throw new ResourceNotFoundException("Group with id " + id + " cannot be found.");
+                case ERROR_MAIN_GROUP:
+                    throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is main group.");
+                case ERROR:
+                default:
+                    return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (UserAndGroupFacadeException ex) {
+            throw new ConflictException(ex.getLocalizedMessage());
         }
     }
 
@@ -168,7 +172,11 @@ public class GroupsRestController {
                                                                        @RequestBody List<Long> ids) {
         LOG.debug("deleteGroups({})", ids);
         Preconditions.checkNotNull(ids);
-        return new ResponseEntity<>(groupFacade.deleteGroups(ids), HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(groupFacade.deleteGroups(ids), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException ex) {
+            throw new ConflictException(ex.getLocalizedMessage());
+        }
     }
 
     @ApiOperation(httpMethod = "GET",
