@@ -112,7 +112,7 @@ public class UserServiceTest {
     public void getUserNotFoundShouldThrowException() {
         Long id = 3L;
         thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + id + " not found");
+        thrown.expectMessage("User with id " + id + " could not be found");
         willThrow(EntityNotFoundException.class).given(userRepository).getOne(id);
         userService.get(id);
     }
@@ -180,7 +180,7 @@ public class UserServiceTest {
 
     @Test
     public void changeAdminRoleToUser() {
-        user1.addGroup(adminGroup);
+        adminGroup.addUser(user1);
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
         given(groupRepository.findAdministratorGroup()).willReturn(Optional.of(adminGroup));
@@ -207,7 +207,6 @@ public class UserServiceTest {
     @Test
     public void isUserAdmin() {
         adminGroup.addUser(user1);
-        user1.addGroup(adminGroup);
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
         given(groupRepository.findAdministratorGroup()).willReturn(Optional.of(adminGroup));

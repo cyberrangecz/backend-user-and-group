@@ -72,13 +72,9 @@ public class UsersRestController {
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
         LOG.debug("getUsers()");
-        try {
-            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
-            Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw new InternalServerErrorException(e.getLocalizedMessage());
-        }
+        PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
     @ApiOperation(httpMethod = "GET",
@@ -95,15 +91,9 @@ public class UsersRestController {
                                                    @ApiParam(value = "Ids of groups where users are assigned.", required = true)
                                                    @RequestParam("ids") Set<Long> groupsIds) {
         LOG.debug("getUsersInGroups({})", groupsIds);
-        try {
-            PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, pageable);
-            Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw new InternalServerErrorException(e.getLocalizedMessage());
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
-        }
+        PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
     @ApiOperation(httpMethod = "GET",
@@ -116,9 +106,7 @@ public class UsersRestController {
         try {
             return new ResponseEntity<>(userFacade.getUser(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
     }
 
@@ -133,15 +121,9 @@ public class UsersRestController {
                                                              @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                              @RequestParam(value = "fields", required = false) String fields) {
         LOG.debug("getAllUsersNotInGivenGroup({})", groupId);
-        try {
-            PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, pageable);
-            Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ServiceUnavailableException("Some error occurred while loading users not in group with id: " + groupId + ". Please, try it later.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
-        }
+        PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
     @ApiOperation(httpMethod = "DELETE",

@@ -131,10 +131,14 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public Set<RoleDTO> getRolesOfUser(Long id) {
         LOG.debug("getRolesOfUser({})", id);
-        Set<Role> roles = userService.getRolesOfUser(id);
-        return roles.stream()
-                .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
-                .collect(Collectors.toSet());
+        try {
+            Set<Role> roles = userService.getRolesOfUser(id);
+            return roles.stream()
+                    .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
+                    .collect(Collectors.toSet());
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
     }
 
     @Override
@@ -167,14 +171,25 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable) {
         LOG.debug("getUsersWithGivenRole({})", roleId);
-        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
+        try {
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
+
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
+
     }
 
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable) {
         LOG.debug("getUsersWithGivenRole({})", roleType);
-        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
+        try {
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
+
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
 
     }
 

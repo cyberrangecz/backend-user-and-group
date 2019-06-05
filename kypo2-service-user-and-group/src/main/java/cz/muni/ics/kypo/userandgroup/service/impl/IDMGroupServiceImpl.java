@@ -58,7 +58,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public IDMGroup get(Long id) {
         LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
-        return groupRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("IDM group with id " + id + " not found"));
+        return groupRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("IDMGroup with id " + id + " not found"));
     }
 
     @Override
@@ -74,9 +74,11 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(group, "Input group must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
 
-        Set<User> importedMembersFromGroups = groupRepository.findUsersOfGivenGroups(groupIdsOfImportedMembers);
-        for (User importedUserFromGroup: importedMembersFromGroups) {
-            group.addUser(importedUserFromGroup);
+        if (!groupIdsOfImportedMembers.isEmpty()) {
+            Set<User> importedMembersFromGroups = groupRepository.findUsersOfGivenGroups(groupIdsOfImportedMembers);
+            for (User importedUserFromGroup: importedMembersFromGroups) {
+                group.addUser(importedUserFromGroup);
+            }
         }
         return groupRepository.save(group);
     }
@@ -155,7 +157,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(roleId, "Input roleId must not be null");
 
         IDMGroup group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
+                .orElseThrow(() -> new UserAndGroupServiceException("Group with id: " + groupId + " could not be found."));
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() ->
                         new UserAndGroupServiceException("Role with id: " + roleId + " could not be found. Start up of the project or registering of microservice probably went wrong, please contact support."));
@@ -171,12 +173,14 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(roleId, "Input roleType must not be null");
 
         IDMGroup group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new UserAndGroupServiceException("Group with " + groupId + " could not be found."));
+                .orElseThrow(() -> new UserAndGroupServiceException("Group with id: " + groupId + " could not be found."));
 
 
         for (Role role : group.getRoles()) {
             if (role.getId().equals(roleId)) {
-                if (group.getName().equalsIgnoreCase(role.getRoleType().toUpperCase())) {
+                if(group.getName().equals("DEFAULT-GROUP") && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
+                    group.getName().equals("USER-AND-GROUP_ADMINISTRATOR") && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
+                    group.getName().equals("USER-AND-GROUP_USER") && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
                     throw new RoleCannotBeRemovedToGroupException("Role " + role.getRoleType() + " cannot be removed from group. This role is main role of the group");
                 }
                 group.removeRole(role);
@@ -238,8 +242,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     private GroupDeletionStatusDTO checkKypoGroupBeforeDelete(IDMGroup group) {
-        List<String> roles = roleRepository.findAll().stream().map(Role::getRoleType).collect(Collectors.toList());
-        if (roles.contains(group.getName())) {
+        //List<String> roles = roleRepository.findAll().stream().map(Role::getRoleType).collect(Collectors.toList());
+        //if (roles.contains(group.getName())) {
+        if (List.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER").contains(group.getName())) {
             return GroupDeletionStatusDTO.ERROR_MAIN_GROUP;
         }
         return GroupDeletionStatusDTO.SUCCESS;

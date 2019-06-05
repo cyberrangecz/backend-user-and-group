@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
+import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.MicroserviceMapper;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
@@ -69,10 +70,15 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
                 role.setRoleType(newRole.getRoleType());
                 role.setDescription(newRole.getDescription());
                 role.setMicroservice(microservice);
-                roleService.create(role);
-                if (newRole.isDefault()) {
-                    IDMGroup defaultGroup = groupService.getGroupForDefaultRoles();
-                    defaultGroup.addRole(role);
+                try {
+                    roleService.create(role);
+                    if (newRole.isDefault()) {
+                        IDMGroup defaultGroup = groupService.getGroupForDefaultRoles();
+                        defaultGroup.addRole(role);
+                    }
+
+                } catch (UserAndGroupServiceException e) {
+                    throw new UserAndGroupFacadeException(e);
                 }
             }
         }
