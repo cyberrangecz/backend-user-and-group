@@ -138,7 +138,7 @@ public class IDMGroup {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(getName());
     }
 
     @Override
@@ -147,7 +147,7 @@ public class IDMGroup {
             return false;
         }
         IDMGroup other = (IDMGroup) object;
-        return Objects.equals(this.name, other.name);
+        return Objects.equals(getName(), other.getName());
     }
 
     @Override

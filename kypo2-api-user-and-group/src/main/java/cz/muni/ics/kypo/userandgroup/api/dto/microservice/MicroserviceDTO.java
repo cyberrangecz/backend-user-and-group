@@ -42,18 +42,16 @@ public class MicroserviceDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MicroserviceDTO that = (MicroserviceDTO) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(endpoint, that.endpoint);
+    public boolean equals(Object object) {
+        if (!(object instanceof MicroserviceDTO)) return false;
+        MicroserviceDTO that = (MicroserviceDTO) object;
+        return Objects.equals(getId(), that.getId()) &&
+                Objects.equals(getName(), that.getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, endpoint);
+        return Objects.hash(getId(), getName());
     }
 
     @Override

@@ -62,15 +62,6 @@ public class NewGroupDTO {
         this.groupIdsOfImportedUsers = groupIdsOfImportedUsers;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GroupDTO groupDTO = (GroupDTO) o;
-        return Objects.equals(getName(), groupDTO.getName()) &&
-                Objects.equals(getDescription(), groupDTO.getDescription());
-    }
-
     @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
@@ -81,8 +72,15 @@ public class NewGroupDTO {
     }
 
     @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof NewGroupDTO)) return false;
+        NewGroupDTO that = (NewGroupDTO) object;
+        return Objects.equals(getName(), that.getName());
+    }
+
+    @Override
     public int hashCode() {
-        return Objects.hash(getName(), getDescription());
+        return Objects.hash(getName());
     }
 
     @Override
@@ -90,6 +88,7 @@ public class NewGroupDTO {
         return "NewGroupDTO{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", expirationDate=" + expirationDate +
                 '}';
     }
 }

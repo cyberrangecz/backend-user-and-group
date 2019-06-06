@@ -34,10 +34,9 @@ public class AddUsersToGroupDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AddUsersToGroupDTO that = (AddUsersToGroupDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof AddUsersToGroupDTO)) return false;
+        AddUsersToGroupDTO that = (AddUsersToGroupDTO) object;
         return Objects.equals(getIdsOfUsersToBeAdd(), that.getIdsOfUsersToBeAdd()) &&
                 Objects.equals(getIdsOfGroupsOfImportedUsers(), that.getIdsOfGroupsOfImportedUsers());
     }

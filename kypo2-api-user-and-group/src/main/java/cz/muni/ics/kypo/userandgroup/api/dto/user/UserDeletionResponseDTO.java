@@ -33,10 +33,9 @@ public class UserDeletionResponseDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserDeletionResponseDTO that = (UserDeletionResponseDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof UserDeletionResponseDTO)) return false;
+        UserDeletionResponseDTO that = (UserDeletionResponseDTO) object;
         return Objects.equals(getUser(), that.getUser()) &&
                 getStatus() == that.getStatus();
     }

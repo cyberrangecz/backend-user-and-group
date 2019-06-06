@@ -64,18 +64,18 @@ public class RoleDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RoleDTO roleDTO = (RoleDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof RoleDTO)) return false;
+        RoleDTO roleDTO = (RoleDTO) object;
         return Objects.equals(getId(), roleDTO.getId()) &&
                 Objects.equals(getRoleType(), roleDTO.getRoleType()) &&
+                Objects.equals(getIdOfMicroservice(), roleDTO.getIdOfMicroservice()) &&
                 Objects.equals(getNameOfMicroservice(), roleDTO.getNameOfMicroservice());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getRoleType(), getNameOfMicroservice());
+        return Objects.hash(getId(), getRoleType(), getIdOfMicroservice(), getNameOfMicroservice());
     }
 
     @Override
@@ -85,6 +85,7 @@ public class RoleDTO {
                 ", roleType='" + roleType + '\'' +
                 ", idOfMicroservice=" + idOfMicroservice +
                 ", nameOfMicroservice='" + nameOfMicroservice + '\'' +
+                ", description='" + description + '\'' +
                 '}';
     }
 }

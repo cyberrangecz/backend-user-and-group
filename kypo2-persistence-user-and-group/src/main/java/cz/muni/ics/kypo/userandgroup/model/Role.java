@@ -76,16 +76,17 @@ public class Role {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Role role = (Role) o;
-        return Objects.equals(roleType, role.roleType);
+    public boolean equals(Object object) {
+        if(!(object instanceof Role)) {
+            return false;
+        }
+        Role other = (Role) object;
+        return Objects.equals(getRoleType(), other.getRoleType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(roleType);
+        return Objects.hash(roleType);
     }
 
     @Override

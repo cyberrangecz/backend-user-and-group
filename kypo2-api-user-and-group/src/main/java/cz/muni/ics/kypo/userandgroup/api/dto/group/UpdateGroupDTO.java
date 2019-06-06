@@ -61,18 +61,16 @@ public class UpdateGroupDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GroupDTO groupDTO = (GroupDTO) o;
-        return Objects.equals(getId(), groupDTO.getId()) &&
-                Objects.equals(getName(), groupDTO.getName()) &&
-                Objects.equals(getDescription(), groupDTO.getDescription());
+    public boolean equals(Object object) {
+        if (!(object instanceof UpdateGroupDTO)) return false;
+        UpdateGroupDTO that = (UpdateGroupDTO) object;
+        return Objects.equals(getId(), that.getId()) &&
+                Objects.equals(getName(), that.getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getDescription());
+        return Objects.hash(getId(), getName());
     }
 
     @Override
@@ -81,6 +79,7 @@ public class UpdateGroupDTO {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", expirationDate=" + expirationDate +
                 '}';
     }
 }

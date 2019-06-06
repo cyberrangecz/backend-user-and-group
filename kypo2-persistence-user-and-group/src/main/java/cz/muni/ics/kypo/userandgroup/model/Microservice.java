@@ -59,17 +59,17 @@ public class Microservice {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Microservice)) return false;
-        Microservice microservice = (Microservice) o;
-        return Objects.equals(name, microservice.name) &&
-                Objects.equals(endpoint, microservice.endpoint);
+    public boolean equals(Object object) {
+        if (!(object instanceof Microservice)) {
+            return false;
+        }
+        Microservice other = (Microservice) object;
+        return Objects.equals(getName(), other.getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, endpoint);
+        return Objects.hash(getName());
     }
 
     @Override

@@ -37,10 +37,9 @@ public class GroupDeletionResponseDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GroupDeletionResponseDTO that = (GroupDeletionResponseDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof GroupDeletionResponseDTO)) return false;
+        GroupDeletionResponseDTO that = (GroupDeletionResponseDTO) object;
         return Objects.equals(getId(), that.getId()) &&
                 getStatus() == that.getStatus();
     }

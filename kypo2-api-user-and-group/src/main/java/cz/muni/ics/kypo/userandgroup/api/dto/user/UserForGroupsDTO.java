@@ -72,24 +72,33 @@ public class UserForGroupsDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserForGroupsDTO that = (UserForGroupsDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof UserForGroupsDTO)) {
+            return false;
+        }
+        UserForGroupsDTO that = (UserForGroupsDTO) object;
         return Objects.equals(getId(), that.getId()) &&
-                Objects.equals(getLogin(), that.getLogin());
+                Objects.equals(getFullName(), that.getFullName()) &&
+                Objects.equals(getGivenName(), that.getGivenName()) &&
+                Objects.equals(getFamilyName(), that.getFamilyName()) &&
+                Objects.equals(getLogin(), that.getLogin()) &&
+                Objects.equals(getMail(), that.getMail());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getLogin());
+        return Objects.hash(getId(), getFullName(), getGivenName(), getFamilyName(), getLogin(), getMail());
     }
 
     @Override
     public String toString() {
         return "UserForGroupsDTO{" +
                 "id=" + id +
+                ", fullName='" + fullName + '\'' +
+                ", givenName='" + givenName + '\'' +
+                ", familyName='" + familyName + '\'' +
                 ", login='" + login + '\'' +
+                ", mail='" + mail + '\'' +
                 '}';
     }
 }

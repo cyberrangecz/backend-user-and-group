@@ -131,7 +131,7 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hashCode(getLogin());
     }
 
     @Override

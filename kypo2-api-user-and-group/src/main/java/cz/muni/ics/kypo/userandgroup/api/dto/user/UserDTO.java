@@ -108,17 +108,20 @@ public class UserDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserDTO userDTO = (UserDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof UserDTO)) return false;
+        UserDTO userDTO = (UserDTO) object;
         return Objects.equals(getId(), userDTO.getId()) &&
-                Objects.equals(getLogin(), userDTO.getLogin());
+                Objects.equals(getFullName(), userDTO.getFullName()) &&
+                Objects.equals(getLogin(), userDTO.getLogin()) &&
+                Objects.equals(getMail(), userDTO.getMail()) &&
+                Objects.equals(getGivenName(), userDTO.getGivenName()) &&
+                Objects.equals(getFamilyName(), userDTO.getFamilyName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getLogin());
+        return Objects.hash(getId(), getFullName(), getLogin(), getMail(), getGivenName(), getFamilyName());
     }
 
     @Override

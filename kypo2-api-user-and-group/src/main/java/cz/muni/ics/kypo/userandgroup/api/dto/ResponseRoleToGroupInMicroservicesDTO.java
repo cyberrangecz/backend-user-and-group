@@ -59,17 +59,17 @@ public class ResponseRoleToGroupInMicroservicesDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ResponseRoleToGroupInMicroservicesDTO that = (ResponseRoleToGroupInMicroservicesDTO) o;
-        return Objects.equals(roleId, that.roleId) &&
-                Objects.equals(microserviceId, that.microserviceId) &&
-                status == that.status;
+    public boolean equals(Object object) {
+        if (!(object instanceof ResponseRoleToGroupInMicroservicesDTO)) {
+            return false;
+        }
+        ResponseRoleToGroupInMicroservicesDTO that = (ResponseRoleToGroupInMicroservicesDTO) object;
+        return Objects.equals(getRoleId(), that.getRoleId()) &&
+                Objects.equals(getMicroserviceId(), that.getMicroserviceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(roleId, microserviceId, status);
+        return Objects.hash(getRoleId(), getMicroserviceId());
     }
 }

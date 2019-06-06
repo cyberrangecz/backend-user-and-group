@@ -46,17 +46,17 @@ public class RoleForNewMicroserviceDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RoleForNewMicroserviceDTO that = (RoleForNewMicroserviceDTO) o;
-        return isDefault == that.isDefault &&
-                roleType.equals(that.roleType);
+    public boolean equals(Object object) {
+        if (!(object instanceof RoleForNewMicroserviceDTO)) return false;
+        RoleForNewMicroserviceDTO that = (RoleForNewMicroserviceDTO) object;
+        return isDefault() == that.isDefault() &&
+                Objects.equals(getRoleType(), that.getRoleType()) &&
+                Objects.equals(getDescription(), that.getDescription());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(roleType, isDefault);
+        return Objects.hash(getRoleType(), isDefault(), getDescription());
     }
 
     @Override

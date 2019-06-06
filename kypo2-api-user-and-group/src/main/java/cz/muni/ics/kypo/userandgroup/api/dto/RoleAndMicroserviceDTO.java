@@ -28,17 +28,18 @@ public class RoleAndMicroserviceDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RoleAndMicroserviceDTO that = (RoleAndMicroserviceDTO) o;
-        return Objects.equals(roleId, that.roleId) &&
-                Objects.equals(microserviceId, that.microserviceId);
+    public boolean equals(Object object) {
+        if (!(object instanceof RoleAndMicroserviceDTO)) {
+            return false;
+        }
+        RoleAndMicroserviceDTO other = (RoleAndMicroserviceDTO) object;
+        return Objects.equals(getRoleId(), other.getRoleId()) &&
+                Objects.equals(getMicroserviceId(), other.getMicroserviceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(roleId, microserviceId);
+        return Objects.hash(getRoleId(), getMicroserviceId());
     }
 
     @Override

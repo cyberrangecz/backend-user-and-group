@@ -116,18 +116,16 @@ public class GroupDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GroupDTO groupDTO = (GroupDTO) o;
+    public boolean equals(Object object) {
+        if (!(object instanceof GroupDTO)) return false;
+        GroupDTO groupDTO = (GroupDTO) object;
         return Objects.equals(getId(), groupDTO.getId()) &&
-                Objects.equals(getName(), groupDTO.getName()) &&
-                Objects.equals(getDescription(), groupDTO.getDescription());
+                Objects.equals(getName(), groupDTO.getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getDescription());
+        return Objects.hash(getId(), getName());
     }
 
     @Override

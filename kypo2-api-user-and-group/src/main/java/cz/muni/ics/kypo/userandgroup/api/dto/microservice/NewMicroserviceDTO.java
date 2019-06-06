@@ -51,17 +51,15 @@ public class NewMicroserviceDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NewMicroserviceDTO that = (NewMicroserviceDTO) o;
-        return name.equals(that.name) &&
-                endpoint.equals(that.endpoint);
+    public boolean equals(Object object) {
+        if (!(object instanceof NewMicroserviceDTO)) return false;
+        NewMicroserviceDTO that = (NewMicroserviceDTO) object;
+        return Objects.equals(getName(), that.getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, endpoint);
+        return Objects.hash(getName());
     }
 
     @Override
