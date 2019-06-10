@@ -193,6 +193,19 @@ public class UserFacadeImpl implements UserFacade {
 
     }
 
+    @Override
+    @TransactionalRO
+    public Set<UserDTO> getUsersWithGivenLogins(Set<String> logins) {
+        LOG.debug("getUsersWithGivenLogins({})", logins);
+        try {
+            return userMapper.mapToSetDTO(userService.getUsersWithGivenLogins(logins));
+
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
+
+    }
+
     private User getLoggedInUser(OAuth2Authentication authentication) {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         String sub = credentials.get("sub").getAsString();

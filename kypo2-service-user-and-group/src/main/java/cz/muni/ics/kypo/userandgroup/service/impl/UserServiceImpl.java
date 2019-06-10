@@ -219,4 +219,11 @@ public class UserServiceImpl implements UserService {
                 new UserAndGroupServiceException("Role with role type: " + roleType + " could not be found."));
         return userRepository.findAllByRoleId(role.getId(), pageable);
     }
+
+    @Override
+    public Set<User> getUsersWithGivenLogins(Set<String> logins) {
+        LOG.debug("getUsersWithGivenLogins({})", logins);
+        Assert.notNull(logins, "Input list of logins must not be null");
+        return userRepository.findAllWithGivenLogins(logins);
+    }
 }

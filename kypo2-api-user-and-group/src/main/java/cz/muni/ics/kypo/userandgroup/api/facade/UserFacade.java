@@ -125,4 +125,5 @@ public interface UserFacade {
      */
     PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable);
 
+    Set<UserDTO> getUsersWithGivenLogins(Set<String> logins);
 }
