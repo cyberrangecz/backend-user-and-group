@@ -195,5 +195,21 @@ public class UsersRestController {
         }
     }
 
+    @ApiOperation(httpMethod = "GET",
+            value = "Gets users with given logins.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiPageableSwagger
+    @GetMapping(value = "/logins", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getUsersWithGivenLogins(
+            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+            @RequestParam(value = "fields", required = false) String fields,
+            @ApiParam(value = "Logins of users to be obtained.", required = true)
+            @RequestParam(value = "logins") Set<String> logins) {
+        LOG.debug("getUsersWithGivenLogins({})", logins);
+        Set<UserDTO> userDTOs = userFacade.getUsersWithGivenLogins(logins);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+    }
 
 }

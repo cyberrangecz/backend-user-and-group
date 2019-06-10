@@ -158,4 +158,5 @@ public interface UserService {
      */
     Page<User> getUsersWithGivenRole(String roleType, Pageable pageable);
 
+    Set<User> getUsersWithGivenLogins(Set<String> logins);
 }

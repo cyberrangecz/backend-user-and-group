@@ -58,4 +58,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
 
     @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId")
     Optional<User> getUserByIdWithGroups(@Param("userId") Long userId);
+
+    @Query(value = "SELECT u FROM User u WHERE u.login IN :logins")
+    Set<User> findAllWithGivenLogins(@Param("logins") Set<String> logins);
 }
