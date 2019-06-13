@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,6 +64,6 @@ public class SecurityService {
     private String getSubOfLoggedInUser() {
         OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-        return credentials.get("sub").getAsString();
+        return credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
     }
 }

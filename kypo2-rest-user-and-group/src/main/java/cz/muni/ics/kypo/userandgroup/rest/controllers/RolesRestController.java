@@ -29,8 +29,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * @author Jan Duda
  * @author Pavel Seda
+ * @author Jan Duda
  */
 @Api(value = "Endpoint for roles")
 @RestController
@@ -114,13 +114,13 @@ public class RolesRestController {
     @ApiPageableSwagger
     @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenRoleType(@QuerydslPredicate(root = User.class) Predicate predicate,
-                                                        Pageable pageable,
-                                                        @ApiParam(value = "Parameters for filtering the objects.", required = false)
-                                                        @RequestParam MultiValueMap<String, String> parameters,
-                                                        @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                        @RequestParam(value = "fields", required = false) String fields,
-                                                        @ApiParam(value = "Type of role to get users for.", required = true)
-                                                        @RequestParam("roleType") String roleType) {
+                                                            Pageable pageable,
+                                                            @ApiParam(value = "Parameters for filtering the objects.", required = false)
+                                                            @RequestParam MultiValueMap<String, String> parameters,
+                                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                            @RequestParam(value = "fields", required = false) String fields,
+                                                            @ApiParam(value = "Type of role to get users for.", required = true)
+                                                            @RequestParam("roleType") String roleType) {
         LOG.debug("getUsersWithGivenRoleType()");
         try {
             PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleType, pageable);

@@ -3,12 +3,14 @@ package cz.muni.ics.kypo.userandgroup.service;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.service.SecurityService;
 import cz.muni.ics.kypo.userandgroup.service.impl.IDMGroupServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import org.junit.After;
@@ -23,8 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -43,6 +43,8 @@ public class IDMGroupServiceTest {
     @MockBean
     private MicroserviceRepository microserviceRepository;
     @MockBean
+    private SecurityService securityService;
+    @MockBean
     private UserRepository userRepository;
 
     private IDMGroup group1, group2, mainGroup;
@@ -54,7 +56,7 @@ public class IDMGroupServiceTest {
 
     @Before
     public void init() {
-        groupService = new IDMGroupServiceImpl(groupRepository, roleRepository, userRepository);
+        groupService = new IDMGroupServiceImpl(groupRepository, roleRepository, userRepository, securityService);
 
         group1 = new IDMGroup("group1", "Great group1");
         group1.setId(1L);
@@ -62,7 +64,7 @@ public class IDMGroupServiceTest {
         group2 = new IDMGroup("group2", "Great group2");
         group2.setId(2L);
 
-        mainGroup = new IDMGroup("USER-AND-GROUP_ADMINISTRATOR", "Main group of administrators");
+        mainGroup = new IDMGroup(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), "Main group of administrators");
         mainGroup.setId(3L);
 
         adminRole = new Role();
@@ -186,7 +188,7 @@ public class IDMGroupServiceTest {
                 .willReturn(new PageImpl<>(Arrays.asList(group1, group2)));
 
         // do not create user3
-        IDMGroup group3 = new IDMGroup("Participants", "thrird group");
+        IDMGroup group3 = new IDMGroup("Participants", "third group");
 
         List<IDMGroup> groups = groupService.getAllIDMGroups(predicate, pageable).getContent();
         assertEquals(2, groups.size());
@@ -371,7 +373,7 @@ public class IDMGroupServiceTest {
         given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with id " + user1.getId() + " could not be found");
-        groupService.removeUsers(group1.getId(), Arrays.asList(user1.getId(), user2.getId()));
+        groupService.removeUsers(group1.getId(), List.of(user1.getId(), user2.getId()));
     }
 
     @Test

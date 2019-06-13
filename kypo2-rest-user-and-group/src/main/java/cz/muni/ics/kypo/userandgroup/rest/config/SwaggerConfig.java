@@ -15,6 +15,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import java.util.*;
 
 /**
+ * Configuration of Swagger documentation.
+ *
  * @author Pavel Seda
  */
 @Configuration
@@ -36,7 +38,6 @@ public class SwaggerConfig {
 
     @Bean
     public Docket api() {
-        // @formatter:off
         return new Docket(DocumentationType.SWAGGER_2)
                 .groupName("user-and-group-api")
                 .apiInfo(apiInfo())
@@ -44,19 +45,16 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .build()
-                .securitySchemes(Arrays.asList(securityScheme()))
-                .securityContexts(Arrays.asList(securityContext()));
-        // @formatter:on
+                .securitySchemes(List.of(securityScheme()))
+                .securityContexts(List.of(securityContext()));
     }
 
     private ApiInfo apiInfo() {
-        // @formatter:off
         return new ApiInfoBuilder()
                 .title("REST API documentation")
                 .description("Developed By CSIRT team")
                 .termsOfServiceUrl("Licensed by CSIRT team")
                 .build();
-        // @formatter:on
     }
 
     @Bean

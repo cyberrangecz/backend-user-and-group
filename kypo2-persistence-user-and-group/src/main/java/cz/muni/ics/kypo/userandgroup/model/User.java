@@ -116,7 +116,7 @@ public class User {
     }
 
     public void setGroups(Set<IDMGroup> groups) {
-        for (IDMGroup group: groups) {
+        for (IDMGroup group : groups) {
             group.addUser(this);
         }
     }

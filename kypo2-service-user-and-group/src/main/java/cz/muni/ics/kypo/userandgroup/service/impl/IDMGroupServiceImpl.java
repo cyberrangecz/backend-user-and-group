@@ -5,17 +5,14 @@ import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
+import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.service.SecurityService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import org.hibernate.Hibernate;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.ejb.HibernateEntityManager;
-import org.hibernate.engine.spi.SessionImplementor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +22,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Pavel Seda
@@ -43,13 +37,15 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     private final IDMGroupRepository groupRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private SecurityService securityService;
 
     @Autowired
     public IDMGroupServiceImpl(IDMGroupRepository idmGroupRepository, RoleRepository roleRepository,
-                               UserRepository userRepository) {
+                               UserRepository userRepository, SecurityService securityService) {
         this.groupRepository = idmGroupRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.securityService = securityService;
     }
 
     @Override
@@ -64,7 +60,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     public IDMGroup getGroupForDefaultRoles() {
         LOG.debug("getGroupForDefaultRoles()");
-        return groupRepository.findByName("DEFAULT-GROUP").orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found"));
+        return groupRepository.findByName(ImplicitGroupNames.DEFAULT_GROUP.getName()).orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found"));
     }
 
     @Override
@@ -76,7 +72,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
         if (!groupIdsOfImportedMembers.isEmpty()) {
             Set<User> importedMembersFromGroups = groupRepository.findUsersOfGivenGroups(groupIdsOfImportedMembers);
-            for (User importedUserFromGroup: importedMembersFromGroups) {
+            for (User importedUserFromGroup : importedMembersFromGroups) {
                 group.addUser(importedUserFromGroup);
             }
         }
@@ -90,9 +86,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(group, "Input group must not be null.");
         if (groupRepository.isIDMGroupInternal(group.getId())) {
             IDMGroup groupInDatabase = get(group.getId());
-            if(List.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER")
+            if (List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName())
                     .contains(groupInDatabase.getName()) && !groupInDatabase.getName().equals(group.getName())) {
-                throw new UserAndGroupServiceException("Cannot change name of main group " + groupInDatabase.getName() +  " to " + group.getName() + ".");
+                throw new UserAndGroupServiceException("Cannot change name of main group " + groupInDatabase.getName() + " to " + group.getName() + ".");
             }
             groupInDatabase.setDescription(group.getDescription());
             groupInDatabase.setName(group.getName());
@@ -178,9 +174,9 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
         for (Role role : group.getRoles()) {
             if (role.getId().equals(roleId)) {
-                if(group.getName().equals("DEFAULT-GROUP") && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
-                    group.getName().equals("USER-AND-GROUP_ADMINISTRATOR") && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
-                    group.getName().equals("USER-AND-GROUP_USER") && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
+                if (group.getName().equals(ImplicitGroupNames.DEFAULT_GROUP.getName()) && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
+                        group.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
+                        group.getName().equals(ImplicitGroupNames.USER_AND_GROUP_USER.getName()) && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
                     throw new RoleCannotBeRemovedToGroupException("Role " + role.getRoleType() + " cannot be removed from group. This role is main role of the group");
                 }
                 group.removeRole(role);
@@ -201,12 +197,15 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         if (!groupRepository.isIDMGroupInternal(groupId)) {
             throw new ExternalSourceException("Group is external therefore it could not be updated");
         }
-        if(groupToUpdate.getName().equals("DEFAULT-GROUP")) {
+        if (groupToUpdate.getName().equals(ImplicitGroupNames.DEFAULT_GROUP.getName())) {
             throw new UserAndGroupServiceException("Cannot remove users from default group.");
         }
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
+            if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR) && securityService.hasLoggedInUserSameLogin(user.getLogin())) {
+                throw new UserAndGroupServiceException("An administrator could not remove himself from the administrator group.");
+            }
             groupToUpdate.removeUser(user);
         }
         return groupRepository.save(groupToUpdate);
@@ -242,9 +241,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     private GroupDeletionStatusDTO checkKypoGroupBeforeDelete(IDMGroup group) {
-        //List<String> roles = roleRepository.findAll().stream().map(Role::getRoleType).collect(Collectors.toList());
-        //if (roles.contains(group.getName())) {
-        if (List.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER").contains(group.getName())) {
+        if (List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName()).contains(group.getName())) {
             return GroupDeletionStatusDTO.ERROR_MAIN_GROUP;
         }
         return GroupDeletionStatusDTO.SUCCESS;
