@@ -7,10 +7,9 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
@@ -19,10 +18,10 @@ import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.GroupsRestController;
-import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
+import cz.muni.ics.kypo.userandgroup.security.service.SecurityService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,14 +40,11 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -82,6 +78,8 @@ public class IDMGroupsIntegrationTests {
     private IDMGroupRepository groupRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private SecurityService securityService;
 
     private NewGroupDTO newOrganizerGroupDTO;
     private UserForGroupsDTO organizerDTO1, organizerDTO2;
@@ -167,7 +165,7 @@ public class IDMGroupsIntegrationTests {
         userRepository.saveAll(new HashSet<>(Set.of(organizer1, organizer2, user1, user2)));
 
         userGroup = new IDMGroup();
-        userGroup.setName("USER-AND-GROUP_USER");
+        userGroup.setName(ImplicitGroupNames.USER_AND_GROUP_USER.getName());
         userGroup.setDescription("Group for users");
         userGroup.setStatus(UserAndGroupStatus.VALID);
         userGroup.setRoles(new HashSet<>(Set.of(roleUser)));
@@ -179,7 +177,7 @@ public class IDMGroupsIntegrationTests {
         organizerGroup.setStatus(UserAndGroupStatus.VALID);
 
         defaultGroup = new IDMGroup();
-        defaultGroup.setName("DEFAULT-GROUP");
+        defaultGroup.setName(ImplicitGroupNames.DEFAULT_GROUP.getName());
         defaultGroup.setDescription("Group for all default roles");
         defaultGroup.setStatus(UserAndGroupStatus.VALID);
         defaultGroup.setRoles(Set.of(roleGuest, roleTrainee));
@@ -218,7 +216,7 @@ public class IDMGroupsIntegrationTests {
         assertTrue(createdGroup.isPresent());
         assertEquals(0, createdGroup.get().getUsers().size());
         assertTrue(response.getContentAsString().contains("\"name\":\"" + newOrganizerGroupDTO.getName() + "\",\"description\"" +
-                ":\"" + newOrganizerGroupDTO.getDescription()+ "\""));
+                ":\"" + newOrganizerGroupDTO.getDescription() + "\""));
         assertTrue(response.getContentAsString().contains("\"users\":[]"));
     }
 
@@ -247,7 +245,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains("\"name\":\"" + newOrganizerGroupDTO.getName()+ "\",\"description\":\"" + newOrganizerGroupDTO.getDescription()+ "\""));
+        assertTrue(response.getContentAsString().contains("\"name\":\"" + newOrganizerGroupDTO.getName() + "\",\"description\":\"" + newOrganizerGroupDTO.getDescription() + "\""));
         for (User user : userGroup.getUsers()) {
             assertTrue(response.getContentAsString().contains("\"fullName\":\"" + user.getFullName() +
                     "\",\"givenName\":null,\"familyName\":null,\"login\":\"" + user.getLogin() + "\""));
@@ -273,6 +271,7 @@ public class IDMGroupsIntegrationTests {
         assertEquals(ConflictException.class, exception.getClass());
         assertEquals("Cannot change name of main group " + userGroup.getName() + " to " + updateGroupDTO.getName() + ".", exception.getMessage());
     }
+
     @Test
     public void updateMainGroup() throws Exception {
         UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
@@ -296,7 +295,7 @@ public class IDMGroupsIntegrationTests {
         mvc.perform(put("/groups")
                 .content(convertObjectToJsonBytes(updateGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -364,7 +363,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void addUserToGroupAlreadyThere() throws Exception {
-        AddUsersToGroupDTO addUsersToGroupDTO =  new AddUsersToGroupDTO();
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user1.getId()));
         mvc.perform(put("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
@@ -376,7 +375,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void addUsersToGroupFromOtherGroup() throws Exception {
-        AddUsersToGroupDTO addUsersToGroupDTO =  new AddUsersToGroupDTO();
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(defaultGroup.getId()));
         mvc.perform(put("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
@@ -388,7 +387,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void addUsersToGroupIndividuallyAndFromOtherGroup() throws Exception {
-        AddUsersToGroupDTO addUsersToGroupDTO =  new AddUsersToGroupDTO();
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(defaultGroup.getId()));
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), organizer1.getId()));
         mvc.perform(put("/groups/{id}/users", userGroup.getId())
@@ -402,7 +401,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void addUserNotInDBToGroup() throws Exception {
-        AddUsersToGroupDTO addUsersToGroupDTO =  new AddUsersToGroupDTO();
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(100L));
         Exception exception = mvc.perform(put("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
@@ -411,12 +410,11 @@ public class IDMGroupsIntegrationTests {
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("User with id " + 100 + " could not be found"));
-
     }
 
     @Test
     public void addUsersFromGroupNotInDB() throws Exception {
-        AddUsersToGroupDTO addUsersToGroupDTO =  new AddUsersToGroupDTO();
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(100L));
         Exception exception = mvc.perform(put("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
@@ -425,7 +423,6 @@ public class IDMGroupsIntegrationTests {
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("IDMGroup with id " + 100 + " not found"));
-
     }
 
     @Test
@@ -435,7 +432,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains("id\":" + organizerId+ ",\"status\":\"" + GroupDeletionStatusDTO.SUCCESS.name() + "\""));
+        assertTrue(response.getContentAsString().contains("id\":" + organizerId + ",\"status\":\"" + GroupDeletionStatusDTO.SUCCESS.name() + "\""));
         assertFalse(groupRepository.existsById(organizerId));
     }
 
@@ -484,7 +481,7 @@ public class IDMGroupsIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
         assertTrue(response.getContentAsString().contains("id\":" + organizerGroupId + ",\"status\":\"" + GroupDeletionStatusDTO.SUCCESS.name() + "\""));
-        assertTrue(response.getContentAsString().contains("id\":" + userGroup.getId()+ ",\"status\":\"" + GroupDeletionStatusDTO.ERROR_MAIN_GROUP.name() + "\""));
+        assertTrue(response.getContentAsString().contains("id\":" + userGroup.getId() + ",\"status\":\"" + GroupDeletionStatusDTO.ERROR_MAIN_GROUP.name() + "\""));
         assertTrue(groupRepository.existsById(userGroup.getId()));
         assertFalse(groupRepository.existsById(organizerGroupId));
     }
@@ -498,7 +495,6 @@ public class IDMGroupsIntegrationTests {
                 .andReturn().getResponse();
         assertTrue(response.getContentAsString().contains("[]"));
     }
-
 
     @Test
     public void getGroups() throws Exception {
@@ -554,7 +550,7 @@ public class IDMGroupsIntegrationTests {
     @Test
     public void assignRoleToGroup() throws Exception {
         assertFalse(organizerGroup.getRoles().contains(roleDesigner));
-         mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), roleDesigner.getId())
+        mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), roleDesigner.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
         assertTrue(organizerGroup.getRoles().contains(roleDesigner));
@@ -638,7 +634,7 @@ public class IDMGroupsIntegrationTests {
         groupDTO.setId(group.getId());
         groupDTO.setDescription(group.getDescription());
         groupDTO.setName(group.getName());
-        if(Set.of("DEFAULT-GROUP", "USER-AND-GROUP_ADMINISTRATOR", "USER-AND-GROUP_USER").contains(groupDTO.getName())) {
+        if (Set.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName()).contains(groupDTO.getName())) {
             groupDTO.setCanBeDeleted(false);
         }
         groupDTO.setRoles(group.getRoles().stream()
@@ -653,7 +649,7 @@ public class IDMGroupsIntegrationTests {
     }
 
     private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO  = beanMapping.mapTo(role, RoleDTO.class);
+        RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
         roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
         roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
         return roleDTO;

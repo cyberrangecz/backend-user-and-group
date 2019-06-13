@@ -6,6 +6,8 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
+import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.security.exception.SecurityException;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
 import org.slf4j.Logger;
@@ -44,27 +46,27 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
         LOG.info("getAuthorities({})", introspectionResponse);
-        String login = introspectionResponse.get("sub").getAsString();
+        String login = introspectionResponse.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
         Set<Role> roles = new HashSet<>();
         if (!optionalUser.isPresent()) {
             roles.addAll(
-                    saveNewUser(login, introspectionResponse.get("name").getAsString(),
-                            introspectionResponse.get("email").getAsString(),
-                            introspectionResponse.get("given_name").getAsString(),
-                            introspectionResponse.get("family_name").getAsString()
+                    saveNewUser(login, introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()).getAsString(),
+                            introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName()).getAsString(),
+                            introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName()).getAsString(),
+                            introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName()).getAsString()
                     ));
         } else {
             User user = optionalUser.get();
             if (user.getFullName() == null || user.getMail() == null) {
-                user.setFullName(introspectionResponse.get("name").getAsString());
-                user.setMail(introspectionResponse.get("email").getAsString());
-                user.setGivenName(introspectionResponse.get("given_name").getAsString());
-                user.setFamilyName(introspectionResponse.get("family_name").getAsString());
+                user.setFullName(introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()).getAsString());
+                user.setMail(introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName()).getAsString());
+                user.setGivenName(introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName()).getAsString());
+                user.setFamilyName(introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName()).getAsString());
                 userRepository.save(user);
 
             }
-            for (IDMGroup groupOfUser: user.getGroups()) {
+            for (IDMGroup groupOfUser : user.getGroups()) {
                 roles.addAll(groupOfUser.getRoles());
             }
         }
@@ -75,7 +77,7 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     private Set<Role> saveNewUser(String login, String fullName, String email, String givenName, String familyName) {
         LOG.info("saveNewUser({},{},{},{},{})", login, fullName, email, givenName, familyName);
-        IDMGroup defaultGroup = groupRepository.findByName("DEFAULT-GROUP").orElseThrow(() -> new SecurityException("Guest group could not be found"));
+        IDMGroup defaultGroup = groupRepository.findByName(ImplicitGroupNames.DEFAULT_GROUP.getName()).orElseThrow(() -> new SecurityException("Guest group could not be found"));
         User newUser = new User(login);
         newUser.setFullName(fullName);
         newUser.setMail(email);

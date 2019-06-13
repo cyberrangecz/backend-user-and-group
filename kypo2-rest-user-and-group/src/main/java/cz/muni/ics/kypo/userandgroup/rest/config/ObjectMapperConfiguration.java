@@ -8,6 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+/**
+ * Configuration of Object Mapper. Serializing objects to JSON with indent output, serialize dates to one field and use SNAKE_CASE notation instead of camelCase for JSON.
+ *
+ * @author Pavel Seda
+ */
 @Configuration
 public class ObjectMapperConfiguration {
     @Bean

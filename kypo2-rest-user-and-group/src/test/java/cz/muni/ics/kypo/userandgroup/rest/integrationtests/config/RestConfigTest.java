@@ -22,7 +22,7 @@ import java.nio.charset.Charset;
 
 @Configuration
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.mapping", "cz.muni.ics.kypo.userandgroup.service",
-        "cz.muni.ics.kypo.userandgroup.api"})
+        "cz.muni.ics.kypo.userandgroup.api", "cz.muni.ics.kypo.userandgroup.security.service"})
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"},  basePackageClasses = Jsr310JpaConverters.class)
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
 public class RestConfigTest {

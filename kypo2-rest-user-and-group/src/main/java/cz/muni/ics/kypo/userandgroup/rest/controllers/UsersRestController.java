@@ -16,11 +16,11 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.InternalServerErrorException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ServiceUnavailableException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
+import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -40,8 +40,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Jan Duda
  * @author Pavel Seda
+ * @author Jan Duda
  */
 @Api(value = "Endpoint for Users")
 @RestController
@@ -188,7 +188,7 @@ public class UsersRestController {
             return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
             JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-            String sub = credentials.get("sub").getAsString();
+            String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
             throw new ResourceNotFoundException("Logged in user with login " + sub + " could not be found in database.");
         } catch (MicroserviceException e) {
             throw new ServiceUnavailableException(e.getLocalizedMessage());

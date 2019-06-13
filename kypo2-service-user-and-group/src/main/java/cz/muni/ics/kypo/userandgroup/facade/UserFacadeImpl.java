@@ -17,6 +17,7 @@ import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapper;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,7 +209,7 @@ public class UserFacadeImpl implements UserFacade {
 
     private User getLoggedInUser(OAuth2Authentication authentication) {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-        String sub = credentials.get("sub").getAsString();
+        String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
         User loggedInUser = null;
         try {
             loggedInUser = userService.getUserByLogin(sub);
