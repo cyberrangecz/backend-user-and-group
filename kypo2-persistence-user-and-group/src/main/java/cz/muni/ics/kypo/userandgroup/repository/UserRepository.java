@@ -45,7 +45,8 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login")
     Optional<User> getUserByLoginWithGroups(@Param("login") String login);
 
-    @Query("SELECT u FROM User u WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups")
+    @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.groups g LEFT JOIN FETCH g.roles r LEFT JOIN FETCH r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups",
+    countQuery = "SELECT u FROM User u LEFT OUTER JOIN u.groups g  LEFT OUTER JOIN g.roles r LEFT OUTER JOIN r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId)  NOT MEMBER OF u.groups")
     Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
 
     @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g WHERE g.id IN :groupsIds",
