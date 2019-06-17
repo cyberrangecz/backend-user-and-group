@@ -149,6 +149,7 @@ public class UserRepositoryTest {
         entityManager.persistAndFlush(user3);
 
         List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group1.getId(), PageRequest.of(0, 10)).getContent();
+        System.out.println(usersNotInGroup.toString());
         assertEquals(2, usersNotInGroup.size());
         assertFalse(usersNotInGroup.contains(user));
         assertTrue(usersNotInGroup.contains(user2));

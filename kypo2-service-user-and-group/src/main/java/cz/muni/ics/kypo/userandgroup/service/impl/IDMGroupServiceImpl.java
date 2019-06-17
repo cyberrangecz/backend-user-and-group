@@ -203,7 +203,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserAndGroupServiceException("User with id " + userId + " could not be found"));
-            if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR) && securityService.hasLoggedInUserSameLogin(user.getLogin())) {
+            if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && securityService.hasLoggedInUserSameLogin(user.getLogin())) {
                 throw new UserAndGroupServiceException("An administrator could not remove himself from the administrator group.");
             }
             groupToUpdate.removeUser(user);
