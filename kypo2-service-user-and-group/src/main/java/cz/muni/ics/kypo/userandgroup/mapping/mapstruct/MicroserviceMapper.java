@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
@@ -14,7 +15,7 @@ import java.util.*;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface    MicroserviceMapper extends ParentMapper {
 
     Microservice mapCreateToEntity(NewMicroserviceDTO dto);

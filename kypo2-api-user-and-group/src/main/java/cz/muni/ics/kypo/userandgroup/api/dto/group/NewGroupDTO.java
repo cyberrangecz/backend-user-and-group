@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import cz.muni.ics.kypo.userandgroup.api.converters.LocalDateTimeUTCSerializer;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import io.swagger.annotations.ApiModelProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;

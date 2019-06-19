@@ -6,6 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
@@ -15,7 +16,7 @@ import java.util.*;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
-@Mapper(componentModel = "spring", uses = {RoleMapper.class})
+@Mapper(componentModel = "spring", uses = {RoleMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IDMGroupMapper extends ParentMapper {
 
     IDMGroup mapToEntity(GroupDTO dto);
