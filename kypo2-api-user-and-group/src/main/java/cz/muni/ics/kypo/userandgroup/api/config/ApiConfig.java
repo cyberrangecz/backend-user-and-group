@@ -4,6 +4,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Api configuration.
+ *
  * @author Pavel Seda
  */
 @Configuration

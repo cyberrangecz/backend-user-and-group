@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.api.dto;
+package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
 /**
  * @author Pavel Seda

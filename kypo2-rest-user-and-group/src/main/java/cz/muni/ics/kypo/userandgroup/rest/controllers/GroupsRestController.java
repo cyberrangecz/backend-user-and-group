@@ -5,7 +5,7 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Rest controller for the IDMGroup resource.
+ *
  * @author Jan Duda
  * @author Pavel Seda
  */
@@ -45,12 +47,24 @@ public class GroupsRestController {
     private IDMGroupFacade groupFacade;
     private ObjectMapper objectMapper;
 
+    /**
+     * Instantiates a new GroupsRestController.
+     *
+     * @param groupFacade  the group facade
+     * @param objectMapper the object mapper
+     */
     @Autowired
     public GroupsRestController(IDMGroupFacade groupFacade, ObjectMapper objectMapper) {
         this.groupFacade = groupFacade;
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Create a new group in the database.
+     *
+     * @param newGroupDTO new group to be created {@link NewGroupDTO}.
+     * @return the {@link ResponseEntity} with body type {@link GroupDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "POST",
             value = "Create new group.",
             response = GroupDTO.class,
@@ -72,6 +86,12 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Update group in the database.
+     *
+     * @param updateGroupDTO the group to be updated {@link UpdateGroupDTO}.
+     * @return the response entity without body and specific status code and header.
+     */
     @ApiOperation(httpMethod = "PUT",
             value = "Updates input group.",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -92,6 +112,13 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Remove users from the group.
+     *
+     * @param id the ID of the group.
+     * @param userIds a list of IDs of the users to be imported
+     * @return the response entity without body and specific status code and header.
+     */
     @ApiOperation(httpMethod = "DELETE",
             value = "Remove users from input group.",
             consumes = MediaType.APPLICATION_JSON_VALUE
@@ -114,6 +141,13 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Add users to the group.
+     *
+     * @param groupId the ID of the group
+     * @param addUsers {@link AddUsersToGroupDTO}.
+     * @return the response entity without body and specific status code and header.
+     */
     @ApiOperation(httpMethod = "PUT",
             value = "Add users to group.",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -136,6 +170,12 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Delete group from the database.
+     *
+     * @param id the ID of group.
+     * @return the {@link ResponseEntity} with body type and specific status code and header.
+     */
     @ApiOperation(httpMethod = "DELETE",
             value = "Tries to delete group with given id and returns if it was successful.",
             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -163,6 +203,12 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Delete groups from the database.
+     *
+     * @param ids list of IDs of the group to be deleted.
+     * @return the {@link ResponseEntity} with body type and specific status code and header.
+     */
     @ApiOperation(httpMethod = "DELETE",
             value = "Tries to delete groups with given ids and returns groups and statuses of their deletion.",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -179,6 +225,15 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Gets groups.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters.
+     * @param fields     attributes of the object to be returned as the result.
+     * @return the groups.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Get groups.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -197,6 +252,12 @@ public class GroupsRestController {
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
     }
 
+    /**
+     * Gets the group with the given ID.
+     *
+     * @param id the ID of the group.
+     * @return the {@link ResponseEntity} with body type {@link GroupDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Get group with given id",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -212,6 +273,12 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Gets the roles of the group with the given group ID.
+     *
+     * @param id the ID of the group
+     * @return the {@link ResponseEntity} with body type of the given group and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Returns all roles of group with given id.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -227,6 +294,13 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Assign a new role to the group.
+     *
+     * @param groupId the ID of the group.
+     * @param roleId  the ID of the role to be added.
+     * @return the response entity with specific status code and header.
+     */
     @ApiOperation(httpMethod = "PUT",
             value = "Assign role with given role ID to group with given ID"
     )
@@ -244,6 +318,13 @@ public class GroupsRestController {
         }
     }
 
+    /**
+     * Remove the role from the group with the given ID.
+     *
+     * @param groupId the ID of the group.
+     * @param roleId the ID of the role to be removed from the group.
+     * @return the response entity with specific status code and header.
+     */
     @ApiOperation(httpMethod = "DELETE",
             value = "Cancel role with given role ID to group with given ID"
     )

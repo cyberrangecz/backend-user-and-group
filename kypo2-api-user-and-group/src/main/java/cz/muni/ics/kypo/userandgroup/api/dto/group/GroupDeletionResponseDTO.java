@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Objects;
 
 /**
+ * Data transfer object used when some group is deleted.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -14,15 +16,30 @@ public class GroupDeletionResponseDTO {
     private Long id;
     private GroupDeletionStatusDTO status;
 
+    /**
+     * Gets the ID of the group.
+     *
+     * @return the ID of the group
+     */
     @ApiModelProperty(value = "Main identifiers of deleted group.", example = "1")
     public Long getId() {
         return id;
     }
 
+    /**
+     * Sets ID of group.
+     *
+     * @param id the ID of group.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Gets the status of the deletion.
+     *
+     * @return the status of the deletion {@link cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO}.
+     */
     @ApiModelProperty(value = "Result of deleting group: \n" +
             "1) SUCCESS - group was deleted\n " +
             "2) NOT_FOUND - group has not found\n" +
@@ -32,6 +49,11 @@ public class GroupDeletionResponseDTO {
         return status;
     }
 
+    /**
+     * Sets the status of the deletion.
+     *
+     * @param status the status of the deletion {@link cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO}.
+     */
     public void setStatus(GroupDeletionStatusDTO status) {
         this.status = status;
     }

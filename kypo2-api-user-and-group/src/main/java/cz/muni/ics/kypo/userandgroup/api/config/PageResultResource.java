@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.api;
+package cz.muni.ics.kypo.userandgroup.api.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
@@ -8,8 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class is used to replace Page class and reduce number of returned elements (standard Page
- * class contains fields, which are not usefull (backward compatability)).
+ * This class is used to replace Page class and reduce the number of returned elements (standard Page class contains
+ * fields, which are not useful (backward compatibility)).
  *
  * @author Pavel Šeda (441048)
  */

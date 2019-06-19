@@ -1,11 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.domain.Page;
@@ -16,147 +13,152 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * The interface for the User service layer.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
 public interface UserService {
 
     /**
-     * Gets user with given id from database.
+     * Gets user with given ID from the database.
      *
-     * @param id of the user to be loaded
-     * @return user with given id
-     * @throws UserAndGroupServiceException if user was not found
+     * @param id the ID of the user to be loaded.
+     * @return the {@link User} with the given ID.
+     * @throws UserAndGroupServiceException if user was not found.
      */
     User get(Long id);
 
     /**
-     * Deletes given user from database and returns status of deletion.
-     * Return values: SUCCESS - successfully deleted
-     * EXTERNAL_VALID - user is from external source and is not marked as DELETED
+     * Delete given user from database and returns status of the deletion.
      *
-     * @param user to be deleted
-     * @return status of deletion
-     * @throws UserAndGroupServiceException if some error occurred when deleting user
+     * @param user user to be deleted.
+     * @return status of deletion {@link UserDeletionStatusDTO}.
      */
     UserDeletionStatusDTO delete(User user);
 
     /**
-     * Tries to delete users with given ids from database and returns map of users and statuses of their deletion.
-     * Statuses: SUCCESS - successfully deleted
-     * EXTERNAL_VALID - user is from external source and is not marked as DELETED
-     * ERROR - when some exception occurred while deleting user
-     * NOT_FOUND - user could not be found
+     * Tries to delete users with the given list of IDs from the database and returns a map of users and statuses of their deletion.
      *
-     * @param idsOfUsers ids of users to be deleted
-     * @return map of users and statuses of their deletion
+     * @param idsOfUsers list of IDs of users to be deleted.
+     * @return map of {@link User}s and statuses {@link UserDeletionStatusDTO} of their deletion.
      */
     Map<User, UserDeletionStatusDTO> deleteUsers(List<Long> idsOfUsers);
 
     /**
-     * Add/Cancel admin role to user with given id.
+     * Add/Cancel admin role to the user with the given ID.
      *
-     * @param id of user to be changed their admin role.
-     * @throws UserAndGroupServiceException when administrator group could not be  found
+     * @param userId the ID of the user whose admin role should be changed.
+     * @throws UserAndGroupServiceException when the administrator group could not be found.
      */
-    void changeAdminRole(Long id);
+    void changeAdminRole(Long userId);
 
     /**
-     * Returns true if user with given id has administrator role, false otherwise.
+     * Check if the user with the given ID is administrator or not.
      *
-     * @param id of user checked if they are administrator
-     * @throws UserAndGroupServiceException when administrator group could not be  found
+     * @param userId the ID of the user to be checked.
+     * @return true if the {@link User} with the given ID is administrator, false otherwise.
+     * @throws UserAndGroupServiceException when the administrator group could not be found.
      */
-    boolean isUserAdmin(Long id);
+    boolean isUserAdmin(Long userId);
 
     /**
-     * Gets user with given user identity from database.
+     * Gets user with given user login from the database.
      *
-     * @param login of the user to be loaded
-     * @return user with given user identity
-     * @throws UserAndGroupServiceException if user with given login could not be found
+     * @param login login of the user to be loaded.
+     * @return the {@link User} with given user login.
+     * @throws UserAndGroupServiceException if the user with the given login could not be found.
      */
     User getUserByLogin(String login);
 
     /**
-     * Returns all users from database.
+     * Gets all users from the database.
      *
-     * @return users in database
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable  pageable parameter with information about pagination.
+     * @return list of {@link User}s wrapped up in {@link Page}.
      */
     Page<User> getAllUsers(Predicate predicate, Pageable pageable);
 
     /**
-     * Returns all users who are not in group with given groupId
+     * Gets all users, not in a given IDMGroup with the given ID.
      *
-     * @param groupId  id of group
-     * @param pageable parameter with information about pagination
-     * @return page of users who are not in group with given groupId
+     * @param groupId  the ID of the IDMGroup.
+     * @param pageable pageable parameter with information about pagination.
+     * @return list of users who are not in the {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with the given group ID and wrapped up in {@link Page}.
      */
     Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
 
     /**
-     * Returns user with IDM groups from database
+     * Gets users with IDMGroups from the database.
      *
-     * @param id of the user to be loaded
-     * @return user with IDM groups in database
-     * @throws UserAndGroupServiceException if some error occurred when loading user with groups
+     * @param id the ID of the user to be loaded.
+     * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s from the database.
+     * @throws UserAndGroupServiceException if user could not be found.
      */
     User getUserWithGroups(Long id);
 
     /**
-     * Returns user with IDM groups from database
+     * Gets users with IDMGroups from the database.
      *
-     * @param login of the user to be loaded
-     * @return user with IDM groups in database
-     * @throws UserAndGroupServiceException if some error occurred when loading user with groups
+     * @param login the login of the user to be loaded.
+     * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s from the database.
+     * @throws UserAndGroupServiceException if user could not be found.
      */
     User getUserWithGroups(String login);
 
     /**
-     * Returns true if user is internal otherwise false
+     * Returns true if the user is internal, otherwise false.
      *
-     * @param id of user
-     * @return true if user is internal otherwise false
-     * @throws UserAndGroupServiceException if user could not be found
+     * @param id the ID of the user.
+     * @return true if the{@link User} is internal otherwise false.
+     * @throws UserAndGroupServiceException if the user could not be found.
      */
     boolean isUserInternal(Long id);
 
     /**
-     * Returns all roles of user with given id
+     * Gets all {@link Role}s of users with the given ID.
      *
-     * @param id of user.
-     * @return all roles of user with given id
-     * @throws UserAndGroupServiceException if user could not be found
+     * @param id the ID of the user.
+     * @return set of all roles of users with the given ID.
+     * @throws UserAndGroupServiceException if the user could not be found.
      */
     Set<Role> getRolesOfUser(Long id);
 
     /**
-     * Returns all users in given groups.
+     * Gets all users in given groups.
      *
-     * @param groupsIds ids of groups to which are users assigned
-     * @return users in given groups
+     * @param groupsIds set of IDs of groups to which are users assigned.
+     * @param pageable pageable parameter with information about pagination.
+     * @return list of {@link User}s in given groups wrapped up in {@link Page}.
      */
     Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
 
     /**
-     * Returns page of users specified by given role type, predicate and pageable
+     * Get all users with the {@link Role} with a given role ID.
      *
-     * @param pageable parameter with information about pagination
-     * @param roleId id of role to get users for
-     * @return page of users specified by given predicate and pageable
-     * @throws UserAndGroupServiceException if role is not found in DB
+     * @param roleId the ID of the role to get users for.
+     * @param pageable pageable parameter with information about pagination.
+     * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
+     * @throws UserAndGroupServiceException if the role could not be found
      */
     Page<User> getUsersWithGivenRole(Long roleId, Pageable pageable);
 
     /**
-     * Returns page of users specified by given role type, predicate and pageable
+     * Get all users with the {@link Role} with a given role type.
      *
-     * @param pageable parameter with information about pagination
-     * @param roleType id of role to get users for
-     * @return page of users specified by given predicate and pageable
-     * @throws UserAndGroupServiceException if role is not found in DB
+     * @param roleType the name of the role to get users for.
+     * @param pageable pageable parameter with information about pagination.
+     * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
+     * @throws UserAndGroupServiceException if the role could not be found.
      */
     Page<User> getUsersWithGivenRole(String roleType, Pageable pageable);
 
+    /**
+     * Gets users with a given set of logins.
+     *
+     * @param logins set of logins.
+     * @return set of {@link User}s with logins in given set of logins.
+     */
     Set<User> getUsersWithGivenLogins(Set<String> logins);
 }

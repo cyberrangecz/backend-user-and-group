@@ -1,37 +1,39 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 
 import java.util.List;
 
 /**
+ * The interface for the Microservice service layer.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
 public interface MicroserviceService {
 
     /**
-     * Gets microservice with given id from database.
+     * Gets microservice with the given ID from the database.
      *
-     * @param id of the microservice to be loaded
-     * @return microservice with given id
-     * @throws UserAndGroupServiceException if microservice was not found
+     * @param id ID of the microservice to be loaded.
+     * @return the microservice with the given ID.
+     * @throws UserAndGroupServiceException if microservice was not found.
      */
     Microservice get(Long id);
 
     /**
-     * Returns all Microservices from database.
+     * Returns list of all microservices from the database.
      *
-     * @return Microservices in database
+     * @return list of {@link Microservice}s.
      */
     List<Microservice> getMicroservices();
 
     /**
-     * Create new microservice.
+     * Create a given microservice in database.
      *
-     * @param microservice to be created
-     * @return Created microservice
+     * @param microservice to be created.
+     * @return created {@link Microservice}.
      */
     Microservice create(Microservice microservice);
 }

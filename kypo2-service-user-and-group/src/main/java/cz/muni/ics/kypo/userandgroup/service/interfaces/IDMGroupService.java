@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.springframework.data.domain.Page;
@@ -14,131 +14,138 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * The interface for IDMGroup service layer.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
 public interface IDMGroupService {
     /**
-     * Gets IDM group with given id from database.
+     * Gets IDMGroup with the given ID.
      *
-     * @param id of the IDM group to be loaded
-     * @return IDM group with given id
-     * @throws UserAndGroupServiceException if group was not found
+     * @param id The ID of the IDMGroup to be loaded.
+     * @return the {@link IDMGroup} with the given ID.
+     * @throws UserAndGroupServiceException if a group was not found.
      */
     IDMGroup get(Long id);
 
     /**
-     * Creates given IDM group in database.
+     * Creates new IDMGroup.
      *
-     * @param group                     group to be created
-     * @param groupIdsOfImportedMembers all users from groups with given ids will be imported to new group
-     * @return created group
-     * @throws UserAndGroupServiceException if some of group with given ids could not be found
+     * @param group IDMGroup to be created.
+     * @param groupIdsOfImportedMembers all {@link cz.muni.ics.kypo.userandgroup.model.User}s from groups with given IDs will be imported to new group.
+     * @return created {@link IDMGroup}.
+     * @throws UserAndGroupServiceException if some of the groups with given IDs could not be found.
      */
     IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers);
 
     /**
-     * Updates given IDM group in database.
+     * Update given IDMGroup.
      *
-     * @param group group to be updated
-     * @return updated group
-     * @throws ExternalSourceException if group with given groupID is external and cannot be edited
+     * @param group IDMGroup to be updated.
+     * @return the {@link IDMGroup} with  updated fields.
+     * @throws ExternalSourceException if the group with the given ID is external and cannot be edited.
+     * @throws UserAndGroupServiceException if the group with the given ID is main and its name is trying to be changed.
      */
     IDMGroup update(IDMGroup group);
 
     /**
-     * Delete given IDM group from database and return status of deletion.
-     * Return values: SUCCESS - succesfully deleted
-     * EXTERNAL_VALID - group is from external source and is not marked as DELETED
+     * Delete given IDMGroup from the database and return status of the deletion.
      *
-     * @param group group to be deleted
-     * @return status of deletion
+     * @param group the group to be deleted.
+     * @return status of the group deletion {@link cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDeletionResponseDTO}.
      */
     GroupDeletionStatusDTO delete(IDMGroup group);
 
     /**
-     * Returns all IDM groups from database.
+     * Returns all IDMGroups from the database.
      *
-     * @return IDM groups in database
+     * @param predicate specifies query to the database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @return list of all {@link IDMGroup}s from database wrapped up in {@link Page}.
      */
     Page<IDMGroup> getAllIDMGroups(Predicate predicate, Pageable pageable);
 
     /**
-     * Gets IDM group with given name from database.
+     * Gets the IDMGroup with the given name.
      *
-     * @param name of the IDM group to be loaded
-     * @return IDM group with given name
-     * @throws UserAndGroupServiceException if group was not found
+     * @param name the name of the IDMGroup to be loaded.
+     * @return the {@link IDMGroup} with the given name
+     * @throws UserAndGroupServiceException if the group was not found.
      */
     IDMGroup getIDMGroupByName(String name);
 
     /**
-     * Returns true if group is internal otherwise false
+     * Returns true if IDMGroup is internal, false otherwise.
      *
-     * @param id of group
-     * @return true if group is internal otherwise false
-     * @throws UserAndGroupServiceException if group was not found
+     * @param id the ID of the IDMGroup.
+     * @return true if the {@link IDMGroup} is internal otherwise false.
+     * @throws UserAndGroupServiceException if the group was not found.
      */
     boolean isGroupInternal(Long id);
 
     /**
-     * Returns all roles of group with given id
+     * Returns all roles of IDMGroup with given ID.
      *
-     * @param id of group.
-     * @return all roles of group with given id
-     * @throws UserAndGroupServiceException if group was not found
+     * @param id ID of the IDMGroup.
+     * @return all roles of {@link IDMGroup} with the given ID.
+     * @throws UserAndGroupServiceException if the group was not found.
      */
     Set<Role> getRolesOfGroup(Long id);
 
     /**
-     * Assigns role to group with given groupId
+     * Assigns the role to the IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.model.User}s in the group
+     * will obtain an assigned role.
      *
-     * @param groupId id of group which will get role with role type
-     * @param roleId  id of role to be assigned to group
-     * @return group with assigned role with given role type
-     * @throws UserAndGroupServiceException if group or one of the main role could not be find
+     * @param groupId the ID of the IDMGroup which will get the role with the given role ID.
+     * @param roleId  the ID of the role to be assigned to the IDMGroup.
+     * @return the {@link IDMGroup} with the assigned role with the given role ID.
+     * @throws UserAndGroupServiceException if the IDMGroup or role with a given ID could not be found.
      */
     IDMGroup assignRole(Long groupId, Long roleId);
 
     /**
-     * Removes role to group with given groupId
+     * Removes role from IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.model.User}s in the group
+     * will lose this role if they do not take on this role from another group.
      *
-     * @param groupId id of group which will lose role with role type
-     * @param roleId  id of role
-     * @return group with lost role with given role type
-     * @throws UserAndGroupServiceException        if group or one of the main role could not be find
-     * @throws RoleCannotBeRemovedToGroupException if role is GUEST or USER which cannot be removed to groups
+     * @param groupId the ID of the IDMGroup from which role with role ID is removed.
+     * @param roleId  the ID of the role.
+     * @return the {@link IDMGroup} with the removed role.
+     * @throws UserAndGroupServiceException if the IDMGroup or the role could not be found.
+     * @throws RoleCannotBeRemovedToGroupException if the role <i>GUEST, USER, ADMINISTRATOR<i/> is removed from the IDMGroup with name  <i>DEFAULT-GROUP,
+     * USER-AND-GROUP_USER, USER-AND-GROUP_ADMINISTRATOR<i/>.
      */
     IDMGroup removeRoleFromGroup(Long groupId, Long roleId);
 
     /**
-     * Removes members of group with given userIds from the group
+     * Removes members of IDMGroup with given list of user IDs from the IDMGroup.
      *
-     * @param groupId id of group
-     * @param userIds ids of users to be removed from given group
-     * @return updated group
-     * @throws UserAndGroupServiceException if some group or user could not be found
-     * @throws ExternalSourceException      if group with given groupID is external and cannot be edited
+     * @param groupId the ID of the IDMGroup.
+     * @param userIds list of IDs of users to be removed from given IDMGroup
+     * @return IDMGroup without removed members.
+     * @throws UserAndGroupServiceException if the IDMGroup or the user could not be found, IDMGroup is DEFAULT-GROUP,
+     * an administrator is trying to remove himself from USER-AND-GROUP_ADMINISTRATOR group.
+     * @throws ExternalSourceException if the group with given group ID is external and cannot be edited.
      */
     IDMGroup removeUsers(Long groupId, List<Long> userIds);
 
     /**
-     * Adds users and users from groups to group with given groupId
+     * Adds users from the list of user IDs and users from IDMGroups from the list of group IDs to the IDMGroup with the given ID.
      *
-     * @param groupId                    id of group
-     * @param idsOfGroupsOfImportedUsers users of groups with given ids will be added to given group
-     * @param idsOfUsersToBeAdd          ids of users to be added to given group
-     * @return updated group
-     * @throws UserAndGroupServiceException if some group or user could not be found
-     * @throws ExternalSourceException      if group with given groupID is external and cannot be edited
+     * @param groupId                    the ID of the group to add users.
+     * @param idsOfGroupsOfImportedUsers list of group IDs whose users to be imported to the given IDMGroup.
+     * @param idsOfUsersToBeAdd          list of user IDs to be imported to the given group.
+     * @return updated {@link IDMGroup}.
+     * @throws UserAndGroupServiceException if the IDMGroup or some user could not be found.
+     * @throws ExternalSourceException      if the IDMGroup with a given group ID is external and cannot be edited.
      */
     IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd);
 
     /**
-     * Gets IDM group for default roles from database.
+     * Gets IDMGroup for default roles from the database.
      *
-     * @return IDM group for default roles
-     * @throws UserAndGroupServiceException if group was not found
+     * @return {@link IDMGroup} for default roles - <i>DEFAULT-GROUP<i/>.
+     * @throws UserAndGroupServiceException if the IDMGroup was not found.
      */
     IDMGroup getGroupForDefaultRoles();
 }

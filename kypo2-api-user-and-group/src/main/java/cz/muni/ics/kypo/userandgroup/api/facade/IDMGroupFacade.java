@@ -1,16 +1,12 @@
 package cz.muni.ics.kypo.userandgroup.api.facade;
 
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.ResponseRoleToGroupInMicroservicesDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.RoleAndMicroserviceDTO;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.client.RestClientException;
 
 import com.querydsl.core.types.Predicate;
 
@@ -18,118 +14,121 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * The interface for the IDMGroup facade layer.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
 public interface IDMGroupFacade {
 
     /**
-     * Creates IDMGroup with information from given newGroupDTO and returns created group.
+     * Gets IDMGroup with given ID from database.
      *
-     * @param newGroupDTO group to be created
-     * @return created group
-     * @throws UserAndGroupFacadeException if some of group could not be found from given list of group ids
+     * @param groupId the ID of the IDMGroup to be loaded.
+     * @return the IDMGroup with the given ID.
+     * @throws UserAndGroupFacadeException if group was not found
+     */
+    GroupDTO getGroup(Long groupId);
+
+    /**
+     * Creates a IDMGroup with information from the given {@link NewGroupDTO} and returns a created group.
+     *
+     * @param newGroupDTO a group to be created.
+     * @return a created group encapsulate in {@link GroupDTO}.
      */
     GroupDTO createGroup(NewGroupDTO newGroupDTO);
 
     /**
-     * Updates given IDM group in database.
+     * Update given IDMGroup with information from the given {@link UpdateGroupDTO}.
      *
-     * @param updateGroupDTO group to be updated
-     * @throws ExternalSourceException if group with given group is external and cannot be edited
+     * @param updateGroupDTO a group to be updated.
+     * @throws ExternalSourceException if the given group is external and cannot be edited.
      */
     void updateGroup(UpdateGroupDTO updateGroupDTO);
 
     /**
-     * Removes members of group with given userIds from the group
+     * Delete the given group from the database and return the status of the deletion.
      *
-     * @param groupId id of group from which given users should be removed
-     * @param userIds ids of users to be removed from given group
-     * @throws UserAndGroupFacadeException if some group or user could not be found
-     * @throws ExternalSourceException if group with given group is external and cannot be edited
+     * @param groupId the ID of the group to be deleted.
+     * @return the status of the deletion {@link GroupDeletionResponseDTO}.
      */
-    void removeUsers(Long groupId, List<Long> userIds);
+    GroupDeletionResponseDTO deleteGroup(Long groupId);
 
     /**
-     * Adds users and users from groups to group with given groupId in input parameter addMember
+     * Returns all groups from the database specified by the given predicate and pageable.
      *
-     * @param groupId id of group to add users
-     * @param addUsers parameter containing users to be added, groups which users will be added to group with groupId
-     * @throws UserAndGroupFacadeException if some group or user could not be found
-     * @throws ExternalSourceException if group with given group is external and cannot be edited
-     */
-    void addUsers(Long groupId, AddUsersToGroupDTO addUsers);
-
-    /**
-     * Deletes group with given id from database and returns status of deletion with group name and id.
-     *
-     * @param id of group to be deleted
-     * @return status of deletion with name and id of group
-     */
-    GroupDeletionResponseDTO deleteGroup(Long id);
-
-    /**
-     * Deletes groups with given ids from database and returns statuses of deletion with groups name and id.
-     *
-     * @param ids of groups to be deleted
-     * @return statuses of deletion with name and id of groups
-     */
-    List<GroupDeletionResponseDTO> deleteGroups(List<Long> ids);
-
-    /**
-     * Returns page of groups specified by given predicate and pageable
-     *
-     * @param predicate specifies query to databse
-     * @param pageable parameter with information about pagination
-     * @return page of groups specified by given predicate and pageable
+     * @param predicate specifies query to database.
+     * @param pageable  abstract interface for pagination information.
+     * @return a list of all {@link GroupDTO} from the database wrapped up in {@link PageResultResource}.
      */
     PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable);
 
     /**
-     * Returns group with given id
+     * Returns true if the group is internal otherwise false.
      *
-     * @param id of group to be loaded
-     * @return group with given id
-     * @throws UserAndGroupFacadeException if group with given id could not be found
+     * @param groupId the ID of the group.
+     * @return true if the group is internal otherwise false.
+     * @throws UserAndGroupFacadeException if the group was not found.
      */
-    GroupDTO getGroup(Long id);
+    boolean isGroupInternal(Long groupId);
 
     /**
-     * Returns all roles from all registered microservices of group with given id
+     * Returns all roles of the group with the given ID.
      *
-     * @param id of group
-     * @return all roles of group with given id
-     * @throws UserAndGroupFacadeException if some of microservice does not return http code 2xx
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @param groupId the ID of the IDMGroup.
+     * @return set of {@link RoleDTO} of IDMGroup with the given ID.
+     * @throws UserAndGroupFacadeException if the IDMGroup was not found.
      */
-    Set<RoleDTO> getRolesOfGroup(Long id);
+    Set<RoleDTO> getRolesOfGroup(Long groupId);
 
     /**
-     * Assigns role with given roleId in microservice with microserviceID to group with given groupId
+     * Assigns the role to the IDMGroup with the given ID. All users in group will obtain an assigned role.
      *
-     * @param groupId of group
-     * @param roleId of role to be assigned to group
-     * @throws UserAndGroupFacadeException if group or role could not be found
-     * @throws MicroserviceException if client error occurs during calling other microservice, probably due to wrong URL
+     * @param groupId the ID of the IDMGroup which will get role with given role ID.
+     * @param roleId  the ID of the role to be assigned to IDMGroup.
+     * @throws UserAndGroupFacadeException if the IDMGroup or the role with the given ID could not be found.
      */
     void assignRole(Long groupId, Long roleId);
 
     /**
-     * Returns true if group is internal otherwise false
+     * Removes the role from the IDMGroup with the given ID. All users in the group
+     * will lose this role if they do not take on this role from another group.
      *
-     * @param id of group
-     * @return true if group is internal otherwise false
-     * @throws UserAndGroupFacadeException if group was not found
-     */
-    boolean isGroupInternal(Long id);
-
-    /**
-     * Cancel role with given roleId from group with given groupId
-     *
-     * @param groupId of group
-     * @param roleId of role to be assigned to group
-     * @throws UserAndGroupFacadeException if group or role could not be found
+     * @param groupId the ID of the IDMGroup from which role with role ID is removed.
+     * @param roleId  the ID of the role.
+     * @throws UserAndGroupFacadeException if the IDMGroup or role could not be found.
+     * @throws RoleCannotBeRemovedToGroupException if role GUEST, USER, ADMINISTRATOR is removed from IDMGroup with name  DEFAULT-GROUP,
+     * USER-AND-GROUP_USER, USER-AND-GROUP_ADMINISTRATOR.
      */
     void removeRoleFromGroup(Long groupId, Long roleId);
+
+    /**
+     * Removes members with a given list of user IDs from the IDMGroup.
+     *
+     * @param groupId the ID of the IDMGroup.
+     * @param userIds a list of IDs of users to be removed from given IDMGroup.
+     * @throws UserAndGroupFacadeException if the IDMGroup or the user could not be found, IDMGroup is DEFAULT-GROUP,
+     * the administrator is trying to remove himself from USER-AND-GROUP_ADMINISTRATOR group.
+     * @throws ExternalSourceException if the group with the given group ID is external and cannot be edited.
+     */
+    void removeUsers(Long groupId, List<Long> userIds);
+
+    /**
+     * Adds users from {@link AddUsersToGroupDTO} to the IDMGroup with the given ID.
+     *
+     * @param groupId the ID of the group to add users.
+     * @param addUsers DTO containing a list of IDs of users and a list of IDs of groups.
+     * @throws UserAndGroupFacadeException if the IDMGroup or some user could not be found.
+     * @throws ExternalSourceException if the IDMGroup with given group ID is external and cannot be edited.
+     */
+    void addUsers(Long groupId, AddUsersToGroupDTO addUsers);
+
+    /**
+     * Delete groups with given IDs from the database and returns statuses of deletion with groups name and IDs.
+     *
+     * @param groupIds IDs of groups to be deleted.
+     * @return statuses of deletion {@link GroupDeletionResponseDTO}.
+     */
+    List<GroupDeletionResponseDTO> deleteGroups(List<Long> groupIds);
 
 }

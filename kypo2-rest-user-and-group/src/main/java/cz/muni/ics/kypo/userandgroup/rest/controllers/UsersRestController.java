@@ -6,12 +6,12 @@ import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.MicroserviceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Rest controller for the User resource.
+ *
  * @author Pavel Seda
  * @author Jan Duda
  */
@@ -53,12 +55,27 @@ public class UsersRestController {
     private UserFacade userFacade;
     private ObjectMapper objectMapper;
 
+    /**
+     * Instantiates a new UsersRestController.
+     *
+     * @param userFacade   the user facade
+     * @param objectMapper the object mapper
+     */
     @Autowired
     public UsersRestController(UserFacade userFacade, ObjectMapper objectMapper) {
         this.userFacade = userFacade;
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Gets users.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters
+     * @param fields     attributes of the object to be returned as the result.
+     * @return the users
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets all users.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -77,6 +94,16 @@ public class UsersRestController {
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
+    /**
+     * Gets all users in groups with a given set of IDs.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters
+     * @param fields     attributes of the object to be returned as the result.
+     * @param groupsIds  the groups ids
+     * @return the users in groups
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets users in given groups.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -96,6 +123,12 @@ public class UsersRestController {
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
+    /**
+     * Gets the user with the given ID.
+     *
+     * @param id the ID of the user.
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets user with given id.",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -110,6 +143,14 @@ public class UsersRestController {
         }
     }
 
+    /**
+     * Gets all users, not in the group with the given group ID.
+     *
+     * @param groupId the ID of the group
+     * @param pageable pageable parameter with information about pagination.
+     * @param fields attributes of the object to be returned as the result.
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets all users except users in given group.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -126,6 +167,12 @@ public class UsersRestController {
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
+    /**
+     * Delete the user with the given ID.
+     *
+     * @param id the ID of user to be deleted.
+     * @return the {@link ResponseEntity} with body type {@link UserDeletionResponseDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "DELETE",
             value = "Tries to delete user with given screen name and returns status of its result.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -149,6 +196,12 @@ public class UsersRestController {
         }
     }
 
+    /**
+     * Delete users with a given list of IDs.
+     *
+     * @param ids a list of IDs of users.
+     * @return the {@link ResponseEntity} with body type list of {@link UserDeletionResponseDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "DELETE",
             value = "Tries to delete users with given ids and returns users and statuses of their deletion.",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -162,6 +215,12 @@ public class UsersRestController {
         return new ResponseEntity<>(userFacade.deleteUsers(ids), HttpStatus.OK);
     }
 
+    /**
+     * Gets the roles of users with the given ID.
+     *
+     * @param id the ID of the user.
+     * @return the {@link ResponseEntity} with body type set of {@link RoleDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Returns all roles of user with given id.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -177,6 +236,12 @@ public class UsersRestController {
         }
     }
 
+    /**
+     * Gets info about logged in user.
+     *
+     * @param authentication the authentication of the user.
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Returns details of user who is logged in",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -190,11 +255,16 @@ public class UsersRestController {
             JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
             String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
             throw new ResourceNotFoundException("Logged in user with login " + sub + " could not be found in database.");
-        } catch (MicroserviceException e) {
-            throw new ServiceUnavailableException(e.getLocalizedMessage());
         }
     }
 
+    /**
+     * Gets users with a given set of logins.
+     *
+     * @param fields attributes of the object to be returned as the result.
+     * @param logins set of logins of users to be loaded.
+     * @return the {@link ResponseEntity} with body type set of {@link UserDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets users with given logins.",
             produces = MediaType.APPLICATION_JSON_VALUE

@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 /**
+ * SecurityService class provides methods for obtaining information about logged in user.
+ *
  * @author Dominik Pilar
  * @author Pavel Seda
  */
@@ -27,27 +29,57 @@ public class SecurityService {
     private UserRepository userRepository;
     private IDMGroupRepository groupRepository;
 
+    /**
+     * Instantiates a new Security service.
+     *
+     * @param userRepository  the user repository
+     * @param groupRepository the group repository
+     */
     @Autowired
     public SecurityService(UserRepository userRepository, IDMGroupRepository groupRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
     }
 
+    /**
+     * Check if logged in {@link User} has same login as given login.
+     *
+     * @param login the login of the user
+     * @return true if login of logged in user is same as given login, false otherwise.w
+     */
     public boolean hasLoggedInUserSameLogin(String login) {
         return login.equals(getSubOfLoggedInUser());
     }
 
+    /**
+     * Check if logged in {@link User} has same ID as given ID.
+     *
+     * @param userId ID of the user
+     * @return true if ID of logged in user is same as given ID, false otherwise.
+     */
     public boolean hasLoggedInUserSameId(Long userId) {
         User loggedInUser = getLoggedInUser();
         return userId.equals(loggedInUser.getId());
     }
 
+    /**
+     * Check if logged in {@link User} is in {@link IDMGroup} with given group ID.
+     *
+     * @param groupId ID of the IDMGroup
+     * @return true if logged in user is in group with given group ID, false otherwise.
+     */
     public boolean isLoggedInUserInGroup(Long groupId) {
         User loggedInUser = getLoggedInUser();
         IDMGroup group = groupRepository.getOne(groupId);
         return group.getUsers().contains(loggedInUser);
     }
 
+    /**
+     * Check if logged in {@link User} is in {@link IDMGroup} with given group name.
+     *
+     * @param groupName name of the IDMGroup
+     * @return true if logged in user is in group with given group name, false otherwise.
+     */
     public boolean isLoggedInUserInGroup(String groupName) {
         User loggedInUser = getLoggedInUser();
         Optional<IDMGroup> optionalGroup = groupRepository.findByName(groupName);

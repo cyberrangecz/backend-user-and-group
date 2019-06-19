@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
@@ -29,6 +30,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Rest controller for the Role resource.
+ *
  * @author Pavel Seda
  * @author Jan Duda
  */
@@ -43,6 +46,13 @@ public class RolesRestController {
     private UserFacade userFacade;
     private ObjectMapper objectMapper;
 
+    /**
+     * Instantiates a new RolesRestController.
+     *
+     * @param roleFacade   the role facade
+     * @param userFacade   the user facade
+     * @param objectMapper the object mapper
+     */
     @Autowired
     public RolesRestController(RoleFacade roleFacade, UserFacade userFacade, ObjectMapper objectMapper) {
         this.roleFacade = roleFacade;
@@ -51,6 +61,15 @@ public class RolesRestController {
     }
 
 
+    /**
+     * Gets all roles.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters
+     * @param fields     attributes of the object to be returned as the result.
+     * @return the roles
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Get all roles",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -68,6 +87,12 @@ public class RolesRestController {
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
     }
 
+    /**
+     * Gets the role with the given ID.
+     *
+     * @param id the ID of the role.
+     * @return the {@link ResponseEntity} with body type {@link RoleDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Get role with given id",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -83,6 +108,16 @@ public class RolesRestController {
         }
     }
 
+    /**
+     * Gets users with a given role.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters
+     * @param fields     attributes of the object to be returned as the result.
+     * @param roleId     the ID of the role
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets all users with given role.",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -107,6 +142,16 @@ public class RolesRestController {
         }
     }
 
+    /**
+     * Gets users with a given role type.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters
+     * @param fields     attributes of the object to be returned as the result.
+     * @param roleType   the type of the role
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
     @ApiOperation(httpMethod = "GET",
             value = "Gets all users with given role.",
             produces = MediaType.APPLICATION_JSON_VALUE

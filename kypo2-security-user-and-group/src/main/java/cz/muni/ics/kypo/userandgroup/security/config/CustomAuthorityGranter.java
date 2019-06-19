@@ -25,6 +25,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Class is annotated with {@link Component}, so its mark as candidates for auto-detection when using annotation-based configuration and classpath scanning.
+ * This class is responsible for returning a set of Spring Security GrantedAuthority objects to be assigned to the token service's resulting <i>Authentication</i> object.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */

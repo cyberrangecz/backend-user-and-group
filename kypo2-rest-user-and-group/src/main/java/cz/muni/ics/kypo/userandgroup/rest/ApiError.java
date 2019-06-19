@@ -10,7 +10,7 @@ import java.util.Objects;
 /**
  * <p>
  * Represents a possible representation of errors to be used with the @ControllerAdvice global
- * exception handler.
+ * exceptions handler.
  * </p>
  *
  * @author Pavel Šeda

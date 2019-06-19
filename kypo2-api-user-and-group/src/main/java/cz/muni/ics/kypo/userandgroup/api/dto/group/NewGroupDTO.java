@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
+ * Encapsulates information about a new group to be created in the database.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -26,47 +28,97 @@ public class NewGroupDTO {
 
     private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
+    /**
+     * Gets the name of the group.
+     *
+     * @return the name of the group.
+     */
     @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the group.
+     *
+     * @param name the name of the group.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the description of the group.
+     *
+     * @return the description of the group.
+     */
     @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets description of the group.
+     *
+     * @param description the description of the group.
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Gets the {@link UserForGroupsDTO} of the group.
+     *
+     * @return the {@link UserForGroupsDTO} of the group.
+     */
     @ApiModelProperty(value = "List of users who is assigned to group.")
     public Set<UserForGroupsDTO> getUsers() {
         return users;
     }
 
+    /**
+     * Sets the {@link UserForGroupsDTO} of the group.
+     *
+     * @param users the {@link UserForGroupsDTO} of the group.
+     */
     public void setUsers(Set<UserForGroupsDTO> users) {
         this.users = users;
     }
 
+    /**
+     * Gets a list of IDs of groups from which import users.
+     *
+     * @return the list of IDs of groups from which import users.
+     */
     @ApiModelProperty(value = "Main identifiers of group.", example = "[1]")
     public List<Long> getGroupIdsOfImportedUsers() {
         return groupIdsOfImportedUsers;
     }
 
+    /**
+     * Sets a list of IDs of groups from which import users.
+     *
+     * @param groupIdsOfImportedUsers the group ids of imported users
+     */
     public void setGroupIdsOfImportedUsers(List<Long> groupIdsOfImportedUsers) {
         this.groupIdsOfImportedUsers = groupIdsOfImportedUsers;
     }
 
+    /**
+     * Gets expiration date of the group.
+     *
+     * @return the expiration date of the group
+     */
     @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }
 
+    /**
+     * Sets expiration date of the group.
+     *
+     * @param expirationDate the expiration date of the group.
+     */
     public void setExpirationDate(LocalDateTime expirationDate) {
         this.expirationDate = expirationDate;
     }

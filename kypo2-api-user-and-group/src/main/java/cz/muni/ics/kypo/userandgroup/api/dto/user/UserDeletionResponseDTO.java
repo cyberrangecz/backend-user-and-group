@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Objects;
 
 /**
+ * Encapsulates information about a deleted user.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -14,20 +16,40 @@ public class UserDeletionResponseDTO {
     private UserDTO user;
     private UserDeletionStatusDTO status;
 
+    /**
+     * Gets user who has been deleted.
+     *
+     * @return the {@link UserDTO} who has been deleted.
+     */
     @ApiModelProperty(value = "User to be deleted.")
     public UserDTO getUser() {
         return user;
     }
 
+    /**
+     * Sets user who has been deleted.
+     *
+     * @param user the {@link UserDTO} who has been deleted.
+     */
     public void setUser(UserDTO user) {
         this.user = user;
     }
 
+    /**
+     * Gets the status of user deletion.
+     *
+     * @return the {@link UserDeletionStatusDTO} of user who has been deleted.
+     */
     @ApiModelProperty(value = "Status about result of deletion.", example = "SUCCESS")
     public UserDeletionStatusDTO getStatus() {
         return status;
     }
 
+    /**
+     * Sets the status of user deletion.
+     *
+     * @param status the {@link UserDeletionStatusDTO} of user who has been deleted.
+     */
     public void setStatus(UserDeletionStatusDTO status) {
         this.status = status;
     }

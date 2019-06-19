@@ -359,7 +359,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // resource not created exception
+    // resource not created exceptions
     @ExceptionHandler({ResourceNotCreatedException.class})
     public ResponseEntity<Object> handleResourceNotCreatedException(final ResourceNotCreatedException ex, final WebRequest request, HttpServletRequest req) {
         LOG.debug("handleResourceNotCreatedException({}, {}, {})", ex, request, req);
@@ -381,7 +381,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // resource not created exception
+    // resource not created exceptions
     @ExceptionHandler({ResourceNotModifiedException.class})
     public ResponseEntity<Object> handleResourceNotModifiedException(final ResourceNotModifiedException ex, final WebRequest request, HttpServletRequest req) {
         LOG.debug("handleResourceNotModifiedException({}, {}, {})", ex, request, req);
