@@ -1,8 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.api.converters;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ import java.time.ZoneOffset;
  *
  * @author Pavel Seda
  */
-public class LocalDateTimeUTCSerializer extends StdSerializer<LocalDateTime> {
+public class LocalDateTimeUTCSerializer extends SerializerBase<LocalDateTime> {
 
     public LocalDateTimeUTCSerializer() {
         super(LocalDateTime.class);

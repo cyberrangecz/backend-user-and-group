@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
@@ -14,7 +15,7 @@ import java.util.*;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
-@Mapper(componentModel = "spring", uses = {MicroserviceMapper.class})
+@Mapper(componentModel = "spring", uses = {MicroserviceMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RoleMapper extends ParentMapper {
 
     Role mapToEntity(RoleDTO dto);

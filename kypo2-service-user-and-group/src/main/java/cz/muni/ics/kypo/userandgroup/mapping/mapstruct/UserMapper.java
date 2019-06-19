@@ -9,6 +9,7 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
-@Mapper(componentModel = "spring", uses = {RoleMapper.class})
+@Mapper(componentModel = "spring", uses = {RoleMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper extends ParentMapper {
     User mapToEntity(UserDTO dto);
 

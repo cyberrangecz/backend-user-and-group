@@ -1,8 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.api.converters;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 
 import java.io.IOException;
 import java.time.Instant;
