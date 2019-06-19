@@ -338,13 +338,13 @@ public class IDMGroupsIntegrationTests {
 
 //    @Test
 //    public void removeUsersFromDefaultGroup() throws Exception {
-//        Exception exception = mvc.perform(delete("/groups/{id}/users", defaultGroup.getId())
+//        Exception exceptions = mvc.perform(delete("/groups/{id}/users", defaultGroup.getId())
 //                .content(convertObjectToJsonBytes(List.of(100L)))
 //                .contentType(MediaType.APPLICATION_JSON))
 //                .andExpect(status().isConflict())
 //                .andReturn().getResolvedException();
-//        assertEquals(ConflictException.class, exception.getClass());
-//        assertTrue(exception.getMessage().contains("User cannot be removed from default group."));
+//        assertEquals(ConflictException.class, exceptions.getClass());
+//        assertTrue(exceptions.getMessage().contains("User cannot be removed from default group."));
 //    }
 
     @Test

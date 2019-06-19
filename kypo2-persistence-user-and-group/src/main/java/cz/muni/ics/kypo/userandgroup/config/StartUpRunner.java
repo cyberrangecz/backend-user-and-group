@@ -22,8 +22,13 @@ import java.io.File;
 import java.util.*;
 
 /**
+ * Class is annotated with {@link Component}, so its mark as candidates for auto-detection when using annotation-based configuration and classpath scanning.
+ * This class is responsible for loading main microservice <strong>User-and-group<strong/>, main roles for this microservice and users are listed in the
+ * configuration file. All of these actions are performed during the start of the application.
+ *
  * @author Jan Duda
  * @author Pavel Seda
+ * @author Dominik Pilar
  */
 @Component
 @Transactional

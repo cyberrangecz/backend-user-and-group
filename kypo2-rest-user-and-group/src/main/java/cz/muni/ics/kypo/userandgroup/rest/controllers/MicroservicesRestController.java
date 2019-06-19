@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 /**
+ * Rest controller for the Microservice resource.
+ *
  * @author Dominik Pilar
  */
 @Api(value = "Endpoint for Microservices", hidden = true)
@@ -31,11 +33,22 @@ public class MicroservicesRestController {
 
     private MicroserviceFacade microserviceFacade;
 
+    /**
+     * Instantiates a new MicroservicesRestController.
+     *
+     * @param microserviceFacade the microservice facade
+     */
     @Autowired
     public MicroservicesRestController(MicroserviceFacade microserviceFacade) {
         this.microserviceFacade = microserviceFacade;
     }
 
+    /**
+     * Register new microservice in main microservice User-and-group.
+     *
+     * @param microserviceDTO the microservice to be registered.
+     * @return the response entity with specific status code and header.
+     */
     @ApiOperation(httpMethod = "POST",
             value = "Register new microservice.",
             response = Void.class,

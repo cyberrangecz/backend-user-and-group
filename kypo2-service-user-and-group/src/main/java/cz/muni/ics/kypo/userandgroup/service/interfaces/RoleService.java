@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exception.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,49 +9,53 @@ import org.springframework.data.domain.Pageable;
 import java.util.Set;
 
 /**
+ * The interface for the Role service layer.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
 public interface RoleService {
 
     /**
-     * Returns role by id
+     * Returns role by ID.
      *
-     * @param id of role
-     * @return role with given id
-     * @throws UserAndGroupServiceException if role could not be found
+     * @param id the ID of the role.
+     * @return the {@link Role} with the given ID.
+     * @throws UserAndGroupServiceException if the role could not be found.
      */
     Role getById(Long id) throws UserAndGroupServiceException;
 
     /**
-     * Return role by role type
+     * Returns the role by its role type.
      *
-     * @param roleType of role
-     * @return role with given roleType
-     * @throws UserAndGroupServiceException when role with given role type could not be found
+     * @param roleType the name of the role.
+     * @return the {@link Role} with the given role type.
+     * @throws UserAndGroupServiceException when the role with given role type could not be found.
      */
     Role getByRoleType(String roleType) throws UserAndGroupServiceException;
 
     /**
-     * Returns all roles
+     * Returns list of all roles.
      *
-     * @return all roles
+     * @param predicate specifies query to database.
+     * @param pageable pageable parameter with information about pagination.
+     * @return list of all {@link Role}s from database wrapped up in {@link Page}.
      */
     Page<Role> getAllRoles(Predicate predicate, Pageable pageable);
 
     /**
-     * Create new role
+     * Creates the given role in the database.
      *
-     * @param role to be created
-     * @throws UserAndGroupServiceException if role with given role type already exist
+     * @param role role to be created.
+     * @throws UserAndGroupServiceException if given role already exists.
      */
     void create(Role role);
 
     /**
-     * Returns all role of given microservice
+     * Returns all roles of given {@link cz.muni.ics.kypo.userandgroup.model.Microservice}
      *
-     * @param nameOfMicroservice of which get roles
-     * @return role of microservice with given name
+     * @param nameOfMicroservice unique name of microservice for which get roles.
+     * @return set of {@link Role}s of microservice with the given name.
      */
     Set<Role> getAllRolesOfMicroservice(String nameOfMicroservice);
 }

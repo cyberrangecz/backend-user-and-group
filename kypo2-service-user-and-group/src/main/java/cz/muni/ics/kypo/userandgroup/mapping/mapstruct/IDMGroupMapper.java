@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
@@ -13,6 +13,9 @@ import org.springframework.data.domain.PageImpl;
 import java.util.*;
 
 /**
+ * The IDMGroupMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type IDMGroup and
+ * DTOs classes. Code is generated during compile time.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */

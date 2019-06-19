@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Objects;
 
 /**
+ * Encapsulates information about a microservice.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -14,29 +16,59 @@ public class MicroserviceDTO {
     private String name;
     private String endpoint;
 
+    /**
+     * Gets the ID of the microservice.
+     *
+     * @return the ID of the microservice.
+     */
     @ApiModelProperty(value = "Main identifier of the microservice.", example = "1")
     public Long getId() {
         return id;
     }
 
+    /**
+     * Sets the ID of the microservice.
+     *
+     * @param id the ID of the microservice.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Gets the name of the microservice.
+     *
+     * @return the name of the microservice.
+     */
     @ApiModelProperty(value = "A name of the microservice.", example = "kypo2-training")
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the microservice.
+     *
+     * @param name the name of the microservice.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets endpoint of the microservice.
+     *
+     * @return the endpoint of the microservice.
+     */
     @ApiModelProperty(value = "URI of the microservice.", example = "/kypo2-rest-training/api/v1")
     public String getEndpoint() {
         return endpoint;
     }
 
+    /**
+     * Sets endpoint of the microservice.
+     *
+     * @param endpoint the endpoint of the microservice.
+     */
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
     }

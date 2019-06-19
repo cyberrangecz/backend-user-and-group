@@ -7,11 +7,19 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import java.util.Optional;
 
 /**
+ * The JPA repository interface to manage {@link Microservice} instances.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
 public interface MicroserviceRepository extends JpaRepository<Microservice, Long>,
         QuerydslPredicateExecutor<Microservice> {
 
+    /**
+     * Find Microservice by its name.
+     *
+     * @param name the name of the looking Microservice
+     * @return the {@link Microservice} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     */
     Optional<Microservice> findByName(String name);
 }

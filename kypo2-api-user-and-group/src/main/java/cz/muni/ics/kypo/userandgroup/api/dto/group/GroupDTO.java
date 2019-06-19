@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.api.converters.LocalDateTimeUTCSerializer;
-import cz.muni.ics.kypo.userandgroup.api.dto.Source;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserAndGroupStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
+ * GroupDTO encapsulates information about a group.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -26,6 +28,11 @@ public class GroupDTO {
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
     private LocalDateTime expirationDate;
 
+    /**
+     * Convert the external ID to {@link Source}.
+     *
+     * @param externalId the external id
+     */
     public void convertExternalIdToSource(Long externalId) {
         if (externalId == null) {
             this.source = Source.INTERNAL;
@@ -34,6 +41,11 @@ public class GroupDTO {
         }
     }
 
+    /**
+     * Convert {@link UserAndGroupStatusDTO} to can be deleted.
+     *
+     * @param status the status
+     */
     public void convertStatusToCanBeDeleted(UserAndGroupStatusDTO status) {
         if (status.equals(UserAndGroupStatusDTO.DELETED)) {
             this.canBeDeleted = true;
@@ -43,74 +55,154 @@ public class GroupDTO {
         }
     }
 
+    /**
+     * Gets the ID of the group.
+     *
+     * @return the ID of the group.
+     */
     @ApiModelProperty(value = "Main identifier of group.", example = "1")
     public Long getId() {
         return id;
     }
 
+    /**
+     * Sets the ID of the group.
+     *
+     * @param id the ID of the group.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Gets the name of the group.
+     *
+     * @return the name of the group.
+     */
     @ApiModelProperty(value = "A name of the group.", example = "Main group of organizers")
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the group.
+     *
+     * @param name the name of the group.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the description of the group.
+     *
+     * @return the description of the group.
+     */
     @ApiModelProperty(value = "A description of the group.", example = "Organizers group for training run in June.")
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets the description of the group.
+     *
+     * @param description the description of the group.
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Gets the {@link UserForGroupsDTO} of the group.
+     *
+     * @return the {@link UserForGroupsDTO} of the group.
+     */
     @ApiModelProperty(value = "List of users in group.")
     public Set<UserForGroupsDTO> getUsers() {
         return users;
     }
 
+    /**
+     * Sets the {@link UserForGroupsDTO} of the group. .
+     *
+     * @param users the {@link UserForGroupsDTO} of the group.
+     */
     public void setUsers(Set<UserForGroupsDTO> users) {
         this.users = users;
     }
 
+    /**
+     * Gets the {@link RoleDTO} of the group..
+     *
+     * @return the {@link RoleDTO} of the group.
+     */
     @ApiModelProperty(value = "Set of roles of  group.")
     public Set<RoleDTO> getRoles() {
         return roles;
     }
 
+    /**
+     * Sets the {@link RoleDTO} of the group.
+     *
+     * @param roles the {@link RoleDTO} of the group.
+     */
     public void setRoles(Set<RoleDTO> roles) {
         this.roles = roles;
     }
 
+    /**
+     * Gets the {@link Source} of the group.
+     *
+     * @return the {@link Source} of the group.
+     */
     @ApiModelProperty(value = "Source of the group, whether its internal or from perun.", example = "Internal")
     public Source getSource() {
         return source;
     }
 
+    /**
+     * Sets the {@link Source} of the group.
+     *
+     * @param source the {@link Source} of the group.
+     */
     public void setSource(Source source) {
         this.source = source;
     }
 
+    /**
+     * Mark if the group can be deleted.
+     *
+     * @return true if the group can be deleted, false otherwise
+     */
     @ApiModelProperty(value = "Sign if the group can be deleted.", example = "false")
     public boolean isCanBeDeleted() {
         return canBeDeleted;
     }
 
+    /**
+     * Sets mark if the group can be deleted.
+     *
+     * @param canBeDeleted true if group can be deleted, false otherwise
+     */
     public void setCanBeDeleted(boolean canBeDeleted) {
         this.canBeDeleted = canBeDeleted;
     }
 
+    /**
+     * Gets expiration date of the group.
+     *
+     * @return the expiration date of the group.
+     */
     @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }
 
+    /**
+     * Sets expiration date of the group.
+     *
+     * @param expirationDate the expiration date of the group.
+     */
     public void setExpirationDate(LocalDateTime expirationDate) {
         this.expirationDate = expirationDate;
     }

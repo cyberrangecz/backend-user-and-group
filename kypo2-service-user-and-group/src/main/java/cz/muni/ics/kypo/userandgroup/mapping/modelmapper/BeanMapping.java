@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.mapping.modelmapper;
 
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import org.springframework.data.domain.Page;
 
 import java.util.Collection;

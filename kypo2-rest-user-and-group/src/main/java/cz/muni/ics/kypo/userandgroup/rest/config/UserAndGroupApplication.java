@@ -1,6 +1,5 @@
-package cz.muni.ics.kypo.userandgroup;
+package cz.muni.ics.kypo.userandgroup.rest.config;
 
-import cz.muni.ics.kypo.userandgroup.rest.config.WebConfigRestUserAndGroup;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;

@@ -27,6 +27,8 @@ import java.util.Set;
 import static javax.persistence.GenerationType.IDENTITY;
 
 /**
+ * Represents the role of users. Each role gives different rights to users.
+ *
  * @author Pavel Seda
  */
 @Entity
@@ -43,34 +45,74 @@ public class Role {
     @Column(name = "description")
     private String description;
 
+    /**
+     * Gets the ID of the role.
+     *
+     * @return the ID of the role.
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Sets a new ID of the role.
+     *
+     * @param id the ID of the role.
+     */
     public void setId(Long id) {
         this.id = id;
     }
 
+    /**
+     * Gets role type of the role. Basically, it is the name of the role.
+     *
+     * @return the role type of the role.
+     */
     public String getRoleType() {
         return roleType;
     }
 
+    /**
+     * Sets a new role type of the role.
+     *
+     * @param roleType the role type of type String
+     */
     public void setRoleType(String roleType) {
         this.roleType = roleType;
     }
 
+    /**
+     * Gets microservice of the role in which is role used.
+     *
+     * @return {@link Microservice} in which role is used.
+     */
     public Microservice getMicroservice() {
         return microservice;
     }
 
+    /**
+     * Sets a new microservice of the role in which is role used.
+     *
+     * @param microservice {@link Microservice} in which role is used.
+     */
     public void setMicroservice(Microservice microservice) {
         this.microservice = microservice;
     }
 
+    /**
+     * Gets a short description of the role. What rights the role gives to a user.
+     *
+     * @return the description of the role.
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets a new description of the role.
+     *
+     * @param description the description of the role.
+     */
     public void setDescription(String description) {
         this.description = description;
     }

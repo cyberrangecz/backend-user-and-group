@@ -42,7 +42,7 @@ public class ValidationMessagesConfig {
      * <p>
      * en_US
      * <p>
-     * en -> language; US -> country
+     * en - language; US - country
      */
     public static void main(String[] args) {
         Locale[] locales = Locale.getAvailableLocales();

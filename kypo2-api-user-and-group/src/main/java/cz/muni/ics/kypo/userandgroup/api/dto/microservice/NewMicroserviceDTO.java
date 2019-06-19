@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
+ * Encapsulates information about new microservice to be created in the database.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -23,29 +25,59 @@ public class NewMicroserviceDTO {
     @NotNull(message = "{newMicroserviceDto.roles.NotNull.message}")
     private Set<RoleForNewMicroserviceDTO> roles;
 
+    /**
+     * Gets the name of the microservice.
+     *
+     * @return the name of the microservice.
+     */
     @ApiModelProperty(value = "A name of the microservice.", required = true, example = "kypo2-training")
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the microservice.
+     *
+     * @param name the name of the microservice.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets endpoint of the microservice.
+     *
+     * @return the endpoint of the microservice.
+     */
     @ApiModelProperty(value = "URI of the microservice.", required = true, example = "/kypo2-rest-training/api/v1")
     public String getEndpoint() {
         return endpoint;
     }
 
+    /**
+     * Sets endpoint of the microservice.
+     *
+     * @param endpoint the endpoint of the microservice.
+     */
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
     }
 
+    /**
+     * Gets roles of the microservice.
+     *
+     * @return the {@link RoleForNewMicroserviceDTO} of the microservice.
+     */
     @ApiModelProperty(value = "Roles which are used by the microservice.", required = true)
     public Set<RoleForNewMicroserviceDTO> getRoles() {
         return roles;
     }
 
+    /**
+     * Sets roles of the microservice.
+     *
+     * @param roles the {@link RoleForNewMicroserviceDTO} of the microservice.
+     */
     public void setRoles(Set<RoleForNewMicroserviceDTO> roles) {
         this.roles = roles;
     }

@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.repository;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.model.Role;
+import io.micrometer.core.lang.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -15,6 +16,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
+ * The JPA repository interface to manage {@link Role} instances.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
@@ -22,17 +25,46 @@ import java.util.Set;
 public interface RoleRepository extends JpaRepository<Role, Long>,
         QuerydslPredicateExecutor<Role> {
 
+    /**
+     * Find the role by role type.
+     *
+     * @param roleType the name of the role.
+     * @return {@link Role} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     */
     @EntityGraph(attributePaths = {"microservice"})
     Optional<Role> findByRoleType(String roleType);
 
+    /**
+     * Find all the roles.
+     *
+     * @return list of {@link Role}s wrapped by {@link Page}.
+     */
     @EntityGraph(attributePaths = {"microservice"})
     Page<Role> findAll(Predicate predicate, Pageable pageable);
 
+    /**
+     * Find the role by given ID.
+     *
+     * @param id the ID of the looking Role.
+     * @return the {@link Role} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     */
     @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice WHERE r.id= :id")
     Optional<Role> findById(@Param("id") Long id);
 
+    /**
+     * Returns true if the role with given role type exists, false otherwise.
+     *
+     * @param roleType the name of the role.
+     * @return true if the role with given role type exists, false otherwise.
+     */
     boolean existsByRoleType(String roleType);
 
+    /**
+     * Gets all roles by microservice name.
+     *
+     * @param microserviceName the name of {@link cz.muni.ics.kypo.userandgroup.model.Microservice}
+     * @return the set of {@link Role}s
+     */
     @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName")
     Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
 }

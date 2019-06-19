@@ -1,9 +1,11 @@
 package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
-import cz.muni.ics.kypo.userandgroup.api.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import org.springframework.data.domain.Page;
 
 /**
+ * ParentMapper is parent class for mappers which contains only one method for creating pagination.
+ *
  * @author Pavel Seda
  * @author Dominik Pilar
  */
