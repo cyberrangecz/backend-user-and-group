@@ -104,10 +104,10 @@ buildDebian:
         - triggers
         - branches
         - tags
-    artifacts:
-        paths:
-            - ./*.$DEBIAN_PACKAGE_EXTENSION
-        expire_in: 1 hour
+#    artifacts:
+#        paths:
+#            - ./*.$DEBIAN_PACKAGE_EXTENSION
+#        expire_in: 1 hour
 
 deployDebian:
     stage: deployDebian
