@@ -36,6 +36,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -268,6 +269,7 @@ public class UsersRestController {
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Logins of users to be obtained.", required = true)
             @RequestParam(value = "logins") Set<String> logins) {
+        if (logins.isEmpty()) return new ResponseEntity<>(Collections.emptySet(), HttpStatus.OK);
         Set<UserDTO> userDTOs = userFacade.getUsersWithGivenLogins(logins);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
