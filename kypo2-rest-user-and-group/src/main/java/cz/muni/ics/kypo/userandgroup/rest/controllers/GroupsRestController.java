@@ -77,7 +77,6 @@ public class GroupsRestController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true)
                                                    @Valid @RequestBody NewGroupDTO newGroupDTO) {
-        LOG.debug("createNewGroup({})", newGroupDTO);
         Preconditions.checkNotNull(newGroupDTO);
         try {
             return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
@@ -100,7 +99,6 @@ public class GroupsRestController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateGroup(@ApiParam(value = "Group to be updated.", required = true)
                                             @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
-        LOG.debug("updateGroup({})", updateGroupDTO);
         Preconditions.checkNotNull(updateGroupDTO);
         try {
             groupFacade.updateGroup(updateGroupDTO);
@@ -128,7 +126,6 @@ public class GroupsRestController {
                                             @PathVariable("id") final Long id,
                                             @ApiParam(value = "Ids of members to be removed from group.", required = true)
                                             @RequestBody List<Long> userIds) {
-        LOG.debug("removeUsers({}, {})", id, userIds);
         Preconditions.checkNotNull(userIds);
         try {
             groupFacade.removeUsers(id, userIds);
@@ -158,7 +155,6 @@ public class GroupsRestController {
                                              @PathVariable("id") final Long groupId,
                                              @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
                                              @Valid @RequestBody AddUsersToGroupDTO addUsers) {
-        LOG.debug("addUsers({})", addUsers);
         Preconditions.checkNotNull(addUsers);
         try {
             groupFacade.addUsers(groupId, addUsers);
@@ -184,7 +180,6 @@ public class GroupsRestController {
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
                                                                 @PathVariable("id") final Long id) {
-        LOG.debug("deleteGroup({})", id);
         try {
             GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
             switch (groupDeletionResponseDTO.getStatus()) {
@@ -246,7 +241,6 @@ public class GroupsRestController {
                                             @RequestParam MultiValueMap<String, String> parameters,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
-        LOG.debug("getGroups()");
         PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
@@ -265,7 +259,6 @@ public class GroupsRestController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
                                              @PathVariable("id") Long id) {
-        LOG.debug("getGroup({})", id);
         try {
             return new ResponseEntity<>(groupFacade.getGroup(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException ex) {
@@ -286,7 +279,6 @@ public class GroupsRestController {
     @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
                                                         @PathVariable("id") final Long id) {
-        LOG.debug("getRolesOfGroup({})", id);
         try {
             return new ResponseEntity<>(groupFacade.getRolesOfGroup(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
@@ -309,7 +301,6 @@ public class GroupsRestController {
                                                   @PathVariable("groupId") Long groupId,
                                                   @ApiParam(value = "roleId", required = true)
                                                   @PathVariable("roleId") Long roleId) {
-        LOG.debug("assignRoleToGroup");
         try {
             groupFacade.assignRole(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -333,7 +324,6 @@ public class GroupsRestController {
                                                     @PathVariable("groupId") Long groupId,
                                                     @ApiParam(value = "roleId", required = true)
                                                     @PathVariable("roleId") Long roleId) {
-        LOG.debug("removeRoleToGroup()");
         try {
             groupFacade.removeRoleFromGroup(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

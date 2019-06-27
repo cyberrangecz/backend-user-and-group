@@ -31,20 +31,17 @@ public class MicroserviceServiceImpl implements MicroserviceService {
 
     @Override
     public Microservice get(Long id) {
-        LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
         return microserviceRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("Microservice with id " + id + " not found"));
     }
 
     @Override
     public List<Microservice> getMicroservices() {
-        LOG.debug("getMicroservices()");
         return microserviceRepository.findAll();
     }
 
     @Override
     public Microservice create(Microservice microserviceToCreate) {
-        LOG.debug("create({})", microserviceToCreate);
         Assert.notNull(microserviceToCreate, "Input microservice must not be null.");
         Optional<Microservice> optionalMicroservice = microserviceRepository.findByName(microserviceToCreate.getName());
         if (optionalMicroservice.isPresent()) {

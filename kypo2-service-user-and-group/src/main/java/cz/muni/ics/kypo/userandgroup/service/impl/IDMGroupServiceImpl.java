@@ -52,21 +52,18 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public IDMGroup get(Long id) {
-        LOG.debug("get({})", id);
         Assert.notNull(id, "Input id must not be null");
         return groupRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("IDMGroup with id " + id + " not found"));
     }
 
     @Override
     public IDMGroup getGroupForDefaultRoles() {
-        LOG.debug("getGroupForDefaultRoles()");
         return groupRepository.findByName(ImplicitGroupNames.DEFAULT_GROUP.getName()).orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found"));
     }
 
     @Override
     @IsAdmin
     public IDMGroup create(IDMGroup group, List<Long> groupIdsOfImportedMembers) {
-        LOG.debug("create({}, {})", group, groupIdsOfImportedMembers);
         Assert.notNull(group, "Input group must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
 
@@ -82,7 +79,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @IsAdmin
     public IDMGroup update(IDMGroup group) {
-        LOG.debug("update({})", group);
         Assert.notNull(group, "Input group must not be null.");
         if (groupRepository.isIDMGroupInternal(group.getId())) {
             IDMGroup groupInDatabase = get(group.getId());
@@ -101,7 +97,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @IsAdmin
     public GroupDeletionStatusDTO delete(IDMGroup group) {
-        LOG.debug("delete({})", group);
         Assert.notNull(group, "Input group must not be null.");
         GroupDeletionStatusDTO deletionStatus = checkKypoGroupBeforeDelete(group);
         if (deletionStatus.equals(GroupDeletionStatusDTO.SUCCESS)) {
@@ -113,7 +108,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @IsAdmin
     public Page<IDMGroup> getAllIDMGroups(Predicate predicate, Pageable pageable) {
-        LOG.debug("getAllIDMGroups()");
         return groupRepository.findAll(predicate, pageable);
     }
 
@@ -121,7 +115,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
     public IDMGroup getIDMGroupByName(String name) {
-        LOG.debug("getIDMGroupByName({})", name);
         Assert.hasLength(name, "Input name of group must not be empty");
         return groupRepository.findByName(name).orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found"));
     }
@@ -130,7 +123,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public boolean isGroupInternal(Long id) {
-        LOG.debug("isGroupInternal({})", id);
         Assert.notNull(id, "Input id must not be null");
         return groupRepository.isIDMGroupInternal(id);
     }
@@ -139,7 +131,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public Set<Role> getRolesOfGroup(Long id) {
-        LOG.debug("getRolesOfGroup({})", id);
         Assert.notNull(id, "Input id must not be null");
         IDMGroup group = groupRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("Group with id: " + id + " could not be found."));
         return group.getRoles();
@@ -148,7 +139,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)")
     public IDMGroup assignRole(Long groupId, Long roleId) {
-        LOG.debug("assignRole({}, {})", groupId, roleId);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
 
@@ -164,7 +154,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @IsAdmin
     public IDMGroup removeRoleFromGroup(Long groupId, Long roleId) {
-        LOG.debug("removeRoleFromGroup({}, {})", groupId, roleId);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleType must not be null");
 
@@ -189,7 +178,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @IsAdmin
     public IDMGroup removeUsers(Long groupId, List<Long> userIds) {
-        LOG.debug("removeUsers({}, {})", groupId, userIds);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(userIds, "Input list of users ids must not be null");
 
@@ -214,7 +202,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     @IsAdmin
     public IDMGroup addUsers(Long groupId, List<Long> idsOfGroupsOfImportedUsers, List<Long> idsOfUsersToBeAdd) {
-        LOG.debug("addUsers({}, {}, {})", groupId, idsOfGroupsOfImportedUsers, idsOfUsersToBeAdd);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(idsOfGroupsOfImportedUsers, "Input list of groups ids must not be null");
         Assert.notNull(idsOfUsersToBeAdd, "Input list of users ids must not be null");

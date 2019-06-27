@@ -88,7 +88,6 @@ public class UsersRestController {
                                            @RequestParam MultiValueMap<String, String> parameters,
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
-        LOG.debug("getUsers()");
         PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
@@ -117,7 +116,6 @@ public class UsersRestController {
                                                    @RequestParam(value = "fields", required = false) String fields,
                                                    @ApiParam(value = "Ids of groups where users are assigned.", required = true)
                                                    @RequestParam("ids") Set<Long> groupsIds) {
-        LOG.debug("getUsersInGroups({})", groupsIds);
         PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, pageable);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
@@ -135,7 +133,6 @@ public class UsersRestController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.", required = true)
                                            @PathVariable("id") final Long id) {
-        LOG.debug("getUser({})", id);
         try {
             return new ResponseEntity<>(userFacade.getUser(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
@@ -161,7 +158,6 @@ public class UsersRestController {
                                                              @PathVariable("groupId") final Long groupId, Pageable pageable,
                                                              @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                              @RequestParam(value = "fields", required = false) String fields) {
-        LOG.debug("getAllUsersNotInGivenGroup({})", groupId);
         PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, pageable);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
@@ -180,7 +176,6 @@ public class UsersRestController {
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDeletionResponseDTO> deleteUser(@ApiParam(value = "Screen name of user to be deleted.", required = true)
                                                               @PathVariable("id") final Long id) {
-        LOG.debug("deleteUser({})", id);
         try {
             UserDeletionResponseDTO userDeletionResponseDTO = userFacade.deleteUser(id);
 
@@ -210,7 +205,6 @@ public class UsersRestController {
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<UserDeletionResponseDTO>> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
                                                                      @RequestBody List<Long> ids) {
-        LOG.debug("deleteUsers({})", ids);
         Preconditions.checkNotNull(ids);
         return new ResponseEntity<>(userFacade.deleteUsers(ids), HttpStatus.OK);
     }
@@ -228,7 +222,6 @@ public class UsersRestController {
     @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfUser(
             @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
-        LOG.debug("getRolesOfUser({})", id);
         try {
             return new ResponseEntity<>(userFacade.getRolesOfUser(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
@@ -248,7 +241,6 @@ public class UsersRestController {
     )
     @GetMapping(path = "/info")
     public ResponseEntity<UserDTO> getUserInfo(OAuth2Authentication authentication) {
-        LOG.debug("getUserInfo()");
         try {
             return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
@@ -276,7 +268,6 @@ public class UsersRestController {
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Logins of users to be obtained.", required = true)
             @RequestParam(value = "logins") Set<String> logins) {
-        LOG.debug("getUsersWithGivenLogins({})", logins);
         Set<UserDTO> userDTOs = userFacade.getUsersWithGivenLogins(logins);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);

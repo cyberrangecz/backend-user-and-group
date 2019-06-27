@@ -60,7 +60,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public GroupDTO createGroup(NewGroupDTO newGroupDTO) {
-        LOG.debug("createGroup({})", newGroupDTO);
         IDMGroup group = groupMapper.mapCreateToEntity(newGroupDTO);
         try {
             IDMGroup createdGroup = groupService.create(group, newGroupDTO.getGroupIdsOfImportedUsers());
@@ -73,7 +72,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public void updateGroup(UpdateGroupDTO updateGroupDTO) {
-        LOG.debug("updateGroup({})", updateGroupDTO);
         try {
             groupService.update(groupMapper.mapUpdateToEntity(updateGroupDTO));
         } catch (UserAndGroupServiceException ex) {
@@ -84,7 +82,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public void removeUsers(Long groupId, List<Long> userIds) {
-        LOG.debug("removeUsers({}, {})", groupId, userIds);
         try {
             groupService.removeUsers(groupId, userIds);
         } catch (UserAndGroupServiceException e) {
@@ -95,7 +92,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public void addUsers(Long groupId, AddUsersToGroupDTO addUsers) {
-        LOG.debug("addUsers({})", addUsers);
         try {
             groupService.addUsers(groupId,
                     addUsers.getIdsOfGroupsOfImportedUsers(), addUsers.getIdsOfUsersToBeAdd());
@@ -107,7 +103,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public GroupDeletionResponseDTO deleteGroup(Long id) {
-        LOG.debug("deleteGroup({})", id);
         GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
         try {
             IDMGroup group = groupService.get(id);
@@ -127,7 +122,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public List<GroupDeletionResponseDTO> deleteGroups(List<Long> ids) {
-        LOG.debug("deleteGroups({})", ids);
         List<GroupDeletionResponseDTO> response = new ArrayList<>();
         for (Long id : ids) {
             response.add(this.deleteGroup(id));
@@ -138,7 +132,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalRO
     public PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) {
-        LOG.debug("getAllGroups()");
         PageResultResource<GroupDTO> groups = groupMapper.mapToPageResultResource(groupService.getAllIDMGroups(predicate, pageable));
         List<GroupDTO> groupsWithRoles = groups.getContent().stream()
                 .map(groupDTO -> {
@@ -158,7 +151,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalRO
     public GroupDTO getGroup(Long id) {
-        LOG.debug("getGroup({})", id);
         try {
             GroupDTO groupDTO = groupMapper.mapToDTO(groupService.get(id));
             groupDTO.setRoles(this.getRolesOfGroup(id));
@@ -174,7 +166,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalRO
     public Set<RoleDTO> getRolesOfGroup(Long id) {
-        LOG.debug("getRolesOfGroup({})", id);
         try {
             return groupService.getRolesOfGroup(id).stream()
                     .map(this::convertToRoleDTO)
@@ -187,7 +178,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public void assignRole(Long groupId, Long roleId) {
-        LOG.debug("assignRole({}, {})", groupId, roleId);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         try {
@@ -200,7 +190,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalRO
     public boolean isGroupInternal(Long id) {
-        LOG.debug("isGroupInternal({})", id);
         try {
             return groupService.isGroupInternal(id);
         } catch (UserAndGroupServiceException e) {
@@ -211,7 +200,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @TransactionalWO
     public void removeRoleFromGroup(Long groupId, Long roleId) {
-        LOG.debug("removeRoleFromGroup({}, {})", groupId, roleId);
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");
         try {
