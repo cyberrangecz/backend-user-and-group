@@ -45,12 +45,10 @@ public class RoleFacadeImpl implements RoleFacade {
     @Override
     @TransactionalRO
     public RoleDTO getById(Long id) {
-        LOG.debug("getById({})", id);
         try {
             Role role = roleService.getById(id);
             return convertToRoleDTO(role);
         } catch (UserAndGroupServiceException ex) {
-            LOG.error("Role with id: {} could not be found.", id);
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
     }
@@ -58,10 +56,8 @@ public class RoleFacadeImpl implements RoleFacade {
     @Override
     @TransactionalRO
     public RoleDTO getByRoleType(String roleType) {
-        LOG.debug("getByRoleType({})", roleType);
         try {
             Role role = roleService.getByRoleType(roleType.toUpperCase());
-            LOG.info("Role with role type: {} has been loaded.", roleType);
             return convertToRoleDTO(role);
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException("Role with role type: " + roleType + " could not be found.", ex);
@@ -71,7 +67,6 @@ public class RoleFacadeImpl implements RoleFacade {
     @Override
     @TransactionalRO
     public PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable) {
-        LOG.debug("getAllRoles()");
         List<Role> roles = roleService.getAllRoles(predicate, pageable).getContent();
         return  new PageResultResource<>(roles.stream().map(this::convertToRoleDTO).collect(Collectors.toList()));
     }

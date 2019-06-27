@@ -57,18 +57,15 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) {
-        LOG.debug("getUsers()");
         return  userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable));
     }
 
     @Override
     @TransactionalRO
     public UserDTO getUser(Long id) {
-        LOG.debug("getUser({})", id);
         try {
             return userMapper.mapToUserDTOWithRoles(userService.get(id));
         } catch (UserAndGroupServiceException ex) {
-            LOG.error("Error while loading user with id: {}.", id);
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
     }
@@ -76,7 +73,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
-        LOG.debug("getAllUsersNotInGivenGroup({})", groupId);
         PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getAllUsersNotInGivenGroup(groupId, pageable));
         List<UserDTO> usersWithRoles = users.getContent().stream()
                 .map(userDTO -> {
@@ -91,7 +87,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalWO
     public List<UserDeletionResponseDTO> deleteUsers(List<Long> ids) {
-        LOG.debug("deleteUsers({})", ids);
         Map<User, UserDeletionStatusDTO> mapOfResults = userService.deleteUsers(ids);
         List<UserDeletionResponseDTO> response = new ArrayList<>();
 
@@ -114,7 +109,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalWO
     public UserDeletionResponseDTO deleteUser(Long id) {
-        LOG.debug("deleteUser({})", id);
         User user = null;
         try {
             user = userService.get(id);
@@ -131,7 +125,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public Set<RoleDTO> getRolesOfUser(Long id) {
-        LOG.debug("getRolesOfUser({})", id);
         try {
             Set<Role> roles = userService.getRolesOfUser(id);
             return roles.stream()
@@ -145,7 +138,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public UserDTO getUserInfo(OAuth2Authentication authentication) {
-        LOG.debug("getUserInfo()");
         return userMapper.mapToUserDTOWithRoles(getLoggedInUser(authentication));
     }
 
@@ -153,7 +145,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public boolean isUserInternal(Long id) {
-        LOG.debug("isUserInternal({})", id);
         try {
             return userService.isUserInternal(id);
         } catch (UserAndGroupServiceException e) {
@@ -164,14 +155,12 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Pageable pageable) {
-        LOG.debug("getUsersInGroups({})", groupsIds);
         return userMapper.mapToPageResultResourceForGroups(userService.getUsersInGroups(groupsIds, pageable));
     }
 
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable) {
-        LOG.debug("getUsersWithGivenRole({})", roleId);
         try {
             return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
 
@@ -184,7 +173,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable) {
-        LOG.debug("getUsersWithGivenRole({})", roleType);
         try {
             return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
 
@@ -197,7 +185,6 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public Set<UserDTO> getUsersWithGivenLogins(Set<String> logins) {
-        LOG.debug("getUsersWithGivenLogins({})", logins);
         try {
             return userMapper.mapToSetDTO(userService.getUsersWithGivenLogins(logins));
 

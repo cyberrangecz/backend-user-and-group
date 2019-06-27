@@ -82,7 +82,6 @@ public class RolesRestController {
                                            @RequestParam MultiValueMap<String, String> parameters,
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
-        LOG.debug("getRoles()");
         PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
     }
@@ -100,7 +99,6 @@ public class RolesRestController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleDTO> getRole(@ApiParam(value = "Id of role to be returned", required = true)
                                            @PathVariable("id") final Long id) {
-        LOG.debug("getRole({})", id);
         try {
             return new ResponseEntity<>(roleFacade.getById(id), HttpStatus.OK);
         } catch (UserAndGroupFacadeException ex) {
@@ -132,7 +130,6 @@ public class RolesRestController {
                                                         @RequestParam(value = "fields", required = false) String fields,
                                                         @ApiParam(value = "Type of role to get users for.", required = true)
                                                         @PathVariable("roleId") Long roleId) {
-        LOG.debug("getUsersWithGivenRole()");
         try {
             PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleId, pageable);
             Squiggly.init(objectMapper, fields);
@@ -166,7 +163,6 @@ public class RolesRestController {
                                                             @RequestParam(value = "fields", required = false) String fields,
                                                             @ApiParam(value = "Type of role to get users for.", required = true)
                                                             @RequestParam("roleType") String roleType) {
-        LOG.debug("getUsersWithGivenRoleType()");
         try {
             PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleType, pageable);
             Squiggly.init(objectMapper, fields);

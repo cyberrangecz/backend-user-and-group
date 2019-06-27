@@ -49,7 +49,6 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
     @Override
     @TransactionalWO
     public void registerNewMicroservice(NewMicroserviceDTO newMicroserviceDTO) {
-        LOG.debug("registerNewMicroservice({})", newMicroserviceDTO);
         Microservice microservice = microserviceMapper.mapCreateToEntity(newMicroserviceDTO);
         microserviceService.create(microservice);
         Set<Role> rolesOfMicroservice = roleService.getAllRolesOfMicroservice(newMicroserviceDTO.getName());
