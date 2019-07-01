@@ -57,8 +57,8 @@ server.servlet.context-path=/kypo2-rest-user-and-group/api/v1
 service.name=kypo2-user-and-group
 
 # OpenID Connect
-kypo.idp.4oauth.introspectionURI=https://oidc.ics.muni.cz/oidc/introspect
-kypo.idp.4oauth.authorizationURI=https://oidc.ics.muni.cz/oidc/authorize
+kypo.idp.4oauth.introspectionURI=https://oidc.muni.cz/oidc/introspect
+kypo.idp.4oauth.authorizationURI=https://oidc.muni.cz/oidc/authorize
 kypo.idp.4oauth.resource.clientId={your client ID from Self-service protected resource}
 kypo.idp.4oauth.resource.clientSecret={your client secret from Self-service protected resource}
 kypo.idp.4oauth.client.clientId={your client ID from Self-service client}
@@ -126,7 +126,7 @@ NOTE: This script must be run in [persistence] (https://gitlab.ics.muni.cz/kypo2
 To start the project you have to go to module `rest` and start it:
 ```
 cd rest/
-mvn spring-boot:run -Dpath-to-config-file={path to properties file from step 3}
+mvn spring-boot:run -Dpath.to.config.file={path to properties file from step 3}
 ```
 
 Then system will start the project. You can access the REST API with Swagger UI on address: 
