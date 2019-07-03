@@ -47,8 +47,37 @@ Example of the YAML file can be seen below:
   roles:
      - ROLE_USER_AND_GROUP_ADMINISTRATOR
 ```
+## 3. Generate CA for project 
+Use 'keytool' to generate KeyStore for client:
 
-### 3. Properties file
+```
+keytool -genkeypair -alias {alias of KeyStore} -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore {filename of KeyStore}.p12 -validity 3650
+```
+It will create file with private key, public key and certificate for client. During generating the KeyStore, use for 'first name and last name' domain name of server where your application is running, e.g., localhost.
+  
+Then export certificate from KeyStore to create *.crt file:
+```
+keytool -export -keystore {filename of created KeyStore}.p12 -alias {alias of certificate} -file {filename of certificate}.crt
+```
+
+After that import exported certificate into TrustStore:
+```
+keytool -importcert -trustcacerts -file {path to exported certificate} -alias {alias of exported certificate} -keystore {path to your TrustStore}
+```
+
+To remove certificate from TrustStore:
+```
+keytool -delete -alias {alias of certificate} -keystore {path to TrustStore}
+```
+
+To show all certificates in TrustStore: 
+```
+keytool -list -v -keystore {path to TrustStore}
+```
+
+For more information about 'How to enable communication over https between 2 spring boot applications using self signed certificate' visit http://www.littlebigextra.com/how-to-enable-communication-over-https-between-2-spring-boot-applications-using-self-signed-certificate
+
+### 4. Properties file
 
 After step 2 you have to create properties file according to format below and save it.
 ```properties
@@ -93,6 +122,19 @@ spring.flyway.table=schema_version
 logging.level.org.springframework.web=DEBUG
 logging.level.org.hibernate=ERROR
 logging.level.org.mitre.openid.connect.binder.service=DEBUG
+
+# HTTPS and CA
+security.require-ssl=true
+
+server.ssl.key-store-type={the format used for the KeyStore}, e.g, PKCS12
+server.ssl.key-store={path to KeyStore}, e.g., /etc/ssl/kypo2-keystore.p12
+server.ssl.key-store-password={password used when generate KeyStore}, e.g., changeit
+server.ssl.key-alias={alias of KeyStore}, e.g., kypo2-keystore
+
+server.ssl.trust-store={path to TrustStore}, e.g., default for Java app is in JDK $JAVA_HOME/lib/security/cacerts
+server.ssl.trust-store-password={password to TrustStore}, e.g., default for cacerts is changeit
+server.ssl.trust-store-type={the format used for the TrustStore}, e.g, JKS
+
 
 path.to.file.with.initial.users.and.service={path to YAML file from step 2}
 ```
