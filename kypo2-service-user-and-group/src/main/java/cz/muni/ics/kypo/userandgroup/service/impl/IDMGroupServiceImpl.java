@@ -88,6 +88,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
             }
             groupInDatabase.setDescription(group.getDescription());
             groupInDatabase.setName(group.getName());
+            groupInDatabase.setExpirationDate(group.getExpirationDate());
             return groupRepository.save(groupInDatabase);
         } else {
             throw new ExternalSourceException("Given idm group is external therefore it cannot be updated");
