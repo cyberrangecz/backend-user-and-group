@@ -104,10 +104,10 @@ buildDebian:
         - triggers
         - branches
         - tags
-    artifacts:
-        paths:
-            - ./*.$DEBIAN_PACKAGE_EXTENSION
-        expire_in: 1 hour
+    #artifacts:
+    #    paths:
+    #        - ./*.$DEBIAN_PACKAGE_EXTENSION
+    #    expire_in: 1 hour
 
 deployDebian:
     stage: deployDebian
@@ -117,25 +117,25 @@ deployDebian:
         - git checkout master && git pull
         - mvn clean package -Dmaven.test.skip=true
         # --distribution $DEBIAN_DISTRIBUTION
-        #- >
-        #    gbp dch
-        #    --debian-tag="v%(version)s"
-        #    --new-version $VERSION
-        #    --distribution stable
-        #    --force-distribution
-        #    --release
-        #    --spawn-editor none
-        #    --id-length 8
-        #    --ignore-branch
-        #    --git-log="--merges --grep=into[[:space:]]'master'"
-        # -uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
-        # -i -I exclude .git directory (see dpkg-source)
-        #- > 
-        #    gbp buildpackage
-        #    --git-ignore-new
-        #    --git-ignore-branch
-        #    --git-builder=debuild -rfakeroot -us -uc -i -I
-        #- cp ../$DEBIAN_PACKAGE .
+        - >
+            gbp dch
+            --debian-tag="v%(version)s"
+            --new-version $VERSION
+            --distribution stable
+            --force-distribution
+            --release
+            --spawn-editor none
+            --id-length 8
+            --ignore-branch
+            --git-log="--merges --grep=into[[:space:]]'master'"
+         -uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
+         -i -I exclude .git directory (see dpkg-source)
+        - > 
+            gbp buildpackage
+            --git-ignore-new
+            --git-ignore-branch
+            --git-builder=debuild -rfakeroot -us -uc -i -I
+        - cp ../$DEBIAN_PACKAGE .
         - 'curl -u $APT_USER:$APT_PASSWORD -X POST -H "Content-Type: multipart/form-data" --data-binary "@$DEBIAN_PACKAGE" "$APT_UPLOAD_URL"'
         - '$TRIGGER_PIPELINE'
     only:
