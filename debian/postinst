@@ -14,9 +14,8 @@ case "$1" in
     if ! [ "$SECURITY_JAR" = "kypo2-security-user-and-group.jar" ]; then ln -sf $SECURITY_JAR kypo2-security-user-and-group.jar; fi
     SERVICE_JAR=$(ls kypo2-service-user-and-group*.jar | tail -n 1)
     if ! [ "$SERVICE_JAR" = "kypo2-service-user-and-group.jar" ]; then ln -sf $SERVICE_JAR kypo2-service-user-and-group.jar; fi    
-    ;;
-
     mvn install:install-file -Dfile=kypo2-api-user-and-group.jar -Dfile=kypo2-persistence-user-and-group.jar -Dfile=kypo2-rest-user-and-group.jar -Dfile=kypo2-security-user-and-group.jar -Dfile=kypo2-service-user-and-group.jar
+    ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
