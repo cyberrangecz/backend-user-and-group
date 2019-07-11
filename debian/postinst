@@ -2,8 +2,7 @@
 set -e
 case "$1" in
     configure)
-    cd /opt/kypo2/kypo2-user-and-group
-    mvn clean install
+
     cd /opt/kypo2/kypo2-user-and-group/jars
     API_JAR=$(ls kypo2-api-user-and-group*.jar | tail -n 1)
     if ! [ "$API_JAR" = "kypo2-api-user-and-group.jar" ]; then ln -sf $API_JAR kypo2-api-user-and-group.jar; fi
@@ -16,6 +15,8 @@ case "$1" in
     SERVICE_JAR=$(ls kypo2-service-user-and-group*.jar | tail -n 1)
     if ! [ "$SERVICE_JAR" = "kypo2-service-user-and-group.jar" ]; then ln -sf $SERVICE_JAR kypo2-service-user-and-group.jar; fi    
     ;;
+
+    mvn install:install-file -Dfile=kypo2-api-user-and-group.jar -Dfile=kypo2-persistence-user-and-group.jar -Dfile=kypo2-rest-user-and-group.jar -Dfile=kypo2-security-user-and-group.jar -Dfile=kypo2-service-user-and-group.jar
 
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;

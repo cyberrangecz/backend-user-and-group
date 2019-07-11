@@ -104,10 +104,10 @@ buildDebian:
         - triggers
         - branches
         - tags
-#    artifacts:
-#        paths:
-#            - ./*.$DEBIAN_PACKAGE_EXTENSION
-#        expire_in: 1 hour
+    #artifacts:
+    #    paths:
+    #        - ./*.$DEBIAN_PACKAGE_EXTENSION
+    #    expire_in: 1 hour
 
 deployDebian:
     stage: deployDebian
@@ -128,7 +128,7 @@ deployDebian:
             --id-length 8
             --ignore-branch
             --git-log="--merges --grep=into[[:space:]]'master'"
-        # -uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
+        #-uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
         # -i -I exclude .git directory (see dpkg-source)
         - > 
             gbp buildpackage
