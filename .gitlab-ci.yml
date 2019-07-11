@@ -128,8 +128,8 @@ deployDebian:
             --id-length 8
             --ignore-branch
             --git-log="--merges --grep=into[[:space:]]'master'"
-         -uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
-         -i -I exclude .git directory (see dpkg-source)
+        #-uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
+        # -i -I exclude .git directory (see dpkg-source)
         - > 
             gbp buildpackage
             --git-ignore-new
