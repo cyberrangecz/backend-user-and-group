@@ -78,68 +78,7 @@ keytool -list -v -keystore {path to TrustStore}
 For more information about 'How to enable communication over https between 2 spring boot applications using self signed certificate' visit http://www.littlebigextra.com/how-to-enable-communication-over-https-between-2-spring-boot-applications-using-self-signed-certificate
 
 ### 4. Properties file
-
-After step 2 you have to create properties file according to format below and save it.
-```properties
-server.port={port for service} # e.g., 8084
-server.servlet.context-path=/kypo2-rest-user-and-group/api/v1
-service.name=kypo2-user-and-group
-
-# OpenID Connect
-kypo.idp.4oauth.introspectionURI=https://oidc.muni.cz/oidc/introspect
-kypo.idp.4oauth.authorizationURI=https://oidc.muni.cz/oidc/authorize
-kypo.idp.4oauth.resource.clientId={your client ID from Self-service protected resource}
-kypo.idp.4oauth.resource.clientSecret={your client secret from Self-service protected resource}
-kypo.idp.4oauth.client.clientId={your client ID from Self-service client}
-kypo.idp.4oauth.scopes=openid, email, profile
-# you can add more scopes according to settings from step 1.
-
-# spring-cloud
-spring.cloud.refresh.enabled = false
-
-#to fix: Method jmxMBeanExporter
-spring.jmx.enabled = false
-
-# Jackson (e.g. converting Java 8 dates to ISO format
-spring.jackson.serialization.write_dates_as_timestamps=false 
-spring.jackson.property-naming-strategy=SNAKE_CASE
-
-# DATASOURCE
-spring.datasource.url=jdbc:postgresql://{url to DB}
-spring.datasource.username={user in DB}
-spring.datasource.password={password for user to DB}
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults = false
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL9Dialect
-
-
-# FLYWAY
-spring.flyway.url=jdbc:postgresql://{url to DB}
-spring.flyway.user={user in DB}
-spring.flyway.password={password for user to DB}
-spring.flyway.table=schema_version
-
-# Logging
-logging.level.org.springframework.web=DEBUG
-logging.level.org.hibernate=ERROR
-logging.level.org.mitre.openid.connect.binder.service=DEBUG
-
-# HTTPS and CA
-security.require-ssl=true
-
-server.ssl.key-store-type={the format used for the KeyStore}, e.g, PKCS12
-server.ssl.key-store={path to KeyStore}, e.g., /etc/ssl/kypo2-keystore.p12
-server.ssl.key-store-password={password used when generate KeyStore}, e.g., changeit
-server.ssl.key-alias={alias of KeyStore}, e.g., kypo2-keystore
-
-server.ssl.trust-store={path to TrustStore}, e.g., default for Java app is in JDK $JAVA_HOME/lib/security/cacerts
-server.ssl.trust-store-password={password to TrustStore}, e.g., default for cacerts is changeit
-server.ssl.trust-store-type={the format used for the TrustStore}, e.g, JKS
-
-
-path.to.file.with.initial.users.and.service={path to YAML file from step 2}
-```
-
-
+After the previous steps you have to create properties file according to format shown in [kypo2 user-and-group property file](kypo2-user-and-group.properties) and save it. 
 
 ## Start the project
 
