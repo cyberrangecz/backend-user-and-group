@@ -1,7 +1,3 @@
-kypo2-api-user-and-group/target/kypo2-api-user-and-group*.jar /opt/kypo2/kypo2-user-and-group/jars
-kypo2-persistence-user-and-group/target/kypo2-persistence-user-and-group*.jar /opt/kypo2/kypo2-user-and-group/jars
 kypo2-rest-user-and-group/target/kypo2-rest-user-and-group*.jar /opt/kypo2/kypo2-user-and-group/jars
-kypo2-security-user-and-group/target/kypo2-security-user-and-group*.jar /opt/kypo2/kypo2-user-and-group/jars
-kypo2-service-user-and-group/target/kypo2-service-user-and-group*.jar /opt/kypo2/kypo2-user-and-group/jars
 kypo2-persistence-user-and-group/src/main/resources/db/migration/*.sql /opt/kypo2/kypo2-user-and-group/migration
 kypo2-user-and-group.properties /etc/kypo2
