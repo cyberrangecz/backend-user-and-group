@@ -5,7 +5,7 @@ This project represents back-end for managing users, groups and roles of KYPO pr
 
 ### 1. Getting Masaryk University OpenID Connect credentials 
 
-1. Go to `https://oidc.ics.muni.cz/oidc/` and log in.
+1. Go to `https://oidc.muni.cz/oidc/` and log in.
 2. Click on "**Self-service Client Registration**" -> "**New Client**".
 3. Set Client name.
 4. Add at least one custom Redirect URI and `http://localhost:8080/{context path from external properties file}/webjars/springfox-swagger-ui/oauth2-redirect.html` (IMPORTANT for Swagger UI).
