@@ -6,7 +6,7 @@ Standards-Version: 3.9.8
 
 Package: kypo2-user-and-group
 Architecture: any
-Depends: maven, ${misc:Depends}
+Depends: ${misc:Depends}
 Priority: optional
 Description: KYPO User and group project
  This project represents back-end for managing users, groups and roles of KYPO project.
