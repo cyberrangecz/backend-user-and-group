@@ -7,7 +7,7 @@ ExecStart=/usr/bin/java -Dpath.to.config.file=/etc/kypo2/java-projects/propertie
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=kypo2-user-and-group
-Restart=always
+Restart=no
 
 [Install]
 WantedBy=multi-user.target
