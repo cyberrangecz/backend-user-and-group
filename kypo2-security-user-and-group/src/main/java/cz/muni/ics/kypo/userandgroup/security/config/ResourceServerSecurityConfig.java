@@ -91,16 +91,10 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
                 .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs/**", "/webjars/**", "/microservices").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .requiresChannel()
-                .antMatchers()
-                .requiresSecure()
-                .and()
                 .x509()
                 .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(true);
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER);
     }
 
     @Bean
