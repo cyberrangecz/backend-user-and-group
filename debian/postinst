@@ -4,7 +4,7 @@ case "$1" in
     configure)
 
     cd /opt/kypo2/kypo2-user-and-group/jars
-    REST_JAR=$(ls kypo2-rest-user-and-group*.jar | tail -n 1)
+    REST_JAR=$(ls -v kypo2-rest-user-and-group*.jar | tail -n 1)
     if ! [ "$REST_JAR" = "kypo2-rest-user-and-group.jar" ]; then ln -sf $REST_JAR kypo2-rest-user-and-group.jar; fi
     ;;
 
