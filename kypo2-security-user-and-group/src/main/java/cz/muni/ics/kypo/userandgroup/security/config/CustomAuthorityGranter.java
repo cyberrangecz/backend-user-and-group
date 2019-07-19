@@ -48,7 +48,7 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
     @Override
     public List<GrantedAuthority> getAuthorities(JsonObject introspectionResponse) {
-        LOG.info("getAuthorities({})", introspectionResponse);
+        LOG.debug("getAuthorities({})", introspectionResponse);
         String login = introspectionResponse.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
         Optional<User> optionalUser = userRepository.findByLogin(login);
         Set<Role> roles = new HashSet<>();
