@@ -24,13 +24,10 @@ This project represents back-end for managing users, groups and roles of KYPO pr
 ### 2. Creating YAML file with roles and initial users
 
 If you want to insert initial users to the system you have to specify them in external YAML file and then insert its path to 
-properties file which is describe in  next step. For each user you have to specify their screen name, full name, email
-(these information has to be same as in OpenID Connect service) and last but not least their main roles. Roles are
+properties file which is describe in  next step. For each user you have to specify login
+(field `sub` from OpenID Connect service) issuer (URI of the OpenId Connect service) and last but not least their main roles. Roles are
 three main types - ADMINISTRATOR, USER and GUEST. Every user with role ADMINISTRATOR will also have two other roles 
 USER and GUEST. All users with role USER will have also role GUEST. Role GUEST is given to all user in KYPO.
- 
-Below that you can specify all microservices and their endpoint. The service user-and-group will be managing 
-roles of the microservices.
 
 Example of the YAML file can be seen below:
 ```yaml
@@ -38,14 +35,17 @@ Example of the YAML file can be seen below:
      login: userLogin1
   roles:
      - ROLE_USER_AND_GROUP_ADMINISTRATOR
+  iss: https://oidc.muni.cz/oidc/
 - user:
      login: userLogin2
   roles:
      - ROLE_USER_AND_GROUP_USER
+  iss: https://oidc.muni.cz/oidc/
 - user:
      login: userLogin3
   roles:
      - ROLE_USER_AND_GROUP_ADMINISTRATOR
+  iss: https://oidc.muni.cz/oidc/
 ```
 ## 3. Generate CA for project 
 Use 'keytool' to generate KeyStore for client:
