@@ -50,17 +50,17 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     private String clientSecretResourceMUNI;
     @Value("#{'${kypo.muni.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopesMUNI;
-    //TODO uncomment after adding new custom mitre provider
-//    @Value("${kypo.mitre.idp.4oauth.issuer}")
-//    private String issuerKYPO;
-//    @Value("${kypo.mitre.idp.4oauth.introspectionURI}")
-//    private String introspectionURIKYPO;
-//    @Value("${kypo.mitre.idp.4oauth.resource.clientId}")
-//    private String clientIdOfResourceKYPO;
-//    @Value("${kypo.mitre.idp.4oauth.resource.clientSecret}")
-//    private String clientSecretResourceKYPO;
-//    @Value("#{'${kypo.mitre.idp.4oauth.scopes}'.split(',')}")
-//    private Set<String> scopesKYPO;
+
+    @Value("${kypo.mitre.idp.4oauth.issuer}")
+    private String issuerKYPO;
+    @Value("${kypo.mitre.idp.4oauth.introspectionURI}")
+    private String introspectionURIKYPO;
+    @Value("${kypo.mitre.idp.4oauth.resource.clientId}")
+    private String clientIdOfResourceKYPO;
+    @Value("${kypo.mitre.idp.4oauth.resource.clientSecret}")
+    private String clientSecretResourceKYPO;
+    @Value("#{'${kypo.mitre.idp.4oauth.scopes}'.split(',')}")
+    private Set<String> scopesKYPO;
 
     @Autowired
     private CustomAuthorityGranter customAuthorityGranter;
@@ -101,20 +101,18 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     public ServerConfigurationService serverConfigurationService() {
         DynamicServerConfigurationService serverConfigurationService =
                 new DynamicServerConfigurationService();
-        //TODO add issuerKYPO to the set of whitelist
-        serverConfigurationService.setWhitelist(new HashSet<>(Set.of(issuerMUNI)));
+        serverConfigurationService.setWhitelist(new HashSet<>(Set.of(issuerMUNI, issuerKYPO)));
         return serverConfigurationService;
     }
 
     @Bean
     public ClientConfigurationService clientConfigurationService() {
         Map<String, RegisteredClient> clients = new HashMap<>();
-        //TODO uncomment after adding new custom mitre provider
-//        RegisteredClient clientKYPO = new RegisteredClient();
-//        clientKYPO.setClientId(clientIdOfResourceKYPO);
-//        clientKYPO.setClientSecret(clientSecretResourceKYPO);
-//        clientKYPO.setScope(scopesKYPO);
-//        clients.put(issuerKYPO, clientKYPO);
+        RegisteredClient clientKYPO = new RegisteredClient();
+        clientKYPO.setClientId(clientIdOfResourceKYPO);
+        clientKYPO.setClientSecret(clientSecretResourceKYPO);
+        clientKYPO.setScope(scopesKYPO);
+        clients.put(issuerKYPO, clientKYPO);
 
         RegisteredClient clientMUNI = new RegisteredClient();
         clientMUNI.setClientId(clientIdOfResourceMUNI);
