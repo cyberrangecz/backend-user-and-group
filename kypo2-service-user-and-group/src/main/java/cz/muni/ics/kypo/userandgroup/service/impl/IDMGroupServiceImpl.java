@@ -5,6 +5,8 @@ import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
@@ -49,7 +51,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public IDMGroup get(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -113,7 +115,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#name)")
     public IDMGroup getIDMGroupByName(String name) {
         Assert.hasLength(name, "Input name of group must not be empty");
@@ -121,7 +123,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public boolean isGroupInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -129,7 +131,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.isLoggedInUserInGroup(#id)")
     public Set<Role> getRolesOfGroup(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -138,7 +140,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)")
     public IDMGroup assignRole(Long groupId, Long roleId) {
         Assert.notNull(groupId, "Input groupId must not be null");
         Assert.notNull(roleId, "Input roleId must not be null");

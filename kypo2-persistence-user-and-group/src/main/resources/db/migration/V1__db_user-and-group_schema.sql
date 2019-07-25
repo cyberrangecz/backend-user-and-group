@@ -1,12 +1,13 @@
 CREATE TABLE users (
-   id             BIGSERIAL NOT NULL,
-   login    varchar(255) NOT NULL UNIQUE,
-   full_name      varchar(255),
-   given_name     varchar(255),
-   family_name    varchar(255),
-   mail           varchar(255),
-   status         varchar(255) NOT NULL,
-   external_id    int8 UNIQUE,
+   id                 BIGSERIAL NOT NULL,
+   login              varchar(255) NOT NULL,
+   full_name          varchar(255),
+   given_name         varchar(255),
+   family_name        varchar(255),
+   mail               varchar(255),
+   status             varchar(255) NOT NULL,
+   external_id        int8 UNIQUE,
+   iss                varchar(255) NOT NULL,
    PRIMARY KEY (id));
 
 CREATE TABLE role (

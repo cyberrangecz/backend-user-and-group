@@ -9,6 +9,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
@@ -144,24 +145,28 @@ public class IDMGroupsIntegrationTests {
         organizer1.setLogin("77863@muni.cz");
         organizer1.setMail("77863@mail.muni.cz");
         organizer1.setStatus(UserAndGroupStatus.VALID);
+        organizer1.setIss("https://oidc.muni.cz/oidc/");
 
         organizer2 = new User();
         organizer2.setFullName("Garret Cull");
         organizer2.setLogin("794254@muni.cz");
         organizer2.setMail("794254@mail.muni.cz");
         organizer2.setStatus(UserAndGroupStatus.VALID);
+        organizer2.setIss("https://oidc.muni.cz/oidc/");
 
         user1 = new User();
         user1.setFullName("Garfield Pokorny");
         user1.setLogin("852374@muni.cz");
         user1.setMail("852374@mail.muni.cz");
         user1.setStatus(UserAndGroupStatus.VALID);
+        user1.setIss("https://oidc.muni.cz/oidc/");
 
         user2 = new User();
         user2.setFullName("Marcel Watchman");
         user2.setLogin("632145@muni.cz");
         user2.setMail("632145@mail.muni.cz");
         user2.setStatus(UserAndGroupStatus.VALID);
+        user2.setIss("https://oidc.muni.cz/oidc/");
         userRepository.saveAll(new HashSet<>(Set.of(organizer1, organizer2, user1, user2)));
 
         userGroup = new IDMGroup();

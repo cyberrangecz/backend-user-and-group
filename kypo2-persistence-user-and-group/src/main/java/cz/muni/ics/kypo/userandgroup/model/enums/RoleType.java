@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.model;
+package cz.muni.ics.kypo.userandgroup.model.enums;
 
 /**
  * Enumeration of a role type.

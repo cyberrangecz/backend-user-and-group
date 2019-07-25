@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

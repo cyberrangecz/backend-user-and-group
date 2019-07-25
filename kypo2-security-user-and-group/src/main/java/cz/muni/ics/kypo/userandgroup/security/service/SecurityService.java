@@ -89,7 +89,8 @@ public class SecurityService {
 
     private User getLoggedInUser() {
         String sub = getSubOfLoggedInUser();
-        Optional<User> optionalUser = userRepository.findByLogin(sub);
+        String iss = getIssOfLoggedInUser();
+        Optional<User> optionalUser = userRepository.findByLoginAndIss(sub, iss);
         return optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + sub + " could not be found in database"));
     }
 
@@ -97,5 +98,11 @@ public class SecurityService {
         OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         return credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
+    }
+
+    private String getIssOfLoggedInUser() {
+        OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
+        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
+        return credentials.get(AuthenticatedUserOIDCItems.ISS.getName()).getAsString();
     }
 }

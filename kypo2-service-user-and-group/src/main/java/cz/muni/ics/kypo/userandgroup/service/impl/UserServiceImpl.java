@@ -7,7 +7,7 @@ import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User get(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserAdmin(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -121,11 +121,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserByLogin(String login) {
+    public User getUserByLoginAndIss(String login, String iss) {
         Assert.hasLength(login, "Input login must not be empty");
-        return userRepository.findByLogin(login).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " could not be found"));
+        return userRepository.findByLoginAndIss(login, iss).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " could not be found"));
     }
 
     @Override
@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public User getUserWithGroups(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -149,15 +149,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserWithGroups(String login) {
+    public User getUserWithGroups(String login, String iss) {
         Assert.hasLength(login, "Input login must not be empty");
-        return userRepository.getUserByLoginWithGroups(login).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found"));
+        Assert.hasLength(iss, "Input iss must not be empty");
+        return userRepository.getUserByLoginWithGroups(login, iss).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found"));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
             "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserInternal(Long id) {
         Assert.notNull(id, "Input id must not be null");
@@ -168,7 +169,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_GUEST)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
     public Set<Role> getRolesOfUser(Long id) {
         Assert.notNull(id, "Input id must not be null");
         if (!userRepository.existsById(id)) {
@@ -207,8 +208,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<User> getUsersWithGivenLogins(Set<String> logins) {
-        Assert.notNull(logins, "Input list of logins must not be null");
-        return userRepository.findAllWithGivenLogins(logins);
+    public Set<User> getUsersWithGivenIds(Set<Long> ids) {
+        Assert.notNull(ids, "Input list of idsmust not be null");
+        return userRepository.findAllWithGivenIds(ids);
     }
 }

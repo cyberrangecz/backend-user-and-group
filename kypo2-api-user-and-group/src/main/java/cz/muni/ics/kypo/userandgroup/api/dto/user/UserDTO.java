@@ -22,6 +22,7 @@ public class UserDTO {
     private String givenName;
     private String familyName;
     private Set<RoleDTO> roles = new HashSet<>();
+    private String iss;
 
     /**
      * Instantiates a new UserDTO.
@@ -31,22 +32,23 @@ public class UserDTO {
     }
 
     /**
-     * Instantiates a new UserDTO with attributes: id, fullName, login, mail.
+     * Instantiates a new UserDTO with attributes: id, fullName, login, mail, iss.
      *
      * @param id       the id
      * @param fullName the full name
      * @param login    the login
      * @param mail     the mail
      */
-    public UserDTO(Long id, String fullName, String login, String mail) {
+    public UserDTO(Long id, String fullName, String login, String mail, String iss) {
         this.id = id;
         this.fullName = fullName;
         this.login = login;
         this.mail = mail;
+        this.iss = iss;
     }
 
     /**
-     * Instantiates a new UserDTO with attributes: id, fullName, login, mail, roles.
+     * Instantiates a new UserDTO with attributes: id, fullName, login, mail, roles, iss.
      *
      * @param id       the id
      * @param fullName the full name
@@ -54,12 +56,13 @@ public class UserDTO {
      * @param mail     the mail
      * @param roles    the roles
      */
-    public UserDTO(Long id, String fullName, String login, String mail, Set<RoleDTO> roles) {
+    public UserDTO(Long id, String fullName, String login, String mail, Set<RoleDTO> roles, String iss) {
         this.id = id;
         this.fullName = fullName;
         this.login = login;
         this.mail = mail;
         this.roles = roles;
+        this.iss = iss;
     }
 
     /**
@@ -204,6 +207,24 @@ public class UserDTO {
         this.familyName = familyName;
     }
 
+    /**
+     * Gets the issuer - URI of the oidc provider of the user.
+     *
+     * @return issuer - URI of the oidc provider.
+     */
+    public String getIss() {
+        return iss;
+    }
+
+    /**
+     * Sets the issuer - URI of the oidc provider of the user.
+     *
+     * @param iss the family name of the user.
+     */
+    public void setIss(String iss) {
+        this.iss = iss;
+    }
+
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof UserDTO)) return false;
@@ -213,12 +234,13 @@ public class UserDTO {
                 Objects.equals(getLogin(), userDTO.getLogin()) &&
                 Objects.equals(getMail(), userDTO.getMail()) &&
                 Objects.equals(getGivenName(), userDTO.getGivenName()) &&
-                Objects.equals(getFamilyName(), userDTO.getFamilyName());
+                Objects.equals(getFamilyName(), userDTO.getFamilyName()) &&
+                Objects.equals(getIss(), userDTO.getIss());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getFullName(), getLogin(), getMail(), getGivenName(), getFamilyName());
+        return Objects.hash(getId(), getFullName(), getLogin(), getMail(), getGivenName(), getFamilyName(), getIss());
     }
 
     @Override
@@ -230,6 +252,7 @@ public class UserDTO {
                 ", mail='" + mail + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
+                ", iss='" + iss + '\'' +
                 '}';
     }
 }

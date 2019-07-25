@@ -14,6 +14,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)")
+@PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)")
 public @interface IsAdmin {
 }

@@ -11,6 +11,8 @@ import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.IDMGroupMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import org.junit.Before;

@@ -2,9 +2,8 @@ package cz.muni.ics.kypo.userandgroup.repository;
 
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

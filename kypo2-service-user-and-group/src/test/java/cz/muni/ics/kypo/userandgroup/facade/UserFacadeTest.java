@@ -12,6 +12,8 @@ import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -72,13 +74,13 @@ public class UserFacadeTest {
         MockitoAnnotations.initMocks(this);
         userFacade = new UserFacadeImpl(userService, userMapper, roleMapper);
 
-        user1 = new User("user1");
+        user1 = new User("user1", "https://oidc.muni.cz/oidc/");
         user1.setId(1L);
         user1.setFullName("User One");
         user1.setMail("user.one@mail.com");
         user1.setStatus(UserAndGroupStatus.VALID);
 
-        user2 = new User("user2");
+        user2 = new User("user2", "https://oidc.muni.cz/oidc/");
         user2.setId(2L);
         user2.setFullName("User Two");
         user2.setMail("user.two@mail.com");
@@ -89,12 +91,14 @@ public class UserFacadeTest {
         userDTO1.setId(1L);
         userDTO1.setFullName("User One");
         userDTO1.setMail("user.one@mail.com");
+        userDTO1.setIss("https://oidc.muni.cz/oidc/");
 
         userDTO2 = new UserDTO();
         userDTO2.setLogin("user2");
         userDTO2.setId(2L);
         userDTO2.setFullName("User Two");
         userDTO2.setMail("user.two@mail.com");
+        userDTO2.setIss("https://oidc.muni.cz/oidc/");
     }
 
     @Test
@@ -185,8 +189,8 @@ public class UserFacadeTest {
         List<UserDeletionResponseDTO> userDeletionResponseDTOS = userFacade.deleteUsers(Arrays.asList(1L, 2L));
 
         assertEquals(2, userDeletionResponseDTOS.size());
-        assertEquals(UserDeletionStatusDTO.SUCCESS, userDeletionResponseDTOS.get(0).getStatus());
-        assertEquals(UserDeletionStatusDTO.NOT_FOUND, userDeletionResponseDTOS.get(1).getStatus());
+        assertEquals(UserDeletionStatusDTO.SUCCESS, userDeletionResponseDTOS.get(1).getStatus());
+        assertEquals(UserDeletionStatusDTO.NOT_FOUND, userDeletionResponseDTOS.get(0).getStatus());
     }
 
     @Test

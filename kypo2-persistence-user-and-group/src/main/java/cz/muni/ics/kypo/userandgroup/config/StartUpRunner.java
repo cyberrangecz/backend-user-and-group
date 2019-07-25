@@ -5,6 +5,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import cz.muni.ics.kypo.userandgroup.exceptions.LoadingRolesAndUserException;
 import cz.muni.ics.kypo.userandgroup.mapping.UsersWrapper;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -88,7 +90,7 @@ public class StartUpRunner implements ApplicationRunner {
 
     private void loadUsers(List<UsersWrapper> users) {
         users.forEach(usersWrapper -> {
-            Optional<User> optionalUser = userRepository.getUserByLoginWithGroups(usersWrapper.getUser().getLogin());
+            Optional<User> optionalUser = userRepository.findByLoginAndIss(usersWrapper.getUser().getLogin(), usersWrapper.getIss());
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
 
@@ -102,7 +104,7 @@ public class StartUpRunner implements ApplicationRunner {
                 userRepository.save(user);
                 LOGGER.info("Roles of user with screen name {} were updated.", user.getLogin());
             } else {
-                User newUser = new User(usersWrapper.getUser().getLogin());
+                User newUser = new User(usersWrapper.getUser().getLogin(), usersWrapper.getIss());
                 newUser.setStatus(UserAndGroupStatus.VALID);
                 userRepository.save(newUser);
                 LOGGER.info("User with screen name {} was created.", newUser.getLogin());

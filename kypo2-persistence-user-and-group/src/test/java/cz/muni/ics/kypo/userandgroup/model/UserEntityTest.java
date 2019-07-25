@@ -32,19 +32,19 @@ public class UserEntityTest {
     public void createWhenLoginIsNullShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
         this.thrown.expectMessage("Login must not be empty");
-        new User(null);
+        new User(null, "https://oidc.muni.cz/oidc/");
     }
 
     @Test
     public void createWhenLoginIsEmptyShouldThrowException() {
         this.thrown.expect(IllegalArgumentException.class);
         this.thrown.expectMessage("Login must not be empty");
-        new User("");
+        new User("", "https://oidc.muni.cz/oidc/");
     }
 
     @Test
     public void saveShouldPersistData() {
-        User u = this.entityManager.persistFlushFind(new User(login));
+        User u = this.entityManager.persistFlushFind(new User(login, "https://oidc.muni.cz/oidc/"));
         assertEquals(login, u.getLogin());
     }
 }

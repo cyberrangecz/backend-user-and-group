@@ -66,10 +66,11 @@ public interface UserService {
      * Gets user with given user login from the database.
      *
      * @param login login of the user to be loaded.
+     * @param iss issuer - URI of the oidc provider used to authenticate user.
      * @return the {@link User} with given user login.
      * @throws UserAndGroupServiceException if the user with the given login could not be found.
      */
-    User getUserByLogin(String login);
+    User getUserByLoginAndIss(String login, String iss);
 
     /**
      * Gets all users from the database.
@@ -102,10 +103,11 @@ public interface UserService {
      * Gets users with IDMGroups from the database.
      *
      * @param login the login of the user to be loaded.
+     * @param iss issuer - URI of the oidc provider
      * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s from the database.
      * @throws UserAndGroupServiceException if user could not be found.
      */
-    User getUserWithGroups(String login);
+    User getUserWithGroups(String login, String iss);
 
     /**
      * Returns true if the user is internal, otherwise false.
@@ -155,10 +157,10 @@ public interface UserService {
     Page<User> getUsersWithGivenRole(String roleType, Pageable pageable);
 
     /**
-     * Gets users with a given set of logins.
+     * Gets users with a given set of ids.
      *
-     * @param logins set of logins.
-     * @return set of {@link User}s with logins in given set of logins.
+     * @param ids set of ids.
+     * @return set of {@link User}s with ids in given set of ids.
      */
-    Set<User> getUsersWithGivenLogins(Set<String> logins);
+    Set<User> getUsersWithGivenIds(Set<Long> ids);
 }

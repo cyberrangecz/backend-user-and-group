@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
@@ -101,7 +102,7 @@ public class IDMGroup {
     /**
      * Gets the status of the IDMGroup.
      *
-     * @return the status {@link cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus} of the IDMGroup.
+     * @return the status {@link UserAndGroupStatus} of the IDMGroup.
      */
     public UserAndGroupStatus getStatus() {
         return status;
