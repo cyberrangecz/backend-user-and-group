@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.mapping;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.User;
 
 import java.util.HashSet;
@@ -17,8 +17,8 @@ public class UsersWrapper {
 
     @JsonIgnoreProperties({"id"})
     private User user;
-
     private Set<RoleType> roles = new HashSet<>();
+    private String iss;
 
     /**
      * Gets an instance of a user.
@@ -56,11 +56,30 @@ public class UsersWrapper {
         this.roles = new HashSet<>(roles);
     }
 
+    /**
+     * Gets the URI of oidc provider which is used to authenticate the user.
+     *
+     * @return issuer - URI of the oidc provider.
+     */
+    public String getIss() {
+        return iss;
+    }
+
+    /**
+     * Sets URI of the oidc provider.
+     *
+     * @param iss issuer - URI of the oidc provider
+     */
+    public void setIss(String iss) {
+        this.iss = iss;
+    }
+
     @Override
     public String toString() {
         return "UsersWrapper{" +
                 "user=" + user +
                 ", roles=" + roles +
+                ", iss=" + iss +
                 '}';
     }
 }

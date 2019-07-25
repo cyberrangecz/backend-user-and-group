@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -16,13 +16,13 @@ import static javax.persistence.GenerationType.IDENTITY;
  * @author Pavel Seda
  */
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
 public class User {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-    @Column(name = "login", unique = true, nullable = false)
+    @Column(name = "login", nullable = false)
     private String login;
     @Column(name = "full_name")
     private String fullName;
@@ -39,6 +39,8 @@ public class User {
     private UserAndGroupStatus status;
     @ManyToMany(mappedBy = "users")
     private Set<IDMGroup> groups = new HashSet<>();
+    @Column(name = "iss", nullable = false)
+    private String iss;
 
     /**
      * Instantiates a new User.
@@ -47,14 +49,16 @@ public class User {
     }
 
     /**
-     * Instantiates a new User with login. Login should not be empty.
+     * Instantiates a new User with login and his oidc provider . Login should not be empty.
      *
      * @param login the login of type String. Login should be of type 13***5@muni.cz
+     * @param iss URI of provider which will be used to authenticate this user.
      */
-    public User(String login) {
+    public User(String login, String iss) {
         Assert.hasLength(login, "Login must not be empty");
         this.login = login;
         this.status = UserAndGroupStatus.VALID;
+        this.iss = iss;
     }
 
     /**
@@ -150,7 +154,7 @@ public class User {
     /**
      * Gets the status of the user.
      *
-     * @return the status {@link cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus} of the user.
+     * @return the status {@link UserAndGroupStatus} of the user.
      */
     public UserAndGroupStatus getStatus() {
         return status;
@@ -159,7 +163,7 @@ public class User {
     /**
      * Sets a new status of the user.
      *
-     * @param status the status {@link cz.muni.ics.kypo.userandgroup.model.UserAndGroupStatus} of the user.
+     * @param status the status {@link UserAndGroupStatus} of the user.
      */
     public void setStatus(UserAndGroupStatus status) {
         this.status = status;
@@ -239,18 +243,35 @@ public class User {
         groups.remove(group);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(getLogin());
+    /**
+     * Gets the URI of provider which will be used to authenticate this user.
+     *
+     * @return URI of the oidc provider.
+     */
+    public String getIss() {
+        return iss;
+    }
+
+    /**
+     * Sets the URI of provider which will be used to authenticate this user.
+     *
+     * @param iss the URI of the oidc provider.
+     */
+    public void setIss(String iss) {
+        this.iss = iss;
     }
 
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof User)) {
-            return false;
-        }
-        User other = (User) object;
-        return Objects.equals(this.login, other.getLogin());
+        if (!(object instanceof User)) return false;
+        User user = (User) object;
+        return Objects.equals(getLogin(), user.getLogin()) &&
+                Objects.equals(getIss(), user.getIss());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getLogin(), getIss());
     }
 
     @Override
@@ -263,6 +284,7 @@ public class User {
                 ", familyName='" + familyName + '\'' +
                 ", externalId=" + externalId +
                 ", mail='" + mail + '\'' +
+                ", iss='" + iss + '\'' +
                 '}';
     }
 }

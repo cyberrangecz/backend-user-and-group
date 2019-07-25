@@ -1,6 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -116,7 +117,8 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void getIDMGroupByNameWithUsers() throws Exception {
-        User user = new User("TestUser");
+        User user = new User("TestUser", "https://oidc.muni.cz/oidc/");
+
         this.entityManager.persist(user);
 
         String expectedName = "group";

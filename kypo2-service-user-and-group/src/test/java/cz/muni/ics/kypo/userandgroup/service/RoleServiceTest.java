@@ -3,7 +3,7 @@ package cz.muni.ics.kypo.userandgroup.service;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.RoleServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;

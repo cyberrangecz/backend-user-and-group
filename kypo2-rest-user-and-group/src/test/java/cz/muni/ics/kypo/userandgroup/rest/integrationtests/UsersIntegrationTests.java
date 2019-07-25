@@ -1,7 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
@@ -10,11 +9,11 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
-import cz.muni.ics.kypo.userandgroup.rest.controllers.RolesRestController;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.UsersRestController;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
@@ -24,11 +23,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
@@ -39,29 +36,18 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -145,18 +131,21 @@ public class UsersIntegrationTests {
         user1.setLogin("852374@muni.cz");
         user1.setMail("852374@mail.muni.cz");
         user1.setStatus(UserAndGroupStatus.VALID);
+        user1.setIss("https://oidc.muni.cz/oidc/");
 
         user2 = new User();
         user2.setFullName("Marcel Watchman");
         user2.setLogin("632145@muni.cz");
         user2.setMail("632145@mail.muni.cz");
         user2.setStatus(UserAndGroupStatus.VALID);
+        user2.setIss("https://oidc.muni.cz/oidc/");
 
         user3 = new User();
         user3.setFullName("Drew Coyer");
         user3.setLogin("77863@muni.cz");
         user3.setMail("77863@mail.muni.cz");
         user3.setStatus(UserAndGroupStatus.VALID);
+        user3.setIss("https://oidc.muni.cz/oidc/");
 
         user4 = new User();
         user4.setFullName("Garret Cull");
@@ -165,6 +154,7 @@ public class UsersIntegrationTests {
         user4.setStatus(UserAndGroupStatus.VALID);
         user4.setFamilyName("Garret");
         user4.setGivenName("Cull");
+        user4.setIss("https://oidc.muni.cz/oidc/");
 
         userRepository.saveAll(new HashSet<>(Set.of(user1, user2, user3, user4)));
 

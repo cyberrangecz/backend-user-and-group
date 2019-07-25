@@ -1,18 +1,16 @@
 package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
-import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.RolesRestController;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
@@ -133,24 +131,28 @@ public class RolesIntegrationTests {
         user1.setLogin("852374@muni.cz");
         user1.setMail("852374@mail.muni.cz");
         user1.setStatus(UserAndGroupStatus.VALID);
+        user1.setIss("https://oidc.muni.cz/oidc/");
 
         user2 = new User();
         user2.setFullName("Marcel Watchman");
         user2.setLogin("632145@muni.cz");
         user2.setMail("632145@mail.muni.cz");
         user2.setStatus(UserAndGroupStatus.VALID);
+        user2.setIss("https://oidc.muni.cz/oidc/");
 
         user3 = new User();
         user3.setFullName("Drew Coyer");
         user3.setLogin("77863@muni.cz");
         user3.setMail("77863@mail.muni.cz");
         user3.setStatus(UserAndGroupStatus.VALID);
+        user3.setIss("https://oidc.muni.cz/oidc/");
 
         user4 = new User();
         user4.setFullName("Garret Cull");
         user4.setLogin("794254@muni.cz");
         user4.setMail("794254@mail.muni.cz");
         user4.setStatus(UserAndGroupStatus.VALID);
+        user4.setIss("https://oidc.muni.cz/oidc/");
 
         userRepository.saveAll(new HashSet<>(Set.of(user1, user2, user3, user4)));
 

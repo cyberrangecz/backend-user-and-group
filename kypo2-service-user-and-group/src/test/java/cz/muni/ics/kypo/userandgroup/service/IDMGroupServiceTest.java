@@ -3,6 +3,8 @@ package cz.muni.ics.kypo.userandgroup.service;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
@@ -79,19 +81,19 @@ public class IDMGroupServiceTest {
         guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
         guestRole.setId(3L);
 
-        user1 = new User("user1");
+        user1 = new User("user1", "https://oidc.muni.cz/oidc/");
         user1.setId(1L);
         user1.setFullName("User One");
         user1.setMail("user.one@mail.com");
         user1.setStatus(UserAndGroupStatus.VALID);
 
-        user2 = new User("user2");
+        user2 = new User("user2", "https://oidc.muni.cz/oidc/");
         user2.setId(2L);
         user2.setFullName("User Two");
         user2.setMail("user.two@mail.com");
         user2.setStatus(UserAndGroupStatus.VALID);
 
-        user3 = new User("user3");
+        user3 = new User("user3", "https://oidc.muni.cz/oidc/");
         user3.setId(3L);
         user3.setFullName("User Three");
         user3.setMail("user.three@mail.com");

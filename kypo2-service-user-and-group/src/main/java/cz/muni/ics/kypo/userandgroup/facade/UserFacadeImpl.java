@@ -184,9 +184,9 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
-    public Set<UserDTO> getUsersWithGivenLogins(Set<String> logins) {
+    public Set<UserDTO> getUsersWithGivenIds(Set<Long> ids) {
         try {
-            return userMapper.mapToSetDTO(userService.getUsersWithGivenLogins(logins));
+            return userMapper.mapToSetDTO(userService.getUsersWithGivenIds(ids));
 
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
@@ -197,9 +197,10 @@ public class UserFacadeImpl implements UserFacade {
     private User getLoggedInUser(OAuth2Authentication authentication) {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
         String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
+        String iss = credentials.get(AuthenticatedUserOIDCItems.ISS.getName()).getAsString();
         User loggedInUser = null;
         try {
-            loggedInUser = userService.getUserByLogin(sub);
+            loggedInUser = userService.getUserByLoginAndIss(sub, iss);
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }

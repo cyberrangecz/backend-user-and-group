@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

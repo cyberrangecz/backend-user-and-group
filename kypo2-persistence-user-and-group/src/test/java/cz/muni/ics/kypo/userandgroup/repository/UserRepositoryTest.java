@@ -1,6 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,30 +65,16 @@ public class UserRepositoryTest {
         group2 = new IDMGroup("group2", "group1 2");
         group2.setStatus(UserAndGroupStatus.VALID);
 
-        user = new User("user");
+        user = new User("user", "https://oidc.muni.cz/oidc/");
         user.setFullName("User one");
         user.setMail("user.one@mail.com");
         user.setStatus(UserAndGroupStatus.VALID);
     }
 
     @Test
-    public void findByLogin() throws Exception {
-        String expectedLogin = "user1";
-        this.entityManager.persist(new User(expectedLogin));
-        Optional<User> optionalUser = this.userRepository.findByLogin(expectedLogin);
-        User u = optionalUser.orElseThrow(() -> new Exception("User should be found"));
-        assertEquals(expectedLogin, u.getLogin());
-    }
-
-    @Test
-    public void findByLoginNotFound() {
-        assertFalse(this.userRepository.findByLogin("user1").isPresent());
-    }
-
-    @Test
     public void getLogin() throws Exception {
         String expectedLogin = "user1";
-        User u = this.entityManager.persistAndFlush(new User(expectedLogin));
+        User u = this.entityManager.persistAndFlush(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
         Optional<String> optionalLogin = this.userRepository.getLogin(u.getId());
         String login = optionalLogin.orElseThrow(() -> new Exception("User's login should be found"));
         assertEquals(expectedLogin, login);
@@ -100,14 +88,14 @@ public class UserRepositoryTest {
     @Test
     public void isUserInternal() {
         String expectedLogin = "user1";
-        User u = this.entityManager.persistAndFlush(new User(expectedLogin));
+        User u = this.entityManager.persistAndFlush(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
         assertTrue(this.userRepository.isUserInternal(u.getId()));
     }
 
     @Test
     public void isUserExternal() {
         String expectedLogin = "user1";
-        User user = new User(expectedLogin);
+        User user = new User(expectedLogin, "https://oidc.muni.cz/oidc/");
         user.setExternalId(1L);
         User u = this.entityManager.persistAndFlush(user);
         assertFalse(this.userRepository.isUserInternal(u.getId()));
@@ -137,12 +125,12 @@ public class UserRepositoryTest {
         group1.addUser(user);
         IDMGroup g = entityManager.persistAndFlush(group1);
 
-        User user2 = new User("user2");
+        User user2 = new User("user2", "https://oidc.muni.cz/oidc/");
         user2.setFullName("User two");
         user2.setMail("user.two@mail.com");
         user2.setStatus(UserAndGroupStatus.VALID);
         entityManager.persistAndFlush(user2);
-        User user3 = new User("user3");
+        User user3 = new User("user3", "https://oidc.muni.cz/oidc/");
         user3.setFullName("User three");
         user3.setMail("user.three@mail.com");
         user3.setStatus(UserAndGroupStatus.VALID);
@@ -163,12 +151,12 @@ public class UserRepositoryTest {
         IDMGroup g1 = entityManager.persistAndFlush(group1);
         IDMGroup g2 = entityManager.persistAndFlush(group2);
 
-        User user2 = new User("user2");
+        User user2 = new User("user2", "https://oidc.muni.cz/oidc/");
         user2.setFullName("User two");
         user2.setMail("user.two@mail.com");
         user2.setStatus(UserAndGroupStatus.VALID);
         entityManager.persistAndFlush(user2);
-        User user3 = new User("user3");
+        User user3 = new User("user3", "https://oidc.muni.cz/oidc/");
         user3.setFullName("User three");
         user3.setMail("user.three@mail.com");
         user3.setStatus(UserAndGroupStatus.VALID);
@@ -212,6 +200,26 @@ public class UserRepositoryTest {
         assertEquals(2, userWithGroups.get().getGroups().size());
         assertTrue(userWithGroups.get().getGroups().contains(group1));
         assertTrue(userWithGroups.get().getGroups().contains(group2));
+    }
+
+    @Test
+    public void findByLoginAndIss() {
+        String expectedLogin = "user1";
+        this.entityManager.persist(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
+        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedLogin, "https://oidc.muni.cz/oidc/");
+        assertTrue(optionalUser.isPresent());
+        assertEquals(expectedLogin, optionalUser.get().getLogin());
+        assertEquals("https://oidc.muni.cz/oidc/", optionalUser.get().getIss());
+
+    }
+
+    @Test
+    public void findByLoginAndDifferentIss() {
+        String expectedLogin = "user1";
+        this.entityManager.persist(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
+        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedLogin, "https://kypo.muni.cz/oidc/");
+        assertFalse(optionalUser.isPresent());
+
     }
 
 }

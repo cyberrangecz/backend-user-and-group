@@ -27,13 +27,14 @@ public interface UserRepository extends JpaRepository<User, Long>,
         QuerydslPredicateExecutor<User> {
 
     /**
-     * Find the user by his login.
+     * Find the user by his login and oidc provider used to authenticate user.
      *
      * @param login unique login of the user.
+     * @param iss the URI of the oidc provider
      * @return the {@link User} instance with a given login if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
-    Optional<User> findByLogin(String login);
+    Optional<User> findByLoginAndIss(String login, String iss);
 
     /**
      * Find the user by his ID.
@@ -85,8 +86,8 @@ public interface UserRepository extends JpaRepository<User, Long>,
      * @param login unique login of the user.
      * @return the {@link User} instance with groups if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login")
-    Optional<User> getUserByLoginWithGroups(@Param("login") String login);
+    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login AND u.iss = :iss")
+    Optional<User> getUserByLoginWithGroups(@Param("login") String login, @Param("iss") String iss);
 
     /**
      * Find all users, not in the given {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with the given ID.
@@ -131,11 +132,11 @@ public interface UserRepository extends JpaRepository<User, Long>,
     Optional<User> getUserByIdWithGroups(@Param("userId") Long userId);
 
     /**
-     * Find all users by a set of logins.
+     * Find all users by a set of ids.
      *
-     * @param logins set of logins of users who are searching.
-     * @return returns set of all {@link User}s whose logins are in a given set of logins.
+     * @param ids set of ids of users who we are looking for.
+     * @return returns set of all {@link User}s whose ids are in a given set of ids.
      */
-    @Query(value = "SELECT u FROM User u WHERE u.login IN :logins")
-    Set<User> findAllWithGivenLogins(@Param("logins") Set<String> logins);
+    @Query(value = "SELECT u FROM User u WHERE u.id IN :ids")
+    Set<User> findAllWithGivenIds(@Param("ids") Set<Long> ids);
 }

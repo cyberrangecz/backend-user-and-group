@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
@@ -59,12 +61,14 @@ public class UserServiceTest {
         user1.setFullName("test user1");
         user1.setLogin("user1");
         user1.setStatus(UserAndGroupStatus.VALID);
+        user1.setIss("https://oidc.muni.cz/oidc/");
 
         user2 = new User();
         user2.setId(2L);
         user2.setFullName("test user2");
         user2.setLogin("user2");
         user2.setStatus(UserAndGroupStatus.VALID);
+        user2.setIss("https://oidc.muni.cz/oidc/");
 
         adminGroup = new IDMGroup("adminGroup", "Administrator group");
         adminGroup.setId(1L);
@@ -227,38 +231,38 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getUserByLogin() {
-        given(userRepository.findByLogin(user1.getLogin())).willReturn(Optional.of(user1));
+    public void getUserByLoginAndIss() {
+        given(userRepository.findByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
 
-        User u = userService.getUserByLogin(user1.getLogin());
+        User u = userService.getUserByLoginAndIss(user1.getLogin(), "https://oidc.muni.cz/oidc/");
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
         assertEquals(user1.getLogin(), u.getLogin());
         assertEquals(user1.getStatus(), u.getStatus());
 
-        then(userRepository).should().findByLogin(user1.getLogin());
+        then(userRepository).should().findByLoginAndIss(user1.getLogin(), user1.getIss());
     }
 
     @Test
     public void getUserByLoginNotFoundShouldThrowException() {
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with login " + user1.getLogin() + " could not be found");
-        given(userRepository.findByLogin(anyString())).willReturn(Optional.empty());
-        userService.getUserByLogin(user1.getLogin());
+        given(userRepository.findByLoginAndIss(anyString(),anyString())).willReturn(Optional.empty());
+        userService.getUserByLoginAndIss(user1.getLogin(), "https://oidc.muni.cz/oidc/");
     }
 
     @Test
     public void getUserByLoginWithNullLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input login must not be empty");
-        userService.getUserByLogin(null);
+        userService.getUserByLoginAndIss(null, "https://oidc.muni.cz/oidc/");
     }
 
     @Test
     public void getUserByLoginWithEmptyLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input login must not be empty");
-        userService.getUserByLogin("");
+        userService.getUserByLoginAndIss("", "https://oidc.muni.cz/oidc/");
     }
 
     @Test
@@ -281,19 +285,19 @@ public class UserServiceTest {
 
     @Test
     public void getUserWithGroupsByLogin() {
-        given(userRepository.getUserByLoginWithGroups(user1.getLogin())).willReturn(Optional.of(user1));
+        given(userRepository.getUserByLoginWithGroups(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
 
-        User u = userService.getUserWithGroups(user1.getLogin());
+        User u = userService.getUserWithGroups(user1.getLogin(), user1.getIss());
         assertEquals(user1, u);
 
-        then(userRepository).should().getUserByLoginWithGroups(user1.getLogin());
+        then(userRepository).should().getUserByLoginWithGroups(user1.getLogin(), user1.getIss());
     }
 
     @Test
     public void getUserWithGroupsWithEmptyLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Input login must not be empty");
-        userService.getUserWithGroups("");
+        userService.getUserWithGroups("", "https://oidc.muni.cz/oidc/");
     }
 
     @Test

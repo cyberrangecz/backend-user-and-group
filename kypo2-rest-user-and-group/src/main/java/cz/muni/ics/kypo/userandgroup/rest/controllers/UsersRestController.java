@@ -252,25 +252,25 @@ public class UsersRestController {
     }
 
     /**
-     * Gets users with a given set of logins.
+     * Gets users with a given set of ids.
      *
      * @param fields attributes of the object to be returned as the result.
-     * @param logins set of logins of users to be loaded.
+     * @param ids set of ids of users to be loaded.
      * @return the {@link ResponseEntity} with body type set of {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
-            value = "Gets users with given logins.",
+            value = "Gets users with given ids.",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiPageableSwagger
-    @GetMapping(value = "/logins", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersWithGivenLogins(
+    @GetMapping(value = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getUsersWithGivenIds(
             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
             @RequestParam(value = "fields", required = false) String fields,
-            @ApiParam(value = "Logins of users to be obtained.", required = true)
-            @RequestParam(value = "logins") Set<String> logins) {
-        if (logins.isEmpty()) return new ResponseEntity<>(Collections.emptySet(), HttpStatus.OK);
-        Set<UserDTO> userDTOs = userFacade.getUsersWithGivenLogins(logins);
+            @ApiParam(value = "Ids of users to be obtained.", required = true)
+            @RequestParam(value = "ids") Set<Long> ids) {
+        if (ids.isEmpty()) return new ResponseEntity<>(Collections.emptySet(), HttpStatus.OK);
+        Set<UserDTO> userDTOs = userFacade.getUsersWithGivenIds(ids);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }

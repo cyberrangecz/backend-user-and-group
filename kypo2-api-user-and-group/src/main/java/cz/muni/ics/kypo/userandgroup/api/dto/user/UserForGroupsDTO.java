@@ -18,6 +18,7 @@ public class UserForGroupsDTO {
     private String familyName;
     private String login;
     private String mail;
+    private String iss;
 
     /**
      * Gets the ID of the user.
@@ -62,7 +63,7 @@ public class UserForGroupsDTO {
      *
      * @return the login of the user.
      */
-    @ApiModelProperty(value = "Login of the user.", example = "michaelsmith")
+    @ApiModelProperty(value = "Login of the user.", example = "{\"sub\":\"michaelsmith\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
     public String getLogin() {
         return login;
     }
@@ -133,6 +134,24 @@ public class UserForGroupsDTO {
         this.familyName = familyName;
     }
 
+    /**
+     * Gets the issuer - URI of the oidc provider of the user.
+     *
+     * @return issuer - URI of the oidc provider.
+     */
+    public String getIss() {
+        return iss;
+    }
+
+    /**
+     * Sets the issuer - URI of the oidc provider of the user.
+     *
+     * @param iss the family name of the user.
+     */
+    public void setIss(String iss) {
+        this.iss = iss;
+    }
+
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof UserForGroupsDTO)) {
@@ -144,12 +163,13 @@ public class UserForGroupsDTO {
                 Objects.equals(getGivenName(), that.getGivenName()) &&
                 Objects.equals(getFamilyName(), that.getFamilyName()) &&
                 Objects.equals(getLogin(), that.getLogin()) &&
-                Objects.equals(getMail(), that.getMail());
+                Objects.equals(getMail(), that.getMail()) &&
+                Objects.equals(getIss(), that.getIss());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getFullName(), getGivenName(), getFamilyName(), getLogin(), getMail());
+        return Objects.hash(getId(), getFullName(), getGivenName(), getFamilyName(), getLogin(), getMail(), getIss());
     }
 
     @Override
@@ -161,6 +181,7 @@ public class UserForGroupsDTO {
                 ", familyName='" + familyName + '\'' +
                 ", login='" + login + '\'' +
                 ", mail='" + mail + '\'' +
+                ", iss='" + iss + '\'' +
                 '}';
     }
 }
