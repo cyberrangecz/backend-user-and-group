@@ -25,12 +25,13 @@ public class SwaggerConfig {
 
     @Value("#{'${kypo.idp.4oauth.authorizationURIs}'.split(',')}")
     private List<String> authorizationURIs;
-
     @Value("#{'${kypo.idp.4oauth.client.clientIds}'.split(',')}")
     private List<String> clientIds;
-
     @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
+    @Value("${swagger.enabled}")
+    private boolean swaggerEnabled;
+
 
     private static String NAME_OF_TOKEN = "bearer";
 
@@ -39,6 +40,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .enable(swaggerEnabled)
                 .groupName("user-and-group-api")
                 .apiInfo(apiInfo())
                 .select()
