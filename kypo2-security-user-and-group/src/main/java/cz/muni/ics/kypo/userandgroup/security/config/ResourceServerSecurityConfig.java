@@ -28,6 +28,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Seda
@@ -40,27 +41,18 @@ import java.util.*;
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.security"})
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
-    @Value("${kypo.muni.idp.4oauth.issuer}")
-    private String issuerMUNI;
-    @Value("${kypo.muni.idp.4oauth.introspectionURI}")
-    private String introspectionURIMUNI;
-    @Value("${kypo.muni.idp.4oauth.resource.clientId}")
-    private String clientIdOfResourceMUNI;
-    @Value("${kypo.muni.idp.4oauth.resource.clientSecret}")
-    private String clientSecretResourceMUNI;
-    @Value("#{'${kypo.muni.idp.4oauth.scopes}'.split(',')}")
-    private Set<String> scopesMUNI;
-
-    @Value("${kypo.mitre.idp.4oauth.issuer}")
-    private String issuerKYPO;
-    @Value("${kypo.mitre.idp.4oauth.introspectionURI}")
-    private String introspectionURIKYPO;
-    @Value("${kypo.mitre.idp.4oauth.resource.clientId}")
-    private String clientIdOfResourceKYPO;
-    @Value("${kypo.mitre.idp.4oauth.resource.clientSecret}")
-    private String clientSecretResourceKYPO;
-    @Value("#{'${kypo.mitre.idp.4oauth.scopes}'.split(',')}")
-    private Set<String> scopesKYPO;
+    @Value("#{'${kypo.idp.4oauth.issuers}'.split(',')}")
+    private List<String> issuers;
+    @Value("#{'${kypo.idp.4oauth.introspectionURIs}'.split(',')}")
+    private List<String> introspectionURIs;
+    @Value("#{'${kypo.idp.4oauth.resource.clientIds}'.split(',')}")
+    private List<String> clientIdsOfResources;
+    @Value("#{'${kypo.idp.4oauth.resource.clientSecrets}'.split(',')}")
+    private List<String> clientSecretResources;
+    @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
+    private Set<String> scopes;
+    @Value("${cors.path:/**}")
+    private String corsPath;
 
     @Autowired
     private CustomAuthorityGranter customAuthorityGranter;
@@ -73,7 +65,7 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
         configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(corsPath, configuration);
         return source;
     }
 
@@ -101,24 +93,20 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     public ServerConfigurationService serverConfigurationService() {
         DynamicServerConfigurationService serverConfigurationService =
                 new DynamicServerConfigurationService();
-        serverConfigurationService.setWhitelist(new HashSet<>(Set.of(issuerMUNI, issuerKYPO)));
+        serverConfigurationService.setWhitelist(issuers.stream().map(String::trim).collect(Collectors.toSet()));
         return serverConfigurationService;
     }
 
     @Bean
     public ClientConfigurationService clientConfigurationService() {
         Map<String, RegisteredClient> clients = new HashMap<>();
-        RegisteredClient clientKYPO = new RegisteredClient();
-        clientKYPO.setClientId(clientIdOfResourceKYPO);
-        clientKYPO.setClientSecret(clientSecretResourceKYPO);
-        clientKYPO.setScope(scopesKYPO);
-        clients.put(issuerKYPO, clientKYPO);
-
-        RegisteredClient clientMUNI = new RegisteredClient();
-        clientMUNI.setClientId(clientIdOfResourceMUNI);
-        clientMUNI.setClientSecret(clientSecretResourceMUNI);
-        clientMUNI.setScope(scopesMUNI);
-        clients.put(issuerMUNI, clientMUNI);
+        for(int i = 0; i < issuers.size(); i++) {
+            RegisteredClient client = new RegisteredClient();
+            client.setClientId(clientIdsOfResources.get(i).trim());
+            client.setClientSecret(clientSecretResources.get(i).trim());
+            client.setScope(scopes);
+            clients.put(issuers.get(i).trim(), client);
+        }
 
         StaticClientConfigurationService clientConfigurationService =
                 new StaticClientConfigurationService();

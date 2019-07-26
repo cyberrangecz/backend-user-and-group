@@ -23,13 +23,13 @@ import java.util.*;
 @EnableSwagger2
 public class SwaggerConfig {
 
-    @Value("${kypo.muni.idp.4oauth.authorizationURI}")
-    private String authorizationURI;
+    @Value("#{'${kypo.idp.4oauth.authorizationURIs}'.split(',')}")
+    private List<String> authorizationURIs;
 
-    @Value("${kypo.muni.idp.4oauth.client.clientId}")
-    private String clientIdOfClient;
+    @Value("#{'${kypo.idp.4oauth.client.clientIds}'.split(',')}")
+    private List<String> clientIds;
 
-    @Value("#{'${kypo.muni.idp.4oauth.scopes}'.split(',')}")
+    @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
 
     private static String NAME_OF_TOKEN = "bearer";
@@ -60,14 +60,14 @@ public class SwaggerConfig {
     @Bean
     public SecurityConfiguration security() {
         return SecurityConfigurationBuilder.builder()
-                .clientId(clientIdOfClient)
+                .clientId(clientIds.get(0).trim())
                 .scopeSeparator(" ")
                 .build();
     }
 
     private SecurityScheme securityScheme() {
         GrantType grantType = new ImplicitGrantBuilder()
-                .loginEndpoint(new LoginEndpoint(authorizationURI))
+                .loginEndpoint(new LoginEndpoint(authorizationURIs.get(0).trim()))
                 .tokenName(NAME_OF_TOKEN)
                 .build();
 

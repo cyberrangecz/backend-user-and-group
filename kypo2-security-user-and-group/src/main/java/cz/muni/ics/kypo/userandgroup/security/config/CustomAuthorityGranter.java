@@ -36,11 +36,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
 
-    @Value("${kypo.muni.idp.4oauth.issuer}")
-    private String issuerMUNI;
-    @Value("${kypo.mitre.idp.4oauth.issuer}")
-    private String issuerKYPO;
-
     private static Logger LOG = LoggerFactory.getLogger(CustomAuthorityGranter.class);
 
     private UserRepository userRepository;
