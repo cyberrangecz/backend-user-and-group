@@ -13,7 +13,6 @@ import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGrante
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -56,19 +55,19 @@ public class CustomAuthorityGranter implements IntrospectionAuthorityGranter {
         Set<Role> roles = new HashSet<>();
         if (!optionalUser.isPresent()) {
             roles.addAll(
-                    saveNewUser(login, introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()).getAsString(),
-                            introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName()).getAsString(),
-                            introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName()).getAsString(),
-                            introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName()).getAsString(),
+                    saveNewUser(login, introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()) == null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()).getAsString(),
+                            introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName()).getAsString(),
+                            introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName()).getAsString(),
+                            introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName()).getAsString(),
                             issuer
                     ));
         } else {
             User user = optionalUser.get();
             if (user.getFullName() == null || user.getMail() == null) {
-                user.setFullName(introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()).getAsString());
-                user.setMail(introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName()).getAsString());
-                user.setGivenName(introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName()).getAsString());
-                user.setFamilyName(introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName()).getAsString());
+                user.setFullName(introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.NAME.getName()).getAsString());
+                user.setMail(introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.EMAIL.getName()).getAsString());
+                user.setGivenName(introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.GIVEN_NAME.getName()).getAsString());
+                user.setFamilyName(introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName())== null ? null : introspectionResponse.get(AuthenticatedUserOIDCItems.FAMILY_NAME.getName()).getAsString());
                 userRepository.save(user);
 
             }
