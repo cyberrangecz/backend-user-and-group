@@ -97,7 +97,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
      * @return returns list of all {@link User}s except those in {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with given ID wrapped in {@link Page}
      */
     @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.groups g LEFT JOIN FETCH g.roles r LEFT JOIN FETCH r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups",
-        countQuery = "SELECT COUNT(u) FROM User u LEFT OUTER JOIN u.groups g  LEFT OUTER JOIN g.roles r LEFT OUTER JOIN r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId)  NOT MEMBER OF u.groups")
+        countQuery = "SELECT COUNT(u) FROM User u LEFT JOIN u.groups g  LEFT JOIN g.roles r LEFT JOIN r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId)  NOT MEMBER OF u.groups")
     Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
 
     /**
