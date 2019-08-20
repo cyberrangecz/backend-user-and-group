@@ -40,7 +40,7 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
     default void customize(QuerydslBindings querydslBindings, QRole qRole) {
         querydslBindings.bind(String.class).all((StringPath path, Collection<? extends String> values) -> {
             BooleanBuilder predicate = new BooleanBuilder();
-            values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
+            values.forEach(value -> predicate.or(path.containsIgnoreCase(value)));
             return Optional.ofNullable(predicate);
         });
     }
