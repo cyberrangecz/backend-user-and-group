@@ -44,7 +44,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
     default void customize(QuerydslBindings querydslBindings, QUser qUser) {
         querydslBindings.bind(String.class).all((StringPath path, Collection<? extends String> values) -> {
             BooleanBuilder predicate = new BooleanBuilder();
-            values.forEach(value -> predicate.or(path.containsIgnoreCase(value)));
+            values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
             return Optional.ofNullable(predicate);
         });
     }
