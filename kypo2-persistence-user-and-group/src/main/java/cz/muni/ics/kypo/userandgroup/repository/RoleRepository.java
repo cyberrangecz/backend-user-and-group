@@ -1,14 +1,17 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringPath;
+import cz.muni.ics.kypo.userandgroup.model.QRole;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import io.micrometer.core.lang.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +26,19 @@ import java.util.Set;
  */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long>,
-        QuerydslPredicateExecutor<Role> {
+        QuerydslPredicateExecutor<Role>, QuerydslBinderCustomizer<QRole> {
+
+    /**
+     * That method is used to make the query dsl string values case insensitive
+     *
+     * @param querydslBindings
+     * @param qRole
+     */
+    @Override
+    default void customize(QuerydslBindings querydslBindings, QRole qRole) {
+        querydslBindings.bind(String.class).first(
+                (StringPath path, String value) -> path.containsIgnoreCase(value));
+    }
 
     /**
      * Find the role by role type.

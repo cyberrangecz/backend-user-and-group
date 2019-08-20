@@ -1,7 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringPath;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.QIDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,11 +12,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,7 +29,19 @@ import java.util.Set;
  */
 @Repository
 public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
-        QuerydslPredicateExecutor<IDMGroup> {
+        QuerydslPredicateExecutor<IDMGroup>, QuerydslBinderCustomizer<QIDMGroup> {
+
+    /**
+     * That method is used to make the query dsl string values case insensitive
+     *
+     * @param querydslBindings
+     * @param qIDMGroup
+     */
+    @Override
+    default void customize(QuerydslBindings querydslBindings, QIDMGroup qIDMGroup) {
+        querydslBindings.bind(String.class).first(
+                (StringPath path, String value) -> path.containsIgnoreCase(value));
+    }
 
     /**
      * Find a group by its name.

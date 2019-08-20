@@ -1,6 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringPath;
+import cz.muni.ics.kypo.userandgroup.model.QUser;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import io.micrometer.core.lang.NonNull;
@@ -10,6 +12,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -24,13 +28,25 @@ import java.util.Set;
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>,
-        QuerydslPredicateExecutor<User> {
+        QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {
+
+    /**
+     * That method is used to make the query dsl string values case insensitive
+     *
+     * @param querydslBindings
+     * @param qUser
+     */
+    @Override
+    default void customize(QuerydslBindings querydslBindings, QUser qUser) {
+        querydslBindings.bind(String.class).first(
+                (StringPath path, String value) -> path.containsIgnoreCase(value));
+    }
 
     /**
      * Find the user by his login and oidc provider used to authenticate user.
      *
      * @param login unique login of the user.
-     * @param iss the URI of the oidc provider
+     * @param iss   the URI of the oidc provider
      * @return the {@link User} instance with a given login if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
@@ -84,6 +100,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
      * Find the user by his login also with groups in which he is.
      *
      * @param login unique login of the user.
+     * @param iss   the iss
      * @return the {@link User} instance with groups if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login AND u.iss = :iss")
@@ -97,14 +114,14 @@ public interface UserRepository extends JpaRepository<User, Long>,
      * @return returns list of all {@link User}s except those in {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with given ID wrapped in {@link Page}
      */
     @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.groups g LEFT JOIN FETCH g.roles r LEFT JOIN FETCH r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups",
-        countQuery = "SELECT COUNT(u) FROM User u LEFT JOIN u.groups g  LEFT JOIN g.roles r LEFT JOIN r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId)  NOT MEMBER OF u.groups")
+            countQuery = "SELECT COUNT(u) FROM User u LEFT JOIN u.groups g  LEFT JOIN g.roles r LEFT JOIN r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId)  NOT MEMBER OF u.groups")
     Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
 
     /**
      * Find all users in given {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s with given IDs.
      *
      * @param groupsIds unique identifiers of groups whose users will be included in the resulting list
-     * @param pageable abstract interface for pagination information
+     * @param pageable  abstract interface for pagination information
      * @return returns list of all {@link User}s who are in {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with given ID wrapped up in {@link Page}
      */
     @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g WHERE g.id IN :groupsIds",
@@ -114,7 +131,7 @@ public interface UserRepository extends JpaRepository<User, Long>,
     /**
      * Find all users with given {@link Role} with the given ID.
      *
-     * @param roleId unique identifiers of the role.
+     * @param roleId   unique identifiers of the role.
      * @param pageable abstract interface for pagination information.
      * @return returns list of all {@link User}s who have a {@link Role} with given role ID.
      */
