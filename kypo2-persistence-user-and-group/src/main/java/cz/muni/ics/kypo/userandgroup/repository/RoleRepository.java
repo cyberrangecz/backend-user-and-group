@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import cz.muni.ics.kypo.userandgroup.model.QRole;
@@ -15,6 +16,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,8 +38,11 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
      */
     @Override
     default void customize(QuerydslBindings querydslBindings, QRole qRole) {
-        querydslBindings.bind(String.class).first(
-                (StringPath path, String value) -> path.containsIgnoreCase(value));
+        querydslBindings.bind(String.class).all((StringPath path, Collection<? extends String> values) -> {
+            BooleanBuilder predicate = new BooleanBuilder();
+            values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
+            return Optional.ofNullable(predicate);
+        });
     }
 
     /**
