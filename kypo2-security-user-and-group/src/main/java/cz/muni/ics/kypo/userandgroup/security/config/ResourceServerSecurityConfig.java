@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -51,26 +52,12 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     private List<String> clientSecretResources;
     @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
-    @Value("${cors.allowed.origins:*}")
-    private String corsAllowedOrigins;
+
+    @Autowired
+    private CustomCorsFilter corsFilter;
 
     @Autowired
     private CustomAuthorityGranter customAuthorityGranter;
-
-    @Bean
-    @Primary
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(corsAllowedOrigins));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("authorization", "content-type", "x-auth-token"));
-        configuration.setExposedHeaders(List.of("x-auth-token"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        FilterRegistrationBean corsFilter = new FilterRegistrationBean(new CorsFilter(source));
-        corsFilter.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        return source;
-    }
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
@@ -82,6 +69,7 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
         http
                 .cors()
                 .and()
+                .addFilterBefore(corsFilter, BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs/**", "/webjars/**", "/microservices").permitAll()
                 .anyRequest().authenticated()
