@@ -41,6 +41,9 @@ public class User {
     private Set<IDMGroup> groups = new HashSet<>();
     @Column(name = "iss", nullable = false)
     private String iss;
+    @Lob
+    @Column(name="picture")
+    private byte[] picture;
 
     /**
      * Instantiates a new User.
@@ -259,6 +262,24 @@ public class User {
      */
     public void setIss(String iss) {
         this.iss = iss;
+    }
+
+    /**
+     * Gets the identicon of the user encoded in base64.
+     *
+     * @return identicon of the user.
+     */
+    public byte[] getPicture() {
+        return picture;
+    }
+
+    /**
+     * Sets the identicon of the user encoded in base64.
+     *
+     * @param picture encoded identicon of the user.
+     */
+    public void setPicture(byte[] picture) {
+        this.picture = picture;
     }
 
     @Override

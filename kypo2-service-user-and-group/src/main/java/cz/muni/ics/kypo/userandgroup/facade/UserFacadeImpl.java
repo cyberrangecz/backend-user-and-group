@@ -64,7 +64,8 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public UserDTO getUser(Long id) {
         try {
-            return userMapper.mapToUserDTOWithRoles(userService.get(id));
+            User u = userService.get(id);
+            return userMapper.mapToUserDTOWithRoles(u);
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }

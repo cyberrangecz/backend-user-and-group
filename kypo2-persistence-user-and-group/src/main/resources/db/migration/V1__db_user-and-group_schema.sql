@@ -8,6 +8,7 @@ CREATE TABLE users (
    status             varchar(255) NOT NULL,
    external_id        int8 UNIQUE,
    iss                varchar(255) NOT NULL,
+   picture            oid,
    PRIMARY KEY (id));
 
 CREATE TABLE role (
