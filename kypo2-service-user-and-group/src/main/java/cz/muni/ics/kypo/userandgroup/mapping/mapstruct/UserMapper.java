@@ -76,6 +76,7 @@ public interface UserMapper extends ParentMapper {
     @Named("mapToUserDTOWithRoles")
     default UserDTO mapToUserDTOWithRoles(User user) {
         UserDTO userDTO = mapToDTO(user);
+        userDTO.setPicture(user.getPicture());
         Set<Role> rolesOfUser = new HashSet<>();
         for (IDMGroup groupOfUser: user.getGroups()) {
             rolesOfUser.addAll(groupOfUser.getRoles());
