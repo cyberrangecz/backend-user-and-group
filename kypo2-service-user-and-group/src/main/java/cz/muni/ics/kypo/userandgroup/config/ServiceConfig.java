@@ -24,7 +24,7 @@ import java.util.List;
  * @author Dominik Pilar
  */
 @Configuration
-@Import({ResourceServerSecurityConfig.class, PersistenceConfig.class, ValidationMessagesConfig.class, EHCacheConfiguration.class})
+@Import({ResourceServerSecurityConfig.class, PersistenceConfig.class, ValidationMessagesConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.service", "cz.muni.ics.kypo.userandgroup.config", "cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.mapping"})
 @PropertySource("file:${path.to.config.file}")
 public class ServiceConfig {

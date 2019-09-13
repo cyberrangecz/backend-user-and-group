@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
-public class RoleDTO implements Serializable {
+public class RoleDTO {
 
     private Long id;
     @JsonProperty("role_type")

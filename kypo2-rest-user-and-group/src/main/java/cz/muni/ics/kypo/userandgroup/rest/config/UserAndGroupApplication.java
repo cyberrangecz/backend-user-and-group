@@ -12,7 +12,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @Import({WebConfigRestUserAndGroup.class})
 @EnableScheduling
-@EnableCaching
 public class UserAndGroupApplication {
 
     public static void main(String[] args) {

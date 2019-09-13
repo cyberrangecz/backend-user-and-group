@@ -34,7 +34,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "role")
-public class Role implements Serializable {
+public class Role {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

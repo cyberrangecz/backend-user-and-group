@@ -14,7 +14,7 @@ import java.util.Set;
  *
  * @author Pavel Seda
  */
-public class UserDTO implements Serializable {
+public class UserDTO {
 
     private Long id;
     private String fullName;

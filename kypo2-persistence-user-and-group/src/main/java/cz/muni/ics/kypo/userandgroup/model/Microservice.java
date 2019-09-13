@@ -17,7 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "microservice")
-public class Microservice implements Serializable {
+public class Microservice {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
