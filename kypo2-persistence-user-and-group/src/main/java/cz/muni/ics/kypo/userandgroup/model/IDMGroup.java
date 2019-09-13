@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -16,7 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "idm_group")
-public class IDMGroup {
+public class IDMGroup implements Serializable {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

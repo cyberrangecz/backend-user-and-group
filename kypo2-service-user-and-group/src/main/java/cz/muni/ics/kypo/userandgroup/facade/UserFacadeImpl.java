@@ -19,10 +19,15 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
@@ -42,6 +47,8 @@ public class UserFacadeImpl implements UserFacade {
     @Value("${service.name}")
     private String nameOfUserAndGroupService;
     Logger LOG = LoggerFactory.getLogger(UserFacadeImpl.class);
+    @Autowired
+    private CacheManager cacheManager;
 
     private UserService userService;
     private UserMapper userMapper;
@@ -56,12 +63,15 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
+    @Cacheable(value = "users")
     public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) {
+        getCachedClient();
         return  userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable));
     }
 
     @Override
     @TransactionalRO
+    @Cacheable(value="users", key="#id")
     public UserDTO getUser(Long id) {
         try {
             User u = userService.get(id);
@@ -109,6 +119,7 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalWO
+    @CacheEvict(value = "users", key = "id")
     public UserDeletionResponseDTO deleteUser(Long id) {
         User user = null;
         try {
@@ -185,7 +196,9 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
+    @Cacheable(value = "users")
     public Set<UserDTO> getUsersWithGivenIds(Set<Long> ids) {
+        getCachedClient();
         try {
             return userMapper.mapToSetDTO(userService.getUsersWithGivenIds(ids));
 
@@ -208,4 +221,24 @@ public class UserFacadeImpl implements UserFacade {
         return loggedInUser;
     }
 
+    public List<User>  getCachedClient() {
+        Cache cache = cacheManager.getCache("users");
+        Object cachedObject = null;
+        List<User> cachedObjects = new ArrayList<>();
+        if (cache instanceof net.sf.ehcache.Ehcache) {
+            List<Object> keys = cache.getKeys();
+            if (keys.size() > 0) {
+                for (Object key : keys) {
+                    Element element = cache.get(key);
+                    if (element != null) {
+
+                        cachedObjects.add( (User) element.getObjectValue());
+
+                    }
+                }
+            }
+        }
+        return cachedObjects;
+
+    }
 }

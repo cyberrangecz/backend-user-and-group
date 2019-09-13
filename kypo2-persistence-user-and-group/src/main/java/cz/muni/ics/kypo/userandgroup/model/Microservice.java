@@ -4,6 +4,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -16,7 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "microservice")
-public class Microservice {
+public class Microservice implements Serializable {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

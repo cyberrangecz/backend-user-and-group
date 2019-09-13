@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.api.dto.role;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -11,7 +12,7 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
-public class RoleDTO {
+public class RoleDTO implements Serializable {
 
     private Long id;
     @JsonProperty("role_type")

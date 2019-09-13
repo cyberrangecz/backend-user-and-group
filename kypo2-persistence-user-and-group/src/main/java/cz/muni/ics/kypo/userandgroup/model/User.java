@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -17,7 +18,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
-public class User {
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

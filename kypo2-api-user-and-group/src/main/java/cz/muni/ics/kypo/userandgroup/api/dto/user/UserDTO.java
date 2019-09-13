@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.Set;
  *
  * @author Pavel Seda
  */
-public class UserDTO {
+public class UserDTO implements Serializable {
 
     private Long id;
     private String fullName;
