@@ -1,7 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -160,7 +162,16 @@ public interface UserService {
      * Gets users with a given set of ids.
      *
      * @param ids set of ids.
-     * @return set of {@link User}s with ids in given set of ids.
+     * @return set of {@link User}s with ids wrapped up in {@link Page}.
      */
-    Set<User> getUsersWithGivenIds(Set<Long> ids);
+    Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable);
+
+    /**
+     *  Returns a page of users specified by given role type and not with given ids.
+     *
+     * @param roleType a type of the role to get users for.
+     * @param ids ids of users excluded from the result page.
+     * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link Page}.
+     */
+    Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable);
 }

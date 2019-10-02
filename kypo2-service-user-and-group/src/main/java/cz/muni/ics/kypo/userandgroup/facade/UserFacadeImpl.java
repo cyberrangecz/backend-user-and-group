@@ -19,15 +19,10 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
@@ -190,14 +185,23 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
-    public Set<UserDTO> getUsersWithGivenIds(Set<Long> ids) {
+    public PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable) {
         try {
-            return userMapper.mapToSetDTO(userService.getUsersWithGivenIds(ids));
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenIds(ids, pageable));
 
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
+    }
 
+    @Override
+    public PageResultResource<UserDTO> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable) {
+        try {
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, ids, pageable));
+
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
     }
 
     private User getLoggedInUser(OAuth2Authentication authentication) {

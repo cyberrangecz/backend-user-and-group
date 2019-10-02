@@ -161,6 +161,19 @@ public interface UserRepository extends JpaRepository<User, Long>,
      * @param ids set of ids of users who we are looking for.
      * @return returns set of all {@link User}s whose ids are in a given set of ids.
      */
-    @Query(value = "SELECT u FROM User u WHERE u.id IN :ids")
-    Set<User> findAllWithGivenIds(@Param("ids") Set<Long> ids);
+    @Query(value = "SELECT u FROM User u WHERE u.id IN :ids",
+            countQuery = "SELECT COUNT(u) FROM User u WHERE u.id IN :ids")
+    Page<User> findAllWithGivenIds(@Param("ids") Set<Long> ids, Pageable pageable);
+
+    /**
+     * Find all users with given {@link Role} with the given ID and without users with given ids.
+     *
+     * @param roleId   unique identifiers of the role.
+     * @param usersIds ids of the users to be excluded from the result page.
+     * @param pageable abstract interface for pagination information.
+     * @return returns list of all {@link User}s who have a {@link Role} with given role ID.
+     */
+    @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g JOIN FETCH g.roles r JOIN FETCH r.microservice WHERE r.id = :roleId AND u.id NOT IN :usersIds",
+            countQuery = "SELECT COUNT(u) FROM User u INNER JOIN u.groups g  INNER JOIN g.roles r INNER JOIN r.microservice WHERE r.id = :roleId AND u.id NOT IN :usersIds")
+    Page<User> findAllByRoleIdAndNotWithGivenIds(@Param("roleId") Long roleId, @Param("usersIds") Set<Long> usersIds, Pageable pageable);
 }

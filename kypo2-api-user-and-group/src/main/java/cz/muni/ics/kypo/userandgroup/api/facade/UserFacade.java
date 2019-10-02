@@ -125,7 +125,16 @@ public interface UserFacade {
      * Gets users with given ids.
      *
      * @param ids ids of users.
-     * @return set of {@link UserDTO}s with given ids.
+     * @return set of {@link UserDTO}s with given ids wrapped up in {@link PageResultResource}.
      */
-    Set<UserDTO> getUsersWithGivenIds(Set<Long> ids);
+    PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable);
+
+    /**
+     *  Returns a page of users specified by given role type and not with given ids.
+     *
+     * @param roleType a type of the role to get users for.
+     * @param ids ids of users excluded from the result page.
+     * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link PageResultResource}.
+     */
+    PageResultResource<UserDTO> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable);
 }

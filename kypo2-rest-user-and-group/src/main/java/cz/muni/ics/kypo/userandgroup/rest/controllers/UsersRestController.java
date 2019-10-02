@@ -5,20 +5,21 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.model.QUser;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ServiceUnavailableException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import io.swagger.annotations.Api;
@@ -36,6 +37,13 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.Metamodel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +63,8 @@ public class UsersRestController {
 
     private UserFacade userFacade;
     private ObjectMapper objectMapper;
+    @Autowired
+    private EntityManager entityManager;
 
     /**
      * Instantiates a new UsersRestController.
@@ -265,12 +275,23 @@ public class UsersRestController {
     @ApiPageableSwagger
     @GetMapping(value = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenIds(
+            @QuerydslPredicate(root = User.class) Predicate predicate,
+            @ApiParam(value = "Parameters for filtering the objects.", required = false)
+            @RequestParam MultiValueMap<String, String> parameters,
             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Ids of users to be obtained.", required = true)
-            @RequestParam(value = "ids") Set<Long> ids) {
-        if (ids.isEmpty()) return new ResponseEntity<>(Collections.emptySet(), HttpStatus.OK);
-        Set<UserDTO> userDTOs = userFacade.getUsersWithGivenIds(ids);
+            @RequestParam(value = "ids") Set<Long> ids, Pageable pageable) {
+        if(pageable.getPageSize() >= 1000) {
+            throw new BadRequestException("Choose page size lower than 1000");
+        }
+        PageResultResource<UserDTO> userDTOs;
+        if (ids.isEmpty()) {
+            userDTOs = new PageResultResource<>(Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0 ));
+        } else {
+            Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
+            userDTOs = userFacade.getUsers(finalPredicate, pageable);
+        }
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }

@@ -5,14 +5,13 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.Api;
@@ -28,6 +27,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 /**
  * Rest controller for the Role resource.
@@ -164,7 +165,50 @@ public class RolesRestController {
                                                             @ApiParam(value = "Type of role to get users for.", required = true)
                                                             @RequestParam("roleType") String roleType) {
         try {
-            PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleType, pageable);
+            Predicate usersWithRoles = QUser.user.groups.any().roles.any().roleType.eq(roleType).and(predicate);
+            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(usersWithRoles, pageable);
+            Squiggly.init(objectMapper, fields);
+            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
+        }
+    }
+
+
+    /**
+     * Gets users with a given role type and not with given ids.
+     *
+     * @param predicate  specifies query to database.
+     * @param pageable   pageable parameter with information about pagination.
+     * @param parameters the parameters
+     * @param fields     attributes of the object to be returned as the result.
+     * @param roleType   the type of the role
+     * @param userIds    ids of the users to be excluded from the result.
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
+    @ApiOperation(httpMethod = "GET",
+            value = "Gets all users with given role and not with given ids.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiPageableSwagger
+    @GetMapping(path = "/users-not-with-ids", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getUsersWithGivenRoleTypeAndNotWithGivenIds(@QuerydslPredicate(root = User.class) Predicate predicate,
+                                                            Pageable pageable,
+                                                            @ApiParam(value = "Parameters for filtering the objects.", required = false)
+                                                            @RequestParam MultiValueMap<String, String> parameters,
+                                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                            @RequestParam(value = "fields", required = false) String fields,
+                                                            @ApiParam(value = "Type of role to get users for.", required = true)
+                                                            @RequestParam("roleType") String roleType,
+                                                            @ApiParam(value = "Ids of the users to be excluded from the result.", required = true)
+                                                            @RequestParam("ids") Set<Long> userIds) {
+        if(pageable.getPageSize() >= 1000) {
+            throw new BadRequestException("Choose page size lower than 1000");
+        }
+        try {
+            Predicate usersWithRoles = QUser.user.groups.any().roles.any().roleType.eq(roleType);
+            Predicate finalPredicate = QUser.user.id.notIn(userIds).and(usersWithRoles).and(predicate);
+            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(finalPredicate, pageable);
             Squiggly.init(objectMapper, fields);
             return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {
