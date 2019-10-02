@@ -12,15 +12,9 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -215,8 +209,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<User> getUsersWithGivenIds(Set<Long> ids) {
-        Assert.notNull(ids, "Input list of idsmust not be null");
-        return userRepository.findAllWithGivenIds(ids);
+    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable) {
+        Assert.notNull(ids, "Input list of ids must not be null");
+        return userRepository.findAllWithGivenIds(ids, pageable);
+    }
+
+    @Override
+    public Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable) {
+        Assert.notNull(roleType, "Role type must not be null");
+        Role role = roleRepository.findByRoleType(roleType).orElseThrow(() ->
+                new UserAndGroupServiceException("Role with role type: " + roleType + " could not be found."));
+        if(ids == null || ids.isEmpty()) {
+            return userRepository.findAllByRoleId(role.getId(), pageable);
+        } else {
+            return userRepository.findAllByRoleIdAndNotWithGivenIds(role.getId(), ids, pageable);
+        }
     }
 }

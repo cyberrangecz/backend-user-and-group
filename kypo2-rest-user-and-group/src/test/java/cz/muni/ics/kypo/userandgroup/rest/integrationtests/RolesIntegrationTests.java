@@ -246,16 +246,16 @@ public class RolesIntegrationTests {
         assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user4, List.of(roleOrganizer)))));
     }
 
-    @Test
-    public void getUsersWithGivenRoleTypeNotFoundRole() throws Exception {
-        Exception exception = mvc.perform(get("/roles/users")
-                .param("roleType", "ROLE_TRAINING_PROFESSOR")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("Role with role type: ROLE_TRAINING_PROFESSOR could not be found.", exception.getMessage());
-    }
+//    @Test
+//    public void getUsersWithGivenRoleTypeNotFoundRole() throws Exception {
+//        Exception exception = mvc.perform(get("/roles/users")
+//                .param("roleType", "ROLE_TRAINING_PROFESSOR")
+//                .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isNotFound())
+//                .andReturn().getResolvedException();
+//        assertEquals(ResourceNotFoundException.class, exception.getClass());
+//        assertEquals("Role with role type: ROLE_TRAINING_PROFESSOR could not be found.", exception.getMessage());
+//    }
 
     private RoleDTO convertToRoleDTO(Role role) {
         RoleDTO roleDTO  = beanMapping.mapTo(role, RoleDTO.class);
