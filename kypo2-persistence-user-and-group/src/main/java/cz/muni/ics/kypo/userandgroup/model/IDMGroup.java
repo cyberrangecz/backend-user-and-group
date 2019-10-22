@@ -17,7 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "idm_group")
-public class IDMGroup {
+public class IDMGroup implements Serializable {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
