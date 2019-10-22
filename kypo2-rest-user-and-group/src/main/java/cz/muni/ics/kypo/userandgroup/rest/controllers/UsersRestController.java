@@ -63,8 +63,6 @@ public class UsersRestController {
 
     private UserFacade userFacade;
     private ObjectMapper objectMapper;
-    @Autowired
-    private EntityManager entityManager;
 
     /**
      * Instantiates a new UsersRestController.
