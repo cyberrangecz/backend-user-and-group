@@ -1,31 +1,7 @@
-/*
- *  Project   : Cybernetic Proving Ground
- *
- *  Tool      : Identity Management Service
- *
- *  Author(s) : Jan Duda 394179@mail.muni.cz
- *
- *  Date      : 29.5.2018
- *
- *  (c) Copyright 2016 MASARYK UNIVERSITY
- *  All rights reserved.
- *
- *  This software is freely available for non-commercial use under license
- *  specified in following license agreement in LICENSE file. Please review the terms
- *  of the license agreement before using this software. If you are interested in
- *  using this software commercially orin ways not allowed in aforementioned
- *  license, feel free to contact Technology transfer office of the Masaryk university
- *  in order to negotiate ad-hoc license agreement.
- */
 package cz.muni.ics.kypo.userandgroup.model;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * Represents the role of users. Each role gives different rights to users.
@@ -34,11 +10,8 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "role")
-public class Role implements Serializable {
+public class Role extends AbstractEntity<Long> {
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
     @Column(name = "role_type", unique = true, nullable = false)
     private String roleType;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -52,7 +25,7 @@ public class Role implements Serializable {
      * @return the ID of the role.
      */
     public Long getId() {
-        return id;
+        return super.getId();
     }
 
     /**
@@ -61,7 +34,7 @@ public class Role implements Serializable {
      * @param id the ID of the role.
      */
     public void setId(Long id) {
-        this.id = id;
+        super.setId(id);
     }
 
     /**
@@ -135,7 +108,7 @@ public class Role implements Serializable {
     @Override
     public String toString() {
         return "Role{" +
-                "id=" + id +
+                "id=" + super.getId() +
                 ", roleType=" + roleType +
                 '}';
     }
