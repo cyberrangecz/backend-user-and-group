@@ -4,11 +4,8 @@ import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * Represents a group of users who can have some roles.
@@ -17,11 +14,8 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "idm_group")
-public class IDMGroup implements Serializable {
+public class IDMGroup extends AbstractEntity<Long> {
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
     @Column(name = "name", nullable = false, unique = true)
     private String name;
     @Column(name = "status", nullable = false)
@@ -70,7 +64,7 @@ public class IDMGroup implements Serializable {
      * @return the ID of the group.
      */
     public Long getId() {
-        return id;
+        return super.getId();
     }
 
     /**
@@ -79,7 +73,7 @@ public class IDMGroup implements Serializable {
      * @param id the ID of the group.
      */
     public void setId(Long id) {
-        this.id = id;
+        super.setId(id);
     }
 
     /**
@@ -266,7 +260,7 @@ public class IDMGroup implements Serializable {
     @Override
     public String toString() {
         return "IDMGroup{" +
-                "id=" + id +
+                "id=" + super.getId() +
                 ", name='" + name + '\'' +
                 ", status=" + status +
                 ", externalId=" + externalId +

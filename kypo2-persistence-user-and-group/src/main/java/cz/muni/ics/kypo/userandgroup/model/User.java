@@ -4,12 +4,9 @@ import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * Represents a user in the system.
@@ -18,11 +15,8 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
-public class User implements Serializable {
+public class User extends AbstractEntity<Long> {
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
     @Column(name = "login", nullable = false)
     private String login;
     @Column(name = "full_name")
@@ -71,7 +65,7 @@ public class User implements Serializable {
      * @return the ID of type long.
      */
     public Long getId() {
-        return id;
+        return super.getId();
     }
 
     /**
@@ -80,7 +74,7 @@ public class User implements Serializable {
      * @param id the ID of the user.
      */
     public void setId(Long id) {
-        this.id = id;
+        super.setId(id);
     }
 
     /**
@@ -299,7 +293,7 @@ public class User implements Serializable {
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
+                "id=" + super.getId() +
                 ", login='" + login + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", givenName='" + givenName + '\'' +

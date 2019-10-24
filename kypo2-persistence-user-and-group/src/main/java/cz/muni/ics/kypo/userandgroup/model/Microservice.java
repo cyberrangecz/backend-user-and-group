@@ -4,10 +4,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Objects;
-
-import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * Represents microservice which participates in the system.
@@ -17,11 +14,8 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Entity
 @Table(name = "microservice")
-public class Microservice implements Serializable {
+public class Microservice extends AbstractEntity<Long> {
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
     @Column(name = "name", nullable = false, unique = true)
     private String name;
     @Column(name = "endpoint", nullable = false)
@@ -53,7 +47,7 @@ public class Microservice implements Serializable {
      * @return the ID of the microservice
      */
     public Long getId() {
-        return id;
+        return super.getId();
     }
 
     /**
@@ -62,7 +56,7 @@ public class Microservice implements Serializable {
      * @param id the ID of the microservice.
      */
     public void setId(Long id) {
-        this.id = id;
+        super.setId(id);
     }
 
     /**
@@ -118,7 +112,7 @@ public class Microservice implements Serializable {
     @Override
     public String toString() {
         return "Microservice{" +
-                "id=" + id +
+                "id=" + super.getId() +
                 ", name='" + name + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 '}';
