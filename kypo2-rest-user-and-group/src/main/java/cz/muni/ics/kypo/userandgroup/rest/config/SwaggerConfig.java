@@ -64,6 +64,7 @@ public class SwaggerConfig {
         return SecurityConfigurationBuilder.builder()
                 .clientId(clientIds.get(0).trim())
                 .scopeSeparator(" ")
+                .additionalQueryStringParams(Map.of("realm", "User Realm"))
                 .build();
     }
 

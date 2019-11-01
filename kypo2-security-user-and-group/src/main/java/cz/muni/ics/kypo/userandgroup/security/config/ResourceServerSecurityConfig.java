@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
 import cz.muni.ics.kypo.userandgroup.config.PersistenceConfig;
+import cz.muni.ics.kypo.userandgroup.security.enums.SpringProfiles;
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService;
 import org.mitre.oauth2.introspectingfilter.service.impl.JWTParsingIntrospectionConfigurationService;
@@ -11,9 +12,8 @@ import org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationSe
 import org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.*;
-import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,10 +23,6 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,10 +48,10 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     private List<String> clientSecretResources;
     @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
-
+    @Autowired
+    private Environment environment;
     @Autowired
     private CustomCorsFilter corsFilter;
-
     @Autowired
     private CustomAuthorityGranter customAuthorityGranter;
 
@@ -66,6 +62,7 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
         http
                 .cors()
                 .and()
@@ -74,10 +71,16 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
                 .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs/**", "/webjars/**", "/microservices").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .x509()
-                .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        String[] profiles = this.environment.getActiveProfiles();
+        if(profiles != null && profiles.length > 0){
+            for(int i=0;i<profiles.length;i++){
+                if(profiles[i].equals(SpringProfiles.DEV.getName())){
+                    http.x509();
+                }
+            }
+        }
     }
 
     @Bean
