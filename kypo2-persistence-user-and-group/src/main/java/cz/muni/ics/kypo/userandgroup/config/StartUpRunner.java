@@ -38,7 +38,7 @@ public class StartUpRunner implements ApplicationRunner {
 
     private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
 
-    @Value("${path.to.file.with.initial.users.and.services}")
+    @Value("${path.to.initial.users}")
     private String pathToFileWithInitialUsers;
 
     @Value("${service.name}")
