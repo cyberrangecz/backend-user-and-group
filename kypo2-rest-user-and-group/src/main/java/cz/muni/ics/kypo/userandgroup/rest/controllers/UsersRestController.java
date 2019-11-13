@@ -6,7 +6,7 @@ import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
