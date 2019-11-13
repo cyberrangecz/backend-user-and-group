@@ -12,14 +12,15 @@ JARS_DIR=${PROJECT_DIR}/jars
 HTTPS_PORT=8443
 CWD=$(shell pwd)
 
-%:  
+%:
 	dh $@ --with systemd
 
 override_dh_auto_build override_dh_auto_install:
 
 override_dh_installinit:
 	dh_installinit --noscript
-	
+
 override_dh_install:
 	mv kypo2-user-and-group-prod.properties kypo2-user-and-group.properties
-    
+	dh_install
+
