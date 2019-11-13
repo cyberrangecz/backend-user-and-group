@@ -12,6 +12,7 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
@@ -235,7 +236,7 @@ public class GroupsRestController {
     )
     @ApiPageableSwagger
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getGroups(@QuerydslPredicate(root = Role.class) Predicate predicate,
+    public ResponseEntity<Object> getGroups(@QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
                                             Pageable pageable,
                                             @ApiParam(value = "Parameters for filtering the objects.", required = false)
                                             @RequestParam MultiValueMap<String, String> parameters,

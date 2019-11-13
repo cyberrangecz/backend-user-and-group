@@ -43,7 +43,7 @@ public class ServiceConfig {
 
     @Bean
     public RestTemplate prodRestTemplate() throws Exception {
-        RestTemplate restTemplate = null;
+        RestTemplate restTemplate = new RestTemplate();
         String[] profiles = this.environment.getActiveProfiles();
         if(profiles != null && profiles.length > 0) {
             for (int i = 0; i < profiles.length; i++) {
@@ -62,9 +62,6 @@ public class ServiceConfig {
                     } else {
                         throw new ExceptionInInitializerError("Path to trust store and trust store password must be defined.");
                     }
-                }
-                if (restTemplate == null) {
-                    restTemplate = new RestTemplate();
                 }
             }
         }
