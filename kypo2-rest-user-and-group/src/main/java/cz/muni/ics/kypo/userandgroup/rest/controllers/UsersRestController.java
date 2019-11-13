@@ -5,7 +5,6 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -15,7 +14,6 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.QUser;
-import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
@@ -37,13 +35,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.Metamodel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -118,7 +109,7 @@ public class UsersRestController {
     )
     @ApiPageableSwagger
     @GetMapping(value = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersInGroups(@QuerydslPredicate(root = Role.class) Predicate predicate, Pageable pageable,
+    public ResponseEntity<Object> getUsersInGroups(@QuerydslPredicate(root = User.class) Predicate predicate, Pageable pageable,
                                                    @ApiParam(value = "Parameters for filtering the objects.", required = false)
                                                    @RequestParam MultiValueMap<String, String> parameters,
                                                    @ApiParam(value = "Fields which should be returned in REST API response", required = false)
