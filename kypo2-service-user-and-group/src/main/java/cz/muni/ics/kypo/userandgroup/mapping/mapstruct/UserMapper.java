@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
-import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
@@ -72,6 +72,7 @@ public interface UserMapper extends ParentMapper {
         objects.forEach(object -> mapped.add(mapEntityToUserForGroupsDTO(object)));
         return new PageResultResource<>(mapped, createPagination(objects));
     }
+
 
     @Named("mapToUserDTOWithRoles")
     default UserDTO mapToUserDTOWithRoles(User user) {

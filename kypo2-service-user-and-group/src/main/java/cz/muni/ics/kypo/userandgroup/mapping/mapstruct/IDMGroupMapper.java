@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
-import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;

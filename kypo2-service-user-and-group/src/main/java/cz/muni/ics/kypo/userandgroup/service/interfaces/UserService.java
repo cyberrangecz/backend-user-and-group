@@ -1,7 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;

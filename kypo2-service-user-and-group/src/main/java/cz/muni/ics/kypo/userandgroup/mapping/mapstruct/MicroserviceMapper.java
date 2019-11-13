@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
-import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;

@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.config.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
