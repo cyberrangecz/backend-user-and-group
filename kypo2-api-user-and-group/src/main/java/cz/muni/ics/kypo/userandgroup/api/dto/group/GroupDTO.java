@@ -18,13 +18,22 @@ import java.util.*;
  * @author Dominik Pilar
  */
 public class GroupDTO {
+
+    @ApiModelProperty(value = "Main identifier of group.", example = "1", position = 1)
     private Long id;
+    @ApiModelProperty(value = "A name of the group.", example = "Main group of organizers")
     private String name;
+    @ApiModelProperty(value = "A description of the group.", example = "Organizers group for training run in June.")
     private String description;
+    @ApiModelProperty(value = "Set of roles of  group.")
     private Set<RoleDTO> roles = new HashSet<>();
+    @ApiModelProperty(value = "Set of users in group.")
     private Set<UserForGroupsDTO> users = new HashSet<>();
+    @ApiModelProperty(value = "Source of the group, whether its internal or from perun.", example = "Internal")
     private Source source;
+    @ApiModelProperty(name="can_be_deleted", value = "Sign if the group can be deleted.", example = "false")
     private boolean canBeDeleted = true;
+    @ApiModelProperty(name="expiration_date", value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
     private LocalDateTime expirationDate;
 
@@ -60,7 +69,6 @@ public class GroupDTO {
      *
      * @return the ID of the group.
      */
-    @ApiModelProperty(value = "Main identifier of group.", example = "1")
     public Long getId() {
         return id;
     }
@@ -79,7 +87,6 @@ public class GroupDTO {
      *
      * @return the name of the group.
      */
-    @ApiModelProperty(value = "A name of the group.", example = "Main group of organizers")
     public String getName() {
         return name;
     }
@@ -98,7 +105,6 @@ public class GroupDTO {
      *
      * @return the description of the group.
      */
-    @ApiModelProperty(value = "A description of the group.", example = "Organizers group for training run in June.")
     public String getDescription() {
         return description;
     }
@@ -117,7 +123,6 @@ public class GroupDTO {
      *
      * @return the {@link UserForGroupsDTO} of the group.
      */
-    @ApiModelProperty(value = "List of users in group.")
     public Set<UserForGroupsDTO> getUsers() {
         return users;
     }
@@ -136,7 +141,6 @@ public class GroupDTO {
      *
      * @return the {@link RoleDTO} of the group.
      */
-    @ApiModelProperty(value = "Set of roles of  group.")
     public Set<RoleDTO> getRoles() {
         return roles;
     }
@@ -155,7 +159,6 @@ public class GroupDTO {
      *
      * @return the {@link Source} of the group.
      */
-    @ApiModelProperty(value = "Source of the group, whether its internal or from perun.", example = "Internal")
     public Source getSource() {
         return source;
     }
@@ -174,7 +177,6 @@ public class GroupDTO {
      *
      * @return true if the group can be deleted, false otherwise
      */
-    @ApiModelProperty(value = "Sign if the group can be deleted.", example = "false")
     public boolean isCanBeDeleted() {
         return canBeDeleted;
     }
@@ -193,7 +195,6 @@ public class GroupDTO {
      *
      * @return the expiration date of the group.
      */
-    @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }

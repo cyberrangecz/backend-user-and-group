@@ -17,12 +17,16 @@ import java.util.Objects;
  */
 public class UpdateGroupDTO {
 
+    @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1", position = 1)
     @NotNull(message = "{updateGroupDto.id.NotNull.message}")
     private Long id;
+    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group.")
     @NotEmpty(message = "{updateGroupDto.name.NotEmpty.message}")
     private String name;
+    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     @NotEmpty(message = "{updateGroupDto.description.NotEmpty.message}")
     private String description;
+    @ApiModelProperty(name="expiration_date", value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
     private LocalDateTime expirationDate;
 
@@ -31,7 +35,6 @@ public class UpdateGroupDTO {
      *
      * @return the ID of the group.
      */
-    @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1")
     public Long getId() {
         return id;
     }
@@ -50,7 +53,6 @@ public class UpdateGroupDTO {
      *
      * @return the name of the group.
      */
-    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group.")
     public String getName() {
         return name;
     }
@@ -69,7 +71,6 @@ public class UpdateGroupDTO {
      *
      * @return the description of the group.
      */
-    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     public String getDescription() {
         return description;
     }
@@ -88,7 +89,6 @@ public class UpdateGroupDTO {
      *
      * @return the expiration date of the group.
      */
-    @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }

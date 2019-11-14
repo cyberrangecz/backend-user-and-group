@@ -45,7 +45,7 @@ import java.util.Set;
  * @author Pavel Seda
  * @author Jan Duda
  */
-@Api(value = "Endpoint for Users")
+@Api(value = "Endpoint for Users", tags = "users")
 @RestController
 @RequestMapping(path = "/users")
 public class UsersRestController {

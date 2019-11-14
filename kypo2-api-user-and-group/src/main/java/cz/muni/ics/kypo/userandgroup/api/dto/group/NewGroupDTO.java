@@ -17,15 +17,18 @@ import java.util.*;
  */
 public class NewGroupDTO {
 
+    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")
     @NotEmpty(message = "{newGroupDto.name.NotEmpty.message}")
     private String name;
+    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     @NotEmpty(message = "{newGroupDto.description.NotEmpty.message}")
     private String description;
+    @ApiModelProperty(name="expiration_date", value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
     private LocalDateTime expirationDate;
-
+    @ApiModelProperty(value = "List of users who is assigned to group.")
     private Set<UserForGroupsDTO> users = new HashSet<>();
-
+    @ApiModelProperty(name="group_ids_of_imported_users", value = "Main identifiers of group.", example = "[1]")
     private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
     /**
@@ -33,7 +36,6 @@ public class NewGroupDTO {
      *
      * @return the name of the group.
      */
-    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")
     public String getName() {
         return name;
     }
@@ -52,7 +54,6 @@ public class NewGroupDTO {
      *
      * @return the description of the group.
      */
-    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     public String getDescription() {
         return description;
     }
@@ -71,7 +72,6 @@ public class NewGroupDTO {
      *
      * @return the {@link UserForGroupsDTO} of the group.
      */
-    @ApiModelProperty(value = "List of users who is assigned to group.")
     public Set<UserForGroupsDTO> getUsers() {
         return users;
     }
@@ -90,7 +90,6 @@ public class NewGroupDTO {
      *
      * @return the list of IDs of groups from which import users.
      */
-    @ApiModelProperty(value = "Main identifiers of group.", example = "[1]")
     public List<Long> getGroupIdsOfImportedUsers() {
         return groupIdsOfImportedUsers;
     }
@@ -109,7 +108,6 @@ public class NewGroupDTO {
      *
      * @return the expiration date of the group
      */
-    @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }

@@ -3,8 +3,6 @@ package cz.muni.ics.kypo.userandgroup.api.dto.user;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.persistence.Column;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -16,14 +14,23 @@ import java.util.Set;
  */
 public class UserDTO {
 
+    @ApiModelProperty(value = "Main identifier of the user.", example = "1", position = 1)
     private Long id;
+    @ApiModelProperty(name="full_name", value = "Full name of the user.", example = "Michael Smith")
     private String fullName;
+    @ApiModelProperty(value = "Login of the user.", example = "michaelsmith")
     private String login;
+    @ApiModelProperty(value = "Email of the user.", example = "michaelsmith@mail.muni.cz.")
     private String mail;
+    @ApiModelProperty(name="given_name", value = "First name of a user.", example = "Pavel")
     private String givenName;
+    @ApiModelProperty(name="family_name", value = "Surname of a user.", example = "Seda")
     private String familyName;
+    @ApiModelProperty(value = "Roles of user assigned through the groups which user is in.")
     private Set<RoleDTO> roles = new HashSet<>();
+    @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     private String iss;
+    @ApiModelProperty(value = "Identicon of a user.", example = "iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAYAAAA4TnrqAAACIUlEQVR4Xu3YsY0dSQxAQQUlpXT5Z3CS/YgxSrQa4gLlEOBb9pj/x6//fv7/t/78/XhN3yBWyz3kBX2DWC33kBf0DWK13ENe0DeI1XIPeUHfIFbLPeQFfYNYLfeQF/QNYrXcQ17QN4jVcg95Qd8gVss95AV9g1gt95AX9A1itdxDXtA3iNVyD3lB3yBWyz3kBX2DWC33kBf0DWLERGOiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS6z+8b/mPha4jwXuY4H7WOA+FriPBe5jgftY4D4WuI8F7mOB+1jgPha4jwXGbzbn2xicb2Nwvo3B+TYG59sYnG9jcL6Nwfk2BufbGJxvY3C+jcH5Ngbn2xicb2Nwvq1+z2pMtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3RlvgNt34wfeJElG8AAAAASUVORK5CYII=")
     private byte[] picture;
 
     /**
@@ -72,7 +79,6 @@ public class UserDTO {
      *
      * @return the ID of the user.
      */
-    @ApiModelProperty(value = "Main identifier of the user.", example = "1")
     public Long getId() {
         return id;
     }
@@ -91,7 +97,6 @@ public class UserDTO {
      *
      * @return the full name of the user.
      */
-    @ApiModelProperty(value = "Full name of the user.", example = "Michael Smith")
     public String getFullName() {
         return fullName;
     }
@@ -110,7 +115,6 @@ public class UserDTO {
      *
      * @return the login of the user.
      */
-    @ApiModelProperty(value = "Login of the user.", example = "michaelsmith")
     public String getLogin() {
         return login;
     }
@@ -129,7 +133,6 @@ public class UserDTO {
      *
      * @return the mail of the user.
      */
-    @ApiModelProperty(value = "Email of the user.", example = "michaelsmith@mail.muni.cz.")
     public String getMail() {
         return mail;
     }
@@ -148,7 +151,6 @@ public class UserDTO {
      *
      * @return the {@link RoleDTO} of the user.
      */
-    @ApiModelProperty(value = "Roles of user assigned through the groups which user is in.")
     public Set<RoleDTO> getRoles() {
         return roles;
     }
@@ -176,7 +178,6 @@ public class UserDTO {
      *
      * @return the given name of the user.
      */
-    @ApiModelProperty(value = "First name of a user.", example = "Pavel")
     public String getGivenName() {
         return givenName;
     }
@@ -195,7 +196,6 @@ public class UserDTO {
      *
      * @return the family name of the user.
      */
-    @ApiModelProperty(value = "Surname of a user.", example = "Seda")
     public String getFamilyName() {
         return familyName;
     }
@@ -214,7 +214,6 @@ public class UserDTO {
      *
      * @return issuer - URI of the oidc provider.
      */
-    @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     public String getIss() {
         return iss;
     }
@@ -233,7 +232,6 @@ public class UserDTO {
      *
      * @return identicon of the user.
      */
-    @ApiModelProperty(value = "Identicon of a user.", example = "iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAYAAAA4TnrqAAACIUlEQVR4Xu3YsY0dSQxAQQUlpXT5Z3CS/YgxSrQa4gLlEOBb9pj/x6//fv7/t/78/XhN3yBWyz3kBX2DWC33kBf0DWK13ENe0DeI1XIPeUHfIFbLPeQFfYNYLfeQF/QNYrXcQ17QN4jVcg95Qd8gVss95AV9g1gt95AX9A1itdxDXtA3iNVyD3lB3yBWyz3kBX2DWC33kBf0DWLERGOiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS6z+8b/mPha4jwXuY4H7WOA+FriPBe5jgftY4D4WuI8F7mOB+1jgPha4jwXGbzbn2xicb2Nwvo3B+TYG59sYnG9jcL6Nwfk2BufbGJxvY3C+jcH5Ngbn2xicb2Nwvq1+z2pMtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3RlvgNt34wfeJElG8AAAAASUVORK5CYII=")
     public byte[] getPicture() {
         return picture;
     }

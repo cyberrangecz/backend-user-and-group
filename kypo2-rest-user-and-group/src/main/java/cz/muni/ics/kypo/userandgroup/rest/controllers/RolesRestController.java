@@ -36,7 +36,7 @@ import java.util.Set;
  * @author Pavel Seda
  * @author Jan Duda
  */
-@Api(value = "Endpoint for roles")
+@Api(value = "Endpoint for Roles", tags = "roles")
 @RestController
 @RequestMapping(path = "/roles")
 public class RolesRestController {

@@ -13,7 +13,6 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupEx
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
@@ -38,7 +37,7 @@ import java.util.Set;
  * @author Jan Duda
  * @author Pavel Seda
  */
-@Api(value = "Endpoint for Groups")
+@Api(value = "Endpoint for Groups", tags = "groups")
 @RestController
 @RequestMapping(path = "/groups")
 public class GroupsRestController {

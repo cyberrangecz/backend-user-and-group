@@ -14,10 +14,13 @@ import java.util.Objects;
  */
 public class RoleForNewMicroserviceDTO {
 
+    @ApiModelProperty(name="role_type", value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     @NotEmpty(message = "{roleForNewMicroserviceDto.roleType.NotEmpty.message}")
     private String roleType;
+    @ApiModelProperty(name="is_default", value = "Sign if role is default or not.", required = true, example = "true")
     @NotNull(message = "{roleForNewMicroserviceDto.isDefault.NotNull.message}")
     private boolean isDefault;
+    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
     private String description;
 
     /**
@@ -25,7 +28,6 @@ public class RoleForNewMicroserviceDTO {
      *
      * @return the role type of the role.
      */
-    @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     public String getRoleType() {
         return roleType;
     }
@@ -44,7 +46,6 @@ public class RoleForNewMicroserviceDTO {
      *
      * @return true if the role is default, false otherwise.
      */
-    @ApiModelProperty(value = "Sign if role is default or not.", required = true, example = "true")
     public boolean isDefault() {
         return isDefault;
     }
@@ -63,7 +64,6 @@ public class RoleForNewMicroserviceDTO {
      *
      * @return the description of the role.
      */
-    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
     public String getDescription() {
         return description;
     }

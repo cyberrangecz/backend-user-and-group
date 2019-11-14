@@ -18,10 +18,10 @@ import java.util.List;
 public class PageResultResource<E> {
 
     @JsonProperty(required = true)
-    @ApiModelProperty(value = "Content - (Retrieved data) from databases.")
+    @ApiModelProperty(value = "Content - (Retrieved data) from databases.", position = 1)
     private List<E> content;
     @JsonProperty(required = true)
-    @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
+    @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.", position = 2)
     private Pagination pagination;
 
     public PageResultResource() {

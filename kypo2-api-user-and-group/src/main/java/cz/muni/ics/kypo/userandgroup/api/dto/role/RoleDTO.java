@@ -3,7 +3,6 @@ package cz.muni.ics.kypo.userandgroup.api.dto.role;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -14,11 +13,16 @@ import java.util.Objects;
  */
 public class RoleDTO {
 
+    @ApiModelProperty(value = "Main identifier of the role.", example = "1", position = 1)
     private Long id;
+    @ApiModelProperty(value = "Role type of role.", example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     @JsonProperty("role_type")
     private String roleType;
+    @ApiModelProperty(name="id_of_microservice", value = "Id of microservice which use this role.", example = "5")
     private Long idOfMicroservice;
+    @ApiModelProperty(name="name_of_microservice", value = "A name of microservice which use this role.", example = "kypo2-training")
     private String nameOfMicroservice;
+    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
     private String description;
 
     /**
@@ -26,7 +30,6 @@ public class RoleDTO {
      *
      * @return the ID of the role.
      */
-    @ApiModelProperty(value = "Main identifier of the role.", example = "1")
     public Long getId() {
         return id;
     }
@@ -45,7 +48,6 @@ public class RoleDTO {
      *
      * @return the role type of the role.
      */
-    @ApiModelProperty(value = "Role type of role.", example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     public String getRoleType() {
         return roleType;
     }
@@ -64,7 +66,6 @@ public class RoleDTO {
      *
      * @return the ID of microservice in which is role used.
      */
-    @ApiModelProperty(value = "Id of microservice which use this role.", example = "5")
     public Long getIdOfMicroservice() {
         return idOfMicroservice;
     }
@@ -83,7 +84,6 @@ public class RoleDTO {
      *
      * @return the name of microservice in which is role used.
      */
-    @ApiModelProperty(value = "A name of microservice which use this role.", example = "kypo2-training")
     public String getNameOfMicroservice() {
         return nameOfMicroservice;
     }
@@ -102,7 +102,6 @@ public class RoleDTO {
      *
      * @return the description in which is role used.
      */
-    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
     public String getDescription() {
         return description;
     }

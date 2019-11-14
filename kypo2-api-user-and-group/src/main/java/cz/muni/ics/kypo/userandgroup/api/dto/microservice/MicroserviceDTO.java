@@ -12,8 +12,11 @@ import java.util.Objects;
  */
 public class MicroserviceDTO {
 
+    @ApiModelProperty(value = "Main identifier of the microservice.", example = "1", position = 1)
     private Long id;
+    @ApiModelProperty(value = "A name of the microservice.", example = "kypo2-training")
     private String name;
+    @ApiModelProperty(value = "URI of the microservice.", example = "/kypo2-rest-training/api/v1")
     private String endpoint;
 
     /**
@@ -21,7 +24,6 @@ public class MicroserviceDTO {
      *
      * @return the ID of the microservice.
      */
-    @ApiModelProperty(value = "Main identifier of the microservice.", example = "1")
     public Long getId() {
         return id;
     }
@@ -40,7 +42,6 @@ public class MicroserviceDTO {
      *
      * @return the name of the microservice.
      */
-    @ApiModelProperty(value = "A name of the microservice.", example = "kypo2-training")
     public String getName() {
         return name;
     }
@@ -59,7 +60,6 @@ public class MicroserviceDTO {
      *
      * @return the endpoint of the microservice.
      */
-    @ApiModelProperty(value = "URI of the microservice.", example = "/kypo2-rest-training/api/v1")
     public String getEndpoint() {
         return endpoint;
     }

@@ -17,10 +17,13 @@ import java.util.Set;
  */
 public class NewMicroserviceDTO {
 
+    @ApiModelProperty(value = "A name of the microservice.", required = true, example = "kypo2-training")
     @NotEmpty(message = "{newMicroserviceDto.name.NotEmpty.message}")
     private String name;
+    @ApiModelProperty(value = "URI of the microservice.", required = true, example = "/kypo2-rest-training/api/v1")
     @NotEmpty(message = "{newMicroserviceDto.endpoint.NotEmpty.message}")
     private String endpoint;
+    @ApiModelProperty(value = "Roles which are used by the microservice.", required = true)
     @Valid
     @NotNull(message = "{newMicroserviceDto.roles.NotNull.message}")
     private Set<RoleForNewMicroserviceDTO> roles;
@@ -30,7 +33,6 @@ public class NewMicroserviceDTO {
      *
      * @return the name of the microservice.
      */
-    @ApiModelProperty(value = "A name of the microservice.", required = true, example = "kypo2-training")
     public String getName() {
         return name;
     }
@@ -49,7 +51,6 @@ public class NewMicroserviceDTO {
      *
      * @return the endpoint of the microservice.
      */
-    @ApiModelProperty(value = "URI of the microservice.", required = true, example = "/kypo2-rest-training/api/v1")
     public String getEndpoint() {
         return endpoint;
     }
@@ -68,7 +69,6 @@ public class NewMicroserviceDTO {
      *
      * @return the {@link RoleForNewMicroserviceDTO} of the microservice.
      */
-    @ApiModelProperty(value = "Roles which are used by the microservice.", required = true)
     public Set<RoleForNewMicroserviceDTO> getRoles() {
         return roles;
     }

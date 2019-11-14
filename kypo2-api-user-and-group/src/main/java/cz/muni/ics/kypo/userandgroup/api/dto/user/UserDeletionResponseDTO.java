@@ -13,7 +13,9 @@ import java.util.Objects;
  */
 public class UserDeletionResponseDTO {
 
+    @ApiModelProperty(value = "User to be deleted.")
     private UserDTO user;
+    @ApiModelProperty(value = "Status about result of deletion.", example = "SUCCESS")
     private UserDeletionStatusDTO status;
 
     /**
@@ -21,7 +23,6 @@ public class UserDeletionResponseDTO {
      *
      * @return the {@link UserDTO} who has been deleted.
      */
-    @ApiModelProperty(value = "User to be deleted.")
     public UserDTO getUser() {
         return user;
     }
@@ -40,7 +41,6 @@ public class UserDeletionResponseDTO {
      *
      * @return the {@link UserDeletionStatusDTO} of user who has been deleted.
      */
-    @ApiModelProperty(value = "Status about result of deletion.", example = "SUCCESS")
     public UserDeletionStatusDTO getStatus() {
         return status;
     }

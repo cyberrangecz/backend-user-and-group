@@ -13,7 +13,13 @@ import java.util.Objects;
  */
 public class GroupDeletionResponseDTO {
 
+    @ApiModelProperty(value = "Main identifiers of deleted group.", example = "1", position = 1)
     private Long id;
+    @ApiModelProperty(value = "Result of deleting group: \n" +
+            "1) SUCCESS - group was deleted\n " +
+            "2) NOT_FOUND - group has not found\n" +
+            "3) ERROR - group could not be deleted, try it later\n" +
+            "4) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)", example = "SUCCESS")
     private GroupDeletionStatusDTO status;
 
     /**
@@ -21,7 +27,6 @@ public class GroupDeletionResponseDTO {
      *
      * @return the ID of the group
      */
-    @ApiModelProperty(value = "Main identifiers of deleted group.", example = "1")
     public Long getId() {
         return id;
     }
@@ -40,11 +45,6 @@ public class GroupDeletionResponseDTO {
      *
      * @return the status of the deletion {@link cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO}.
      */
-    @ApiModelProperty(value = "Result of deleting group: \n" +
-            "1) SUCCESS - group was deleted\n " +
-            "2) NOT_FOUND - group has not found\n" +
-            "3) ERROR - group could not be deleted, try it later\n" +
-            "4) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)", example = "SUCCESS")
     public GroupDeletionStatusDTO getStatus() {
         return status;
     }

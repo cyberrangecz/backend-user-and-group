@@ -14,7 +14,9 @@ import java.util.Objects;
  */
 public class AddUsersToGroupDTO {
 
+    @ApiModelProperty(name="ids_of_users_to_be_add", value = "Main identifiers of users to be added to group.", example = "[1,2]")
     private List<Long> idsOfUsersToBeAdd = new ArrayList<>();
+    @ApiModelProperty(name="ids_of_groups_of_imported_users", value = "Main group identifiers whose users are to be imported into a group.", example = "[1,2]")
     private List<Long> idsOfGroupsOfImportedUsers = new ArrayList<>();
 
     /**
@@ -22,7 +24,6 @@ public class AddUsersToGroupDTO {
      *
      * @return list of IDs of users to be added to the group
      */
-    @ApiModelProperty(value = "Main identifiers of users to be added to group.", example = "[1,2]")
     public List<Long> getIdsOfUsersToBeAdd() {
         return idsOfUsersToBeAdd;
     }
@@ -41,7 +42,6 @@ public class AddUsersToGroupDTO {
      *
      * @return the list of IDs of groups from which import users
      */
-    @ApiModelProperty(value = "Main group identifiers whose users are to be imported into a group.", example = "[1,2]")
     public List<Long> getIdsOfGroupsOfImportedUsers() {
         return idsOfGroupsOfImportedUsers;
     }

@@ -1,0 +1,1844 @@
+= KYPO User and Group - API Reference
+
+
+[[_overview]]
+== Overview
+KYPO User and Group API Reference Description.
+
+
+=== Version information
+[%hardbreaks]
+__Version__ : Version: 1.1.6
+
+
+=== Contact information
+[%hardbreaks]
+__Contact__ : Pavel Seda
+__Contact Email__ : 441048@mail.muni.cz
+
+
+=== URI scheme
+[%hardbreaks]
+__Host__ : localhost:8084
+__BasePath__ : /kypo2-user-and-group/api/v1
+__Schemes__ : HTTP, HTTPS
+
+
+=== Tags
+
+* groups
+* roles
+* users
+
+
+
+
+[[_paths]]
+== Resources
+
+[[_groups_resource]]
+=== Groups
+
+[[_createnewgroup]]
+==== Create new group.
+....
+POST /kypo2-user-and-group/api/v1/groups
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Group to be created.|<<_newgroupdto,NewGroupDTO>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Given group created.|<<_groupdto,GroupDTO>>
+|===
+
+
+===== Consumes
+
+* `application/json`
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups
+----
+
+
+====== Request body
+[source,json]
+----
+{
+  "name" : "Main group",
+  "description" : "Group for main users.",
+  "expiration_date" : "2019-11-20T10:28:02.727Z",
+  "users" : [ {
+    "full_name" : "Peter Novak.",
+    "given_name" : "Pavel",
+    "family_name" : "Seda",
+    "login" : "{\"sub\":\"michaelsmith\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}",
+    "mail" : "michaelsmith@mail.muni.cz.",
+    "iss" : "https://oidc.muni.cz",
+    "picture" : [ "string" ],
+    "id" : 1
+  } ],
+  "group_ids_of_imported_users" : [ 0 ]
+}
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "name" : "Main group of organizers",
+  "description" : "Organizers group for training run in June.",
+  "roles" : [ {
+    "id_of_microservice" : 5,
+    "name_of_microservice" : "kypo2-training",
+    "description" : "This role will allow you to create and delete groups.",
+    "role_type" : "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+    "id" : 1
+  } ],
+  "users" : [ {
+    "full_name" : "Peter Novak.",
+    "given_name" : "Pavel",
+    "family_name" : "Seda",
+    "login" : "{\"sub\":\"michaelsmith\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}",
+    "mail" : "michaelsmith@mail.muni.cz.",
+    "iss" : "https://oidc.muni.cz",
+    "picture" : [ "string" ],
+    "id" : 1
+  } ],
+  "source" : "Internal",
+  "can_be_deleted" : false,
+  "expiration_date" : "2017-10-19 10:23:54+02",
+  "id" : 1
+}
+----
+
+
+[[_getgroups]]
+==== Get groups.
+....
+GET /kypo2-user-and-group/api/v1/groups
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_updategroup]]
+==== Updates input group.
+....
+PUT /kypo2-user-and-group/api/v1/groups
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Group to be updated.|<<_updategroupdto,UpdateGroupDTO>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**default**|successful operation|No Content
+|===
+
+
+===== Consumes
+
+* `application/json`
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups
+----
+
+
+====== Request body
+[source,json]
+----
+{
+  "name" : "Main group.",
+  "description" : "Group for main users.",
+  "expiration_date" : "2019-11-20T10:28:02.727Z",
+  "id" : 1
+}
+----
+
+
+[[_deletegroups]]
+==== Tries to delete groups with given ids and returns groups and statuses of their deletion.
+....
+DELETE /kypo2-user-and-group/api/v1/groups
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Ids of groups to be deleted.|< integer(int64) > array
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|< <<_groupdeletionresponsedto,GroupDeletionResponseDTO>> > array
+|===
+
+
+===== Consumes
+
+* `application/json`
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups
+----
+
+
+====== Request body
+[source,json]
+----
+[ 0 ]
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"array"
+----
+
+
+[[_assignroletogroup]]
+==== Assign role with given role ID to group with given ID
+....
+PUT /kypo2-user-and-group/api/v1/groups/{groupId}/roles/{roleId}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**groupId** +
+__required__|groupId|integer(int64)
+|**Path**|**roleId** +
+__required__|roleId|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**default**|successful operation|No Content
+|===
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0/roles/0
+----
+
+
+[[_removerolefromgroup]]
+==== Cancel role with given role ID to group with given ID
+....
+DELETE /kypo2-user-and-group/api/v1/groups/{groupId}/roles/{roleId}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**groupId** +
+__required__|groupId|integer(int64)
+|**Path**|**roleId** +
+__required__|roleId|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**default**|successful operation|No Content
+|===
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0/roles/0
+----
+
+
+[[_getgroup]]
+==== Get group with given id
+....
+GET /kypo2-user-and-group/api/v1/groups/{id}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Id of group to be returned.|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|<<_groupdto,GroupDTO>>
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "name" : "Main group of organizers",
+  "description" : "Organizers group for training run in June.",
+  "roles" : [ {
+    "id_of_microservice" : 5,
+    "name_of_microservice" : "kypo2-training",
+    "description" : "This role will allow you to create and delete groups.",
+    "role_type" : "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+    "id" : 1
+  } ],
+  "users" : [ {
+    "full_name" : "Peter Novak.",
+    "given_name" : "Pavel",
+    "family_name" : "Seda",
+    "login" : "{\"sub\":\"michaelsmith\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}",
+    "mail" : "michaelsmith@mail.muni.cz.",
+    "iss" : "https://oidc.muni.cz",
+    "picture" : [ "string" ],
+    "id" : 1
+  } ],
+  "source" : "Internal",
+  "can_be_deleted" : false,
+  "expiration_date" : "2017-10-19 10:23:54+02",
+  "id" : 1
+}
+----
+
+
+[[_deletegroup]]
+==== Tries to delete group with given id and returns if it was successful.
+....
+DELETE /kypo2-user-and-group/api/v1/groups/{id}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Id of group to be deleted.|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|<<_groupdeletionresponsedto,GroupDeletionResponseDTO>>
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "status" : "SUCCESS",
+  "id" : 1
+}
+----
+
+
+[[_getrolesofgroup]]
+==== Returns all roles of group with given id.
+....
+GET /kypo2-user-and-group/api/v1/groups/{id}/roles
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|id|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|< <<_roledto,RoleDTO>> > array
+|===
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0/roles
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"array"
+----
+
+
+[[_addusers]]
+==== Add users to group.
+....
+PUT /kypo2-user-and-group/api/v1/groups/{id}/users
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Id of group to add users.|integer(int64)
+|**Body**|**body** +
+__required__|Ids of members to be added and ids of groups of imported members to group.|<<_adduserstogroupdto,AddUsersToGroupDTO>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**default**|successful operation|No Content
+|===
+
+
+===== Consumes
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0/users
+----
+
+
+====== Request body
+[source,json]
+----
+{
+  "ids_of_users_to_be_add" : [ 0 ],
+  "ids_of_groups_of_imported_users" : [ 0 ]
+}
+----
+
+
+[[_removeusers]]
+==== Remove users from input group.
+....
+DELETE /kypo2-user-and-group/api/v1/groups/{id}/users
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Id of group to remove users.|integer(int64)
+|**Body**|**body** +
+__required__|Ids of members to be removed from group.|< integer(int64) > array
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**default**|successful operation|No Content
+|===
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/groups/0/users
+----
+
+
+====== Request body
+[source,json]
+----
+[ 0 ]
+----
+
+
+[[_roles_resource]]
+=== Roles
+
+[[_getroles]]
+==== Get all roles
+....
+GET /kypo2-user-and-group/api/v1/roles
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/roles
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_getuserswithgivenroletype]]
+==== Gets all users with given role.
+....
+GET /kypo2-user-and-group/api/v1/roles/users
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**roleType** +
+__required__|Type of role to get users for.|string
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/roles/users
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "page" : 0,
+  "roleType" : "string",
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_getuserswithgivenroletypeandnotwithgivenids]]
+==== Gets all users with given role and not with given ids.
+....
+GET /kypo2-user-and-group/api/v1/roles/users-not-with-ids
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**ids** +
+__required__|Ids of the users to be excluded from the result.|< integer(int64) > array(multi)
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**roleType** +
+__required__|Type of role to get users for.|string
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/roles/users-not-with-ids
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "ids" : 0,
+  "page" : 0,
+  "roleType" : "string",
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_getrole]]
+==== Get role with given id
+....
+GET /kypo2-user-and-group/api/v1/roles/{id}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Id of role to be returned|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|<<_roledto,RoleDTO>>
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/roles/0
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "id_of_microservice" : 5,
+  "name_of_microservice" : "kypo2-training",
+  "description" : "This role will allow you to create and delete groups.",
+  "role_type" : "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+  "id" : 1
+}
+----
+
+
+[[_getuserswithgivenrole]]
+==== Gets all users with given role.
+....
+GET /kypo2-user-and-group/api/v1/roles/{roleId}/users
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**roleId** +
+__required__|Type of role to get users for.|integer(int64)
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/roles/0/users
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_users_resource]]
+=== Users
+
+[[_getusers]]
+==== Gets all users.
+....
+GET /kypo2-user-and-group/api/v1/users
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_deleteusers]]
+==== Tries to delete users with given ids and returns users and statuses of their deletion.
+....
+DELETE /kypo2-user-and-group/api/v1/users
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Ids of users to be deleted.|< integer(int64) > array
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|< <<_userdeletionresponsedto,UserDeletionResponseDTO>> > array
+|===
+
+
+===== Consumes
+
+* `application/json`
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users
+----
+
+
+====== Request body
+[source,json]
+----
+[ 0 ]
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"array"
+----
+
+
+[[_getusersingroups]]
+==== Gets users in given groups.
+....
+GET /kypo2-user-and-group/api/v1/users/groups
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**ids** +
+__required__|Ids of groups where users are assigned.|< integer(int64) > array(multi)
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/groups
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "ids" : 0,
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_getuserswithgivenids]]
+==== Gets users with given ids.
+....
+GET /kypo2-user-and-group/api/v1/users/ids
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**ids** +
+__required__|Ids of users to be obtained.|< integer(int64) > array(multi)
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|**Body**|**body** +
+__optional__|Parameters for filtering the objects.|< string, < string > array > map
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/ids
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "ids" : 0,
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+====== Request body
+[source,json]
+----
+{ }
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_getuserinfo]]
+==== Returns details of user who is logged in
+....
+GET /kypo2-user-and-group/api/v1/users/info
+....
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|<<_userdto,UserDTO>>
+|===
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/info
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "full_name" : "Michael Smith",
+  "login" : "michaelsmith",
+  "mail" : "michaelsmith@mail.muni.cz.",
+  "given_name" : "Pavel",
+  "family_name" : "Seda",
+  "roles" : [ {
+    "id_of_microservice" : 5,
+    "name_of_microservice" : "kypo2-training",
+    "description" : "This role will allow you to create and delete groups.",
+    "role_type" : "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+    "id" : 1
+  } ],
+  "iss" : "https://oidc.muni.cz",
+  "picture" : [ "string" ],
+  "id" : 1
+}
+----
+
+
+[[_getallusersnotingivengroup]]
+==== Gets all users except users in given group.
+....
+GET /kypo2-user-and-group/api/v1/users/not-in-groups/{groupId}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**groupId** +
+__required__|Id of group whose users do not get.|integer(int64)
+|**Query**|**fields** +
+__optional__|Fields which should be returned in REST API response|string
+|**Query**|**page** +
+__optional__|Results page you want to retrieve (0..N)|integer
+|**Query**|**size** +
+__optional__|Number of records per page.|integer
+|**Query**|**sort** +
+__optional__|Sorting criteria in the format: property(,asc\|desc). Default sort order is ascending. Multiple sort criteria are supported.|< string > array(multi)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|object
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/not-in-groups/0
+----
+
+
+====== Request query
+[source,json]
+----
+{
+  "fields" : "string",
+  "page" : 0,
+  "size" : 0,
+  "sort" : "asc"
+}
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"object"
+----
+
+
+[[_getuser]]
+==== Gets user with given id.
+....
+GET /kypo2-user-and-group/api/v1/users/{id}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Id of user to be returned.|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|<<_userdto,UserDTO>>
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/0
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "full_name" : "Michael Smith",
+  "login" : "michaelsmith",
+  "mail" : "michaelsmith@mail.muni.cz.",
+  "given_name" : "Pavel",
+  "family_name" : "Seda",
+  "roles" : [ {
+    "id_of_microservice" : 5,
+    "name_of_microservice" : "kypo2-training",
+    "description" : "This role will allow you to create and delete groups.",
+    "role_type" : "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+    "id" : 1
+  } ],
+  "iss" : "https://oidc.muni.cz",
+  "picture" : [ "string" ],
+  "id" : 1
+}
+----
+
+
+[[_deleteuser]]
+==== Tries to delete user with given screen name and returns status of its result.
+....
+DELETE /kypo2-user-and-group/api/v1/users/{id}
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|Screen name of user to be deleted.|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|<<_userdeletionresponsedto,UserDeletionResponseDTO>>
+|===
+
+
+===== Produces
+
+* `application/json`
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/0
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "user" : {
+    "full_name" : "Michael Smith",
+    "login" : "michaelsmith",
+    "mail" : "michaelsmith@mail.muni.cz.",
+    "given_name" : "Pavel",
+    "family_name" : "Seda",
+    "roles" : [ {
+      "id_of_microservice" : 5,
+      "name_of_microservice" : "kypo2-training",
+      "description" : "This role will allow you to create and delete groups.",
+      "role_type" : "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+      "id" : 1
+    } ],
+    "iss" : "https://oidc.muni.cz",
+    "picture" : [ "string" ],
+    "id" : 1
+  },
+  "status" : "SUCCESS"
+}
+----
+
+
+[[_getrolesofuser]]
+==== Returns all roles of user with given id.
+....
+GET /kypo2-user-and-group/api/v1/users/{id}/roles
+....
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**id** +
+__required__|id|integer(int64)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|successful operation|< <<_roledto,RoleDTO>> > array
+|===
+
+
+===== Example HTTP request
+
+====== Request path
+----
+/kypo2-user-and-group/api/v1/users/0/roles
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"array"
+----
+
+
+
+
+[[_definitions]]
+== Definitions
+
+[[_adduserstogroupdto]]
+=== AddUsersToGroupDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**ids_of_groups_of_imported_users** +
+__optional__|Main group identifiers whose users are to be imported into a group. +
+**Example** : `[ 0 ]`|< integer(int64) > array
+|**ids_of_users_to_be_add** +
+__optional__|Main identifiers of users to be added to group. +
+**Example** : `[ 0 ]`|< integer(int64) > array
+|===
+
+
+[[_groupdto]]
+=== GroupDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**can_be_deleted** +
+__optional__|Sign if the group can be deleted. +
+**Example** : `false`|boolean
+|**description** +
+__optional__|A description of the group. +
+**Example** : `"Organizers group for training run in June."`|string
+|**expiration_date** +
+__optional__|Time until the group is valid. +
+**Example** : `"2017-10-19 10:23:54+02"`|string(date-time)
+|**id** +
+__optional__|Main identifier of group. +
+**Example** : `1`|integer(int64)
+|**name** +
+__optional__|A name of the group. +
+**Example** : `"Main group of organizers"`|string
+|**roles** +
+__optional__|Set of roles of group. +
+**Example** : `[ "<<_roledto>>" ]`|< <<_roledto,RoleDTO>> > array
+|**source** +
+__optional__|Source of the group, whether its internal or from perun. +
+**Example** : `"Internal"`|enum (INTERNAL, PERUN)
+|**users** +
+__optional__|List of users in group. +
+**Example** : `[ "<<_userforgroupsdto>>" ]`|< <<_userforgroupsdto,UserForGroupsDTO>> > array
+|===
+
+
+[[_groupdeletionresponsedto]]
+=== GroupDeletionResponseDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id** +
+__optional__|Main identifiers of deleted group. +
+**Example** : `1`|integer(int64)
+|**status** +
+__optional__|Result of deleting group:
+1) SUCCESS - group was deleted
+ 2) NOT_FOUND - group has not found
+3) ERROR - group could not be deleted, try it later
+4) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST) +
+**Example** : `"SUCCESS"`|enum (EXTERNAL_VALID, SUCCESS, ERROR, NOT_FOUND, ERROR_MAIN_GROUP)
+|===
+
+
+[[_newgroupdto]]
+=== NewGroupDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**description** +
+__required__|A description of the group. +
+**Example** : `"Group for main users."`|string
+|**expiration_date** +
+__optional__|Time until the group is valid. +
+**Example** : `"2019-11-20T10:28:02.727Z"`|string(date-time)
+|**group_ids_of_imported_users** +
+__optional__|Main identifiers of group. +
+**Example** : `[ 0 ]`|< integer(int64) > array
+|**name** +
+__required__|A name of the group. +
+**Example** : `"Main group"`|string
+|**users** +
+__optional__|List of users who is assigned to group. +
+**Example** : `[ "<<_userforgroupsdto>>" ]`|< <<_userforgroupsdto,UserForGroupsDTO>> > array
+|===
+
+
+[[_roledto]]
+=== RoleDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**description** +
+__optional__|A description of what the user is capable of with this role. +
+**Example** : `"This role will allow you to create and delete groups."`|string
+|**id** +
+__optional__|Main identifier of the role. +
+**Example** : `1`|integer(int64)
+|**id_of_microservice** +
+__optional__|Id of microservice which use this role. +
+**Example** : `5`|integer(int64)
+|**name_of_microservice** +
+__optional__|A name of microservice which use this role. +
+**Example** : `"kypo2-training"`|string
+|**role_type** +
+__optional__|Role type of role. +
+**Example** : `"ROLE_USER_AND_GROUP_ADMINISTRATOR"`|string
+|===
+
+
+[[_updategroupdto]]
+=== UpdateGroupDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**description** +
+__required__|A description of the group. +
+**Example** : `"Group for main users."`|string
+|**expiration_date** +
+__optional__|Time until the group is valid. +
+**Example** : `"2019-11-20T10:28:02.727Z"`|string(date-time)
+|**id** +
+__required__|Main identifier of group. +
+**Example** : `1`|integer(int64)
+|**name** +
+__required__|A name of the group. +
+**Example** : `"Main group."`|string
+|===
+
+
+[[_userdto]]
+=== UserDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**family_name** +
+__optional__|Surname of a user. +
+**Example** : `"Seda"`|string
+|**full_name** +
+__optional__|Full name of the user. +
+**Example** : `"Michael Smith"`|string
+|**given_name** +
+__optional__|First name of a user. +
+**Example** : `"Pavel"`|string
+|**id** +
+__optional__|Main identifier of the user. +
+**Example** : `1`|integer(int64)
+|**iss** +
+__optional__|Issuer of a user. +
+**Example** : `"https://oidc.muni.cz"`|string
+|**login** +
+__optional__|Login of the user. +
+**Example** : `"michaelsmith"`|string
+|**mail** +
+__optional__|Email of the user. +
+**Example** : `"michaelsmith@mail.muni.cz."`|string
+|**picture** +
+__optional__|Identicon of a user. +
+**Example** : `[ "string" ]`|< string(byte) > array
+|**roles** +
+__optional__|Roles of user assigned through the groups which user is in. +
+**Example** : `[ "<<_roledto>>" ]`|< <<_roledto,RoleDTO>> > array
+|===
+
+
+[[_userdeletionresponsedto]]
+=== UserDeletionResponseDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**status** +
+__optional__|Status about result of deletion. +
+**Example** : `"SUCCESS"`|enum (SUCCESS, EXTERNAL_VALID, ERROR, NOT_FOUND)
+|**user** +
+__optional__|User to be deleted. +
+**Example** : `"<<_userdto>>"`|<<_userdto,UserDTO>>
+|===
+
+
+[[_userforgroupsdto]]
+=== UserForGroupsDTO
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**family_name** +
+__optional__|Surname of a user. +
+**Example** : `"Seda"`|string
+|**full_name** +
+__optional__|Full name of the user including his titles. +
+**Example** : `"Peter Novak."`|string
+|**given_name** +
+__optional__|First name of a user. +
+**Example** : `"Pavel"`|string
+|**id** +
+__optional__|Main identifiers of the user. +
+**Example** : `1`|integer(int64)
+|**iss** +
+__optional__|Issuer of a user. +
+**Example** : `"https://oidc.muni.cz"`|string
+|**login** +
+__optional__|Login of the user. +
+**Example** : `"{\"sub\":\"michaelsmith\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}"`|string
+|**mail** +
+__optional__|Email of the user. +
+**Example** : `"michaelsmith@mail.muni.cz."`|string
+|**picture** +
+__optional__|Identicon of a user. +
+**Example** : `[ "string" ]`|< string(byte) > array
+|===
+
+
+
+
+
