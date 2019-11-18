@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
@@ -13,6 +14,7 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupEx
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.rest.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
@@ -36,6 +38,7 @@ import java.util.Set;
  *
  * @author Jan Duda
  * @author Pavel Seda
+ * @author Dominik Pilar
  */
 @Api(value = "Endpoint for Groups", tags = "groups")
 @RestController
@@ -69,10 +72,12 @@ public class GroupsRestController {
             value = "Create new group.",
             response = GroupDTO.class,
             nickname = "createNewGroup",
-            produces = MediaType.APPLICATION_JSON_VALUE
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Given group created.", response = GroupDTO.class),
+            @ApiResponse(code = 201, message = "Given group created.", response = GroupDTO.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true)
@@ -89,13 +94,20 @@ public class GroupsRestController {
      * Update group in the database.
      *
      * @param updateGroupDTO the group to be updated {@link UpdateGroupDTO}.
-     * @return the response entity without body and specific status code and header.
+     * @return the empty response entity with specific status code and header.
      */
     @ApiOperation(httpMethod = "PUT",
-            value = "Updates input group.",
+            value = "Update group.",
+            nickname = "updateGroup",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Group updated."),
+            @ApiResponse(code = 405, message = "Group is external and cannot be modified.", response = ApiError.class),
+            @ApiResponse(code = 409, message = "Name of the main group cannot be changed.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateGroup(@ApiParam(value = "Group to be updated.", required = true)
                                             @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
@@ -115,12 +127,20 @@ public class GroupsRestController {
      *
      * @param id the ID of the group.
      * @param userIds a list of IDs of the users to be imported
-     * @return the response entity without body and specific status code and header.
+     * @return the response entity with empty body and with specific status code and header.
      */
     @ApiOperation(httpMethod = "DELETE",
-            value = "Remove users from input group.",
+            value = "Remove users from the group.",
+            nickname = "removeUsers",
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "User has been removed from the group."),
+            @ApiResponse(code = 304, message = "Group is external and cannot be modified.", response = ApiError.class),
+            @ApiResponse(code = 404, message = "Group or some user cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 409, message = "Users cannot be removed from default group or administrator cannot remove himself.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @DeleteMapping(path = "/{id}/users")
     public ResponseEntity<Void> removeUsers(@ApiParam(value = "Id of group to remove users.", required = true)
                                             @PathVariable("id") final Long id,
@@ -143,13 +163,19 @@ public class GroupsRestController {
      *
      * @param groupId the ID of the group
      * @param addUsers {@link AddUsersToGroupDTO}.
-     * @return the response entity without body and specific status code and header.
+     * @return the response entity with empty body and with specific status code and header.
      */
     @ApiOperation(httpMethod = "PUT",
             value = "Add users to group.",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
+            nickname = "addUsers",
+            consumes = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "User has been given into group."),
+            @ApiResponse(code = 304, message = "Group is external and cannot be modified.", response = ApiError.class),
+            @ApiResponse(code = 404, message = "Group or some user cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
                                              @PathVariable("id") final Long groupId,
@@ -169,14 +195,22 @@ public class GroupsRestController {
     /**
      * Delete group from the database.
      *
-     * @param id the ID of group.
+     * @param id the ID of the group to be deleted.
      * @return the {@link ResponseEntity} with body type and specific status code and header.
      */
     @ApiOperation(httpMethod = "DELETE",
-            value = "Tries to delete group with given id and returns if it was successful.",
+            value = "Delete group",
+            nickname = "deleteGroup",
+            notes = "Tries to delete group with given id and returns if it was successful.",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returned deletion status of the group.", response = GroupDeletionResponseDTO.class),
+            @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 405, message = "Group cannot be deleted because it is a main group.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
                                                                 @PathVariable("id") final Long id) {
@@ -205,9 +239,16 @@ public class GroupsRestController {
      * @return the {@link ResponseEntity} with body type and specific status code and header.
      */
     @ApiOperation(httpMethod = "DELETE",
-            value = "Tries to delete groups with given ids and returns groups and statuses of their deletion.",
+            value = "Delete groups",
+            notes = "Tries to delete groups with given ids and returns groups and statuses of their deletion",
+            nickname = "deleteGroups",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Groups deleted and statuses returned.", response = GroupDeletionResponseDTO[].class),
+            @ApiResponse(code = 500, message = "Cannot delete non-empty group.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<GroupDeletionResponseDTO>> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
                                                                        @RequestBody List<Long> ids) {
@@ -221,7 +262,7 @@ public class GroupsRestController {
     }
 
     /**
-     * Gets groups.
+     * Gets all groups.
      *
      * @param predicate  specifies query to database.
      * @param pageable   pageable parameter with information about pagination.
@@ -231,8 +272,14 @@ public class GroupsRestController {
      */
     @ApiOperation(httpMethod = "GET",
             value = "Get groups.",
+            nickname = "getGroups",
+            response = GroupRestResource.class,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "All groups found.", response = GroupRestResource.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @ApiPageableSwagger
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getGroups(@QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
@@ -254,8 +301,14 @@ public class GroupsRestController {
      */
     @ApiOperation(httpMethod = "GET",
             value = "Get group with given id",
+            nickname = "getGroup",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Group found.", response = GroupDTO.class),
+            @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
                                              @PathVariable("id") Long id) {
@@ -267,15 +320,21 @@ public class GroupsRestController {
     }
 
     /**
-     * Gets the roles of the group with the given group ID.
+     * Gets the roles of the given group.
      *
      * @param id the ID of the group
      * @return the {@link ResponseEntity} with body type of the given group and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
-            value = "Returns all roles of group with given id.",
+            value = "Returns all roles of group",
+            nickname = "getRolesOfGroup",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "All roles of group found.", response = RoleDTO[].class),
+            @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
                                                         @PathVariable("id") final Long id) {
@@ -291,11 +350,17 @@ public class GroupsRestController {
      *
      * @param groupId the ID of the group.
      * @param roleId  the ID of the role to be added.
-     * @return the response entity with specific status code and header.
+     * @return the response entity with empty body and with specific status code and header.
      */
     @ApiOperation(httpMethod = "PUT",
-            value = "Assign role with given role ID to group with given ID"
+            value = "Assign role to the group",
+            nickname = "assignRoleToGroup"
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Role assigned to group."),
+            @ApiResponse(code = 404, message = "Role or group cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @PutMapping("/{groupId}/roles/{roleId}")
     public ResponseEntity<Void> assignRoleToGroup(@ApiParam(value = "groupId", required = true)
                                                   @PathVariable("groupId") Long groupId,
@@ -310,15 +375,23 @@ public class GroupsRestController {
     }
 
     /**
-     * Remove the role from the group with the given ID.
+     * Remove the role from the given group.
      *
      * @param groupId the ID of the group.
      * @param roleId the ID of the role to be removed from the group.
-     * @return the response entity with specific status code and header.
+     * @return the response entity with empty body and with specific status code and header.
      */
     @ApiOperation(httpMethod = "DELETE",
-            value = "Cancel role with given role ID to group with given ID"
+            value = "Remove role from the group",
+            notes = "Role can be removed only if it is not main role of the group.",
+            nickname = "removeRoleFromGroup"
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Role successfully removed from the group."),
+            @ApiResponse(code = 404, message = "Group cannot be found or role cannot be found in group.", response = ApiError.class),
+            @ApiResponse(code = 409, message = "Role cannot be removed from the group because it is the main role of the group.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @DeleteMapping("/{groupId}/roles/{roleId}")
     public ResponseEntity<Void> removeRoleFromGroup(@ApiParam(value = "groupId", required = true)
                                                     @PathVariable("groupId") Long groupId,
@@ -332,5 +405,16 @@ public class GroupsRestController {
         } catch (RoleCannotBeRemovedToGroupException e) {
             throw new ConflictException(e.getLocalizedMessage());
         }
+    }
+
+    @ApiModel(value = "GroupRestResource",
+            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")
+    private static class GroupRestResource extends PageResultResource<GroupDTO> {
+        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Retrieved IDMGroups from databases.")
+        private List<GroupDTO> content;
+        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
+        private Pagination pagination;
     }
 }

@@ -18,9 +18,9 @@ public class RoleDTO {
     @ApiModelProperty(value = "Role type of role.", example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
     @JsonProperty("role_type")
     private String roleType;
-    @ApiModelProperty(name="id_of_microservice", value = "Id of microservice which use this role.", example = "5")
+    @ApiModelProperty(value = "Id of microservice which use this role.", example = "5")
     private Long idOfMicroservice;
-    @ApiModelProperty(name="name_of_microservice", value = "A name of microservice which use this role.", example = "kypo2-training")
+    @ApiModelProperty(value = "A name of microservice which use this role.", example = "kypo2-training")
     private String nameOfMicroservice;
     @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
     private String description;

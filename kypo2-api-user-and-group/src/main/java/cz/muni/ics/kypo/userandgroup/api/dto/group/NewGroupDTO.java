@@ -23,12 +23,12 @@ public class NewGroupDTO {
     @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
     @NotEmpty(message = "{newGroupDto.description.NotEmpty.message}")
     private String description;
-    @ApiModelProperty(name="expiration_date", value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
+    @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
     private LocalDateTime expirationDate;
     @ApiModelProperty(value = "List of users who is assigned to group.")
     private Set<UserForGroupsDTO> users = new HashSet<>();
-    @ApiModelProperty(name="group_ids_of_imported_users", value = "Main identifiers of group.", example = "[1]")
+    @ApiModelProperty(value = "Main identifiers of group.", example = "[1]")
     private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
     /**

@@ -1,22 +1,24 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.rest.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -75,6 +78,10 @@ public class RolesRestController {
             value = "Get all roles",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "All roles found.", response = RoleRestResource.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @ApiPageableSwagger
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getRoles(@QuerydslPredicate(root = Role.class) Predicate predicate,
@@ -95,8 +102,14 @@ public class RolesRestController {
      */
     @ApiOperation(httpMethod = "GET",
             value = "Get role with given id",
+            nickname = "getRole",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Role found.", response = RoleDTO.class),
+            @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleDTO> getRole(@ApiParam(value = "Id of role to be returned", required = true)
                                            @PathVariable("id") final Long id) {
@@ -108,7 +121,7 @@ public class RolesRestController {
     }
 
     /**
-     * Gets users with a given role.
+     * Gets users with a given role ID.
      *
      * @param predicate  specifies query to database.
      * @param pageable   pageable parameter with information about pagination.
@@ -118,9 +131,15 @@ public class RolesRestController {
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
-            value = "Gets all users with given role.",
+            value = "Gets all users with given role ID.",
+            nickname = "getUsersWithGivenRole",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Users with specific role ID found.", response = UsersRestController.UserRestResource.class),
+            @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @ApiPageableSwagger
     @GetMapping(path = "/{roleId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenRole(@QuerydslPredicate(root = User.class) Predicate predicate,
@@ -151,9 +170,15 @@ public class RolesRestController {
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
-            value = "Gets all users with given role.",
+            value = "Gets all users with given role type.",
+            nickname = "getUsersWithGivenRoleType",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Users with specific role type found.", response = UsersRestController.UserRestResource.class),
+            @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @ApiPageableSwagger
     @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenRoleType(@QuerydslPredicate(root = User.class) Predicate predicate,
@@ -188,8 +213,14 @@ public class RolesRestController {
      */
     @ApiOperation(httpMethod = "GET",
             value = "Gets all users with given role and not with given ids.",
+            nickname = "getUsersWithGivenRoleTypeAndNotWithGivenIds",
+            notes = "Page size cannot be higher than 1000",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "All roles found.", response = UsersRestController.UserRestResource.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
     @ApiPageableSwagger
     @GetMapping(path = "/users-not-with-ids", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenRoleTypeAndNotWithGivenIds(@QuerydslPredicate(root = User.class) Predicate predicate,
@@ -215,4 +246,17 @@ public class RolesRestController {
             throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
     }
+
+    @ApiModel(value = "RoleRestResource",
+            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")
+    public static class RoleRestResource extends PageResultResource<RoleDTO> {
+        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Retrieved Roles from databases.")
+        private List<RoleDTO> content;
+        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
+        private Pagination pagination;
+    }
+
+
 }
