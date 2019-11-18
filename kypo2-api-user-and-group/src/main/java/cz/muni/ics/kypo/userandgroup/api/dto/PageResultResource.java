@@ -11,7 +11,7 @@ import java.util.List;
  * This class is used to replace Page class and reduce the number of returned elements (standard Page class contains
  * fields, which are not useful (backward compatibility)).
  *
- * @author Pavel Šeda (441048)
+ * @author Pavel Šeda
  */
 @ApiModel(value = "Result info (Page)",
         description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")

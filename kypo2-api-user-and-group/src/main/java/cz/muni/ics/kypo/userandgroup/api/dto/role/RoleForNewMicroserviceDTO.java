@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.role;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
@@ -12,6 +13,8 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "RoleForNewMicroserviceDTO",
+        description = "Data that need to be provided to register new role.")
 public class RoleForNewMicroserviceDTO {
 
     @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")

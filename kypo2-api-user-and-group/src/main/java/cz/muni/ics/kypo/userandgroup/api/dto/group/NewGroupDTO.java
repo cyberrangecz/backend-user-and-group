@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.api.converters.LocalDateTimeUTCSerializer;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -15,6 +16,8 @@ import java.util.*;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "NewGroupDTO",
+        description = "Data that need to be provided to create a new group.")
 public class NewGroupDTO {
 
     @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")

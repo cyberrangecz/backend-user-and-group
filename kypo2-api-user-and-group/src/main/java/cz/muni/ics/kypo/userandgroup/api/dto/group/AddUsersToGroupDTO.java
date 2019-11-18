@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ import java.util.Objects;
  * @author Jan Duda
  * @author Pavel Seda
  */
+@ApiModel(value = "AddUsersToGroupDTO",
+        description = "Data that need to be provided to add users to a group.")
 public class AddUsersToGroupDTO {
 
     @ApiModelProperty(value = "Main identifiers of users to be added to group.", example = "[1,2]")
