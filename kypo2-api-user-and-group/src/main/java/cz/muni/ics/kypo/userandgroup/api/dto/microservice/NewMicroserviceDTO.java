@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.microservice;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.Valid;
@@ -15,6 +16,8 @@ import java.util.Set;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "NewMicroserviceDTO",
+        description = "Data that need to be provided to register a new microservice.")
 public class NewMicroserviceDTO {
 
     @ApiModelProperty(value = "A name of the microservice.", required = true, example = "kypo2-training")

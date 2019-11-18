@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
@@ -11,6 +12,8 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "UserDeletionResponseDTO",
+        description = "The information provided immediately to the client after the client deletes a given user.")
 public class UserDeletionResponseDTO {
 
     @ApiModelProperty(value = "User to be deleted.")

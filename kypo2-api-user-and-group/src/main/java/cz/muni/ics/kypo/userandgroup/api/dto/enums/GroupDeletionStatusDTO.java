@@ -1,5 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
+import io.swagger.annotations.ApiModel;
+
 /**
  * Enumeration of group deletion statuses.
  *
@@ -7,6 +9,8 @@ package cz.muni.ics.kypo.userandgroup.api.dto.enums;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "GroupDeletionStatusDTO",
+        description = "The statuses that are used in a group deletion.")
 public enum GroupDeletionStatusDTO {
     /**
      * The group is external valid and cannot be deleted.

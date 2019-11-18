@@ -1,10 +1,14 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
+import io.swagger.annotations.ApiModel;
+
 /**
  * Enumeration of role types.
  *
  * @author Pavel Seda
  */
+@ApiModel(value = "RoleTypeDTO",
+        description = "The types of a default roles.")
 public enum RoleTypeDTO {
     /**
      * The role of administrator.

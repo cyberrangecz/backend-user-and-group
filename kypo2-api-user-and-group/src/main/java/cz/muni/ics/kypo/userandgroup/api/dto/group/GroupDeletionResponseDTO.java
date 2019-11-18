@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
@@ -11,6 +12,8 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "GroupDeletionResponseDTO",
+        description = "The information provided immediately to the client after the client deletes a given group.")
 public class GroupDeletionResponseDTO {
 
     @ApiModelProperty(value = "Main identifiers of deleted group.", example = "1", position = 1)

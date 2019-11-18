@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.group;
 
 import cz.muni.ics.kypo.userandgroup.api.converters.LocalDateTimeUTCSerializer;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -15,6 +16,8 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "UpdateGroupDTO",
+        description = "Data that need to be provided to update particular group.")
 public class UpdateGroupDTO {
 
     @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1", position = 1)

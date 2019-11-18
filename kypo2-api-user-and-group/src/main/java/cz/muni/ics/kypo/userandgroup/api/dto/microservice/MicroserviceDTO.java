@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.microservice;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
@@ -10,6 +11,8 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "MicroserviceDTO",
+        description = "Information about a microservice.")
 public class MicroserviceDTO {
 
     @ApiModelProperty(value = "Main identifier of the microservice.", example = "1", position = 1)

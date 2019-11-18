@@ -1,6 +1,19 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
-public enum SpringProfiles {
+import io.swagger.annotations.ApiModel;
 
-    PROD, DEV
+/**
+ * @author Pavel Seda
+ */
+@ApiModel(value = "SpringProfiles",
+        description = "The environment profiles.")
+public enum SpringProfiles {
+    /**
+     * The PROD profile.
+     */
+    PROD,
+    /**
+     * The DEV profile.
+     */
+    DEV;
 }

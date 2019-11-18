@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserAndGroupStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -17,6 +18,8 @@ import java.util.*;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "GroupDTO",
+        description = "The detailed information about a group.")
 public class GroupDTO {
 
     @ApiModelProperty(value = "Main identifier of group.", example = "1", position = 1)

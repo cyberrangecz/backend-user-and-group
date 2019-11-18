@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.api.dto.user;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Objects;
@@ -10,6 +11,8 @@ import java.util.Objects;
  * @author Pavel Seda
  * @author Dominik Pilar
  */
+@ApiModel(value = "User for Groups Dto.",
+        description = "Encapsulates information about a user used in a given groups.")
 public class UserForGroupsDTO {
 
     @ApiModelProperty(value = "Main identifiers of the user.", example = "1", position = 1)
@@ -22,7 +25,7 @@ public class UserForGroupsDTO {
     private String familyName;
     @ApiModelProperty(value = "Login of the user.", example = "{\"sub\":\"pavelseda\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
     private String login;
-    @ApiModelProperty(value = "Email of the user.", example = "pavelseda@mail.muni.cz.")
+    @ApiModelProperty(value = "Email of the user.", example = "pavelseda@mail.muni.cz")
     private String mail;
     @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     private String iss;

@@ -1,10 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.security.service;
 
-import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
-import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.security.exception.IconGenerationException;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
