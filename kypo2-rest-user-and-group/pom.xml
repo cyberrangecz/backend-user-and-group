@@ -96,6 +96,11 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.kongchen</groupId>
+            <artifactId>swagger-maven-plugin</artifactId>
+            <version>${github.kongchen.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -108,7 +113,7 @@
             <plugin>
                 <groupId>com.github.kongchen</groupId>
                 <artifactId>swagger-maven-plugin</artifactId>
-                <version>3.1.6</version>
+                <version>${github.kongchen.version}</version>
                 <configuration>
                     <apiSources>
                         <apiSource>
@@ -130,6 +135,8 @@
                                     <url>https://is.muni.cz/auth/osoba/441048</url>
                                 </contact>
                             </info>
+                            <swaggerApiReader>cz.muni.ics.kypo.userandgroup.rest.utils.CustomSwaggerReader</swaggerApiReader>
+
                             <!--
                             <enabledObjectMapperFeatures>
                                 <feature>com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE</feature>

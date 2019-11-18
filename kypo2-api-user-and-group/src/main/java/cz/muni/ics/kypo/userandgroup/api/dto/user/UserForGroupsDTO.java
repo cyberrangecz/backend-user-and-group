@@ -14,15 +14,15 @@ public class UserForGroupsDTO {
 
     @ApiModelProperty(value = "Main identifiers of the user.", example = "1", position = 1)
     private Long id;
-    @ApiModelProperty(name="full_name", value = "Full name of the user including his titles.", example = "Peter Novak.")
+    @ApiModelProperty(value = "Full name of the user including his titles.", example = "Pavel Seda.")
     private String fullName;
-    @ApiModelProperty(name="given_name", value = "First name of a user.", example = "Pavel")
+    @ApiModelProperty(value = "First name of a user.", example = "Pavel")
     private String givenName;
-    @ApiModelProperty(name="family_name", value = "Surname of a user.", example = "Seda")
+    @ApiModelProperty(value = "Surname of a user.", example = "Seda")
     private String familyName;
-    @ApiModelProperty(value = "Login of the user.", example = "{\"sub\":\"michaelsmith\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
+    @ApiModelProperty(value = "Login of the user.", example = "{\"sub\":\"pavelseda\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
     private String login;
-    @ApiModelProperty(value = "Email of the user.", example = "michaelsmith@mail.muni.cz.")
+    @ApiModelProperty(value = "Email of the user.", example = "pavelseda@mail.muni.cz.")
     private String mail;
     @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     private String iss;

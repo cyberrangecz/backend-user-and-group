@@ -31,9 +31,9 @@ public class GroupDTO {
     private Set<UserForGroupsDTO> users = new HashSet<>();
     @ApiModelProperty(value = "Source of the group, whether its internal or from perun.", example = "Internal")
     private Source source;
-    @ApiModelProperty(name="can_be_deleted", value = "Sign if the group can be deleted.", example = "false")
+    @ApiModelProperty(value = "Sign if the group can be deleted.", example = "false")
     private boolean canBeDeleted = true;
-    @ApiModelProperty(name="expiration_date", value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
+    @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
     private LocalDateTime expirationDate;
 
