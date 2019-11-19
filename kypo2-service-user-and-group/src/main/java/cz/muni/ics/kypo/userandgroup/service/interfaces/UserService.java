@@ -83,6 +83,15 @@ public interface UserService {
     Page<User> getAllUsers(Predicate predicate, Pageable pageable);
 
     /**
+     * Gets all users from the database.
+     *
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable  pageable parameter with information about pagination.
+     * @return list of {@link User}s wrapped up in {@link Page}.
+     */
+    Page<User> getAllUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds);
+
+    /**
      * Gets all users, not in a given IDMGroup with the given ID.
      *
      * @param groupId  the ID of the IDMGroup.
@@ -164,6 +173,15 @@ public interface UserService {
      * @return set of {@link User}s with ids wrapped up in {@link Page}.
      */
     Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable);
+
+    /**
+     * Gets users with a given set of ids.
+     *
+     * @param ids set of ids.
+     * @return set of {@link User}s with ids wrapped up in {@link Page}.
+     */
+    Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate);
+
 
     /**
      *  Returns a page of users specified by given role type and not with given ids.
