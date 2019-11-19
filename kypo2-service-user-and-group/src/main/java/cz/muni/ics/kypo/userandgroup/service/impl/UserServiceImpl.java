@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.QUser;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
@@ -136,6 +137,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> getAllUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
+        Predicate usersWithRoles = QUser.user.groups.any().roles.any().roleType.eq(roleType);
+        Predicate finalPredicate = QUser.user.id.notIn(userIds).and(usersWithRoles).and(predicate);
+        return userRepository.findAll(finalPredicate, pageable);
+    }
+
+    @Override
     @IsAdmin
     public Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
         return userRepository.usersNotInGivenGroup(groupId, pageable);
@@ -212,6 +220,12 @@ public class UserServiceImpl implements UserService {
     public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable) {
         Assert.notNull(ids, "Input list of ids must not be null");
         return userRepository.findAllWithGivenIds(ids, pageable);
+    }
+
+    @Override
+    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+        Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
+        return userRepository.findAll(finalPredicate, pageable);
     }
 
     @Override

@@ -129,6 +129,14 @@ public interface UserFacade {
      */
     PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable);
 
+
+    /**
+     * Gets users with given ids.
+     *
+     * @param ids ids of users.
+     * @return set of {@link UserDTO}s with given ids wrapped up in {@link PageResultResource}.
+     */
+    PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate);
     /**
      *  Returns a page of users specified by given role type and not with given ids.
      *
@@ -137,4 +145,14 @@ public interface UserFacade {
      * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link PageResultResource}.
      */
     PageResultResource<UserDTO> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable);
+
+
+    /**
+     * Gets a page of users specified by given predicate and pageable.
+     *
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @return a list of the {@link UserDTO}s wrapped up in {@link PageResultResource}.
+     */
+    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds);
 }

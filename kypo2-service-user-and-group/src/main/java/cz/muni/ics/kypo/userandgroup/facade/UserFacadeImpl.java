@@ -62,6 +62,12 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
+    public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
+        return  userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable, roleType, userIds));
+    }
+
+    @Override
+    @TransactionalRO
     public UserDTO getUser(Long id) {
         try {
             User u = userService.get(id);
@@ -195,6 +201,17 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
+    public PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+        try {
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenIds(ids, pageable, predicate));
+
+        } catch (UserAndGroupServiceException ex) {
+            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable) {
         try {
             return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, ids, pageable));

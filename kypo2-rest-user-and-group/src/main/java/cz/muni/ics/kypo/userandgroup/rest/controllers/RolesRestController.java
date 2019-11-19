@@ -237,9 +237,7 @@ public class RolesRestController {
             throw new BadRequestException("Choose page size lower than 1000");
         }
         try {
-            Predicate usersWithRoles = QUser.user.groups.any().roles.any().roleType.eq(roleType);
-            Predicate finalPredicate = QUser.user.id.notIn(userIds).and(usersWithRoles).and(predicate);
-            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(finalPredicate, pageable);
+            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable, roleType, userIds);
             Squiggly.init(objectMapper, fields);
             return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
         } catch (UserAndGroupFacadeException e) {

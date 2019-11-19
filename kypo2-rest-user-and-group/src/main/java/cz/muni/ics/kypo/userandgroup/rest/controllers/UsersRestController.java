@@ -333,8 +333,7 @@ public class UsersRestController {
         if (ids.isEmpty()) {
             userDTOs = new PageResultResource<>(Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0 ));
         } else {
-            Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
-            userDTOs = userFacade.getUsers(finalPredicate, pageable);
+            userDTOs = userFacade.getUsersWithGivenIds(ids, pageable, predicate);
         }
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
