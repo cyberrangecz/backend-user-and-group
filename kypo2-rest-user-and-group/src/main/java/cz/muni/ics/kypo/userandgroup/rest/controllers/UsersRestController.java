@@ -14,7 +14,6 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.model.QUser;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.rest.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
@@ -32,7 +31,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -72,7 +70,6 @@ public class UsersRestController {
      *
      * @param predicate  specifies query to database.
      * @param pageable   pageable parameter with information about pagination.
-     * @param parameters the parameters
      * @param fields     attributes of the object to be returned as the result.
      * @return the users
      */
@@ -87,10 +84,9 @@ public class UsersRestController {
     })
     @ApiPageableSwagger
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsers(@QuerydslPredicate(root = User.class) Predicate predicate,
+    public ResponseEntity<Object> getUsers(@ApiParam(value = "Filtering on User entity attributes", required = false)
+                                           @QuerydslPredicate(root = User.class) Predicate predicate,
                                            Pageable pageable,
-                                           @ApiParam(value = "Parameters for filtering the objects.", required = false)
-                                           @RequestParam MultiValueMap<String, String> parameters,
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
         PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
@@ -103,7 +99,6 @@ public class UsersRestController {
      *
      * @param predicate  specifies query to database.
      * @param pageable   pageable parameter with information about pagination.
-     * @param parameters the parameters
      * @param fields     attributes of the object to be returned as the result.
      * @param groupsIds  the groups ids
      * @return the users in groups
@@ -119,14 +114,14 @@ public class UsersRestController {
     })
     @ApiPageableSwagger
     @GetMapping(value = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersInGroups(@QuerydslPredicate(root = User.class) Predicate predicate, Pageable pageable,
-                                                   @ApiParam(value = "Parameters for filtering the objects.", required = false)
-                                                   @RequestParam MultiValueMap<String, String> parameters,
+    public ResponseEntity<Object> getUsersInGroups(@ApiParam(value = "Filtering on User entity attributes", required = false)
+                                                   @QuerydslPredicate(root = User.class) Predicate predicate,
+                                                   Pageable pageable,
                                                    @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                    @RequestParam(value = "fields", required = false) String fields,
                                                    @ApiParam(value = "Ids of groups where users are assigned.", required = true)
                                                    @RequestParam("ids") Set<Long> groupsIds) {
-        PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, pageable);
+        PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, predicate, pageable);
         Squiggly.init(objectMapper, fields);
         return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
@@ -154,35 +149,6 @@ public class UsersRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
-    }
-
-    /**
-     * Gets all users, not in the group with the given group ID.
-     *
-     * @param groupId the ID of the group
-     * @param pageable pageable parameter with information about pagination.
-     * @param fields attributes of the object to be returned as the result.
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all users except users in given group.",
-            nickname = "getAllUsersNotInGivenGroup",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "User found.", response = UserRestResource.class),
-            @ApiResponse(code = 404, message = "Some user could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/not-in-groups/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getAllUsersNotInGivenGroup(@ApiParam(value = "Id of group whose users do not get.", required = true)
-                                                             @PathVariable("groupId") final Long groupId, Pageable pageable,
-                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                             @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, pageable);
-        Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
     /**
@@ -218,6 +184,38 @@ public class UsersRestController {
         } catch (UserAndGroupFacadeException e) {
             throw new ResourceNotFoundException("User with id " + id + " could not be found.");
         }
+    }
+
+    /**
+     * Gets all users, not in the group with the given group ID.
+     *
+     * @param groupId the ID of the group
+     * @param pageable pageable parameter with information about pagination.
+     * @param fields attributes of the object to be returned as the result.
+     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
+     */
+    @ApiOperation(httpMethod = "GET",
+            value = "Gets all users except users in given group.",
+            nickname = "getAllUsersNotInGivenGroup",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "User found.", response = UserRestResource.class),
+            @ApiResponse(code = 404, message = "Some user could not be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
+    @ApiPageableSwagger
+    @GetMapping(path = "/not-in-groups/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getAllUsersNotInGivenGroup(@ApiParam(value = "Filtering on User entity attributes", required = false)
+                                                             @QuerydslPredicate(root = User.class) Predicate predicate,
+                                                             Pageable pageable,
+                                                             @ApiParam(value = "Id of group whose users do not get.", required = true)
+                                                             @PathVariable("groupId") final Long groupId,
+                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                             @RequestParam(value = "fields", required = false) String fields) {
+        PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
     }
 
     /**
@@ -319,13 +317,13 @@ public class UsersRestController {
     @ApiPageableSwagger
     @GetMapping(value = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenIds(
+            @ApiParam(value = "Filtering on User entity attributes", required = false)
             @QuerydslPredicate(root = User.class) Predicate predicate,
-            @ApiParam(value = "Parameters for filtering the objects.", required = false)
-            @RequestParam MultiValueMap<String, String> parameters,
+            Pageable pageable,
             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Ids of users to be obtained.", required = true)
-            @RequestParam(value = "ids") Set<Long> ids, Pageable pageable) {
+            @RequestParam(value = "ids") Set<Long> ids) {
         if(pageable.getPageSize() >= 1000) {
             throw new BadRequestException("Choose page size lower than 1000");
         }

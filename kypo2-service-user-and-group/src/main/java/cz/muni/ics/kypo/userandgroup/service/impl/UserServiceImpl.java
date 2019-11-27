@@ -137,21 +137,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> getAllUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
-        Predicate usersWithRoles = QUser.user.groups.any().roles.any().roleType.eq(roleType);
-        Predicate finalPredicate = QUser.user.id.notIn(userIds).and(usersWithRoles).and(predicate);
-        return userRepository.findAll(finalPredicate, pageable);
+    public Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> userIds, Predicate predicate, Pageable pageable) {
+        return userRepository.findAllByRoleAndNotWithIds(predicate, pageable, roleType, userIds);
     }
 
     @Override
     @IsAdmin
-    public Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
-        return userRepository.usersNotInGivenGroup(groupId, pageable);
+    public Page<User> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
+        return userRepository.usersNotInGivenGroup(groupId, predicate, pageable);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
-            "or @securityService.hasLoggedInUserSameId(#id)")
+    public Page<User> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable) {
+        return userRepository.usersInGivenGroups(groupsIds, predicate, pageable);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
     public User getUserWithGroups(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return userRepository.getUserByIdWithGroups(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
@@ -187,11 +189,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.getRolesOfUser(id);
     }
 
-    @Override
-    public Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable) {
-        return userRepository.usersInGivenGroups(groupsIds, pageable);
-    }
-
     private UserDeletionStatusDTO checkKypoUserBeforeDelete(User user) {
         if (user.getExternalId() != null && user.getStatus().equals(UserAndGroupStatus.VALID)) {
             return UserDeletionStatusDTO.EXTERNAL_VALID;
@@ -200,20 +197,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> getUsersWithGivenRole(Long roleId, Pageable pageable) {
+    public Page<User> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
         Assert.notNull(roleId, "Input role type must not be null");
         if (!roleRepository.existsById(roleId)) {
             throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found.");
         }
-        return userRepository.findAllByRoleId(roleId, pageable);
+        return userRepository.findAllByRoleId(roleId, predicate, pageable);
     }
 
     @Override
-    public Page<User> getUsersWithGivenRole(String roleType, Pageable pageable) {
+    public Page<User> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         Assert.notNull(roleType, "Input role type must not be null");
         Role role = roleRepository.findByRoleType(roleType).orElseThrow(() ->
                 new UserAndGroupServiceException("Role with role type: " + roleType + " could not be found."));
-        return userRepository.findAllByRoleId(role.getId(), pageable);
+        return userRepository.findAllByRoleId(role.getId(), predicate, pageable);
     }
 
     @Override
@@ -228,15 +225,4 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll(finalPredicate, pageable);
     }
 
-    @Override
-    public Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable) {
-        Assert.notNull(roleType, "Role type must not be null");
-        Role role = roleRepository.findByRoleType(roleType).orElseThrow(() ->
-                new UserAndGroupServiceException("Role with role type: " + roleType + " could not be found."));
-        if(ids == null || ids.isEmpty()) {
-            return userRepository.findAllByRoleId(role.getId(), pageable);
-        } else {
-            return userRepository.findAllByRoleIdAndNotWithGivenIds(role.getId(), ids, pageable);
-        }
-    }
 }

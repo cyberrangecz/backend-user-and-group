@@ -83,22 +83,24 @@ public interface UserService {
     Page<User> getAllUsers(Predicate predicate, Pageable pageable);
 
     /**
-     * Gets all users from the database.
-     *
-     * @param predicate represents a predicate (boolean-valued function) of one argument.
-     * @param pageable  pageable parameter with information about pagination.
-     * @return list of {@link User}s wrapped up in {@link Page}.
-     */
-    Page<User> getAllUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds);
-
-    /**
      * Gets all users, not in a given IDMGroup with the given ID.
      *
      * @param groupId  the ID of the IDMGroup.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
      * @param pageable pageable parameter with information about pagination.
      * @return list of users who are not in the {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with the given group ID and wrapped up in {@link Page}.
      */
-    Page<User> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
+    Page<User> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable);
+
+    /**
+     * Gets all users in given groups.
+     *
+     * @param groupsIds set of IDs of groups to which are users assigned.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable pageable parameter with information about pagination.
+     * @return list of {@link User}s in given groups wrapped up in {@link Page}.
+     */
+    Page<User> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable);
 
     /**
      * Gets users with IDMGroups from the database.
@@ -108,6 +110,28 @@ public interface UserService {
      * @throws UserAndGroupServiceException if user could not be found.
      */
     User getUserWithGroups(Long id);
+
+    /**
+     * Get all users with the {@link Role} with a given role ID.
+     *
+     * @param roleId the ID of the role to get users for.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable pageable parameter with information about pagination.
+     * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
+     * @throws UserAndGroupServiceException if the role could not be found
+     */
+    Page<User> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable);
+
+    /**
+     * Get all users with the {@link Role} with a given role type.
+     *
+     * @param roleType the name of the role to get users for.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable pageable parameter with information about pagination.
+     * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
+     * @throws UserAndGroupServiceException if the role could not be found.
+     */
+    Page<User> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable);
 
     /**
      * Gets users with IDMGroups from the database.
@@ -137,34 +161,6 @@ public interface UserService {
      */
     Set<Role> getRolesOfUser(Long id);
 
-    /**
-     * Gets all users in given groups.
-     *
-     * @param groupsIds set of IDs of groups to which are users assigned.
-     * @param pageable pageable parameter with information about pagination.
-     * @return list of {@link User}s in given groups wrapped up in {@link Page}.
-     */
-    Page<User> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
-
-    /**
-     * Get all users with the {@link Role} with a given role ID.
-     *
-     * @param roleId the ID of the role to get users for.
-     * @param pageable pageable parameter with information about pagination.
-     * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
-     * @throws UserAndGroupServiceException if the role could not be found
-     */
-    Page<User> getUsersWithGivenRole(Long roleId, Pageable pageable);
-
-    /**
-     * Get all users with the {@link Role} with a given role type.
-     *
-     * @param roleType the name of the role to get users for.
-     * @param pageable pageable parameter with information about pagination.
-     * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
-     * @throws UserAndGroupServiceException if the role could not be found.
-     */
-    Page<User> getUsersWithGivenRole(String roleType, Pageable pageable);
 
     /**
      * Gets users with a given set of ids.
@@ -190,5 +186,5 @@ public interface UserService {
      * @param ids ids of users excluded from the result page.
      * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link Page}.
      */
-    Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable);
+    Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> userIds, Predicate predicate, Pageable pageable);
 }
