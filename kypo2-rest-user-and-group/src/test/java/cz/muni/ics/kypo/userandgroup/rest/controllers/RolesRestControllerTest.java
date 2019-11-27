@@ -147,7 +147,7 @@ public class RolesRestControllerTest {
     public void getUsersWithGivenRole() throws Exception {
         String valueTr = convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
-        given(userFacade.getUsersWithGivenRole(anyLong(), any(Pageable.class))).willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+        given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class))).willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
 
         MockHttpServletResponse result = mockMvc.perform(
                 get("/roles" + "/{id}/users", adminRoleDTO.getId()))
@@ -158,7 +158,7 @@ public class RolesRestControllerTest {
 
     @Test
     public void getUsersWithGivenRoleWithUserAndGroupException() throws Exception {
-        given(userFacade.getUsersWithGivenRole(anyLong(), any(Pageable.class))).willThrow(new UserAndGroupFacadeException("Role cannot be found."));
+        given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class))).willThrow(new UserAndGroupFacadeException("Role cannot be found."));
 
         Exception exception = mockMvc.perform(
                 get("/roles" + "/{id}/users", adminRoleDTO.getId()))

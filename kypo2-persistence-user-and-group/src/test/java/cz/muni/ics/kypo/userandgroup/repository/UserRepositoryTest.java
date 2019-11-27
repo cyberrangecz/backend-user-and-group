@@ -140,7 +140,7 @@ public class UserRepositoryTest {
             entityManager.persistAndFlush(user3);
         }
 
-        List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group1.getId(), PageRequest.of(0, 10)).getContent();
+        List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group1.getId(), null, PageRequest.of(0, 10)).getContent();
         System.out.println(usersNotInGroup.toString());
 //        assertEquals(10, usersNotInGroup.size());
         assertFalse(usersNotInGroup.contains(user));
@@ -167,7 +167,8 @@ public class UserRepositoryTest {
         entityManager.persistAndFlush(user3);
         g2.addUser(user2);
 
-        List<User> usersInGroups = userRepository.usersInGivenGroups(Set.of(g1.getId(), g2.getId()), PageRequest.of(0, 10)).getContent();
+        List<User> usersInGroups = userRepository.usersInGivenGroups(Set.of(g1.getId(), g2.getId()), null, PageRequest.of(0, 10)).getContent();
+        usersInGroups.forEach(System.out::println);
         assertEquals(2, usersInGroups.size());
         assertTrue(usersInGroups.contains(user));
         assertTrue(usersInGroups.contains(user2));

@@ -361,12 +361,12 @@ public class UserServiceTest {
 
     @Test
     public void getUsersWithGivenRole() {
-        given(userRepository.findAllByRoleId(adminRole.getId(), pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        given(userRepository.findAllByRoleId(adminRole.getId(), null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         given(roleRepository.existsById(adminRole.getId())).willReturn(true);
 
-        Page<User> userContent = userService.getUsersWithGivenRole(adminRole.getId(), pageable);
+        Page<User> userContent = userService.getUsersWithGivenRole(adminRole.getId(), null, pageable);
         assertEquals(user1, userContent.getContent().get(0));
-        then(userRepository).should().findAllByRoleId(adminRole.getId(), pageable);
+        then(userRepository).should().findAllByRoleId(adminRole.getId(), null, pageable);
     }
 
     @Test
@@ -375,7 +375,7 @@ public class UserServiceTest {
         thrown.expectMessage("Role with id: " + 1L + " could not be found.");
         given(roleRepository.existsById(1L)).willReturn(false);
 
-        userService.getUsersWithGivenRole(adminRole.getId(), pageable);
+        userService.getUsersWithGivenRole(adminRole.getId(), null, pageable);
     }
 
     @After

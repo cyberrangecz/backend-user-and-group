@@ -145,8 +145,8 @@ public class UserFacadeTest {
         PageResultResource<UserDTO> pageResult = new PageResultResource<>();
         pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
 
-        given(userService.getAllUsersNotInGivenGroup(1L, pageable)).willReturn(rolePage);
-        PageResultResource<UserDTO> pageResultResource = userFacade.getAllUsersNotInGivenGroup(1L, pageable);
+        given(userService.getAllUsersNotInGivenGroup(1L, null, pageable)).willReturn(rolePage);
+        PageResultResource<UserDTO> pageResultResource = userFacade.getAllUsersNotInGivenGroup(1L, null, pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
         assertEquals(userDTO1, pageResultResource.getContent().get(0));
@@ -248,11 +248,11 @@ public class UserFacadeTest {
 
     @Test
     public void getUsersWithGivenRole() {
-        given(userService.getUsersWithGivenRole(1L, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        given(userService.getUsersWithGivenRole(1L, null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         given(userService.getRolesOfUser(user1.getId())).willReturn(Collections.emptySet());
         given(userService.getRolesOfUser(user2.getId())).willReturn(Collections.emptySet());
 
-        PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRole(1L, pageable);
+        PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRole(1L, null, pageable);
 
         assertEquals(2, usersDTO.getContent().size());
         assertTrue(usersDTO.getContent().contains(userDTO1));

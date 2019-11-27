@@ -60,10 +60,43 @@ public interface UserFacade {
      * Gets a page of users who are not in the group with given a group ID.
      *
      * @param groupId  the ID of the group.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
      * @param pageable pageable parameter with information about pagination.
      * @return a list of {@link UserDTO}s who are not in the group with a given group ID wrapped up in {@link PageResultResource}.
      */
-    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable);
+    PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable);
+
+    /**
+     * Returns a page of users in given groups specified by pageable.
+     *
+     * @param groupsIds IDs of groups to which are users assigned.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable  pageable parameter with information about pagination.
+     * @return a list of the {@link UserForGroupsDTO}s wrapped up in  {@link PageResultResource}.
+     */
+    PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable);
+
+    /**
+     * Returns page of users specified by given role ID and pageable.
+     *
+     * @param roleId the ID of the role to get users for.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable pageable parameter with information about pagination.
+     * @return a list of the {@link UserDTO}s specified by given and pageable.
+     * @throws UserAndGroupFacadeException if the role could not be found in DB.
+     */
+    PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable);
+
+    /**
+     * Returns a page of users specified by given role type, predicate and pageable.
+     *
+     * @param roleType a type of the role to get users for.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable pageable parameter with information about pagination.
+     * @return a list of the {@link UserDTO}s specified by given predicate and pageable.
+     * @throws UserAndGroupFacadeException if the role could not be found in DB.
+     */
+    PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable);
 
     /**
      * Check if the user is internal or not.
@@ -93,35 +126,6 @@ public interface UserFacade {
     UserDTO getUserInfo(OAuth2Authentication authentication);
 
     /**
-     * Returns a page of users in given groups specified by pageable.
-     *
-     * @param groupsIds IDs of groups to which are users assigned.
-     * @param pageable  pageable parameter with information about pagination.
-     * @return a list of the {@link UserForGroupsDTO}s wrapped up in  {@link PageResultResource}.
-     */
-    PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Pageable pageable);
-
-    /**
-     * Returns page of users specified by given role ID and pageable.
-     *
-     * @param roleId the ID of the role to get users for.
-     * @param pageable pageable parameter with information about pagination.
-     * @return a list of the {@link UserDTO}s specified by given and pageable.
-     * @throws UserAndGroupFacadeException if the role could not be found in DB.
-     */
-    PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable);
-
-    /**
-     * Returns a page of users specified by given role type, predicate and pageable.
-     *
-     * @param roleType a type of the role to get users for.
-     * @param pageable pageable parameter with information about pagination.
-     * @return a list of the {@link UserDTO}s specified by given predicate and pageable.
-     * @throws UserAndGroupFacadeException if the role could not be found in DB.
-     */
-    PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable);
-
-    /**
      * Gets users with given ids.
      *
      * @param ids ids of users.
@@ -137,15 +141,6 @@ public interface UserFacade {
      * @return set of {@link UserDTO}s with given ids wrapped up in {@link PageResultResource}.
      */
     PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate);
-    /**
-     *  Returns a page of users specified by given role type and not with given ids.
-     *
-     * @param roleType a type of the role to get users for.
-     * @param ids ids of users excluded from the result page.
-     * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link PageResultResource}.
-     */
-    PageResultResource<UserDTO> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable);
-
 
     /**
      * Gets a page of users specified by given predicate and pageable.

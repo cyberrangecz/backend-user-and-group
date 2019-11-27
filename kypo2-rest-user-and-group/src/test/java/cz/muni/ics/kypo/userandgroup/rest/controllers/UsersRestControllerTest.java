@@ -68,7 +68,6 @@ public class UsersRestControllerTest {
 
     private MockMvc mockMvc;
     private UserDTO userDTO1, userDTO2;
-    private int page, size;
     private PageResultResource<UserDTO> userPageResultResource;
 
     @Before
@@ -149,7 +148,7 @@ public class UsersRestControllerTest {
     public void testGetAllUsersNotInGivenGroup() throws Exception {
         String valueAs = convertObjectToJsonBytes(userPageResultResource);
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
-        given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willReturn(userPageResultResource);
+        given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class))).willReturn(userPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
                 get("/users" + "/not-in-groups/{groupId}", 1L))
@@ -157,20 +156,8 @@ public class UsersRestControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();
         assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(userPageResultResource)), result.getContentAsString());
-        then(userFacade).should().getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class));
+        then(userFacade).should().getAllUsersNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class));
     }
-
-//    @Test
-//    public void testGetAllUsersNotInGivenGroupWithError() throws Exception {
-//        given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Pageable.class))).willThrow(UserAndGroupFacadeException.class);
-//        Exception ex = mockMvc.perform(
-//                get("/users" + "/not-in-groups/{groupId}", getGroup().getId())
-//                        .param("page", String.valueOf(page))
-//                        .param("size", String.valueOf(size)))
-//                .andExpect(status().isServiceUnavailable())
-//                .andReturn().getResolvedException();
-//        assertEquals("Some error occurred while loading users not in group with id: " + getGroup().getId() + ". Please, try it later.", ex.getLocalizedMessage());
-//    }
 
     @Test
     public void testDeleteUser() throws Exception {

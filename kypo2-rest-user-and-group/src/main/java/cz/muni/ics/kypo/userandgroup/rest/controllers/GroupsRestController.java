@@ -15,7 +15,10 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.rest.ApiError;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotModifiedException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -26,7 +29,6 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -36,8 +38,8 @@ import java.util.Set;
 /**
  * Rest controller for the IDMGroup resource.
  *
- * @author Jan Duda
  * @author Pavel Seda
+ * @author Jan Duda
  * @author Dominik Pilar
  */
 @Api(value = "Endpoint for Groups", tags = "groups")
@@ -178,9 +180,9 @@ public class GroupsRestController {
     })
     @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
-                                             @PathVariable("id") final Long groupId,
-                                             @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
-                                             @Valid @RequestBody AddUsersToGroupDTO addUsers) {
+                                         @PathVariable("id") final Long groupId,
+                                         @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
+                                         @Valid @RequestBody AddUsersToGroupDTO addUsers) {
         Preconditions.checkNotNull(addUsers);
         try {
             groupFacade.addUsers(groupId, addUsers);
@@ -266,7 +268,6 @@ public class GroupsRestController {
      *
      * @param predicate  specifies query to database.
      * @param pageable   pageable parameter with information about pagination.
-     * @param parameters the parameters.
      * @param fields     attributes of the object to be returned as the result.
      * @return the groups.
      */
@@ -282,10 +283,9 @@ public class GroupsRestController {
     })
     @ApiPageableSwagger
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getGroups(@QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
+    public ResponseEntity<Object> getGroups(@ApiParam(value = "Filtering on IDMGroup entity attributes", required = false)
+                                            @QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
                                             Pageable pageable,
-                                            @ApiParam(value = "Parameters for filtering the objects.", required = false)
-                                            @RequestParam MultiValueMap<String, String> parameters,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
         PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);

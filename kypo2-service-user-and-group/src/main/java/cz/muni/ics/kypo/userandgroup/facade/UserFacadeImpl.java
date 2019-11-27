@@ -63,7 +63,7 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @TransactionalRO
     public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
-        return  userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable, roleType, userIds));
+        return  userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable));
     }
 
     @Override
@@ -79,8 +79,8 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
-    public PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Pageable pageable) {
-        PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getAllUsersNotInGivenGroup(groupId, pageable));
+    public PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
+        PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getAllUsersNotInGivenGroup(groupId, predicate, pageable));
         List<UserDTO> usersWithRoles = users.getContent().stream()
                 .map(userDTO -> {
                     userDTO.setRoles(this.getRolesOfUser(userDTO.getId()));
@@ -89,6 +89,12 @@ public class UserFacadeImpl implements UserFacade {
                 .collect(Collectors.toList());
         users.setContent(usersWithRoles);
         return users;
+    }
+
+    @Override
+    @TransactionalRO
+    public PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable) {
+        return userMapper.mapToPageResultResourceForGroups(userService.getUsersInGroups(groupsIds, predicate, pageable));
     }
 
     @Override
@@ -161,32 +167,24 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @TransactionalRO
-    public PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Pageable pageable) {
-        return userMapper.mapToPageResultResourceForGroups(userService.getUsersInGroups(groupsIds, pageable));
-    }
-
-    @Override
-    @TransactionalRO
-    public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Pageable pageable) {
+    public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
         try {
-            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, pageable));
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, predicate, pageable));
 
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
-
     }
 
     @Override
     @TransactionalRO
-    public PageResultResource<UserDTO> getUsersWithGivenRole(String roleType, Pageable pageable) {
+    public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         try {
-            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleType, pageable));
+            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
 
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
         }
-
     }
 
     @Override
@@ -210,16 +208,6 @@ public class UserFacadeImpl implements UserFacade {
         }
     }
 
-    @Override
-    @TransactionalRO
-    public PageResultResource<UserDTO> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> ids, Pageable pageable) {
-        try {
-            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, ids, pageable));
-
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex.getLocalizedMessage());
-        }
-    }
 
     private User getLoggedInUser(OAuth2Authentication authentication) {
         JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();

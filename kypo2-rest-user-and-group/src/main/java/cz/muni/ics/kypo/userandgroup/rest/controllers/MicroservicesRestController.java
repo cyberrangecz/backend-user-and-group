@@ -63,7 +63,7 @@ public class MicroservicesRestController {
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> registerNewMicroseervice(@ApiParam(value = "Microservice to be created with roles.", required = true)
-                                                        @Valid @RequestBody NewMicroserviceDTO microserviceDTO) {
+                                                         @Valid @RequestBody NewMicroserviceDTO microserviceDTO) {
         Preconditions.checkNotNull(microserviceDTO);
         try {
             microserviceFacade.registerNewMicroservice(microserviceDTO);

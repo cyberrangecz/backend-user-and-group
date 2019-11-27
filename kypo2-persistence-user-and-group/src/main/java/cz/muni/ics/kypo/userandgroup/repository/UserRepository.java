@@ -29,8 +29,7 @@ import java.util.Set;
  * @author Dominik Pilar
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>,
-        QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {
+public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom, QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {
 
     /**
      * <p>
@@ -112,39 +111,6 @@ public interface UserRepository extends JpaRepository<User, Long>,
      */
     @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login AND u.iss = :iss")
     Optional<User> getUserByLoginWithGroups(@Param("login") String login, @Param("iss") String iss);
-
-    /**
-     * Find all users, not in the given {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with the given ID.
-     *
-     * @param groupId  unique identifier of the group whose users will be omitted.
-     * @param pageable abstract interface for pagination information.
-     * @return returns list of all {@link User}s except those in {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with given ID wrapped in {@link Page}
-     */
-    @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.groups g LEFT JOIN FETCH g.roles r LEFT JOIN FETCH r.microservice WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId) NOT MEMBER OF u.groups",
-            countQuery = "SELECT COUNT(u) FROM User u WHERE (SELECT g FROM IDMGroup g WHERE g.id = :groupId)  NOT MEMBER OF u.groups")
-    Page<User> usersNotInGivenGroup(@Param("groupId") Long groupId, Pageable pageable);
-
-    /**
-     * Find all users in given {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s with given IDs.
-     *
-     * @param groupsIds unique identifiers of groups whose users will be included in the resulting list
-     * @param pageable  abstract interface for pagination information
-     * @return returns list of all {@link User}s who are in {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with given ID wrapped up in {@link Page}
-     */
-    @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g WHERE g.id IN :groupsIds",
-            countQuery = "SELECT COUNT(u) FROM User u INNER JOIN u.groups g WHERE g.id IN :groupsIds")
-    Page<User> usersInGivenGroups(@Param("groupsIds") Set<Long> groupsIds, Pageable pageable);
-
-    /**
-     * Find all users with given {@link Role} with the given ID.
-     *
-     * @param roleId   unique identifiers of the role.
-     * @param pageable abstract interface for pagination information.
-     * @return returns list of all {@link User}s who have a {@link Role} with given role ID.
-     */
-    @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g JOIN FETCH g.roles r JOIN FETCH r.microservice WHERE r.id = :roleId",
-            countQuery = "SELECT COUNT(u) FROM User u INNER JOIN u.groups g  INNER JOIN g.roles r INNER JOIN r.microservice WHERE r.id = :roleId")
-    Page<User> findAllByRoleId(@Param("roleId") Long roleId, Pageable pageable);
 
     /**
      * Find users by his ID also with groups in which he is.
