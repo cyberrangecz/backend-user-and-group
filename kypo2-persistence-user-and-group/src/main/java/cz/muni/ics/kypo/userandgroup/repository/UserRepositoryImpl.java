@@ -59,7 +59,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
 
         JPQLQuery<User> query = new JPAQueryFactory(entityManager).selectFrom(users)
                 .distinct()
-                .leftJoin(users.groups, groups)
+                .join(users.groups, groups)
                 .where(groups.id.in(groupsIds));
 
         if (predicate != null) {
@@ -76,6 +76,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         QMicroservice microservices = QMicroservice.microservice;
 
         JPQLQuery<User> query = new JPAQueryFactory(entityManager).selectFrom(users)
+                .distinct()
                 .join(users.groups, groups)
                 .join(groups.roles, roles)
                 .join(roles.microservice, microservices)
@@ -95,6 +96,7 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         QMicroservice microservices = QMicroservice.microservice;
 
         JPQLQuery<User> query = new JPAQueryFactory(entityManager).selectFrom(users)
+                .distinct()
                 .join(users.groups, groups)
                 .join(groups.roles, roles)
                 .join(roles.microservice, microservices)
