@@ -183,7 +183,7 @@ public interface UserService {
      *  Returns a page of users specified by given role type and not with given ids.
      *
      * @param roleType a type of the role to get users for.
-     * @param ids ids of users excluded from the result page.
+     * @param userIds ids of users excluded from the result page.
      * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link Page}.
      */
     Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> userIds, Predicate predicate, Pageable pageable);

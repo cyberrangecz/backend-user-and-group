@@ -30,10 +30,8 @@ public class ApiError {
     protected String path;
 
     public static class APIErrorBuilder {
-        // required member variables
         private final HttpStatus status;
         private final String message;
-        // optional member variables
         private List<String> errors = new ArrayList<>();
         private String path = "";
 
