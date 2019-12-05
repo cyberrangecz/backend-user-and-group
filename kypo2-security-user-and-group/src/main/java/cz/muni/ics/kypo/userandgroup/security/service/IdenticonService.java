@@ -35,11 +35,9 @@ public class IdenticonService {
         int [] foreground = new int [] {hash[0] & 255, hash[1] & 255, hash[2] & 255, 255};
 
         for(int x=0 ; x < width ; x++) {
-            //Enforce horizontal symmetry
             int i = x < 3 ? x : 4 - x;
             for(int y=0 ; y < height; y++) {
                 int [] pixelColor;
-                //toggle pixels based on bit being on/off
                 if((hash[i] >> y & 1) == 1)
                     pixelColor = foreground;
                 else
@@ -50,13 +48,11 @@ public class IdenticonService {
 
         BufferedImage finalImage = new BufferedImage(image_width, image_height, BufferedImage.TYPE_INT_ARGB);
 
-        //Scale image to the size you want
         AffineTransform at = new AffineTransform();
         at.scale(image_width / width, image_height / height);
         AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
         finalImage = op.filter(identicon, finalImage);
 
-        //Convert to byte array
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             ImageIO.write(finalImage, "png", outputStream);

@@ -51,7 +51,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CustomRestExceptionHandler.class);
     protected static final UrlPathHelper URL_PATH_HELPER = new UrlPathHelper();
 
-    // 400
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatus status,
                                                                   final WebRequest request) {
@@ -112,7 +111,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // 404
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatus status,
                                                                    final WebRequest request) {
@@ -123,7 +121,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // 405
     @Override
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers,
                                                                          final HttpStatus status, final WebRequest request) {
@@ -137,7 +134,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // 415
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers,
                                                                      final HttpStatus status, final WebRequest request) {
@@ -151,8 +147,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
                 new ApiError.APIErrorBuilder(HttpStatus.UNSUPPORTED_MEDIA_TYPE, builder.substring(0, builder.length() - 2)).setPath(request.getContextPath()).build();
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
-
-    // Custom methods for handling own exceptions
 
     @ExceptionHandler(BadGatewayException.class)
     public ResponseEntity<Object> handleBadGatewayException(final BadGatewayException ex, final WebRequest request, HttpServletRequest req) {
@@ -325,7 +319,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // resource not created exceptions
     @ExceptionHandler({ResourceNotCreatedException.class})
     public ResponseEntity<Object> handleResourceNotCreatedException(final ResourceNotCreatedException ex, final WebRequest request, HttpServletRequest req) {
 
@@ -335,7 +328,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // handle resource not found exceptions e.g. ~/{id} which does not exists
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFoundException(final ResourceNotFoundException ex, final WebRequest request, HttpServletRequest req) {
 
@@ -345,7 +337,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // resource not created exceptions
     @ExceptionHandler({ResourceNotModifiedException.class})
     public ResponseEntity<Object> handleResourceNotModifiedException(final ResourceNotModifiedException ex, final WebRequest request, HttpServletRequest req) {
 
@@ -416,9 +407,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // Existing Java Exceptions
-
-    // access denied
     @ExceptionHandler({AccessDeniedException.class})
     public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
 
@@ -433,8 +421,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.status);
     }
 
-    // handle illegal argument exceptions e.g. given payload is not valid against
-    // draft-v4 schema
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(final IllegalArgumentException ex, final WebRequest request, HttpServletRequest req) {
         LOG.debug("handleIllegalArgumentException({}, {}, {})", ex, request, req);
@@ -467,7 +453,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // 409 - Conflict
     @ExceptionHandler({ConflictException.class})
     public ResponseEntity<Object> handleConflictException(final ConflictException ex, final WebRequest request,
                                                           HttpServletRequest req) {
@@ -478,7 +463,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    // 500
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(final Exception ex, final WebRequest request, HttpServletRequest req) {
 

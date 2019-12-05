@@ -111,7 +111,6 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
 
     private <T> Page getPage(JPQLQuery<T> query, Pageable pageable) {
         if (pageable == null) {
-            //default pagination
             pageable = PageRequest.of(0, 20);
         }
         query = getQuerydsl().applyPagination(pageable, query);

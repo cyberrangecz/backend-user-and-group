@@ -238,8 +238,6 @@ public class IDMGroupsIntegrationTests {
                 "\",\"givenName\":null,\"familyName\":null,\"login\":\"" + organizerDTO1.getLogin() + "\""));
         assertTrue(response.getContentAsString().contains("\"fullName\":\"" + organizerDTO2.getFullName() +
                 "\",\"givenName\":null,\"familyName\":null,\"login\":\"" + organizerDTO2.getLogin() + "\""));
-        //TODO nefunguje toto volanie
-        //assertTrue(groupRepository.findByName("Organizer group").isPresent());
     }
 
     @Test
@@ -340,17 +338,6 @@ public class IDMGroupsIntegrationTests {
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("User with id " + 100 + " could not be found"));
     }
-
-//    @Test
-//    public void removeUsersFromDefaultGroup() throws Exception {
-//        Exception exceptions = mvc.perform(delete("/groups/{id}/users", defaultGroup.getId())
-//                .content(convertObjectToJsonBytes(List.of(100L)))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isConflict())
-//                .andReturn().getResolvedException();
-//        assertEquals(ConflictException.class, exceptions.getClass());
-//        assertTrue(exceptions.getMessage().contains("User cannot be removed from default group."));
-//    }
 
     @Test
     public void addUsersToGroup() throws Exception {

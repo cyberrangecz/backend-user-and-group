@@ -191,14 +191,12 @@ public class IDMGroupFacadeTest {
 
     @Test(expected = UserAndGroupFacadeException.class)
     public void testDeleteGroupWithPersonsThrows() {
-        // group g1 contains persons thus it is no possible to remove this group
         given(groupService.get(anyLong())).willReturn(g1);
         groupFacade.deleteGroup(1L);
     }
 
     @Test(expected = UserAndGroupFacadeException.class)
     public void testDeleteGroupsWithPersonsThrows() {
-        // group g1 contains persons thus it is no possible to remove this group
         given(groupService.get(anyLong())).willReturn(g1);
         List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Collections.singletonList(1L));
     }

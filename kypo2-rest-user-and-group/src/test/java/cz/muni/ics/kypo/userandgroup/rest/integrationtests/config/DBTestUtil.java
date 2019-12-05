@@ -16,8 +16,6 @@ public class DBTestUtil {
         DataSource dataSource = applicationContext.getBean(DataSource.class);
         String resetSqlTemplate = getResetSqlTemplate(applicationContext);
         try (Connection dbConnection = dataSource.getConnection()) {
-            //Create SQL statements that reset the auto increment columns and invoke
-            //the created SQL statements.
             for (String resetSqlArgument: tableNames) {
                 try (Statement statement = dbConnection.createStatement()) {
                     String resetSql = String.format(resetSqlTemplate, resetSqlArgument);
@@ -28,7 +26,6 @@ public class DBTestUtil {
     }
 
     private static String getResetSqlTemplate(ApplicationContext applicationContext) {
-        //Read the SQL template from the properties file
         Environment environment = applicationContext.getBean(Environment.class);
         return environment.getRequiredProperty("test.reset.sql.template");
     }
