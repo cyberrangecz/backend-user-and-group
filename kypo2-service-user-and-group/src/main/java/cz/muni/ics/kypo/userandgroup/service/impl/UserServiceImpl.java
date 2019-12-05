@@ -47,8 +47,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
-            "or @securityService.hasLoggedInUserSameId(#id)")
+    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
     public User get(Long id) {
         Assert.notNull(id, "Input id must not be null");
         return userRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " could not be found."));
