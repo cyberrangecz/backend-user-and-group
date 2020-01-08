@@ -6,9 +6,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/**
- * @author Pavel Seda
- */
 @SpringBootApplication
 @Import({WebConfigRestUserAndGroup.class})
 @EnableScheduling

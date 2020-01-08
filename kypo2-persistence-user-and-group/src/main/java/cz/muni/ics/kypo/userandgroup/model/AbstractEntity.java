@@ -5,7 +5,6 @@ import java.io.Serializable;
 
 /**
  * @param <PK> Primary key for a given entity.
- * @author Pavel Seda
  */
 @MappedSuperclass
 public class AbstractEntity<PK extends Serializable> implements Serializable {

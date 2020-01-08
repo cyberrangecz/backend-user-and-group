@@ -8,8 +8,6 @@ import java.util.Objects;
 /**
  * Encapsulates information about a microservice.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "MicroserviceDTO",
         description = "Information about a microservice.")

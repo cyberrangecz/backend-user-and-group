@@ -38,9 +38,6 @@ import java.util.Set;
 /**
  * Rest controller for the IDMGroup resource.
  *
- * @author Pavel Seda
- * @author Jan Duda
- * @author Dominik Pilar
  */
 @Api(value = "Endpoint for Groups", tags = "groups")
 @RestController

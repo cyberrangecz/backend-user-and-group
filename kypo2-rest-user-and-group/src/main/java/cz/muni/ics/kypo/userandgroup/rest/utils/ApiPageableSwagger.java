@@ -9,9 +9,6 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * @author Pavel Seda
- */
 @Target({METHOD, ANNOTATION_TYPE, TYPE})
 @Retention(RUNTIME)
 @ApiImplicitParams({

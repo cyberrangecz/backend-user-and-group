@@ -31,10 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @Service
 @Transactional
 public class UserFacadeImpl implements UserFacade {

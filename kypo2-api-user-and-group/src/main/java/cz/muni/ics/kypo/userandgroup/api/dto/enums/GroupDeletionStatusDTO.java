@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModel;
 /**
  * Enumeration of group deletion statuses.
  *
- * @author Jan Duda
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "GroupDeletionStatusDTO",
         description = "The statuses that are used in a group deletion.")

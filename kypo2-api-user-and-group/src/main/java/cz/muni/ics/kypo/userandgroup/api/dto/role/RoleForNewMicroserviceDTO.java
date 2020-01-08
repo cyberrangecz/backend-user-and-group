@@ -10,8 +10,6 @@ import java.util.Objects;
 /**
  * Encapsulates information about a role which will be used in new microservice.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "RoleForNewMicroserviceDTO",
         description = "Data that need to be provided to register new role.")

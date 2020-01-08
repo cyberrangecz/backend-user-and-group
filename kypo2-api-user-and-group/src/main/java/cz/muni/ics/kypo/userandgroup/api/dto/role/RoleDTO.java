@@ -9,8 +9,6 @@ import java.util.Objects;
 /**
  * Encapsulates information about the role.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "RoleDTO",
         description = "The detailed information about role.")

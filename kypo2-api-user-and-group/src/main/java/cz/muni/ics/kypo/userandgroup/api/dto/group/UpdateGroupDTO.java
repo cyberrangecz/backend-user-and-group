@@ -13,8 +13,6 @@ import java.util.Objects;
 /**
  * Encapsulates information about a group to be updated.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "UpdateGroupDTO",
         description = "Data that need to be provided to update particular group.")

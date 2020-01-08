@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.VARIANT_ALSO_NEGOTIATES,
     reason = "Transparent content negotiation for the request results in a circular reference. (RFC 2295)")
 public class VariantAlsoNegotiatesException extends RuntimeException {

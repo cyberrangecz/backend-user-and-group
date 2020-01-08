@@ -26,8 +26,6 @@ import java.util.Set;
 /**
  * The JPA repository interface to manage {@link IDMGroup} instances.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Repository
 public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,

@@ -16,8 +16,6 @@ import java.util.Set;
 /**
  * The interface for IDMGroup service layer.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public interface IDMGroupService {
     /**

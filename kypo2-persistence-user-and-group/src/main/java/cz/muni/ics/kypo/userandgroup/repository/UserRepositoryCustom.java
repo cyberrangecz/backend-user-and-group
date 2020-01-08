@@ -9,9 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Set;
 
-/**
- * @author Pavel Seda
- */
 public interface UserRepositoryCustom {
 
     /**

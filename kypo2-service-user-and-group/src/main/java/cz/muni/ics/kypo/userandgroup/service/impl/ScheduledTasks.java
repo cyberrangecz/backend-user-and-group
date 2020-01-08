@@ -9,8 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Here is the scheduler for deleting expired groups. This scheduler is started once a day at midnight and deletes the groups which expiration date is in the past.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Component
 @Transactional

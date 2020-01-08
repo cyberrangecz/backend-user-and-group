@@ -14,8 +14,6 @@ import java.util.*;
 /**
  * The MicroserviceMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type Microservice and
  * DTOs classes. Code is generated during compile time.
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface    MicroserviceMapper extends ParentMapper {

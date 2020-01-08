@@ -3,8 +3,6 @@ package cz.muni.ics.kypo.userandgroup.exceptions;
 /**
  * Custom <i>RuntimeException</i> which is thrown when some error appear in service layer of application.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public class UserAndGroupServiceException extends RuntimeException {
 

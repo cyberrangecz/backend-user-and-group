@@ -13,10 +13,6 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @Service
 public class MicroserviceServiceImpl implements MicroserviceService {
 

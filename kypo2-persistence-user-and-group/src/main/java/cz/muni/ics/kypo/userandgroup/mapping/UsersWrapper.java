@@ -10,8 +10,6 @@ import java.util.Set;
 /**
  * This class is used for loading and wrapping {@link User} with his {@link cz.muni.ics.kypo.userandgroup.model.Role}s from the configuration file.
  *
- * @author Jan Duda
- * @author Pavel Seda
  */
 public class UsersWrapper {
 

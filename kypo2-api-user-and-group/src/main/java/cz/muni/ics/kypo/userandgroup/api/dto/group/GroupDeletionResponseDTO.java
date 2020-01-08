@@ -9,8 +9,6 @@ import java.util.Objects;
 /**
  * Data transfer object used when some group is deleted.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "GroupDeletionResponseDTO",
         description = "The information provided immediately to the client after the client deletes a given group.")

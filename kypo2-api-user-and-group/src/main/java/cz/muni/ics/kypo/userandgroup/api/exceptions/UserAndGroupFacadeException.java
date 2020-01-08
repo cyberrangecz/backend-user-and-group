@@ -3,8 +3,6 @@ package cz.muni.ics.kypo.userandgroup.api.exceptions;
 /**
  * Custom <i>RuntimeException</i> is thrown when UserAndGroupServiceException is caught on facade layer.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public class UserAndGroupFacadeException extends RuntimeException {
 

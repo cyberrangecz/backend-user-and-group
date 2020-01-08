@@ -40,8 +40,6 @@ import java.util.Set;
 /**
  * Rest controller for the User resource.
  *
- * @author Pavel Seda
- * @author Jan Duda
  */
 @Api(value = "Endpoint for Users", tags = "users")
 @RestController

@@ -34,8 +34,6 @@ import java.util.Set;
 /**
  * Rest controller for the Role resource.
  *
- * @author Pavel Seda
- * @author Jan Duda
  */
 @Api(value = "Endpoint for Roles", tags = "roles")
 @RestController

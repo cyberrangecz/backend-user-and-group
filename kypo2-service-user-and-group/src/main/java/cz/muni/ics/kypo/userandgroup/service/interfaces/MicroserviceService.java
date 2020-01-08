@@ -8,8 +8,6 @@ import java.util.List;
 /**
  * The interface for the Microservice service layer.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public interface MicroserviceService {
 

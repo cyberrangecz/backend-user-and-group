@@ -3,8 +3,6 @@ package cz.muni.ics.kypo.userandgroup.security.exception;
 /**
  * Custom RuntimeException which is thrown when user is not authorized to get required resources
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public class SecurityException extends RuntimeException {
 

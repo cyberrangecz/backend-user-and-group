@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.NO_CONTENT, reason = "The server successfully processed the request and is not returning any content.")
 public class NoContentException extends RuntimeException {
 

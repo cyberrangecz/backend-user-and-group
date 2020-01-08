@@ -11,7 +11,6 @@ import java.util.Set;
 /**
  * Encapsulates information about a user.
  *
- * @author Pavel Seda
  */
 @ApiModel(value = "UserDTO",
         description = "Detailed information about user.")

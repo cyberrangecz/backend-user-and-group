@@ -11,7 +11,6 @@ import java.time.ZoneOffset;
 /**
  * This class serialize LocalDateTime to UTC time.
  *
- * @author Pavel Seda
  */
 public class LocalDateTimeUTCSerializer extends SerializerBase<LocalDateTime> {
 

@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.UNSUPPORTED_MEDIA_TYPE,
     reason = "The request entity has a media type which the server or resource does not support. For example, the client uploads an image as image/svg+xml, but the server requires that images use a different format.")
 public class UnsupportedMediaTypeException extends RuntimeException {

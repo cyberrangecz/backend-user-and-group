@@ -15,9 +15,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.Set;
 
-/**
- * @author Pavel Seda
- */
 @Repository
 public class UserRepositoryImpl extends QuerydslRepositorySupport implements UserRepositoryCustom {
 

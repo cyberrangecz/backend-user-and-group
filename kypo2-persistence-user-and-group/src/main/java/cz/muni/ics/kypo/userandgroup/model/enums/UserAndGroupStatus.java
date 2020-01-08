@@ -3,7 +3,6 @@ package cz.muni.ics.kypo.userandgroup.model.enums;
 /**
  * Enumeration of User and group status.
  *
- * @author Pavel Seda
  */
 public enum UserAndGroupStatus {
     /**

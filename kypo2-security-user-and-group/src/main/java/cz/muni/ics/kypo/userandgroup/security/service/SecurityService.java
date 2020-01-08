@@ -19,8 +19,6 @@ import java.util.Optional;
 /**
  * SecurityService class provides methods for obtaining information about logged in user.
  *
- * @author Dominik Pilar
- * @author Pavel Seda
  */
 @Service
 @Transactional(propagation = Propagation.REQUIRES_NEW)

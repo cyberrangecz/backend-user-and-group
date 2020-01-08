@@ -8,8 +8,6 @@ import java.util.Objects;
 /**
  * Encapsulates information about a user used in {@link cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO}.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "User for Groups Dto.",
         description = "Encapsulates information about a user used in a given groups.")
