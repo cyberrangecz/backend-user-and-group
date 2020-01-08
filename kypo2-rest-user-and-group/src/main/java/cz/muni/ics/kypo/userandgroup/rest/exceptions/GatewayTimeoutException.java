@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.GATEWAY_TIMEOUT,
     reason = "The server was acting as a gateway or proxy and did not receive a timely response from the upstream server.")
 public class GatewayTimeoutException extends RuntimeException {

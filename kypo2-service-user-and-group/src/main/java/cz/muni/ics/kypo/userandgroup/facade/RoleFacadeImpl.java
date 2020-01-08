@@ -22,10 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @Service
 @Transactional
 public class RoleFacadeImpl implements RoleFacade {

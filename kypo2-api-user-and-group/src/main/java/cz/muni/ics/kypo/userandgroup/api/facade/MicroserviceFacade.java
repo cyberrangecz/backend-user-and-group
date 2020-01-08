@@ -6,8 +6,6 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 /**
  * The interface for the Microservice facade layer.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public interface MicroserviceFacade {
 

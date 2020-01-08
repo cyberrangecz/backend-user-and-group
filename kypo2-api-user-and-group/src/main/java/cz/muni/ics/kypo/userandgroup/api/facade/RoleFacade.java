@@ -9,8 +9,6 @@ import org.springframework.data.domain.Pageable;
 /**
  * The interface for the Role facade layer.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public interface RoleFacade {
 

@@ -13,8 +13,6 @@ import java.util.*;
 /**
  * Encapsulates information about a new group to be created in the database.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "NewGroupDTO",
         description = "Data that need to be provided to create a new group.")

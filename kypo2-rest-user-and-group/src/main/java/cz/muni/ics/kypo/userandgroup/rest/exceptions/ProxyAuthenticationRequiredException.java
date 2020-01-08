@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.PROXY_AUTHENTICATION_REQUIRED, reason = "The client must first authenticate itself with the proxy.")
 public class ProxyAuthenticationRequiredException extends RuntimeException {
 

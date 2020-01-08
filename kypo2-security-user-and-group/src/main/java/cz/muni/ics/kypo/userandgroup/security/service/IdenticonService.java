@@ -15,7 +15,6 @@ import java.io.IOException;
 /**
  * Service class generate icon based on login and issuer.
  *
- * @author Dominik Pilar
  */
 @Service
 public class IdenticonService {

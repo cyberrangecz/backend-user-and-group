@@ -41,7 +41,6 @@ import java.util.List;
  * https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/ControllerAdvice.html
  * </p>
  *
- * @author Pavel Šeda
  */
 
 @Order(Ordered.HIGHEST_PRECEDENCE)

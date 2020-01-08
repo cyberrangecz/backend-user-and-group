@@ -9,8 +9,6 @@ import java.util.Objects;
 /**
  * Represents microservice which participates in the system.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Entity
 @Table(name = "microservice")

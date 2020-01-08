@@ -9,9 +9,6 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import java.util.Arrays;
 import java.util.Locale;
 
-/**
- * @author Pavel Šeda
- */
 @Configuration
 public class ValidationMessagesConfig {
 

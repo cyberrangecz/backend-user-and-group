@@ -27,10 +27,6 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true)

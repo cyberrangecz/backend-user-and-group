@@ -9,8 +9,6 @@ import java.util.Objects;
 /**
  * Encapsulates information about a deleted user.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "UserDeletionResponseDTO",
         description = "The information provided immediately to the client after the client deletes a given user.")

@@ -3,7 +3,6 @@ package cz.muni.ics.kypo.userandgroup.security.enums;
 /**
  * The enum Implicit group names of main microservice <strong>User-anf-group</strong>.
  *
- * @author Pavel Seda
  */
 public enum ImplicitGroupNames {
 

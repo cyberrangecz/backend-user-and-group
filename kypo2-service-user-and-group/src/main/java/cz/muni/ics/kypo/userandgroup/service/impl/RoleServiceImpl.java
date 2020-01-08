@@ -16,10 +16,6 @@ import org.springframework.util.Assert;
 
 import java.util.Set;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @Service
 public class RoleServiceImpl implements RoleService {
 

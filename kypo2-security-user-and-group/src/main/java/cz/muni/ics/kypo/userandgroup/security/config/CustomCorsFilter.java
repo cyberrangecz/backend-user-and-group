@@ -13,8 +13,6 @@ import java.io.IOException;
 /**
  * Configuration of Spring Security beans in production and developer mode.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 
 @Component

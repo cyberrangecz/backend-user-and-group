@@ -11,7 +11,6 @@ import java.util.Set;
 /**
  * Represents a user in the system.
  *
- * @author Pavel Seda
  */
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))

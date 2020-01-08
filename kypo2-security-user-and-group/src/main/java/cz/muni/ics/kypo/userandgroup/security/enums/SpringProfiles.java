@@ -1,8 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.security.enums;
 
-/**
- * @author Pavel Seda
- */
 public enum SpringProfiles {
 
     PROD("PROD", ""),

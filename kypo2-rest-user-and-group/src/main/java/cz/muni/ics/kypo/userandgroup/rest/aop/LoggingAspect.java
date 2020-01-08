@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
 /**
  * AOP aspect for logging that cross-cutting multiple layers of project.
  *
- * @author Pavel Seda (441048)
- * @author Dominik Pilar (445537)
  */
 @Aspect
 @Component

@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Api configuration.
  *
- * @author Pavel Seda
  */
 @Configuration
 @ComponentScan("cz.muni.ics.kypo.userandgroup.api.facade")

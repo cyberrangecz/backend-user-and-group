@@ -2,10 +2,6 @@ package cz.muni.ics.kypo.userandgroup.rest.aop;
 
 import org.aspectj.lang.annotation.Pointcut;
 
-/**
- * @author Pavel Seda (441048)
- * @author Dominik Pilar (445537)
- */
 public class CommonJoinPointConfig {
 
     @Pointcut("execution(* cz.muni.ics.kypo.userandgroup.repository.*.*(..))")

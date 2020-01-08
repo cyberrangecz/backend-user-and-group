@@ -25,8 +25,6 @@ import java.util.Set;
 /**
  * The JPA repository interface to manage {@link User} instances.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom, QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {

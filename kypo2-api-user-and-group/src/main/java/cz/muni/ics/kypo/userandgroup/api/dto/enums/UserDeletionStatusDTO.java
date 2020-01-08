@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModel;
 /**
  * Enumeration of user deletion statuses.
  *
- * @author Jan Duda
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "UserDeletionStatusDTO",
         description = "The user and deletion status.")

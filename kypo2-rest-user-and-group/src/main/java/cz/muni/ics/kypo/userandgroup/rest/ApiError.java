@@ -14,7 +14,6 @@ import java.util.Objects;
  * exceptions handler.
  * </p>
  *
- * @author Pavel Šeda
  */
 public class ApiError {
 

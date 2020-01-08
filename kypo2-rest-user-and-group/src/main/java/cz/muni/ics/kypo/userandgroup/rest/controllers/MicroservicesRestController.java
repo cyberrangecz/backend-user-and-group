@@ -23,7 +23,6 @@ import javax.validation.Valid;
 /**
  * Rest controller for the Microservice resource.
  *
- * @author Dominik Pilar
  */
 @Api(value = "Endpoint for Microservices", hidden = true)
 @RestController

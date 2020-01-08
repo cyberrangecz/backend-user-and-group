@@ -6,7 +6,6 @@ import java.util.Objects;
 /**
  * Represents the role of users. Each role gives different rights to users.
  *
- * @author Pavel Seda
  */
 @Entity
 @Table(name = "role")

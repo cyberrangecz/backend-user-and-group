@@ -11,8 +11,6 @@ import java.util.Set;
 /**
  * The interface for the Role service layer.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 public interface RoleService {
 

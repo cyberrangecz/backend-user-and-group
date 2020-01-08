@@ -17,7 +17,6 @@ import java.util.*;
 /**
  * Configuration of Swagger documentation.
  *
- * @author Pavel Seda
  */
 @Configuration
 @EnableSwagger2

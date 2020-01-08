@@ -1,9 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.api.exceptions;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 public class ExternalSourceException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;

@@ -13,8 +13,6 @@ import java.util.Set;
 /**
  * Encapsulates information about new microservice to be created in the database.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @ApiModel(value = "NewMicroserviceDTO",
         description = "Data that need to be provided to register a new microservice.")

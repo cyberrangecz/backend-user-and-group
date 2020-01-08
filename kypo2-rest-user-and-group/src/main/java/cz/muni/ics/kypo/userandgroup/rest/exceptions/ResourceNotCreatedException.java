@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda (441048)
- *
- */
 @ResponseStatus(value = HttpStatus.NOT_ACCEPTABLE, reason = "The requested resource was not created")
 public class ResourceNotCreatedException extends RuntimeException {
 

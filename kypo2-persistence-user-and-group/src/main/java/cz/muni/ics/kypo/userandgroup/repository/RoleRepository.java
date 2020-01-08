@@ -23,8 +23,6 @@ import java.util.Set;
 /**
  * The JPA repository interface to manage {@link Role} instances.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long>,

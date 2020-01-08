@@ -2,10 +2,6 @@ package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
 import io.swagger.annotations.ApiModel;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @ApiModel(value = "Source",
         description = "The source.")
 public enum Source {

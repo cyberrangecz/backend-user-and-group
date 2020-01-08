@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR,
     reason = "A generic error message, given when an unexpected condition was encountered and no more specific message is suitable.")
 public class InternalServerErrorException extends RuntimeException {

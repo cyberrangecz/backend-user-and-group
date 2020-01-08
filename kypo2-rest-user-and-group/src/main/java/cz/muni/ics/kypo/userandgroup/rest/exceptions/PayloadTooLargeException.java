@@ -3,10 +3,6 @@ package cz.muni.ics.kypo.userandgroup.rest.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Pavel Šeda
- *
- */
 @ResponseStatus(value = HttpStatus.PAYLOAD_TOO_LARGE,
     reason = "The request is larger than the server is willing or able to process. Previously called \"Request Entity Too Large\".")
 public class PayloadTooLargeException extends RuntimeException {

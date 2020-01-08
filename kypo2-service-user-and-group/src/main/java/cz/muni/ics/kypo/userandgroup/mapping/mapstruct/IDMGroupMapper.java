@@ -16,8 +16,6 @@ import java.util.*;
  * The IDMGroupMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type IDMGroup and
  * DTOs classes. Code is generated during compile time.
  *
- * @author Pavel Seda
- * @author Dominik Pilar
  */
 @Mapper(componentModel = "spring", uses = {RoleMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IDMGroupMapper extends ParentMapper {

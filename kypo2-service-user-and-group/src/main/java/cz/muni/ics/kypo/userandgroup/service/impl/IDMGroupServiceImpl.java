@@ -27,10 +27,6 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Pavel Seda
- * @author Dominik Pilar
- */
 @Service
 public class IDMGroupServiceImpl implements IDMGroupService {
 

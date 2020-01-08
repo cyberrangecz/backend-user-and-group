@@ -9,9 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-/**
- * @author Pavel Šeda (441048)
- */
 @Component
 public class BeanMappingImpl implements BeanMapping {
 
