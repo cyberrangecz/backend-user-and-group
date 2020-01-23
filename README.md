@@ -12,20 +12,13 @@ Boris Jaduš   |   445343@mail.muni.cz
 
 ## Content
 
-1.  License
-2.  Requirements
-3.  Project modules
+1.  Requirements
+2.  Project modules
 
-### 1. License
-(c) Copyright 2019 MASARYK UNIVERSITY 
-
-All rights reserved. This software is freely available for non-commercial use under license specified in following license agreement in LICENSE file. Please review the terms of the license agreement before using this software. If you are  interested in using this software commercially or in ways not allowed in  aforementioned license, feel free to contact Technology transfer office of the  Masaryk university in order to negotiate ad-hoc license agreement. 
-
-
-### 2. Requirements
+### 1. Requirements
 The requirements for manual installation of the project, building and running the project in docker container and so on are available on the following [WIKI](https://gitlab.ics.muni.cz/kypo2/services-and-portlets/kypo2-user-and-group/wikis/home) page.
 
-### 3. Project Modules
+### 2. Project Modules
 This project is containes several modules. 
 It is divided into several modules as:
 * `kypo2-rest-user-and-group`
