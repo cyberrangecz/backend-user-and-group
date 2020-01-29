@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 
 import java.math.BigInteger;
@@ -20,6 +21,64 @@ public class TestDataFactory {
     private List<User> generatedUsers = generateUserList(50);
     private List<IDMGroup> generatedGroups = generateGroupList(50);
 
+    private Microservice kypoTrainingMicroservice
+            = new Microservice("training", "http://kypo2-training/api/v1");
+    private Microservice kypoUaGMicroservice
+            = new Microservice("userAndGroup", "http://kypo2-user-and-group/api/v1");
+
+    private Role trainingTrainee
+            = generateRole("ROLE_TRAINING_TRAINEE", kypoTrainingMicroservice, "Trainee description");
+    private Role trainingOrganizer
+            = generateRole("ROLE_TRAINING_ORGANIZER", kypoTrainingMicroservice, "Organizer description");
+    private Role trainingDesigner
+            = generateRole("ROLE_TRAINING_DESIGNER", kypoTrainingMicroservice, "Designer description");
+    private Role trainingAdmin
+            = generateRole("ROLE_TRAINING_ADMIN", kypoTrainingMicroservice, "Training admin description");
+    private Role uAGUser
+            = generateRole(RoleType.ROLE_USER_AND_GROUP_USER.name(), kypoUaGMicroservice, "User description");
+    private Role uAGGuest
+            = generateRole(RoleType.ROLE_USER_AND_GROUP_GUEST.name(), kypoUaGMicroservice, "Guest description");
+    private Role uAGAdmin
+            = generateRole(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), kypoUaGMicroservice, "UaG admin description");
+
+
+
+    public Microservice getKypoTrainingMicroservice() {
+        return kypoTrainingMicroservice;
+    }
+
+    public Microservice getKypoUaGMicroservice() {
+        return kypoUaGMicroservice;
+    }
+
+    public Role getTrainingTrainee() {
+        return trainingTrainee;
+    }
+
+    public Role getTrainingOrganizer() {
+        return trainingOrganizer;
+    }
+
+    public Role getTrainingDesigner() {
+        return trainingDesigner;
+    }
+
+    public Role getTrainingAdmin() {
+        return trainingAdmin;
+    }
+
+    public Role getUAGUser() {
+        return uAGUser;
+    }
+
+    public Role getUAGGuest() {
+        return uAGGuest;
+    }
+
+    public Role getUAGAdmin() {
+        return uAGAdmin;
+    }
+
     public List<Role> getGeneratedRoles(){
         return Collections.unmodifiableList(generatedRoles);
     }
@@ -34,6 +93,15 @@ public class TestDataFactory {
 
     public List<IDMGroup> getGeneratedGroups() {
         return Collections.unmodifiableList(generatedGroups);
+    }
+
+
+    private Role generateRole(String roleType, Microservice microservice, String description){
+        Role role = new Role();
+        role.setRoleType(roleType);
+        role.setMicroservice(microservice);
+        role.setDescription(description);
+        return role;
     }
 
     private List<Role> generateRoleList(int count){
