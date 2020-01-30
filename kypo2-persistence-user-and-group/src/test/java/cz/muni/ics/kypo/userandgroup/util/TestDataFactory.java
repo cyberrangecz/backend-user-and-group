@@ -26,22 +26,29 @@ public class TestDataFactory {
     private Microservice kypoUaGMicroservice
             = new Microservice("userAndGroup", "http://kypo2-user-and-group/api/v1");
 
-    private Role trainingTrainee
+    private Role trainingTraineeRole
             = generateRole("ROLE_TRAINING_TRAINEE", kypoTrainingMicroservice, "Trainee description");
-    private Role trainingOrganizer
+    private Role trainingOrganizerRole
             = generateRole("ROLE_TRAINING_ORGANIZER", kypoTrainingMicroservice, "Organizer description");
-    private Role trainingDesigner
+    private Role trainingDesignerRole
             = generateRole("ROLE_TRAINING_DESIGNER", kypoTrainingMicroservice, "Designer description");
-    private Role trainingAdmin
+    private Role trainingAdminRole
             = generateRole("ROLE_TRAINING_ADMIN", kypoTrainingMicroservice, "Training admin description");
-    private Role uAGUser
+    private Role uAGUserRole
             = generateRole(RoleType.ROLE_USER_AND_GROUP_USER.name(), kypoUaGMicroservice, "User description");
-    private Role uAGGuest
+    private Role uAGGuestRole
             = generateRole(RoleType.ROLE_USER_AND_GROUP_GUEST.name(), kypoUaGMicroservice, "Guest description");
-    private Role uAGAdmin
+    private Role uAGAdminRole
             = generateRole(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), kypoUaGMicroservice, "UaG admin description");
 
-
+    private User user1
+            = generateUser("852374@muni.cz", "Garfield", "Pokorny", "852374@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
+    private User user2
+            = generateUser("632145@muni.cz", "Marcel", "Watchman", "632145@mail.muni.cz", "https://oidc.muni.cz/oidc/", "icon".getBytes());
+    private User user3
+            = generateUser("77863@muni.cz", "Drew", "Coyer", "77863@mail.muni.cz", "https://oidc.provider.cz/oidc/", "default".getBytes());
+    private User user4
+            = generateUser("794254@muni.cz", "Garret", "Cull", "794254@mail.muni.cz", "https://oidc.provider.cz/oidc/", "profile".getBytes())
 
     public Microservice getKypoTrainingMicroservice() {
         return kypoTrainingMicroservice;
@@ -51,32 +58,48 @@ public class TestDataFactory {
         return kypoUaGMicroservice;
     }
 
-    public Role getTrainingTrainee() {
-        return trainingTrainee;
+    public Role getTrainingTraineeRole() {
+        return trainingTraineeRole;
     }
 
-    public Role getTrainingOrganizer() {
-        return trainingOrganizer;
+    public Role getTrainingOrganizerRole() {
+        return trainingOrganizerRole;
     }
 
-    public Role getTrainingDesigner() {
-        return trainingDesigner;
+    public Role getTrainingDesignerRole() {
+        return trainingDesignerRole;
     }
 
-    public Role getTrainingAdmin() {
-        return trainingAdmin;
+    public Role getTrainingAdminRole() {
+        return trainingAdminRole;
     }
 
-    public Role getUAGUser() {
-        return uAGUser;
+    public Role getUAGUserRole() {
+        return uAGUserRole;
     }
 
-    public Role getUAGGuest() {
-        return uAGGuest;
+    public Role getUAGGuestRole() {
+        return uAGGuestRole;
     }
 
-    public Role getUAGAdmin() {
-        return uAGAdmin;
+    public Role getUAGAdminRole() {
+        return uAGAdminRole;
+    }
+
+    public User getUser1() {
+        return user1;
+    }
+
+    public User getUser2() {
+        return user2;
+    }
+
+    public User getUser3() {
+        return user3;
+    }
+
+    public User getUser4() {
+        return user4;
     }
 
     public List<Role> getGeneratedRoles(){
@@ -102,6 +125,19 @@ public class TestDataFactory {
         role.setMicroservice(microservice);
         role.setDescription(description);
         return role;
+    }
+
+    private User generateUser(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
+        User user = new User();
+        user.setLogin(login);
+        user.setFullName(givenName + " " + familyName);
+        user.setGivenName(givenName);
+        user.setFamilyName(familyName);
+        user.setMail(mail);
+        user.setStatus(UserAndGroupStatus.VALID);
+        user.setIss(iss);
+        user.setPicture(picture);
+        return user;
     }
 
     private List<Role> generateRoleList(int count){
