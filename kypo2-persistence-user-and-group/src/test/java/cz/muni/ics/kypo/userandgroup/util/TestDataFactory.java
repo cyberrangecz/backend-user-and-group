@@ -10,9 +10,7 @@ import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class TestDataFactory {
 
@@ -48,7 +46,15 @@ public class TestDataFactory {
     private User user3
             = generateUser("77863@muni.cz", "Drew", "Coyer", "77863@mail.muni.cz", "https://oidc.provider.cz/oidc/", "default".getBytes());
     private User user4
-            = generateUser("794254@muni.cz", "Garret", "Cull", "794254@mail.muni.cz", "https://oidc.provider.cz/oidc/", "profile".getBytes())
+            = generateUser("794254@muni.cz", "Garret", "Cull", "794254@mail.muni.cz", "https://oidc.provider.cz/oidc/", "profile".getBytes());
+
+    private IDMGroup trainingTraineeGroup = generateGroup("trainingTraineeGroup", new HashSet<Role>(List.of(trainingTraineeRole)), 9);
+    private IDMGroup trainingOrganizerGroup = generateGroup("trainingOrganizerGroup", new HashSet<Role>(List.of(trainingOrganizerRole)), 23);
+    private IDMGroup trainingDesignerGroup = generateGroup("trainingDesignerGroup", new HashSet<Role>(List.of(trainingDesignerRole)), 5);
+    private IDMGroup trainingAdminGroup = generateGroup("trainingAdminGroup", new HashSet<Role>(List.of(trainingAdminRole)), 6);
+    private IDMGroup uAGUserGroup = generateGroup("uAGUserGroup ", new HashSet<Role>(List.of(uAGUserRole)), 1);
+    private IDMGroup uAGGuestGroup = generateGroup("uAGGuestGroup ", new HashSet<Role>(List.of(uAGGuestRole)), 7);
+    private IDMGroup uAGAdminGroup = generateGroup("uAGAdminGroup ", new HashSet<Role>(List.of(uAGAdminRole)), 29);
 
     public Microservice getKypoTrainingMicroservice() {
         return kypoTrainingMicroservice;
@@ -102,6 +108,34 @@ public class TestDataFactory {
         return user4;
     }
 
+    public IDMGroup getTrainingTraineeGroup() {
+        return trainingTraineeGroup;
+    }
+
+    public IDMGroup getTrainingOrganizerGroup() {
+        return trainingOrganizerGroup;
+    }
+
+    public IDMGroup getTrainingDesignerGroup() {
+        return trainingDesignerGroup;
+    }
+
+    public IDMGroup getTrainingAdminGroup() {
+        return trainingAdminGroup;
+    }
+
+    public IDMGroup getuAGUserGroup() {
+        return uAGUserGroup;
+    }
+
+    public IDMGroup getuAGGuestGroup() {
+        return uAGGuestGroup;
+    }
+
+    public IDMGroup getuAGAdminGroup() {
+        return uAGAdminGroup;
+    }
+
     public List<Role> getGeneratedRoles(){
         return Collections.unmodifiableList(generatedRoles);
     }
@@ -118,6 +152,15 @@ public class TestDataFactory {
         return Collections.unmodifiableList(generatedGroups);
     }
 
+    private IDMGroup generateGroup(String name, Set<Role> roles, int timeUntilExpiration){
+        IDMGroup group = new IDMGroup();
+        group.setName(name);
+        group.setStatus(UserAndGroupStatus.VALID);
+        group.setDescription("Description of " + name);
+        group.setRoles(roles);
+        group.setExpirationDate(LocalDateTime.now(Clock.systemUTC()).plusHours(timeUntilExpiration));
+        return group;
+    }
 
     private Role generateRole(String roleType, Microservice microservice, String description){
         Role role = new Role();
