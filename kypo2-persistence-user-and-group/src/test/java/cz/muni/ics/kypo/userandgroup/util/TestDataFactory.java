@@ -6,12 +6,14 @@ import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Component
 public class TestDataFactory {
 
     private List<Role> generatedRoles = generateRoleList(50);
