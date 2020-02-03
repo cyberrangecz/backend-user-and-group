@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * That class adds HTTP Authorization header to all rest template calls.
+ */
 @Component
 public class RestTemplateHeaderModifierInterceptor implements ClientHttpRequestInterceptor {
 

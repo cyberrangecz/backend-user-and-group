@@ -12,10 +12,8 @@ import java.util.Set;
 
 /**
  * Encapsulates information about new microservice to be created in the database.
- *
  */
-@ApiModel(value = "NewMicroserviceDTO",
-        description = "Data that need to be provided to register a new microservice.")
+@ApiModel(value = "NewMicroserviceDTO", description = "Data that need to be provided to register a new microservice.")
 public class NewMicroserviceDTO {
 
     @ApiModelProperty(value = "A name of the microservice.", required = true, example = "kypo2-training")

@@ -8,7 +8,6 @@ import java.util.Objects;
 
 /**
  * Represents microservice which participates in the system.
- *
  */
 @Entity
 @Table(name = "microservice")

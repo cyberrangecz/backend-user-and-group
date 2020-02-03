@@ -11,7 +11,9 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
 import org.junit.After;
@@ -43,7 +45,6 @@ import java.util.Set;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MicroservicesRestController.class)
@@ -195,8 +196,10 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertTrue(exception.getMessage().contains("Microservice cannot be created in database") &&
-                exception.getMessage().contains("Please name the role with different role type."));
+        System.out.println(getInitialExceptionMessage(exception));
+
+        assertTrue(getInitialExceptionMessage(exception).contains("Role with given role type: " + roleDesignerDTO.getRoleType() + " already exist. Please name the role with different role type.") &&
+                getInitialExceptionMessage(exception).contains("Please name the role with different role type."));
         assertEquals(ResourceNotCreatedException.class, exception.getClass());
     }
 
@@ -209,20 +212,37 @@ public class MicroservicesIntegrationTests {
         assertTrue(microserviceRepository.findByName("kypo2-training").isPresent());
 
         newMicroserviceDTO.setRoles(Set.of(roleDesignerDTO, roleTraineeDTO));
+        mvc.perform(post("/microservices")
+                .content(convertObjectToJsonBytes(newMicroserviceDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+        assertTrue(microserviceRepository.findByName(newMicroserviceDTO.getName()).isPresent());
+        assertTrue(roleRepository.existsByRoleType(roleDesignerDTO.getRoleType()));
+        assertTrue(roleRepository.existsByRoleType(roleTraineeDTO.getRoleType()));
+    }
+
+    @Test
+    public void registerNewMicroserviceWithMultipleDefaultRoles() throws Exception {
+        roleDesignerDTO.setDefault(true);
         Exception exception = mvc.perform(post("/microservices")
                 .content(convertObjectToJsonBytes(newMicroserviceDTO))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotAcceptable())
+                .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
-        assertTrue(exception.getMessage().contains("Microservice cannot be created in database") &&
-                exception.getMessage().contains("Microservice which you are trying register is not same as " +
-                        "microservice in DB. Change name or roles or contact administrator."));
-        assertEquals(ResourceNotCreatedException.class, exception.getClass());
+        assertEquals(ConflictException.class, exception.getClass());
+        assertEquals("Microservice which you are trying to register cannot have more than 1 default role.", getInitialExceptionMessage(exception));
     }
 
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
+    }
+
+    private String getInitialExceptionMessage(Exception exception) {
+        while (exception.getCause() != null) {
+            exception = (Exception) exception.getCause();
+        }
+        return exception.getMessage();
     }
 
 }

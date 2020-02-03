@@ -2,8 +2,10 @@ package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserCreateDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -19,11 +21,16 @@ import java.util.stream.Collectors;
 /**
  * The UserMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type User and
  * DTOs classes. Code is generated during compile time.
- *
  */
 @Mapper(componentModel = "spring", uses = {RoleMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper extends ParentMapper {
     User mapToEntity(UserDTO dto);
+
+    User mapToEntity(UserCreateDTO dto);
+
+    User mapToEntity(UserUpdateDTO dto);
+
+    UserUpdateDTO mapUserDTOToUserUpdateDTO(UserDTO dto);
 
     RoleDTO mapRoleToDTO(Role entity);
 

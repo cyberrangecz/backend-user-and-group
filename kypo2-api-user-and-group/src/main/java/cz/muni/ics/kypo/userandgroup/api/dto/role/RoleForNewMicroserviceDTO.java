@@ -9,10 +9,8 @@ import java.util.Objects;
 
 /**
  * Encapsulates information about a role which will be used in new microservice.
- *
  */
-@ApiModel(value = "RoleForNewMicroserviceDTO",
-        description = "Data that need to be provided to register new role.")
+@ApiModel(value = "RoleForNewMicroserviceDTO", description = "Data that need to be provided to register new role.")
 public class RoleForNewMicroserviceDTO {
 
     @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")

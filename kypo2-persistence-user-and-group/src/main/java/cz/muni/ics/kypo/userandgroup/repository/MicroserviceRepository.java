@@ -8,11 +8,9 @@ import java.util.Optional;
 
 /**
  * The JPA repository interface to manage {@link Microservice} instances.
- *
  */
-public interface MicroserviceRepository extends JpaRepository<Microservice, Long>,
-        QuerydslPredicateExecutor<Microservice> {
-
+public interface MicroserviceRepository extends JpaRepository<Microservice, Long>, QuerydslPredicateExecutor<Microservice> {
+    
     /**
      * Find Microservice by its name.
      *

@@ -19,29 +19,18 @@
             <version>1.1.11</version>
         </dependency>
         <dependency>
-            <groupId>cz.muni.ics.kypo</groupId>
-            <artifactId>kypo2-security-user-and-group</artifactId>
-            <version>1.1.11</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>5.1.3.RELEASE</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency> <!-- EHCache -->
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-            <version>2.10.2.2.21</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- used for setting SSL for restTemplate calls -->
+        <dependency>
+            <groupId>org.mitre</groupId>
+            <artifactId>openid-connect-client</artifactId>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>

@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * The interface for the Role facade layer.
- *
  */
 public interface RoleFacade {
 
@@ -19,7 +18,7 @@ public interface RoleFacade {
      * @return the role encapsulated in {@link RoleDTO}.
      * @throws UserAndGroupFacadeException if the role with the given ID could not be found.
      */
-    RoleDTO getById(Long roleId);
+    RoleDTO getRoleById(Long roleId);
 
     /**
      * Returns role with given role type.

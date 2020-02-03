@@ -1,7 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -10,12 +9,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * The interface for the User service layer.
- *
  */
 public interface UserService {
 
@@ -26,23 +24,38 @@ public interface UserService {
      * @return the {@link User} with the given ID.
      * @throws UserAndGroupServiceException if user was not found.
      */
-    User get(Long id);
+    User getUserById(Long id);
 
     /**
-     * Delete given user from database and returns status of the deletion.
+     * Get users with given IDs.
+     *
+     * @param userIds given user IDs.
+     * @return List of User entities based on the given IDs.
+     */
+    List<User> getUsersByIds(List<Long> userIds);
+
+    /**
+     * Delete given user from database.
      *
      * @param user user to be deleted.
-     * @return status of deletion {@link UserDeletionStatusDTO}.
      */
-    UserDeletionStatusDTO delete(User user);
+    void deleteUser(User user);
 
     /**
-     * Tries to delete users with the given list of IDs from the database and returns a map of users and statuses of their deletion.
+     * Create new user.
      *
-     * @param idsOfUsers list of IDs of users to be deleted.
-     * @return map of {@link User}s and statuses {@link UserDeletionStatusDTO} of their deletion.
+     * @param user new user info.
+     * @return newly created user.
      */
-    Map<User, UserDeletionStatusDTO> deleteUsers(List<Long> idsOfUsers);
+    User createUser(User user);
+
+    /**
+     * Update user.
+     *
+     * @param user update user.
+     * @return newly created user.
+     */
+    User updateUser(User user);
 
     /**
      * Add/Cancel admin role to the user with the given ID.
@@ -65,11 +78,11 @@ public interface UserService {
      * Gets user with given user login from the database.
      *
      * @param login login of the user to be loaded.
-     * @param iss issuer - URI of the oidc provider used to authenticate user.
+     * @param iss   issuer - URI of the oidc provider used to authenticate user.
      * @return the {@link User} with given user login.
      * @throws UserAndGroupServiceException if the user with the given login could not be found.
      */
-    User getUserByLoginAndIss(String login, String iss);
+    Optional<User> getUserByLoginAndIss(String login, String iss);
 
     /**
      * Gets all users from the database.
@@ -83,9 +96,9 @@ public interface UserService {
     /**
      * Gets all users, not in a given IDMGroup with the given ID.
      *
-     * @param groupId  the ID of the IDMGroup.
+     * @param groupId   the ID of the IDMGroup.
      * @param predicate represents a predicate (boolean-valued function) of one argument.
-     * @param pageable pageable parameter with information about pagination.
+     * @param pageable  pageable parameter with information about pagination.
      * @return list of users who are not in the {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with the given group ID and wrapped up in {@link Page}.
      */
     Page<User> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable);
@@ -95,7 +108,7 @@ public interface UserService {
      *
      * @param groupsIds set of IDs of groups to which are users assigned.
      * @param predicate represents a predicate (boolean-valued function) of one argument.
-     * @param pageable pageable parameter with information about pagination.
+     * @param pageable  pageable parameter with information about pagination.
      * @return list of {@link User}s in given groups wrapped up in {@link Page}.
      */
     Page<User> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable);
@@ -112,9 +125,9 @@ public interface UserService {
     /**
      * Get all users with the {@link Role} with a given role ID.
      *
-     * @param roleId the ID of the role to get users for.
+     * @param roleId    the ID of the role to getGroupById users for.
      * @param predicate represents a predicate (boolean-valued function) of one argument.
-     * @param pageable pageable parameter with information about pagination.
+     * @param pageable  pageable parameter with information about pagination.
      * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
      * @throws UserAndGroupServiceException if the role could not be found
      */
@@ -123,9 +136,9 @@ public interface UserService {
     /**
      * Get all users with the {@link Role} with a given role type.
      *
-     * @param roleType the name of the role to get users for.
+     * @param roleType  the name of the role to getGroupById users for.
      * @param predicate represents a predicate (boolean-valued function) of one argument.
-     * @param pageable pageable parameter with information about pagination.
+     * @param pageable  pageable parameter with information about pagination.
      * @return a list of {@link User}s specified by the role wrapped up in {@link Page}.
      * @throws UserAndGroupServiceException if the role could not be found.
      */
@@ -135,20 +148,11 @@ public interface UserService {
      * Gets users with IDMGroups from the database.
      *
      * @param login the login of the user to be loaded.
-     * @param iss issuer - URI of the oidc provider
+     * @param iss   issuer - URI of the oidc provider
      * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s from the database.
      * @throws UserAndGroupServiceException if user could not be found.
      */
     User getUserWithGroups(String login, String iss);
-
-    /**
-     * Returns true if the user is internal, otherwise false.
-     *
-     * @param id the ID of the user.
-     * @return true if the{@link User} is internal otherwise false.
-     * @throws UserAndGroupServiceException if the user could not be found.
-     */
-    boolean isUserInternal(Long id);
 
     /**
      * Gets all {@link Role}s of users with the given ID.
@@ -158,15 +162,6 @@ public interface UserService {
      * @throws UserAndGroupServiceException if the user could not be found.
      */
     Set<Role> getRolesOfUser(Long id);
-
-
-    /**
-     * Gets users with a given set of ids.
-     *
-     * @param ids set of ids.
-     * @return set of {@link User}s with ids wrapped up in {@link Page}.
-     */
-    Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable);
 
     /**
      * Gets users with a given set of ids.
@@ -178,10 +173,10 @@ public interface UserService {
 
 
     /**
-     *  Returns a page of users specified by given role type and not with given ids.
+     * Returns a page of users specified by given role type and not with given ids.
      *
-     * @param roleType a type of the role to get users for.
-     * @param userIds ids of users excluded from the result page.
+     * @param roleType a type of the role to getGroupById users for.
+     * @param userIds  ids of users excluded from the result page.
      * @return set of {@link UserDTO}s with given role type and not with given ids wrapped up in {@link Page}.
      */
     Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> userIds, Predicate predicate, Pageable pageable);

@@ -9,8 +9,10 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,14 +60,10 @@ public class RolesRestControllerTest {
     private MockMvc mockMvc;
     private RoleDTO adminRoleDTO, userRoleDTO;
     private UserDTO userDTO1, userDTO2;
-    private int page, size;
     private PageResultResource<RoleDTO> rolePageResultResource;
 
     @Before
     public void setup() throws RuntimeException {
-        page = 0;
-        size = 10;
-
         MockitoAnnotations.initMocks(this);
 
         this.mockMvc = MockMvcBuilders.standaloneSetup(roleRestController)
@@ -123,24 +121,25 @@ public class RolesRestControllerTest {
 
     @Test
     public void getRole() throws Exception {
-        given(roleFacade.getById(adminRoleDTO.getId())).willReturn(adminRoleDTO);
+        given(roleFacade.getRoleById(adminRoleDTO.getId())).willReturn(adminRoleDTO);
         mockMvc.perform(
                 get("/roles" + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(adminRoleDTO)));
-        then(roleFacade).should().getById(adminRoleDTO.getId());
+        then(roleFacade).should().getRoleById(adminRoleDTO.getId());
     }
 
     @Test
     public void getRoleNotFoundShouldThrowException() throws Exception {
-        given(roleFacade.getById(adminRoleDTO.getId())).willThrow(UserAndGroupFacadeException.class);
+        given(roleFacade.getRoleById(adminRoleDTO.getId())).willThrow(new UserAndGroupFacadeException(
+                new UserAndGroupServiceException("Role with given id " + adminRoleDTO.getId() + " could not be found", ErrorCode.RESOURCE_NOT_FOUND)));
         Exception ex = mockMvc.perform(
                 get("/roles" + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Role with given id " + adminRoleDTO.getId() + " could not be found", ex.getLocalizedMessage());
-        then(roleFacade).should().getById(adminRoleDTO.getId());
+        assertEquals("Role with given id " + adminRoleDTO.getId() + " could not be found", getInitialExceptionMessage(ex));
+        then(roleFacade).should().getRoleById(adminRoleDTO.getId());
     }
 
     @Test
@@ -158,7 +157,7 @@ public class RolesRestControllerTest {
 
     @Test
     public void getUsersWithGivenRoleWithUserAndGroupException() throws Exception {
-        given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class))).willThrow(new UserAndGroupFacadeException("Role cannot be found."));
+        given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class))).willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND)));
 
         Exception exception = mockMvc.perform(
                 get("/roles" + "/{id}/users", adminRoleDTO.getId()))
@@ -170,5 +169,12 @@ public class RolesRestControllerTest {
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
+    }
+
+    private String getInitialExceptionMessage(Exception exception) {
+        while (exception.getCause() != null) {
+            exception = (Exception) exception.getCause();
+        }
+        return exception.getMessage();
     }
 }

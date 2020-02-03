@@ -1,14 +1,13 @@
 package cz.muni.ics.kypo.userandgroup.rest.config;
 
-import cz.muni.ics.kypo.userandgroup.config.ServiceConfig;
-import org.springframework.context.annotation.ComponentScan;
+import cz.muni.ics.kypo.userandgroup.config.FacadeConfig;
+import cz.muni.ics.kypo.userandgroup.security.config.ResourceServerSecurityConfig;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @EnableSpringDataWebSupport
-@Import({ServiceConfig.class, SwaggerConfig.class})
-@ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.rest"})
+@Import({ResourceServerSecurityConfig.class, FacadeConfig.class, SwaggerConfiguration.class})
 public class WebConfigRestUserAndGroup implements WebMvcConfigurer {
 
 }

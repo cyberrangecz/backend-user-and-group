@@ -22,11 +22,9 @@ import java.util.Set;
 
 /**
  * The JPA repository interface to manage {@link Role} instances.
- *
  */
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long>,
-        QuerydslPredicateExecutor<Role>, QuerydslBinderCustomizer<QRole> {
+public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredicateExecutor<Role>, QuerydslBinderCustomizer<QRole> {
 
     /**
      * That method is used to make the query dsl string values case insensitive
@@ -85,4 +83,14 @@ public interface RoleRepository extends JpaRepository<Role, Long>,
      */
     @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName")
     Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
+
+    /**
+     * Find the default role by microservice name.
+     *
+     * @param microserviceName the name of the microservice.
+     * @return {@link Role} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     */
+    @Query(value = "SELECT r FROM Role r INNER JOIN r.microservice m WHERE m.name = :microserviceName AND r IN (SELECT r FROM IDMGroup g INNER JOIN g.roles r WHERE g.name = 'DEFAULT-GROUP') ")
+    Optional<Role> findDefaultRoleOfMicroservice(@Param("microserviceName") String microserviceName);
+
 }

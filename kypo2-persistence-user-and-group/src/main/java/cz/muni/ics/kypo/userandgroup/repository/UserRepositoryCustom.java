@@ -43,6 +43,16 @@ public interface UserRepositoryCustom {
     Page<User> findAllByRoleId(@Param("roleId") Long roleId, Predicate predicate, Pageable pageable);
 
     /**
+     * Find all users with given {@link Role} with the given role type.
+     *
+     * @param roleType   type of the role.
+     * @param predicate represents a predicate (boolean-valued function) of one argument.
+     * @param pageable abstract interface for pagination information.
+     * @return returns list of all {@link User}s who have a {@link Role} with given role type.
+     */
+    Page<User> findAllByRoleType(@Param("roleType") String roleType, Predicate predicate, Pageable pageable);
+
+    /**
      * Find all users with given {@link Role} with the given role type and not in given IDs.
      *
      * @param roleType   unique type of the role.

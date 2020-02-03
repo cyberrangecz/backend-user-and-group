@@ -5,7 +5,9 @@ import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
-import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,8 +43,6 @@ public class MicroserviceControllerTest {
     private MicroservicesRestController microservicesRestController;
     @MockBean
     private MicroserviceFacade microserviceFacade;
-    @MockBean
-    private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;
     private NewMicroserviceDTO newMicroserviceDTO;
@@ -86,25 +86,24 @@ public class MicroserviceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(newMicroserviceDTO)))
                 .andExpect(status().isCreated());
-        then(microserviceFacade).should().registerNewMicroservice(any(NewMicroserviceDTO.class));
+        then(microserviceFacade).should().registerMicroservice(any(NewMicroserviceDTO.class));
     }
 
     @Test
     public void testRegisterNewMicroserviceWithFacadeException() throws Exception {
-        willThrow(UserAndGroupFacadeException.class).given(microserviceFacade).registerNewMicroservice(any(NewMicroserviceDTO.class));
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_CREATED))).given(microserviceFacade).registerMicroservice(any(NewMicroserviceDTO.class));
         Exception ex = mockMvc.perform(
                 MockMvcRequestBuilders.post("/microservices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(newMicroserviceDTO)))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        assertEquals("Microservice cannot be created in database: null", ex.getMessage());
         assertEquals(ResourceNotCreatedException.class, ex.getClass());
     }
 
     @Test
     public void testRegisterNewMicroserviceWithNotValidRequestBody() throws Exception {
-        willThrow(UserAndGroupFacadeException.class).given(microserviceFacade).registerNewMicroservice(any(NewMicroserviceDTO.class));
+        willThrow(UserAndGroupFacadeException.class).given(microserviceFacade).registerMicroservice(any(NewMicroserviceDTO.class));
         newMicroserviceDTO.setName("");
         Exception ex = mockMvc.perform(
                 MockMvcRequestBuilders.post("/microservices")

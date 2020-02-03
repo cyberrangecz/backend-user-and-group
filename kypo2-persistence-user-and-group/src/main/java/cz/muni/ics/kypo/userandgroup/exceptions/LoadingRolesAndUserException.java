@@ -2,7 +2,6 @@ package cz.muni.ics.kypo.userandgroup.exceptions;
 
 /**
  * Custom RuntimeException is thrown when some error appears during loading roles and users.
- *
  */
 public class LoadingRolesAndUserException extends RuntimeException {
 
@@ -41,4 +40,5 @@ public class LoadingRolesAndUserException extends RuntimeException {
     public LoadingRolesAndUserException(Throwable throwable) {
         super(throwable);
     }
+
 }

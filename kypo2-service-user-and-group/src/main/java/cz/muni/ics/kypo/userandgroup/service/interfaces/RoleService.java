@@ -10,7 +10,6 @@ import java.util.Set;
 
 /**
  * The interface for the Role service layer.
- *
  */
 public interface RoleService {
 
@@ -21,7 +20,7 @@ public interface RoleService {
      * @return the {@link Role} with the given ID.
      * @throws UserAndGroupServiceException if the role could not be found.
      */
-    Role getById(Long id) throws UserAndGroupServiceException;
+    Role getRoleById(Long id) throws UserAndGroupServiceException;
 
     /**
      * Returns the role by its role type.
@@ -31,6 +30,15 @@ public interface RoleService {
      * @throws UserAndGroupServiceException when the role with given role type could not be found.
      */
     Role getByRoleType(String roleType) throws UserAndGroupServiceException;
+
+    /**
+     * Returns the default role of microservice.
+     *
+     * @param microserviceName the name of the microservice.
+     * @return the {@link Role} with the given role type.
+     * @throws UserAndGroupServiceException when the default role of the microservice could not be found.
+     */
+    Role getDefaultRoleOfMicroservice(String microserviceName) throws UserAndGroupServiceException;
 
     /**
      * Returns list of all roles.
@@ -47,12 +55,12 @@ public interface RoleService {
      * @param role role to be created.
      * @throws UserAndGroupServiceException if given role already exists.
      */
-    void create(Role role);
+    void createRole(Role role);
 
     /**
      * Returns all roles of given {@link cz.muni.ics.kypo.userandgroup.model.Microservice}
      *
-     * @param nameOfMicroservice unique name of microservice for which get roles.
+     * @param nameOfMicroservice unique name of microservice for which getGroupById roles.
      * @return set of {@link Role}s of microservice with the given name.
      */
     Set<Role> getAllRolesOfMicroservice(String nameOfMicroservice);

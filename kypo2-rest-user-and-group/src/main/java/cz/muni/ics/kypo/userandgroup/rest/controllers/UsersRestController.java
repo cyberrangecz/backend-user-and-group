@@ -4,23 +4,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.rest.ApiError;
+import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
-import cz.muni.ics.kypo.userandgroup.security.enums.AuthenticatedUserOIDCItems;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +28,17 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Executable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Rest controller for the User resource.
- *
  */
 @Api(value = "Endpoint for Users", tags = "users")
 @RestController
@@ -66,9 +65,9 @@ public class UsersRestController {
     /**
      * Gets users.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
      * @return the users
      */
     @ApiOperation(httpMethod = "GET",
@@ -89,16 +88,16 @@ public class UsersRestController {
                                            @RequestParam(value = "fields", required = false) String fields) {
         PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
         Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
 
     /**
      * Gets all users in groups with a given set of IDs.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
-     * @param groupsIds  the groups ids
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
+     * @param groupsIds the groups ids
      * @return the users in groups
      */
     @ApiOperation(httpMethod = "GET",
@@ -121,7 +120,7 @@ public class UsersRestController {
                                                    @RequestParam("ids") Set<Long> groupsIds) {
         PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, predicate, pageable);
         Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
 
     /**
@@ -132,7 +131,7 @@ public class UsersRestController {
      */
     @ApiOperation(httpMethod = "GET",
             value = "Gets user with given id.",
-            nickname = "getUser",
+            nickname = "getUserById",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "User found.", response = UserRestResource.class),
@@ -143,53 +142,19 @@ public class UsersRestController {
     public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.", required = true)
                                            @PathVariable("id") final Long id) {
         try {
-            return new ResponseEntity<>(userFacade.getUser(id), HttpStatus.OK);
+            return ResponseEntity.ok(userFacade.getUserById(id));
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
-    /**
-     * Delete the user with the given ID.
-     *
-     * @param id the ID of user to be deleted.
-     * @return the {@link ResponseEntity} with body type {@link UserDeletionResponseDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "Delete user",
-            nickname = "deleteUser",
-            notes = "Tries to delete user with given screen name and returns status of its result.",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned deletion status of the user.", response = UserDeletionResponseDTO.class),
-            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDeletionResponseDTO> deleteUser(@ApiParam(value = "Screen name of user to be deleted.", required = true)
-                                                              @PathVariable("id") final Long id) {
-        try {
-            UserDeletionResponseDTO userDeletionResponseDTO = userFacade.deleteUser(id);
-
-            switch (userDeletionResponseDTO.getStatus()) {
-                case SUCCESS:
-                    return new ResponseEntity<>(userDeletionResponseDTO, HttpStatus.OK);
-                case EXTERNAL_VALID:
-                default:
-                    throw new MethodNotAllowedException("User with id " + id + " cannot be deleted because is from external source and is valid user.");
-            }
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
-        }
-    }
 
     /**
      * Gets all users, not in the group with the given group ID.
      *
-     * @param groupId the ID of the group
+     * @param groupId  the ID of the group
      * @param pageable pageable parameter with information about pagination.
-     * @param fields attributes of the object to be returned as the result.
+     * @param fields   attributes of the object to be returned as the result.
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
@@ -207,38 +172,66 @@ public class UsersRestController {
     public ResponseEntity<Object> getAllUsersNotInGivenGroup(@ApiParam(value = "Filtering on User entity attributes", required = false)
                                                              @QuerydslPredicate(root = User.class) Predicate predicate,
                                                              Pageable pageable,
-                                                             @ApiParam(value = "Id of group whose users do not get.", required = true)
+                                                             @ApiParam(value = "Id of group whose users do not getGroupById.", required = true)
                                                              @PathVariable("groupId") final Long groupId,
                                                              @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                              @RequestParam(value = "fields", required = false) String fields) {
         PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, predicate, pageable);
         Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
+    }
+
+    /**
+     * Delete the user with the given ID.
+     *
+     * @param id the ID of user to be deleted.
+     * @return the response entity with specific status code and header.
+     */
+    @ApiOperation(httpMethod = "DELETE",
+            value = "Delete user",
+            nickname = "deleteUser",
+            notes = "Delete user based on given id.",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returned HTTP status OK."),
+            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
+    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity deleteUser(@ApiParam(value = "Screen name of user to be deleted.", required = true)
+                                                              @PathVariable("id") final Long id) {
+        try {
+            userFacade.deleteUser(id);
+            return new ResponseEntity(HttpStatus.OK);
+        } catch (UserAndGroupFacadeException e) {
+            throw ExceptionSorter.throwException(e);
+        }
     }
 
     /**
      * Delete users with a given list of IDs.
      *
      * @param ids a list of IDs of users.
-     * @return the {@link ResponseEntity} with body type list of {@link UserDeletionResponseDTO} and specific status code and header.
+     * @return the response entity with specific status code and header.
      */
     @ApiOperation(httpMethod = "DELETE",
             value = "DeleteUsers",
             nickname = "deleteUsers",
-            notes = "Tries to delete users with given ids and returns users and statuses of their deletion.",
+            notes = "Delete users based on given ids.",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned deletion status of the users.", response = UserDeletionResponseDTO[].class),
+            @ApiResponse(code = 200, message = "Returned HTTP status OK."),
             @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<UserDeletionResponseDTO>> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
-                                                                     @RequestBody List<Long> ids) {
-        Preconditions.checkNotNull(ids);
-        return new ResponseEntity<>(userFacade.deleteUsers(ids), HttpStatus.OK);
+    public ResponseEntity<Void> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
+                                            @RequestBody List<Long> ids) {
+        userFacade.deleteUsers(ids);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -257,19 +250,18 @@ public class UsersRestController {
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @GetMapping(path = "/{id}/roles")
-    public ResponseEntity<Set<RoleDTO>> getRolesOfUser(
-            @ApiParam(value = "id", required = true) @PathVariable("id") final Long id) {
+    public ResponseEntity<Set<RoleDTO>> getRolesOfUser(@ApiParam(value = "id", required = true)
+                                                       @PathVariable("id") final Long id) {
         try {
-            return new ResponseEntity<>(userFacade.getRolesOfUser(id), HttpStatus.OK);
+            return ResponseEntity.ok(userFacade.getRolesOfUser(id));
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("User with id " + id + " could not be found.");
+            throw ExceptionSorter.throwException(e);
         }
     }
 
     /**
      * Gets info about logged in user.
      *
-     * @param authentication the authentication of the user.
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
@@ -284,13 +276,15 @@ public class UsersRestController {
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @GetMapping(path = "/info")
-    public ResponseEntity<UserDTO> getUserInfo(OAuth2Authentication authentication) {
+    public ResponseEntity<UserDTO> getUserInfo() {
         try {
-            return new ResponseEntity<>(userFacade.getUserInfo(authentication), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
+            OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
             JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
             String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
-            throw new ResourceNotFoundException("Logged in user with login " + sub + " could not be found in database.");
+            String iss = credentials.get(AuthenticatedUserOIDCItems.ISS.getName()).getAsString();
+            return ResponseEntity.ok(userFacade.getUserInfo(sub, iss));
+        } catch (UserAndGroupFacadeException e) {
+            throw ExceptionSorter.throwException(e);
         }
     }
 
@@ -298,7 +292,7 @@ public class UsersRestController {
      * Gets users with a given set of ids.
      *
      * @param fields attributes of the object to be returned as the result.
-     * @param ids set of ids of users to be loaded.
+     * @param ids    set of ids of users to be loaded.
      * @return the {@link ResponseEntity} with body type set of {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
@@ -322,24 +316,24 @@ public class UsersRestController {
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Ids of users to be obtained.", required = true)
             @RequestParam(value = "ids") Set<Long> ids) {
-        if(pageable.getPageSize() >= 1000) {
+        if (pageable.getPageSize() >= 1000) {
             throw new BadRequestException("Choose page size lower than 1000");
         }
         PageResultResource<UserDTO> userDTOs;
         if (ids.isEmpty()) {
-            userDTOs = new PageResultResource<>(Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0 ));
+            userDTOs = new PageResultResource<>(Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0));
         } else {
             userDTOs = userFacade.getUsersWithGivenIds(ids, pageable, predicate);
         }
         Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
 
     @ApiModel(value = "UserRestResource",
-            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")
+            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
     public static class UserRestResource extends PageResultResource<UserDTO> {
         @JsonProperty(required = true)
-        @ApiModelProperty(value = "Retrieved Roles from databases.")
+        @ApiModelProperty(value = "Retrieved users from databases.")
         private List<UserDTO> content;
         @JsonProperty(required = true)
         @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")

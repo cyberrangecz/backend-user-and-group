@@ -4,7 +4,6 @@ import io.swagger.annotations.ApiModel;
 
 /**
  * Enumeration of role types.
- *
  */
 @ApiModel(value = "RoleTypeDTO",
         description = "The types of a default roles.")

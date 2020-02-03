@@ -62,6 +62,9 @@ public class UserServiceTest {
         user1.setLogin("user1");
         user1.setStatus(UserAndGroupStatus.VALID);
         user1.setIss("https://oidc.muni.cz/oidc/");
+        user1.setGivenName("test");
+        user1.setFamilyName("user1");
+        user1.setPicture(new byte[] { (byte)0xe0, 0x4f, (byte)0xd0, (byte)0xea});
 
         user2 = new User();
         user2.setId(2L);
@@ -88,7 +91,6 @@ public class UserServiceTest {
         adminGroup.addUser(user1);
 
 
-
         pageable = PageRequest.of(0, 10);
     }
 
@@ -96,7 +98,7 @@ public class UserServiceTest {
     public void getUser() {
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
 
-        User u = userService.get(user1.getId());
+        User u = userService.getUserById(user1.getId());
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
         assertEquals(user1.getLogin(), u.getLogin());
@@ -108,8 +110,8 @@ public class UserServiceTest {
     @Test
     public void getUserWithNullIdShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
-        userService.get(null);
+        thrown.expectMessage("In method getUserById(id) the input must not be null.");
+        userService.getUserById(null);
     }
 
     @Test
@@ -118,68 +120,20 @@ public class UserServiceTest {
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with id " + id + " could not be found");
         willThrow(EntityNotFoundException.class).given(userRepository).getOne(id);
-        userService.get(id);
+        userService.getUserById(id);
     }
 
     @Test
     public void deleteUser() {
-        UserDeletionStatusDTO status = userService.delete(user1);
-        assertEquals(UserDeletionStatusDTO.SUCCESS, status);
-
+        userService.deleteUser(user1);
         then(userRepository).should().delete(user1);
-    }
-
-    @Test
-    public void deleteExternalUserAndValid() {
-        user1.setExternalId(1L);
-        assertEquals(UserDeletionStatusDTO.EXTERNAL_VALID, userService.delete(user1));
-        then(userRepository).should(never()).delete(any(User.class));
-    }
-
-    @Test
-    public void deleteExternalUserAndNotValid() {
-        user1.setExternalId(1L);
-        user1.setStatus(UserAndGroupStatus.DELETED);
-        assertEquals(UserDeletionStatusDTO.SUCCESS, userService.delete(user1));
-        then(userRepository).should().delete(any(User.class));
     }
 
     @Test
     public void deleteUserWithNullUser() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input user must not be null");
-        userService.delete(null);
-    }
-
-    @Test
-    public void deleteUsers() {
-        user2.setExternalId(1L);
-
-        User user3 = new User();
-        user3.setId(3L);
-
-        List<Long> idsOfUsers = Arrays.asList(user1.getId(), user2.getId(), user3.getId());
-
-        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
-        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
-        willThrow(UserAndGroupServiceException.class).given(userRepository).getOne(user3.getId());
-
-        Map<User, UserDeletionStatusDTO> response = userService.deleteUsers(idsOfUsers);
-        assertEquals(UserDeletionStatusDTO.SUCCESS, response.get(user1));
-        assertEquals(UserDeletionStatusDTO.EXTERNAL_VALID, response.get(user2));
-        assertEquals(UserDeletionStatusDTO.NOT_FOUND, response.get(user3));
-
-        then(userRepository).should(times(3)).findById(anyLong());
-        then(userRepository).should().delete(user1);
-        then(userRepository).should(never()).delete(user2);
-        then(userRepository).should(never()).delete(user3);
-    }
-
-    @Test
-    public void deleteUsersWithNullIdsShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input ids of users must not be null");
-        userService.deleteUsers(null);
+        thrown.expectMessage("In method deleteUser(user) the input must not be null.");
+        userService.deleteUser(null);
     }
 
     @Test
@@ -204,7 +158,7 @@ public class UserServiceTest {
     @Test
     public void changeAdminRoleToUserWithNullId() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
+        thrown.expectMessage("In method changeAdminRole(id) the input must not be null.");
         userService.changeAdminRole(null);
     }
 
@@ -226,43 +180,43 @@ public class UserServiceTest {
     @Test
     public void isAdminRoleToUserWithNullId() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
+        thrown.expectMessage("In method isUserAdmin(id) the input must not be null.");
         userService.isUserAdmin(null);
     }
 
     @Test
-    public void getUserByLoginAndIss() {
+    public void getUserBySubAndIss() {
+        userGroup.addUser(user1);
         given(userRepository.findByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
 
-        User u = userService.getUserByLoginAndIss(user1.getLogin(), "https://oidc.muni.cz/oidc/");
+        User u = userService.getUserByLoginAndIss(user1.getLogin(), "https://oidc.muni.cz/oidc/").get();
         assertEquals(user1.getId(), u.getId());
         assertEquals(user1.getFullName(), u.getFullName());
         assertEquals(user1.getLogin(), u.getLogin());
         assertEquals(user1.getStatus(), u.getStatus());
-
+        assertEquals(user1.getFamilyName(),u.getFamilyName());
+        assertEquals(user1.getGivenName(),u.getGivenName());
+        assertEquals(user1.getMail(), u.getMail());
+        assertEquals(user1.getIss(), u.getIss());
+        assertEquals(user1.getPicture(), u.getPicture());
+        for (IDMGroup g : user1.getGroups()){
+            assertTrue(u.getGroups().contains(g));
+        }
         then(userRepository).should().findByLoginAndIss(user1.getLogin(), user1.getIss());
     }
 
     @Test
-    public void getUserByLoginNotFoundShouldThrowException() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with login " + user1.getLogin() + " could not be found");
-        given(userRepository.findByLoginAndIss(anyString(),anyString())).willReturn(Optional.empty());
-        userService.getUserByLoginAndIss(user1.getLogin(), "https://oidc.muni.cz/oidc/");
-    }
-
-    @Test
-    public void getUserByLoginWithNullLoginShouldThrowException() {
+    public void getUserBySubWithNullSubShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input login must not be empty");
+        thrown.expectMessage("In method getUserBySubAndIss(login) the input must not be null.");
         userService.getUserByLoginAndIss(null, "https://oidc.muni.cz/oidc/");
     }
 
     @Test
-    public void getUserByLoginWithEmptyLoginShouldThrowException() {
+    public void getUserBySubWithNullIssShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input login must not be empty");
-        userService.getUserByLoginAndIss("", "https://oidc.muni.cz/oidc/");
+        thrown.expectMessage("In method getUserBySubAndIss(iss) the input must not be null.");
+        userService.getUserByLoginAndIss(user1.getLogin(), null);
     }
 
     @Test
@@ -296,40 +250,8 @@ public class UserServiceTest {
     @Test
     public void getUserWithGroupsWithEmptyLoginShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input login must not be empty");
+        thrown.expectMessage("In method getUserWithGroups(login, iss) the input login must not be empty.");
         userService.getUserWithGroups("", "https://oidc.muni.cz/oidc/");
-    }
-
-    @Test
-    public void isUserInternal() {
-        given(userRepository.existsById(user1.getId())).willReturn(true);
-        given(userRepository.isUserInternal(user1.getId())).willReturn(true);
-        assertTrue(userService.isUserInternal(user1.getId()));
-        then(userRepository).should().isUserInternal(user1.getId());
-    }
-
-    @Test
-    public void isUserExternal() {
-        user1.setExternalId(1L);
-        given(userRepository.existsById(user1.getId())).willReturn(true);
-        given(userRepository.isUserInternal(user1.getId())).willReturn(false);
-        assertFalse(userService.isUserInternal(user1.getId()));
-        then(userRepository).should().isUserInternal(user1.getId());
-    }
-
-    @Test
-    public void isUserExternalWithNullIdShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
-        userService.isUserInternal(null);
-    }
-
-    @Test
-    public void isUserInternalWithUserNotFoundShouldThrowException() {
-        given(userRepository.existsById(user1.getId())).willReturn(false);
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + user1.getId() + " could not be found.");
-        userService.isUserInternal(user1.getId());
     }
 
     @Test
@@ -347,7 +269,7 @@ public class UserServiceTest {
     @Test
     public void getRolesOfUserWithNullIdShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
+        thrown.expectMessage("In method getRolesOfUser(id) the input must not be null.");
         userService.getRolesOfUser(null);
     }
 

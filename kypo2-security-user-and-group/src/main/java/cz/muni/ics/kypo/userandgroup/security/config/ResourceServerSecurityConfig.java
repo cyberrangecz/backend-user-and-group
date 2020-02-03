@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
-import cz.muni.ics.kypo.userandgroup.config.PersistenceConfig;
-import cz.muni.ics.kypo.userandgroup.security.enums.SpringProfiles;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.SpringProfiles;
+import cz.muni.ics.kypo.userandgroup.config.FacadeConfig;
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService;
 import org.mitre.oauth2.introspectingfilter.service.impl.JWTParsingIntrospectionConfigurationService;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@Import({PersistenceConfig.class})
+@Import({FacadeConfig.class})
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.security"})
 public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapter {
 
@@ -44,12 +44,17 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     private List<String> clientSecretResources;
     @Value("#{'${kypo.idp.4oauth.scopes}'.split(',')}")
     private Set<String> scopes;
-    @Autowired
+
     private Environment environment;
-    @Autowired
     private CustomCorsFilter corsFilter;
-    @Autowired
     private CustomAuthorityGranter customAuthorityGranter;
+
+    @Autowired
+    public ResourceServerSecurityConfig(Environment environment, CustomCorsFilter corsFilter, CustomAuthorityGranter customAuthorityGranter) {
+        this.environment = environment;
+        this.corsFilter = corsFilter;
+        this.customAuthorityGranter = customAuthorityGranter;
+    }
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
@@ -58,50 +63,52 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-
         http
                 .cors()
                 .and()
                 .addFilterBefore(corsFilter, BasicAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs/**", "/webjars/**", "/microservices").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs/**", "/webjars/**", "/microservices")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        addX509CertificateForDevConfig(http);
+    }
+
+    private void addX509CertificateForDevConfig(HttpSecurity http) throws Exception {
         String[] profiles = this.environment.getActiveProfiles();
-        if(profiles != null && profiles.length > 0){
-            for(int i=0;i<profiles.length;i++){
-                if(profiles[i].equals(SpringProfiles.DEV.getName())){
-                    http.x509();
-                }
+        for (String profile : profiles) {
+            if (profile.equals(SpringProfiles.PROD.getName())) {
+                http.x509();
             }
         }
     }
 
     @Bean
     public ServerConfigurationService serverConfigurationService() {
-        DynamicServerConfigurationService serverConfigurationService =
-                new DynamicServerConfigurationService();
-        serverConfigurationService.setWhitelist(issuers.stream().map(String::trim).collect(Collectors.toSet()));
+        DynamicServerConfigurationService serverConfigurationService = new DynamicServerConfigurationService();
+        serverConfigurationService.setWhitelist(
+                issuers.stream()
+                        .map(String::trim)
+                        .collect(Collectors.toSet()));
         return serverConfigurationService;
     }
 
     @Bean
     public ClientConfigurationService clientConfigurationService() {
         Map<String, RegisteredClient> clients = new HashMap<>();
-        for(int i = 0; i < issuers.size(); i++) {
+        for (int i = 0; i < issuers.size(); i++) {
             RegisteredClient client = new RegisteredClient();
             client.setClientId(clientIdsOfResources.get(i).trim());
             client.setClientSecret(clientSecretResources.get(i).trim());
             client.setScope(scopes);
             clients.put(issuers.get(i).trim(), client);
         }
-
-        StaticClientConfigurationService clientConfigurationService =
-                new StaticClientConfigurationService();
+        StaticClientConfigurationService clientConfigurationService = new StaticClientConfigurationService();
         clientConfigurationService.setClients(clients);
-
         return clientConfigurationService;
     }
 
@@ -109,20 +116,16 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
     public ResourceServerTokenServices tokenServices() {
         IntrospectingTokenService tokenService = new IntrospectingTokenService();
         tokenService.setIntrospectionConfigurationService(introspectionConfigurationService());
-        tokenService.setCacheTokens(false);
+        tokenService.setCacheTokens(true);
         tokenService.setIntrospectionAuthorityGranter(customAuthorityGranter);
         return tokenService;
     }
 
-
     @Bean
     public IntrospectionConfigurationService introspectionConfigurationService() {
-        JWTParsingIntrospectionConfigurationService introspectionConfigurationService =
-                new JWTParsingIntrospectionConfigurationService();
-        introspectionConfigurationService
-                .setServerConfigurationService(serverConfigurationService());
-        introspectionConfigurationService
-                .setClientConfigurationService(clientConfigurationService());
+        JWTParsingIntrospectionConfigurationService introspectionConfigurationService = new JWTParsingIntrospectionConfigurationService();
+        introspectionConfigurationService.setServerConfigurationService(serverConfigurationService());
+        introspectionConfigurationService.setClientConfigurationService(clientConfigurationService());
         return introspectionConfigurationService;
     }
 

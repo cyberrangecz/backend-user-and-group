@@ -25,11 +25,9 @@ import java.util.Set;
 
 /**
  * The JPA repository interface to manage {@link IDMGroup} instances.
- *
  */
 @Repository
-public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
-        QuerydslPredicateExecutor<IDMGroup>, QuerydslBinderCustomizer<QIDMGroup> {
+public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, QuerydslPredicateExecutor<IDMGroup>, QuerydslBinderCustomizer<QIDMGroup> {
 
     /**
      * That method is used to make the query dsl string values case insensitive
@@ -47,13 +45,22 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
     }
 
     /**
-     * Find a group by its name.
+     * Find a group by its name including roles, roles.microservice, and users.
      *
      * @param name the name of the looking IDMGroup.
      * @return {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
     Optional<IDMGroup> findByName(String name);
+
+    /**
+     * Find a group by its name including its roles.
+     *
+     * @param name the name of the looking IDMGroup.
+     * @return {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     */
+    @Query("SELECT g FROM IDMGroup g JOIN FETCH g.roles WHERE  g.name = :name")
+    Optional<IDMGroup> findByNameWithRoles(@Param("name") String name);
 
     /**
      * Find a group by its ID.
@@ -63,6 +70,15 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
      */
     @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
     Optional<IDMGroup> findById(Long id);
+
+    /**
+     * Find the list of groups by its groupIds.
+     *
+     * @param groupIds the IDs of groups.
+     * @return the list of {@link IDMGroup} instance based on the given IDs.
+     */
+    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
+    List<IDMGroup> findByIdIn(List<Long> groupIds);
 
     /**
      * Find all groups.
@@ -95,17 +111,8 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
      * @param name name of the looking IDMGroup.
      * @return the {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT g FROM IDMGroup g JOIN FETCH g.users WHERE g.name = :name")
+    @Query("SELECT g FROM IDMGroup g LEFT JOIN FETCH g.users WHERE g.name = :name")
     Optional<IDMGroup> getIDMGroupByNameWithUsers(@Param("name") String name);
-
-    /**
-     * Returns true if the group is internal, false otherwise.
-     *
-     * @param id the ID of the group.
-     * @return true if the IDMGroup is internal, false otherwise.
-     */
-    @Query("SELECT CASE WHEN g.externalId IS NULL THEN true ELSE false END FROM IDMGroup g WHERE g.id = :groupId")
-    boolean isIDMGroupInternal(@Param("groupId") Long id);
 
     /**
      * Delete expired {@link IDMGroup}.
@@ -122,4 +129,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>,
      */
     @Query("SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds")
     Set<User> findUsersOfGivenGroups(@Param("groupsIds") List<Long> groupIds);
+
+    boolean existsByName(String groupName);
 }

@@ -9,10 +9,8 @@ import java.util.Objects;
 
 /**
  * Data transfer object used for adding users to a group.
- *
  */
-@ApiModel(value = "AddUsersToGroupDTO",
-        description = "Data that need to be provided to add users to a group.")
+@ApiModel(value = "AddUsersToGroupDTO", description = "Data that need to be provided to add users to a group.")
 public class AddUsersToGroupDTO {
 
     @ApiModelProperty(value = "Main identifiers of users to be added to group.", example = "[1,2]")

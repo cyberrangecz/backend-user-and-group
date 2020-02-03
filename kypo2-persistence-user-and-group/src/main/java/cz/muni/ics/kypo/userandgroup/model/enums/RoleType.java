@@ -2,7 +2,6 @@ package cz.muni.ics.kypo.userandgroup.model.enums;
 
 /**
  * Enumeration of a role type.
- *
  */
 public enum RoleType {
     /**

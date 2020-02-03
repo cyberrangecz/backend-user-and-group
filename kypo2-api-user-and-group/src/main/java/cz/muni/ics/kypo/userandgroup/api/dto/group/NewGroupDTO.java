@@ -12,10 +12,8 @@ import java.util.*;
 
 /**
  * Encapsulates information about a new group to be created in the database.
- *
  */
-@ApiModel(value = "NewGroupDTO",
-        description = "Data that need to be provided to create a new group.")
+@ApiModel(value = "NewGroupDTO", description = "Data that need to be provided to create a new group.")
 public class NewGroupDTO {
 
     @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")

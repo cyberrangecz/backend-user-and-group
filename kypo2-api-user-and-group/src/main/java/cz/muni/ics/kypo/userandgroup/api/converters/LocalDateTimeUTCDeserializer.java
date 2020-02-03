@@ -12,7 +12,6 @@ import java.time.ZoneOffset;
 
 /**
  * Deserializes UTC time with 'Z' suffix from Angular typescript Date, e.g., the date: '2018-11-30T10:26:02.727Z'
- *
  */
 public class LocalDateTimeUTCDeserializer extends StdDeserializer<LocalDateTime> {
 

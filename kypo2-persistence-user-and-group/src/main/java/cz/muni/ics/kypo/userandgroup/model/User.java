@@ -1,7 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
-import org.springframework.util.Assert;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -10,7 +9,6 @@ import java.util.Set;
 
 /**
  * Represents a user in the system.
- *
  */
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
@@ -36,23 +34,23 @@ public class User extends AbstractEntity<Long> {
     @Column(name = "iss", nullable = false)
     private String iss;
     @Lob
-    @Column(name="picture")
+    @Column(name = "picture")
     private byte[] picture;
 
     /**
      * Instantiates a new User.
      */
     public User() {
+        this.status = UserAndGroupStatus.VALID;
     }
 
     /**
      * Instantiates a new User with login and his oidc provider . Login should not be empty.
      *
      * @param login the login of type String. Login should be of type 13***5@muni.cz
-     * @param iss URI of provider which will be used to authenticate this user.
+     * @param iss   URI of provider which will be used to authenticate this user.
      */
     public User(String login, String iss) {
-        Assert.hasLength(login, "Login must not be empty");
         this.login = login;
         this.status = UserAndGroupStatus.VALID;
         this.iss = iss;
@@ -274,6 +272,13 @@ public class User extends AbstractEntity<Long> {
      */
     public void setPicture(byte[] picture) {
         this.picture = picture;
+    }
+
+    @PreRemove
+    private void removeUserFromGroups() {
+        for (IDMGroup group : this.getGroups()) {
+            group.removeUser(this);
+        }
     }
 
     @Override

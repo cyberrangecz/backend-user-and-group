@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * AOP aspect for logging that cross-cutting multiple layers of project.
- *
  */
 @Aspect
 @Component
@@ -58,19 +57,18 @@ public class LoggingAspect {
      *
      * @param joinPoint method executed in rest layer.
      */
-    @Before("cz.muni.ics.kypo.userandgroup.rest.aop.CommonJoinPointConfig.restLayerExecutionLoggingError()")
-    public void afterThrowingExceptionInRestLayer(JoinPoint joinPoint) {
+    @Before("cz.muni.ics.kypo.userandgroup.rest.aop.CommonJoinPointConfig.restLayerCustomExceptionHandlerExecutionLoggingDebug()")
+    public void customExceptionHandlerExecutionLoggingDebug(JoinPoint joinPoint) {
         Exception exception = (Exception) joinPoint.getArgs()[0];
-        LoggerFactory.getLogger(joinPoint.getSignature().getDeclaringTypeName()).error( "", exception);
+        LoggerFactory.getLogger(joinPoint.getSignature().getDeclaringTypeName()).error("", exception);
     }
-
 
     private void logJoinPoint(JoinPoint joinPoint) {
         StringBuilder builder = new StringBuilder();
         builder.append(joinPoint.getSignature().getName())
                 .append("(");
-        for(Object o : joinPoint.getArgs()) {
-            if(o == null) {
+        for (Object o : joinPoint.getArgs()) {
+            if (o == null) {
                 builder.append(o)
                         .append(",");
             } else {
@@ -78,7 +76,7 @@ public class LoggingAspect {
                         .append(",");
             }
         }
-        builder.delete(builder.length()-1, builder.length());
+        builder.delete(builder.length() - 1, builder.length());
         builder.append(")");
 
         LoggerFactory.getLogger(joinPoint.getSignature().getDeclaringTypeName()).debug(builder.toString());

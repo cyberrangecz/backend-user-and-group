@@ -6,6 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
@@ -89,8 +90,8 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetById() {
-        given(roleService.getById(anyLong())).willReturn(r1);
-        RoleDTO roleDTO = roleFacade.getById(1L);
+        given(roleService.getRoleById(anyLong())).willReturn(r1);
+        RoleDTO roleDTO = roleFacade.getRoleById(1L);
 
         assertRoleAndRoleDTO(r1, roleDTO);
 
@@ -98,9 +99,9 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetByIdWithServiceException() {
-        given(roleService.getById(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(roleService.getRoleById(anyLong())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
         thrown.expect(UserAndGroupFacadeException.class);
-        roleFacade.getById(1L);
+        roleFacade.getRoleById(1L);
     }
 
     @Test
@@ -113,7 +114,7 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetByRoleTypeWithServiceException() {
-        given(roleService.getByRoleType(anyString())).willThrow(new UserAndGroupFacadeException());
+        given(roleService.getByRoleType(anyString())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
         thrown.expect(UserAndGroupFacadeException.class);
         roleFacade.getByRoleType(RoleTypeDTO.ADMINISTRATOR.toString());
     }

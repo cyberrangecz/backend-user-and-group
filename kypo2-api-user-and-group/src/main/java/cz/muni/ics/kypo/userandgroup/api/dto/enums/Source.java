@@ -2,8 +2,7 @@ package cz.muni.ics.kypo.userandgroup.api.dto.enums;
 
 import io.swagger.annotations.ApiModel;
 
-@ApiModel(value = "Source",
-        description = "The source.")
+@ApiModel(value = "Source", description = "The source.")
 public enum Source {
 
     INTERNAL("Internal"),

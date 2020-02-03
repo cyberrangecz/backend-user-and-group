@@ -12,10 +12,8 @@ import java.util.Objects;
 
 /**
  * Encapsulates information about a group to be updated.
- *
  */
-@ApiModel(value = "UpdateGroupDTO",
-        description = "Data that need to be provided to update particular group.")
+@ApiModel(value = "UpdateGroupDTO", description = "Data that need to be provided to update particular group.")
 public class UpdateGroupDTO {
 
     @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1", position = 1)

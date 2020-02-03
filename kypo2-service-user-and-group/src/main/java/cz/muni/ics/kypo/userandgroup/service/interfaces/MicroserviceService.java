@@ -1,13 +1,13 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * The interface for the Microservice service layer.
- *
  */
 public interface MicroserviceService {
 
@@ -18,20 +18,22 @@ public interface MicroserviceService {
      * @return the microservice with the given ID.
      * @throws UserAndGroupServiceException if microservice was not found.
      */
-    Microservice get(Long id);
+    Microservice getMicroserviceById(Long id);
 
     /**
-     * Returns list of all microservices from the database.
+     * Returns all microservices from the database (paginated).
      *
+     * @param predicate specifies query to the database.
+     * @param pageable  pageable parameter with information about pagination.
      * @return list of {@link Microservice}s.
      */
-    List<Microservice> getMicroservices();
+    Page<Microservice> getMicroservices(Predicate predicate, Pageable pageable);
 
     /**
      * Create a given microservice in database.
      *
      * @param microservice to be created.
-     * @return created {@link Microservice}.
+     * @return true if the {@link Microservice} is created, false if {@link Microservice} already exists in DB.
      */
-    Microservice create(Microservice microservice);
+    boolean createMicroservice(Microservice microservice);
 }
