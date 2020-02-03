@@ -8,12 +8,16 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.service.impl.IdenticonService;
+import cz.muni.ics.kypo.userandgroup.service.impl.SecurityService;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,7 +59,12 @@ public class UserFacadeTest {
     private UserService userService;
     @Mock
     private RestTemplate restTemplate;
-
+    @Mock
+    private SecurityService securityService;
+    @Mock
+    private IdenticonService identiconService;
+    @Mock
+    private IDMGroupService idmGroupService;
     @Autowired
     private UserMapperImpl userMapper;
     @Autowired
@@ -66,19 +75,23 @@ public class UserFacadeTest {
     private Role adminRole, userRole;
     private Predicate predicate;
     private Pageable pageable;
+    private IDMGroup adminGroup, userGroup;
     private static final String NAME_OF_USER_AND_GROUP_SERVICE = "kypo2-user-and-group";
 
     @Before
     public void init() {
 
         MockitoAnnotations.initMocks(this);
-        userFacade = new UserFacadeImpl(userService, userMapper, roleMapper);
+        userFacade = new UserFacadeImpl(userService, idmGroupService, identiconService, securityService, userMapper, roleMapper);
 
         user1 = new User("user1", "https://oidc.muni.cz/oidc/");
         user1.setId(1L);
         user1.setFullName("User One");
         user1.setMail("user.one@mail.com");
         user1.setStatus(UserAndGroupStatus.VALID);
+        user1.setFamilyName("One");
+        user1.setGivenName("User");
+        user1.setPicture(new byte[] { (byte)0xe0, 0x4f, (byte)0xd0, (byte)0xea});
 
         user2 = new User("user2", "https://oidc.muni.cz/oidc/");
         user2.setId(2L);
@@ -86,12 +99,39 @@ public class UserFacadeTest {
         user2.setMail("user.two@mail.com");
         user2.setStatus(UserAndGroupStatus.VALID);
 
+        adminGroup = new IDMGroup("adminGroup", "Administrator group");
+        adminGroup.setId(1L);
+
+        userGroup = new IDMGroup("userGroup", "User group");
+        userGroup.setId(10L);
+
+        Microservice microservice = new Microservice();
+        microservice.setId(1L);
+        microservice.setName("TestMicroservice");
+
+        adminRole = new Role();
+        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        adminRole.setId(1L);
+        adminRole.setMicroservice(microservice);
+        adminGroup.setRoles(Set.of(adminRole));
+
+        userRole = new Role();
+        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
+        userRole.setId(2L);
+        userRole.setMicroservice(microservice);
+        userGroup.setRoles(Set.of(userRole));
+
+        adminGroup.addUser(user1);
+        userGroup.addUser(user1);
+
         userDTO1 = new UserDTO();
         userDTO1.setLogin("user1");
         userDTO1.setId(1L);
         userDTO1.setFullName("User One");
         userDTO1.setMail("user.one@mail.com");
         userDTO1.setIss("https://oidc.muni.cz/oidc/");
+        userDTO1.setGivenName("User");
+        userDTO1.setFamilyName("One");
 
         userDTO2 = new UserDTO();
         userDTO2.setLogin("user2");
@@ -125,18 +165,69 @@ public class UserFacadeTest {
     }
 
     @Test
+    public void testGetUserInfo(){
+        Set<Role> expectedRoles = new HashSet<>();
+        for (IDMGroup groupOfUser: user1.getGroups()) {
+            expectedRoles.addAll(groupOfUser.getRoles());
+        }
+        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
+        UserDTO userDTO = userFacade.getUserInfo(user1.getLogin(), user1.getIss());
+
+        assertEquals(userDTO.getId(), user1.getId());
+        assertEquals(userDTO.getIss(), user1.getIss());
+        assertEquals(userDTO.getLogin(), user1.getLogin());
+        assertEquals(userDTO.getFullName(), user1.getFullName());
+        assertEquals(userDTO.getMail(), user1.getMail());
+        assertEquals(userDTO.getGivenName(), user1.getGivenName());
+        assertEquals(userDTO.getFamilyName(), user1.getFamilyName());
+        assertEquals(userDTO.getPicture(), user1.getPicture());
+
+        for (Role role : expectedRoles){
+            RoleDTO expectedRole = new RoleDTO();
+            expectedRole.setId(role.getId());
+            expectedRole.setIdOfMicroservice(role.getMicroservice().getId());
+            expectedRole.setNameOfMicroservice(role.getMicroservice().getName());
+            expectedRole.setRoleType(role.getRoleType());
+            assertTrue(userDTO.getRoles().contains(expectedRole));
+        }
+    }
+
+    @Test
+    public void testGetUserInfoWithNullIss(){
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("In method getUserInfo(sub, iss) the input iss must not be empty.");
+        userFacade.getUserInfo(user1.getLogin(), null);
+    }
+
+    @Test
+    public void testGetUserInfoWithNullSub(){
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("In method getUserInfo(sub, iss) the input sub must not be empty.");
+        userFacade.getUserInfo(null, user1.getIss());
+    }
+
+    @Test
+    public void testGetUserInfoWithEmptyUserOptional(){
+        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.empty());
+        thrown.expect(UserAndGroupFacadeException.class);
+        thrown.expectMessage("User with sub: " + user1.getLogin() + " and iss: + " + user1.getIss() +
+                " could not be found.");
+        userFacade.getUserInfo(user1.getLogin(), user1.getIss());
+    }
+
+    @Test
     public void testGetUser() {
-        given(userService.get(anyLong())).willReturn(user1);
-        UserDTO userDTO = userFacade.getUser(1L);
+        given(userService.getUserById(anyLong())).willReturn(user1);
+        UserDTO userDTO = userFacade.getUserById(1L);
 
         assertEquals(userDTO1, userDTO);
     }
 
     @Test
     public void testGetUserWithServiceException() {
-        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(userService.getUserById(anyLong())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
         thrown.expect(UserAndGroupFacadeException.class);
-        userFacade.getUser(1L);
+        userFacade.getUserById(1L);
     }
 
     @Test
@@ -155,42 +246,17 @@ public class UserFacadeTest {
 
     @Test
     public void testDeleteUser() {
-        UserDeletionResponseDTO userDeletionResponseDTO = new UserDeletionResponseDTO();
-        userDeletionResponseDTO.setUser(userDTO1);
-
-        given(userService.get(anyLong())).willReturn(user1);
-        given(userService.delete(any(User.class))).willReturn(UserDeletionStatusDTO.SUCCESS);
-        userDeletionResponseDTO = userFacade.deleteUser(1L);
-
-        assertEquals(UserDeletionStatusDTO.SUCCESS, userDeletionResponseDTO.getStatus());
-        then(userService).should().delete(user1);
+        given(userService.getUserById(anyLong())).willReturn(user1);
+        userFacade.deleteUser(user1.getId());
+        then(userService).should().deleteUser(user1);
 
     }
 
     @Test
     public void testDeleteUserNotFound() {
-        given(userService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(userService.getUserById(anyLong())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
         thrown.expect(UserAndGroupFacadeException.class);
         userFacade.deleteUser(1L);
-    }
-
-    @Test
-    public void testDeleteUsers() {
-        Map<User, UserDeletionStatusDTO> deletionStatusMap = new HashMap<>();
-        deletionStatusMap.put(user1, UserDeletionStatusDTO.SUCCESS);
-        deletionStatusMap.put(user2, UserDeletionStatusDTO.NOT_FOUND);
-
-        UserDeletionResponseDTO userDeletionResponseDTO1 = new UserDeletionResponseDTO();
-        userDeletionResponseDTO1.setUser(userDTO1);
-        UserDeletionResponseDTO userDeletionResponseDTO2 = new UserDeletionResponseDTO();
-        userDeletionResponseDTO2.setUser(userDTO2);
-
-        given(userService.deleteUsers(anyList())).willReturn(deletionStatusMap);
-        List<UserDeletionResponseDTO> userDeletionResponseDTOS = userFacade.deleteUsers(Arrays.asList(1L, 2L));
-
-        assertEquals(2, userDeletionResponseDTOS.size());
-        assertEquals(UserDeletionStatusDTO.SUCCESS, userDeletionResponseDTOS.get(1).getStatus());
-        assertEquals(UserDeletionStatusDTO.NOT_FOUND, userDeletionResponseDTOS.get(0).getStatus());
     }
 
     @Test
@@ -222,28 +288,6 @@ public class UserFacadeTest {
         assertEquals(2, responseRolesDTO.size());
         assertTrue(responseRolesDTO.contains(roleDTO1));
         assertTrue(responseRolesDTO.contains(roleDTO2));
-    }
-
-    @Test
-    public void isGroupInternal() {
-        given(userService.isUserInternal(user1.getId())).willReturn(true);
-        assertTrue(userFacade.isUserInternal(user1.getId()));
-        then(userService).should().isUserInternal(user1.getId());
-    }
-
-    @Test
-    public void isGroupExternal() {
-        user1.setExternalId(1L);
-        given(userService.isUserInternal(user1.getId())).willReturn(false);
-        assertFalse(userFacade.isUserInternal(user1.getId()));
-        then(userService).should().isUserInternal(user1.getId());
-    }
-
-    @Test
-    public void isGroupInternalWhenServiceThrowsException() {
-        given(userService.isUserInternal(user1.getId())).willThrow(UserAndGroupServiceException.class);
-        thrown.expect(UserAndGroupFacadeException.class);
-        userFacade.isUserInternal(user1.getId());
     }
 
     @Test

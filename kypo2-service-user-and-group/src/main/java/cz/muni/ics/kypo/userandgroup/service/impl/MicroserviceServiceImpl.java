@@ -1,22 +1,21 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
+import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
 public class MicroserviceServiceImpl implements MicroserviceService {
-
-    private static Logger LOG = LoggerFactory.getLogger(MicroserviceServiceImpl.class);
 
     private MicroserviceRepository microserviceRepository;
 
@@ -26,25 +25,26 @@ public class MicroserviceServiceImpl implements MicroserviceService {
     }
 
     @Override
-    public Microservice get(Long id) {
-        Assert.notNull(id, "Input id must not be null");
-        return microserviceRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("Microservice with id " + id + " not found"));
+    public Microservice getMicroserviceById(Long id) {
+        Assert.notNull(id, "In method getMicroserviceById(id) the input must not be null.");
+        return microserviceRepository.findById(id)
+                .orElseThrow(() -> new UserAndGroupServiceException("Microservice with id " + id + " not found", ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     @Override
-    public List<Microservice> getMicroservices() {
-        return microserviceRepository.findAll();
+    public Page<Microservice> getMicroservices(Predicate predicate, Pageable pageable) {
+        return microserviceRepository.findAll(predicate, pageable);
     }
 
     @Override
-    public Microservice create(Microservice microserviceToCreate) {
-        Assert.notNull(microserviceToCreate, "Input microservice must not be null.");
-        Optional<Microservice> optionalMicroservice = microserviceRepository.findByName(microserviceToCreate.getName());
-        if (optionalMicroservice.isPresent()) {
-            optionalMicroservice.get().setEndpoint(microserviceToCreate.getEndpoint());
-            return optionalMicroservice.get();
+    public boolean createMicroservice(Microservice microserviceToCreate) {
+        Assert.notNull(microserviceToCreate, "In method createMicroservice(microserviceToCreate) the input must not be null.");
+        Optional<Microservice> microserviceOpt = microserviceRepository.findByName(microserviceToCreate.getName());
+        if (microserviceOpt.isPresent()) {
+            return false;
         } else {
-            return microserviceRepository.save(microserviceToCreate);
+            microserviceRepository.save(microserviceToCreate);
+            return true;
         }
     }
 }

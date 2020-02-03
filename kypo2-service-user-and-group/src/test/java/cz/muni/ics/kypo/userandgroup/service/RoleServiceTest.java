@@ -59,7 +59,7 @@ public class RoleServiceTest {
     public void getById() {
         given(roleRepository.findById(adminRole.getId())).willReturn(Optional.of(adminRole));
 
-        Role r = roleService.getById(adminRole.getId());
+        Role r = roleService.getRoleById(adminRole.getId());
         assertEquals(adminRole.getId(), r.getId());
         assertEquals(adminRole.getRoleType(), r.getRoleType());
 
@@ -72,14 +72,14 @@ public class RoleServiceTest {
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Role with id " + id + " could not be found");
         given(roleRepository.findById(id)).willReturn(Optional.empty());
-        roleService.getById(id);
+        roleService.getRoleById(id);
     }
 
     @Test
     public void getByIdWithNullIdShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
-        roleService.getById(null);
+        thrown.expectMessage("In method getRoleById(id) the input must not be null.");
+        roleService.getRoleById(null);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class RoleServiceTest {
     @Test
     public void getByRoleTypeWithNullRoleTypeShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input role type must not be null");
+        thrown.expectMessage("In method getByRoleType(roleType) the input must not be null.");
         roleService.getByRoleType(null);
     }
 

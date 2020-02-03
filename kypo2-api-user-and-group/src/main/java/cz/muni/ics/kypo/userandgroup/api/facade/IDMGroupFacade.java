@@ -3,7 +3,6 @@ package cz.muni.ics.kypo.userandgroup.api.facade;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +14,6 @@ import java.util.Set;
 
 /**
  * The interface for the IDMGroup facade layer.
- *
  */
 public interface IDMGroupFacade {
 
@@ -26,7 +24,15 @@ public interface IDMGroupFacade {
      * @return the IDMGroup with the given ID.
      * @throws UserAndGroupFacadeException if group was not found
      */
-    GroupDTO getGroup(Long groupId);
+    GroupDTO getGroupById(Long groupId);
+
+    /**
+     * Gets GroupWithRolesDto with given groupName from database.
+     *
+     * @param groupName the name of the group to be retrieved.
+     * @return the status of the deletion {@link GroupDeletionResponseDTO}.
+     */
+    GroupWithRolesDTO getIDMGroupWithRolesByName(String groupName);
 
     /**
      * Creates a IDMGroup with information from the given {@link NewGroupDTO} and returns a created group.
@@ -40,17 +46,22 @@ public interface IDMGroupFacade {
      * Update given IDMGroup with information from the given {@link UpdateGroupDTO}.
      *
      * @param updateGroupDTO a group to be updated.
-     * @throws ExternalSourceException if the given group is external and cannot be edited.
      */
     void updateGroup(UpdateGroupDTO updateGroupDTO);
 
     /**
-     * Delete the given group from the database and return the status of the deletion.
+     * Delete the given group from the database.
      *
      * @param groupId the ID of the group to be deleted.
-     * @return the status of the deletion {@link GroupDeletionResponseDTO}.
      */
-    GroupDeletionResponseDTO deleteGroup(Long groupId);
+    void deleteGroup(Long groupId);
+
+    /**
+     * Delete groups with given IDs from the database.
+     *
+     * @param groupIds IDs of groups to be deleted.
+     */
+    void deleteGroups(List<Long> groupIds);
 
     /**
      * Returns all groups from the database specified by the given predicate and pageable.
@@ -60,15 +71,6 @@ public interface IDMGroupFacade {
      * @return a list of all {@link GroupDTO} from the database wrapped up in {@link PageResultResource}.
      */
     PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable);
-
-    /**
-     * Returns true if the group is internal otherwise false.
-     *
-     * @param groupId the ID of the group.
-     * @return true if the group is internal otherwise false.
-     * @throws UserAndGroupFacadeException if the group was not found.
-     */
-    boolean isGroupInternal(Long groupId);
 
     /**
      * Returns all roles of the group with the given ID.
@@ -94,9 +96,9 @@ public interface IDMGroupFacade {
      *
      * @param groupId the ID of the IDMGroup from which role with role ID is removed.
      * @param roleId  the ID of the role.
-     * @throws UserAndGroupFacadeException if the IDMGroup or role could not be found.
+     * @throws UserAndGroupFacadeException         if the IDMGroup or role could not be found.
      * @throws RoleCannotBeRemovedToGroupException if role GUEST, USER, ADMINISTRATOR is removed from IDMGroup with name  DEFAULT-GROUP,
-     * USER-AND-GROUP_USER, USER-AND-GROUP_ADMINISTRATOR.
+     *                                             USER-AND-GROUP_USER, USER-AND-GROUP_ADMINISTRATOR.
      */
     void removeRoleFromGroup(Long groupId, Long roleId);
 
@@ -106,27 +108,27 @@ public interface IDMGroupFacade {
      * @param groupId the ID of the IDMGroup.
      * @param userIds a list of IDs of users to be removed from given IDMGroup.
      * @throws UserAndGroupFacadeException if the IDMGroup or the user could not be found, IDMGroup is DEFAULT-GROUP,
-     * the administrator is trying to remove himself from USER-AND-GROUP_ADMINISTRATOR group.
-     * @throws ExternalSourceException if the group with the given group ID is external and cannot be edited.
+     *                                     the administrator is trying to remove himself from USER-AND-GROUP_ADMINISTRATOR group.
      */
     void removeUsers(Long groupId, List<Long> userIds);
 
     /**
-     * Adds users from {@link AddUsersToGroupDTO} to the IDMGroup with the given ID.
+     * Adds user to patricular group.
      *
      * @param groupId the ID of the group to add users.
-     * @param addUsers DTO containing a list of IDs of users and a list of IDs of groups.
-     * @throws UserAndGroupFacadeException if the IDMGroup or some user could not be found.
-     * @throws ExternalSourceException if the IDMGroup with given group ID is external and cannot be edited.
+     * @param userId  the ID of the user.
+     * @throws UserAndGroupFacadeException if user could not be added to the group.
      */
-    void addUsers(Long groupId, AddUsersToGroupDTO addUsers);
+    void addUser(Long groupId, Long userId);
 
     /**
-     * Delete groups with given IDs from the database and returns statuses of deletion with groups name and IDs.
+     * Adds users from {@link AddUsersToGroupDTO} to the IDMGroup with the given ID.
      *
-     * @param groupIds IDs of groups to be deleted.
-     * @return statuses of deletion {@link GroupDeletionResponseDTO}.
+     * @param groupId  the ID of the group to add users.
+     * @param addUsers DTO containing a list of IDs of users and a list of IDs of groups.
+     * @throws UserAndGroupFacadeException if the IDMGroup or some user could not be found.
      */
-    List<GroupDeletionResponseDTO> deleteGroups(List<Long> groupIds);
+    void addUsersToGroup(Long groupId, AddUsersToGroupDTO addUsers);
+
 
 }

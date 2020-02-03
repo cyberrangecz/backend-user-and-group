@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 
 /**
  * ParentMapper is parent class for mappers which contains only one method for creating pagination.
- *
  */
 public interface ParentMapper {
 

@@ -2,25 +2,31 @@ package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
-import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,12 +39,18 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -84,11 +96,15 @@ public class UsersRestControllerTest {
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
+
         userDTO1 = new UserDTO();
-        userDTO1.setId(1L);
         userDTO1.setLogin("user1");
+        userDTO1.setId(1L);
         userDTO1.setFullName("User One");
         userDTO1.setMail("user.one@mail.com");
+        userDTO1.setIss("https://oidc.muni.cz/oidc/");
+        userDTO1.setGivenName("User");
+        userDTO1.setFamilyName("One");
 
         userDTO2 = new UserDTO();
         userDTO2.setId(2L);
@@ -104,8 +120,22 @@ public class UsersRestControllerTest {
     }
 
     @Test
-    public void contextLoads() throws Exception {
+    public void contextLoads() {
         assertNotNull(usersRestController);
+    }
+
+    @Test
+    public void getUserInfo() throws Exception{
+        mockSpringSecurityContextForGet();
+        given(userFacade.getUserInfo(userDTO1.getLogin(), userDTO1.getIss())).willReturn(userDTO1);
+
+        MockHttpServletResponse result = mockMvc.perform(
+                get("/users/info"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().getResponse();
+
+        assertEquals(convertObjectToJsonBytes(userDTO1), result.getContentAsString());
     }
 
     @Test
@@ -125,23 +155,25 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUser() throws Exception {
-        given(userFacade.getUser(userDTO1.getId())).willReturn(userDTO1);
+        given(userFacade.getUserById(userDTO1.getId())).willReturn(userDTO1);
         mockMvc.perform(
                 get("/users" + "/{id}", userDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(userDTO1)));
-        then(userFacade).should().getUser(userDTO1.getId());
+        then(userFacade).should().getUserById(userDTO1.getId());
     }
 
     @Test
     public void testGetUserWithUserNotFound() throws Exception {
-        given(userFacade.getUser(userDTO1.getId())).willThrow(new UserAndGroupFacadeException("User with id " + userDTO1.getId() + " could not be found."));
+        given(userFacade.getUserById(userDTO1.getId())).willThrow(
+                new UserAndGroupFacadeException(
+                new UserAndGroupServiceException("User with id " + userDTO1.getId() + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
         Exception ex = mockMvc.perform(
                 get("/users" + "/{id}", userDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
     }
 
     @Test
@@ -161,39 +193,22 @@ public class UsersRestControllerTest {
 
     @Test
     public void testDeleteUser() throws Exception {
-        given(userFacade.deleteUser(userDTO1.getId())).willReturn(getUserDeletionResponseDTO());
         mockMvc.perform(
                 delete("/users" + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getUserDeletionResponseDTO())));
+                .andExpect(status().isOk());
         then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
     @Test
     public void testDeleteUserNotFound() throws Exception {
-        given(userFacade.deleteUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("Cannot be found", ErrorCode.RESOURCE_NOT_FOUND))).given(userFacade).deleteUser(userDTO1.getId());
         Exception ex = mockMvc.perform(
                 delete("/users" + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
-        then(userFacade).should().deleteUser(userDTO1.getId());
-    }
-
-    @Test
-    public void testDeleteUserExternalValid() throws Exception {
-        UserDeletionResponseDTO userDeletionResponseDTO = getUserDeletionResponseDTO();
-        userDeletionResponseDTO.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
-        given(userFacade.deleteUser(userDTO1.getId())).willReturn(userDeletionResponseDTO);
-        Exception ex = mockMvc.perform(
-                delete("/users" + "/{id}", userDTO1.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isMethodNotAllowed())
-                .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " cannot be deleted because is from external source and is valid user.", ex.getLocalizedMessage());
+        assertEquals(ResourceNotFoundException.class, ex.getClass());
         then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
@@ -202,14 +217,11 @@ public class UsersRestControllerTest {
         UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
         deletionResponseDTO.setUser(userDTO2);
         deletionResponseDTO.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
-        given(userFacade.deleteUsers(Arrays.asList(userDTO1.getId(), userDTO2.getId()))).willReturn(Arrays.asList(getUserDeletionResponseDTO(), deletionResponseDTO));
         mockMvc.perform(
                 delete("/users" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(userDTO1.getId(), userDTO2.getId()))))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(Arrays.asList(getUserDeletionResponseDTO(), deletionResponseDTO))));
+                .andExpect(status().isOk());
         then(userFacade).should().deleteUsers(Arrays.asList(userDTO1.getId(), userDTO2.getId()));
     }
 
@@ -235,34 +247,18 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetRolesOfUserWithExceptionFromFacade() throws Exception {
-        given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(UserAndGroupFacadeException.class);
+        given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(new UserAndGroupFacadeException(
+                new UserAndGroupServiceException("User with id " + userDTO1.getId() + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
         Exception ex = mockMvc.perform(
                 get("/users" + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
+        assertEquals("User with id " + userDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
     }
 
     private static String convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
-    }
-
-    private IDMGroup getGroup() {
-        IDMGroup group = new IDMGroup();
-        group.setId(1L);
-        group.setExternalId(2L);
-        group.setDescription("Testing group 1");
-        group.setName("Group 1");
-        group.setStatus(UserAndGroupStatus.VALID);
-        return group;
-    }
-
-    private UserDeletionResponseDTO getUserDeletionResponseDTO() {
-        UserDeletionResponseDTO deletionResponseDTO = new UserDeletionResponseDTO();
-        deletionResponseDTO.setUser(userDTO1);
-        deletionResponseDTO.setStatus(UserDeletionStatusDTO.SUCCESS);
-        return deletionResponseDTO;
     }
 
     private RoleDTO getAdminRoleDTO() {
@@ -282,6 +278,29 @@ public class UsersRestControllerTest {
     private Set<RoleDTO> getRolesDTO() {
         return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
     }
+
+    private void mockSpringSecurityContextForGet() {
+        JsonObject sub = new JsonObject();
+        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), userDTO1.getLogin());
+        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), userDTO1.getFullName());
+        sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), userDTO1.getIss());
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2Authentication auth = Mockito.mock(OAuth2Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(auth);
+        given(auth.getUserAuthentication()).willReturn(auth);
+        given(auth.getCredentials()).willReturn(sub);
+        given(authentication.getDetails()).willReturn(auth);
+    }
+
+    private String getInitialExceptionMessage(Exception exception) {
+        while (exception.getCause() != null) {
+            exception = (Exception) exception.getCause();
+        }
+        return exception.getMessage();
+    }
+
 
 }
 

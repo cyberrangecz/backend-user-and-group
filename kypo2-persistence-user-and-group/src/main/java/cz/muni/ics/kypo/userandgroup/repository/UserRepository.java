@@ -19,12 +19,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
  * The JPA repository interface to manage {@link User} instances.
- *
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, UserRepositoryCustom, QuerydslPredicateExecutor<User>, QuerydslBinderCustomizer<QUser> {
@@ -66,6 +66,15 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
     Optional<User> findById(@NonNull Long id);
 
     /**
+     * Find the user by his userIds.
+     *
+     * @param userIds the ID of users.
+     * @return the list of {@link User} instance based on the given IDs.
+     */
+    @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
+    List<User> findByIdIn(List<Long> userIds);
+
+    /**
      * Find all users.
      *
      * @return list of {@link User}s wrapped up in {@link Page}.
@@ -81,15 +90,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      */
     @Query("SELECT u.login FROM User u WHERE u.id = :userId")
     Optional<String> getLogin(@Param("userId") Long id);
-
-    /**
-     * Returns true if the user is internal, false otherwise.
-     *
-     * @param id the unique identifier of the user.
-     * @return true if the {@link User} is internal, false otherwise.
-     */
-    @Query("SELECT CASE WHEN u.externalId IS NULL THEN true ELSE false END FROM User u WHERE u.id = :userId")
-    boolean isUserInternal(@Param("userId") Long id);
 
     /**
      * Gets roles of the user.
@@ -128,16 +128,4 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
     @Query(value = "SELECT u FROM User u WHERE u.id IN :ids",
             countQuery = "SELECT COUNT(u) FROM User u WHERE u.id IN :ids")
     Page<User> findAllWithGivenIds(@Param("ids") Set<Long> ids, Pageable pageable);
-
-    /**
-     * Find all users with given {@link Role} with the given ID and without users with given ids.
-     *
-     * @param roleId   unique identifiers of the role.
-     * @param usersIds ids of the users to be excluded from the result page.
-     * @param pageable abstract interface for pagination information.
-     * @return returns list of all {@link User}s who have a {@link Role} with given role ID.
-     */
-    @Query(value = "SELECT u FROM User u JOIN FETCH u.groups g JOIN FETCH g.roles r JOIN FETCH r.microservice WHERE r.id = :roleId AND u.id NOT IN :usersIds",
-            countQuery = "SELECT COUNT(u) FROM User u INNER JOIN u.groups g  INNER JOIN g.roles r INNER JOIN r.microservice WHERE r.id = :roleId AND u.id NOT IN :usersIds")
-    Page<User> findAllByRoleIdAndNotWithGivenIds(@Param("roleId") Long roleId, @Param("usersIds") Set<Long> usersIds, Pageable pageable);
 }

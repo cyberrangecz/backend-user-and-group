@@ -20,7 +20,7 @@ public class CommonJoinPointConfig {
     public void restLayerExecutionLoggingDebug() {
     }
 
-    @Pointcut("execution(* cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler.*(..))")
-    public void restLayerExecutionLoggingError() {
+    @Pointcut("execution(* cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler.*(..))")
+    public void restLayerCustomExceptionHandlerExecutionLoggingDebug() {
     }
 }

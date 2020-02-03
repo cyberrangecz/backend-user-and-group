@@ -4,21 +4,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
-import com.google.common.base.Preconditions;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.rest.ApiError;
+import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotModifiedException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -32,13 +29,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Rest controller for the IDMGroup resource.
- *
- */
+*/
 @Api(value = "Endpoint for Groups", tags = "groups")
 @RestController
 @RequestMapping(path = "/groups")
@@ -81,11 +78,11 @@ public class GroupsRestController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true)
                                                    @Valid @RequestBody NewGroupDTO newGroupDTO) {
-        Preconditions.checkNotNull(newGroupDTO);
         try {
             return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException("Some of given groups could not be found in database.");
+
+        } catch (UserAndGroupFacadeException ex) {
+            throw ExceptionSorter.throwException(ex);
         }
     }
 
@@ -110,21 +107,18 @@ public class GroupsRestController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateGroup(@ApiParam(value = "Group to be updated.", required = true)
                                             @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
-        Preconditions.checkNotNull(updateGroupDTO);
         try {
             groupFacade.updateGroup(updateGroupDTO);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (ExternalSourceException e) {
-            throw new ResourceNotModifiedException("Group is external therefore they could not be updated");
         } catch (UserAndGroupFacadeException e) {
-            throw new ConflictException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
     /**
      * Remove users from the group.
      *
-     * @param id the ID of the group.
+     * @param id      the ID of the group.
      * @param userIds a list of IDs of the users to be imported
      * @return the response entity with empty body and with specific status code and header.
      */
@@ -145,28 +139,24 @@ public class GroupsRestController {
                                             @PathVariable("id") final Long id,
                                             @ApiParam(value = "Ids of members to be removed from group.", required = true)
                                             @RequestBody List<Long> userIds) {
-        Preconditions.checkNotNull(userIds);
         try {
             groupFacade.removeUsers(id, userIds);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            if(e.getMessage().contains("could not be found")) { throw new ResourceNotFoundException(e.getLocalizedMessage()); }
-            throw new ConflictException(e.getLocalizedMessage());
-        } catch (ExternalSourceException e) {
-            throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
+            throw ExceptionSorter.throwException(e);
         }
     }
 
     /**
      * Add users to the group.
      *
-     * @param groupId the ID of the group
+     * @param groupId  the ID of the group
      * @param addUsers {@link AddUsersToGroupDTO}.
      * @return the response entity with empty body and with specific status code and header.
      */
     @ApiOperation(httpMethod = "PUT",
             value = "Add users to group.",
-            nickname = "addUsers",
+            nickname = "addUsersToGroup",
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
@@ -180,14 +170,11 @@ public class GroupsRestController {
                                          @PathVariable("id") final Long groupId,
                                          @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
                                          @Valid @RequestBody AddUsersToGroupDTO addUsers) {
-        Preconditions.checkNotNull(addUsers);
         try {
-            groupFacade.addUsers(groupId, addUsers);
+            groupFacade.addUsersToGroup(groupId, addUsers);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
-        } catch (ExternalSourceException e) {
-            throw new ResourceNotModifiedException("Group is external therefore it could not be edited");
+            throw ExceptionSorter.throwException(e);
         }
     }
 
@@ -200,34 +187,23 @@ public class GroupsRestController {
     @ApiOperation(httpMethod = "DELETE",
             value = "Delete group",
             nickname = "deleteGroup",
-            notes = "Tries to delete group with given id and returns if it was successful.",
-            produces = MediaType.APPLICATION_JSON_VALUE,
+            notes = "Tries to deleteIDMGroup group with given id and returns if it was successful.",
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned deletion status of the group.", response = GroupDeletionResponseDTO.class),
+            @ApiResponse(code = 200, message = "Returned deletion status of the group."),
             @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
             @ApiResponse(code = 405, message = "Group cannot be deleted because it is a main group.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDeletionResponseDTO> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
-                                                                @PathVariable("id") final Long id) {
+    public ResponseEntity<Void> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
+                                            @PathVariable("id") final Long id) {
         try {
-            GroupDeletionResponseDTO groupDeletionResponseDTO = groupFacade.deleteGroup(id);
-            switch (groupDeletionResponseDTO.getStatus()) {
-                case SUCCESS:
-                    return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.OK);
-                case NOT_FOUND:
-                    throw new ResourceNotFoundException("Group with id " + id + " cannot be found.");
-                case ERROR_MAIN_GROUP:
-                    throw new MethodNotAllowedException("Group with id " + id + " cannot be deleted because is main group.");
-                case ERROR:
-                default:
-                    return new ResponseEntity<>(groupDeletionResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+            groupFacade.deleteGroup(id);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (UserAndGroupFacadeException ex) {
-            throw new ConflictException(ex.getLocalizedMessage());
+            throw ExceptionSorter.throwException(ex);
         }
     }
 
@@ -239,33 +215,33 @@ public class GroupsRestController {
      */
     @ApiOperation(httpMethod = "DELETE",
             value = "Delete groups",
-            notes = "Tries to delete groups with given ids and returns groups and statuses of their deletion",
+            notes = "Tries to deleteIDMGroup groups with given ids and returns groups and statuses of their deletion",
             nickname = "deleteGroups",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Groups deleted and statuses returned.", response = GroupDeletionResponseDTO[].class),
-            @ApiResponse(code = 500, message = "Cannot delete non-empty group.", response = ApiError.class),
+            @ApiResponse(code = 200, message = "Returned HTTP status OK."),
+            @ApiResponse(code = 500, message = "Cannot deleteIDMGroup non-empty group.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<GroupDeletionResponseDTO>> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
-                                                                       @RequestBody List<Long> ids) {
+    public ResponseEntity<Void> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
+                                             @RequestBody List<Long> ids) {
         LOG.debug("deleteGroups({})", ids);
-        Preconditions.checkNotNull(ids);
         try {
-            return new ResponseEntity<>(groupFacade.deleteGroups(ids), HttpStatus.OK);
+            groupFacade.deleteGroups(ids);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (UserAndGroupFacadeException ex) {
-            throw new ConflictException(ex.getLocalizedMessage());
+            throw ExceptionSorter.throwException(ex);
         }
     }
 
     /**
      * Gets all groups.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
      * @return the groups.
      */
     @ApiOperation(httpMethod = "GET",
@@ -287,7 +263,7 @@ public class GroupsRestController {
                                             @RequestParam(value = "fields", required = false) String fields) {
         PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
         Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, groupsDTOs), HttpStatus.OK);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, groupsDTOs));
     }
 
     /**
@@ -298,7 +274,7 @@ public class GroupsRestController {
      */
     @ApiOperation(httpMethod = "GET",
             value = "Get group with given id",
-            nickname = "getGroup",
+            nickname = "getGroupById",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
@@ -310,9 +286,9 @@ public class GroupsRestController {
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
                                              @PathVariable("id") Long id) {
         try {
-            return new ResponseEntity<>(groupFacade.getGroup(id), HttpStatus.OK);
+            return ResponseEntity.ok(groupFacade.getGroupById(id));
         } catch (UserAndGroupFacadeException ex) {
-            throw new ResourceNotFoundException(ex.getLocalizedMessage());
+            throw ExceptionSorter.throwException(ex);
         }
     }
 
@@ -336,9 +312,9 @@ public class GroupsRestController {
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
                                                         @PathVariable("id") final Long id) {
         try {
-            return new ResponseEntity<>(groupFacade.getRolesOfGroup(id), HttpStatus.OK);
+            return ResponseEntity.ok(groupFacade.getRolesOfGroup(id));
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
@@ -367,7 +343,7 @@ public class GroupsRestController {
             groupFacade.assignRole(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
@@ -375,7 +351,7 @@ public class GroupsRestController {
      * Remove the role from the given group.
      *
      * @param groupId the ID of the group.
-     * @param roleId the ID of the role to be removed from the group.
+     * @param roleId  the ID of the role to be removed from the group.
      * @return the response entity with empty body and with specific status code and header.
      */
     @ApiOperation(httpMethod = "DELETE",
@@ -398,14 +374,12 @@ public class GroupsRestController {
             groupFacade.removeRoleFromGroup(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
-        } catch (RoleCannotBeRemovedToGroupException e) {
-            throw new ConflictException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
     @ApiModel(value = "GroupRestResource",
-            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")
+            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
     private static class GroupRestResource extends PageResultResource<GroupDTO> {
         @JsonProperty(required = true)
         @ApiModelProperty(value = "Retrieved IDMGroups from databases.")

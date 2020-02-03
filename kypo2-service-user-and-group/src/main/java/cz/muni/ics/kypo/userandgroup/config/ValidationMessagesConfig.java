@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.util.Arrays;
-import java.util.Locale;
-
 @Configuration
 public class ValidationMessagesConfig {
 
@@ -28,22 +25,6 @@ public class ValidationMessagesConfig {
         LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
         bean.setValidationMessageSource(messageSourceValidation());
         return bean;
-    }
-
-    /**
-     * Prints available locales. It is useful to set up appropriate ValidationMessages.properties file name,
-     * e.g. messages_en_US.properties
-     * <p>
-     * en_US
-     * <p>
-     * en - language; US - country
-     */
-    public static void main(String[] args) {
-        Locale[] locales = Locale.getAvailableLocales();
-        Arrays.sort(locales, (l1, l2) -> l1.toString().compareTo(l2.toString()));
-        for (Locale l : locales) {
-            System.out.println(l.toString());
-        }
     }
 
 }

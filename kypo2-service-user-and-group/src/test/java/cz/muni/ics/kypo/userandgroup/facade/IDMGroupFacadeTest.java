@@ -7,14 +7,19 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.IDMGroupMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
-import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
+import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,6 +61,8 @@ public class IDMGroupFacadeTest {
     @Mock
     private IDMGroupService groupService;
     @Mock
+    private UserService userService;
+    @Mock
     private MicroserviceService microserviceService;
     @Mock
     private RestTemplate restTemplate;
@@ -79,7 +86,7 @@ public class IDMGroupFacadeTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
 
-        groupFacade = new IDMGroupFacadeImpl(groupService, microserviceService, roleMapper, groupMapper);
+        groupFacade = new IDMGroupFacadeImpl(groupService, userService, roleMapper, groupMapper);
 
         user1 = new User();
         user1.setId(1L);
@@ -133,13 +140,13 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testCreateGroup() {
-        given(groupService.create(any(IDMGroup.class), anyList())).willReturn(g1);
+        given(groupService.createIDMGroup(any(IDMGroup.class), anyList())).willReturn(g1);
         GroupDTO groupDTO = groupFacade.createGroup(newGroupDTO);
 
         assertEquals(g1.getName(), groupDTO.getName());
         assertEquals(1, groupDTO.getUsers().size());
         assertTrue(groupDTO.getUsers().contains(userForGroupsDTO));
-        then(groupService).should().create(any(IDMGroup.class), anyList());
+        then(groupService).should().createIDMGroup(any(IDMGroup.class), anyList());
 
     }
 
@@ -150,55 +157,21 @@ public class IDMGroupFacadeTest {
         updatedGroupDTO.setName(g2.getName());
         updatedGroupDTO.setDescription(g2.getDescription());
         groupFacade.updateGroup(updatedGroupDTO);
-        then(groupService).should().update(g2);
-    }
-
-    @Test
-    public void testRemoveUsers() {
-        given(groupService.removeUsers(1L, Collections.singletonList(1L))).willReturn(g2);
-        groupFacade.removeUsers(1L, Collections.singletonList(1L));
-
-        assertEquals(0, groupDTO.getUsers().size());
-        then(groupService).should().removeUsers(1L, Collections.singletonList(1L));
-
-    }
-
-    @Test
-    public void testRemoveUsersWithServiceException() {
-        given(groupService.removeUsers(1L, Collections.singletonList(1L))).willThrow(new UserAndGroupServiceException());
-        thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.removeUsers(1L, Collections.singletonList(1L));
-    }
-
-    @Test
-    public void testAddUsers() {
-        GroupDTO g = groupDTO;
-        g.setUsers(Set.of(new UserForGroupsDTO()));
-        given(groupService.addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L))).willReturn(g1);
-        groupFacade.addUsers(1L, getaddUsersToGroupDTO());
-
-        assertEquals(1, groupDTO.getUsers().size());
-        then(groupService).should().addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L));
-
-    }
-
-    @Test
-    public void testAddUsersWithServiceException() {
-        given(groupService.addUsers(1L, Collections.singletonList(1L), Collections.singletonList(1L))).willThrow(new UserAndGroupServiceException());
-        thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.addUsers(1L, getaddUsersToGroupDTO());
+        then(groupService).should().updateIDMGroup(g2);
     }
 
     @Test(expected = UserAndGroupFacadeException.class)
-    public void testDeleteGroupWithPersonsThrows() {
-        given(groupService.get(anyLong())).willReturn(g1);
-        groupFacade.deleteGroup(1L);
+    public void testDeleteGroupWithUsersThrowsException() {
+        given(groupService.getGroupById(g1.getId())).willReturn(g1);
+        willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_CONFLICT)).given(groupService).deleteIDMGroup(g1);
+        groupFacade.deleteGroup(g1.getId());
     }
 
     @Test(expected = UserAndGroupFacadeException.class)
     public void testDeleteGroupsWithPersonsThrows() {
-        given(groupService.get(anyLong())).willReturn(g1);
-        List<GroupDeletionResponseDTO> responseDTOS = groupFacade.deleteGroups(Collections.singletonList(1L));
+        given(groupService.getGroupsByIds(anyList())).willReturn(List.of(g1));
+        willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_CONFLICT)).given(groupService).deleteIDMGroup(g1);
+        groupFacade.deleteGroups(Collections.singletonList(1L));
     }
 
     @Test
@@ -211,7 +184,7 @@ public class IDMGroupFacadeTest {
         pages.setContent(Collections.singletonList(groupDTO));
 
         given(groupService.getAllIDMGroups(predicate, pageable)).willReturn(idmGroupPage);
-        given(groupService.get(anyLong())).willReturn(g1);
+        given(groupService.getGroupById(anyLong())).willReturn(g1);
         PageResultResource<GroupDTO> responseDTOPageResultResource = groupFacade.getAllGroups(predicate, pageable);
 
         assertEquals(1, responseDTOPageResultResource.getContent().size());
@@ -220,19 +193,19 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetGroup() {
-        given(groupService.get(anyLong())).willReturn(g1);
-        GroupDTO groupDTO = groupFacade.getGroup(1L);
+        given(groupService.getGroupById(anyLong())).willReturn(g1);
+        GroupDTO groupDTO = groupFacade.getGroupById(1L);
 
         assertEquals(g1.getName(), groupDTO.getName());
-        then(groupService).should(times(1)).get(1L);
+        then(groupService).should(times(1)).getGroupById(1L);
         then(groupService).should().getRolesOfGroup(1L);
     }
 
     @Test
     public void testGetGroupWithServiceException() {
-        given(groupService.get(anyLong())).willThrow(new UserAndGroupServiceException());
+        given(groupService.getGroupById(anyLong())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
         thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.getGroup(1L);
+        groupFacade.getGroupById(1L);
     }
 
     @Test
@@ -252,28 +225,6 @@ public class IDMGroupFacadeTest {
         groupFacade.getRolesOfGroup(1L);
     }
 
-    @Test
-    public void isGroupInternal() {
-        given(groupService.isGroupInternal(g1.getId())).willReturn(true);
-        assertTrue(groupFacade.isGroupInternal(g1.getId()));
-        then(groupService).should().isGroupInternal(g1.getId());
-    }
-
-    @Test
-    public void isGroupExternal() {
-        g1.setExternalId(1L);
-        given(groupService.isGroupInternal(g1.getId())).willReturn(false);
-        assertFalse(groupFacade.isGroupInternal(g1.getId()));
-        then(groupService).should().isGroupInternal(g1.getId());
-    }
-
-    @Test
-    public void isGroupInternalWhenServiceThrowsException() {
-        given(groupService.isGroupInternal(g1.getId())).willThrow(UserAndGroupServiceException.class);
-        thrown.expect(UserAndGroupFacadeException.class);
-        groupFacade.isGroupInternal(g1.getId());
-    }
-
     private UpdateGroupDTO getUpdateGroupDTO() {
         UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
         updateGroupDTO.setId(2L);
@@ -287,12 +238,6 @@ public class IDMGroupFacadeTest {
         addUsers.setIdsOfUsersToBeAdd(Collections.singletonList(1L));
         addUsers.setIdsOfGroupsOfImportedUsers(Collections.singletonList(1L));
         return addUsers;
-    }
-
-    private GroupDeletionResponseDTO getGroupDeletionResponseDTO() {
-        GroupDeletionResponseDTO gdrDTO = new GroupDeletionResponseDTO();
-        gdrDTO.setId(1L);
-        return gdrDTO;
     }
 
     private Role getRole() {

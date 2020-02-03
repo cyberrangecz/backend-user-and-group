@@ -1,10 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import com.google.gson.JsonObject;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
@@ -15,7 +15,6 @@ import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.UsersRestController;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.MethodNotAllowedException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
@@ -23,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -37,6 +37,12 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,6 +53,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,7 +82,6 @@ public class UsersIntegrationTests {
     private Role roleAdmin, roleGuest, roleDesigner, roleOrganizer, roleTrainee, roleUser;
     private IDMGroup group1, group2;
     private User user1, user2, user3, user4;
-    private UserDeletionResponseDTO userDeletionResponseDTO;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -186,11 +192,62 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleOrganizer, roleTrainee, roleGuest)))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user2, List.of(roleOrganizer, roleTrainee, roleGuest)))));
+        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest)))));
+        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user2, List.of(roleTrainee, roleOrganizer, roleGuest)))));
         assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user3, List.of()))));
         assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user4, List.of(roleOrganizer)))));
 
+    }
+
+    @Test
+    public void getUsersWithGivenIds() throws Exception {
+        userRepository.saveAll(Set.of(user1, user2, user3, user4));
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", Set.of(user2.getId(), user4.getId()).toString()
+                        .replace("[", "")
+                        .replace("]", ""))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertFalse(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest)))));
+        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user2, List.of(roleTrainee, roleOrganizer, roleGuest)))));
+        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user4, List.of(roleOrganizer)))));
+    }
+
+    @Test
+    public void getUsersWithGivenIdsNotInDB() throws Exception {
+        userRepository.saveAll(Set.of(user1, user2, user3, user4));
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", Set.of(100, 200).toString()
+                        .replace("[", "")
+                        .replace("]", ""))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertTrue(response.getContentAsString().contains("[]"));
+    }
+
+    @Test
+    public void getUsersWithGivenIdsEmptyListOfIds() throws Exception {
+        userRepository.saveAll(Set.of());
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", Set.of().toString()
+                        .replace("[", "")
+                        .replace("]", ""))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertTrue(response.getContentAsString().contains("[]"));
+    }
+
+    @Test
+    public void getUserInfo() throws Exception {
+        mockSpringSecurityContextForGet(List.of());
+        MockHttpServletResponse response = mvc.perform(get("/users/info")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest))), response.getContentAsString());
     }
 
     @Test
@@ -225,7 +282,7 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertEquals(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleOrganizer, roleTrainee, roleGuest))), response.getContentAsString());
+        assertEquals(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest))), response.getContentAsString());
     }
 
     @Test
@@ -235,7 +292,7 @@ public class UsersIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("User with id 100 could not be found.", exception.getMessage());
+        assertEquals("User with id 100 could not be found.", getInitialExceptionMessage(exception));
 
     }
     @Test
@@ -250,14 +307,9 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUser() throws Exception {
-        userDeletionResponseDTO = new UserDeletionResponseDTO();
-        userDeletionResponseDTO.setUser(convertToUserDTO(user1, List.of()));
-        userDeletionResponseDTO.setStatus(UserDeletionStatusDTO.SUCCESS);
-        MockHttpServletResponse response = mvc.perform(delete("/users/{id}", user1.getId())
+        mvc.perform(delete("/users/{id}", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        assertEquals(convertObjectToJsonBytes(userDeletionResponseDTO), response.getContentAsString());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -268,51 +320,21 @@ public class UsersIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("User with id 100 could not be found.", exception.getMessage());
-    }
-
-    @Test
-    public void deleteUserExternalValid() throws Exception {
-        user1.setExternalId(1L);
-        userRepository.save(user1);
-        Exception exception = mvc.perform(delete("/users/{id}", user1.getId())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isMethodNotAllowed())
-                .andReturn().getResolvedException();
-        assertEquals(MethodNotAllowedException.class, exception.getClass());
-        assertEquals("User with id " + user1.getId() + " cannot be deleted because is from external source and is valid user.", exception.getMessage());
-        assertTrue(userRepository.existsById(user1.getId()));
+        assertEquals("User with id 100 could not be found.", getInitialExceptionMessage(exception));
     }
 
     @Test
     public void deleteUsers() throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(100L);
-
-        user3.setExternalId(5L);
         userRepository.save(user3);
 
-        Long deleteUserId = user1.getId();
-        userDeletionResponseDTO = new UserDeletionResponseDTO();
-        userDeletionResponseDTO.setUser(convertToUserDTO(user1, List.of()));
-        userDeletionResponseDTO.setStatus(UserDeletionStatusDTO.SUCCESS);
-
-        UserDeletionResponseDTO userDeletionResponseDTONotFound = new UserDeletionResponseDTO();
-        userDeletionResponseDTONotFound.setUser(userDTO);
-        userDeletionResponseDTONotFound.setStatus(UserDeletionStatusDTO.NOT_FOUND);
-
-        UserDeletionResponseDTO userDeletionResponseDTOExternalValid = new UserDeletionResponseDTO();
-        userDeletionResponseDTOExternalValid.setUser(convertToUserDTO(user3, List.of()));
-        userDeletionResponseDTOExternalValid.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
-
-        MockHttpServletResponse response = mvc.perform(delete("/users")
+        mvc.perform(delete("/users")
                 .content(convertObjectToJsonBytes(List.of(100L, user1.getId(), user3.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(userDeletionResponseDTONotFound)));
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(userDeletionResponseDTO)));
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(userDeletionResponseDTOExternalValid)));
+        assertFalse(userRepository.findById(user1.getId()).isPresent());
+        assertFalse(userRepository.findById(user3.getId()).isPresent());
+        assertFalse(userRepository.findById(100L).isPresent());
     }
 
     @Test
@@ -333,10 +355,9 @@ public class UsersIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("User with id 100 could not be found.", exception.getMessage());
+        assertEquals("User with id 100 could not be found.", getInitialExceptionMessage(exception));
 
     }
-
 
     private RoleDTO convertToRoleDTO(Role role) {
         RoleDTO roleDTO  = beanMapping.mapTo(role, RoleDTO.class);
@@ -365,6 +386,32 @@ public class UsersIntegrationTests {
         return mapper.readValue(object, String.class);
     }
 
+    private void mockSpringSecurityContextForGet(List<String> roles) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (String role : roles) {
+            authorities.add(new SimpleGrantedAuthority(role));
+        }
+        JsonObject sub = new JsonObject();
+        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user1.getLogin());
+        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user1.getFullName());
+        sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), user1.getGivenName());
+        sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), user1.getFamilyName());
+        sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), user1.getIss());
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2Authentication auth = Mockito.mock(OAuth2Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(auth);
+        given(auth.getUserAuthentication()).willReturn(auth);
+        given(auth.getCredentials()).willReturn(sub);
+        given(auth.getAuthorities()).willReturn(authorities);
+        given(authentication.getDetails()).willReturn(auth);
+    }
 
-
+    private String getInitialExceptionMessage(Exception exception) {
+        while (exception.getCause() != null) {
+            exception = (Exception) exception.getCause();
+        }
+        return exception.getMessage();
+    }
 }

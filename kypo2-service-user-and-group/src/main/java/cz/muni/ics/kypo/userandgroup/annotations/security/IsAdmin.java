@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 
 /**
  * The custom annotation <i>@IsAdmin<i/>. All methods annotated with this annotation expect the user has a role <strong>ROLE_USER_AND_GROUP_ADMINISTRATOR<strong/>.
- *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

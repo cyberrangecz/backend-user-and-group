@@ -4,10 +4,8 @@ import io.swagger.annotations.ApiModel;
 
 /**
  * Enumeration of user deletion statuses.
- *
  */
-@ApiModel(value = "UserDeletionStatusDTO",
-        description = "The user and deletion status.")
+@ApiModel(value = "UserDeletionStatusDTO", description = "The user and deletion status.")
 public enum UserDeletionStatusDTO {
     /**
      * User was successfully deleted.

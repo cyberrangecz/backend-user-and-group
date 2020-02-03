@@ -1,14 +1,13 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.QUser;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
@@ -18,11 +17,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,70 +33,68 @@ public class UserServiceImpl implements UserService {
     private IDMGroupRepository groupRepository;
     private RoleRepository roleRepository;
 
-
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, IDMGroupRepository groupRepository,
-                            RoleRepository roleRepository) {
+    public UserServiceImpl(UserRepository userRepository, IDMGroupRepository groupRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
         this.roleRepository = roleRepository;
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
-    public User get(Long id) {
-        Assert.notNull(id, "Input id must not be null");
-        return userRepository.findById(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " could not be found."));
+    public User getUserById(Long id) {
+        Assert.notNull(id, "In method getUserById(id) the input must not be null.");
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     @Override
-    @IsAdmin
-    public UserDeletionStatusDTO delete(User user) {
-        Assert.notNull(user, "Input user must not be null");
-        UserDeletionStatusDTO deletionCheck = checkKypoUserBeforeDelete(user);
-        if (deletionCheck.equals(UserDeletionStatusDTO.SUCCESS)) {
-            for(IDMGroup group : user.getGroups()) {
-                group.removeUser(user);
-            }
-            userRepository.delete(user);
-            LOG.debug("IDM user with id: {} was successfully deleted.", user.getId());
+    public Optional<User> getUserByLoginAndIss(String login, String iss) {
+        Assert.notNull(login, "In method getUserBySubAndIss(login) the input must not be null.");
+        Assert.notNull(iss, "In method getUserBySubAndIss(iss) the input must not be null.");
+        return userRepository.findByLoginAndIss(login, iss);
+    }
+
+    @Override
+    public Page<User> getAllUsers(Predicate predicate, Pageable pageable) {
+        return userRepository.findAll(predicate, pageable);
+    }
+
+    @Override
+    public List<User> getUsersByIds(List<Long> userIds) {
+        Assert.notNull(userIds, "In method getUsersByIds(userIds) the input must not be null.");
+        return userRepository.findByIdIn(userIds);
+    }
+
+    @Override
+    public void deleteUser(User user) {
+        Assert.notNull(user, "In method deleteUser(user) the input must not be null.");
+        for (IDMGroup group : user.getGroups()) {
+            group.removeUser(user);
         }
-        return deletionCheck;
+        userRepository.delete(user);
+        LOG.debug("IDM user with id: {} was successfully deleted.", user.getId());
     }
 
     @Override
-    @IsAdmin
-    public Map<User, UserDeletionStatusDTO> deleteUsers(List<Long> idsOfUsers) {
-        Assert.notNull(idsOfUsers, "Input ids of users must not be null");
-        Map<User, UserDeletionStatusDTO> response = new HashMap<>();
-
-        idsOfUsers.forEach(id -> {
-            User user = null;
-            try {
-                user = get(id);
-                try {
-                    UserDeletionStatusDTO status = delete(user);
-                    response.put(user, status);
-                } catch (Exception ex) {
-                    response.put(user, UserDeletionStatusDTO.ERROR);
-                }
-            } catch (UserAndGroupServiceException ex) {
-                user = new User();
-                user.setId(id);
-                response.put(user, UserDeletionStatusDTO.NOT_FOUND);
-            }
-        });
-
-        return response;
+    public User createUser(User user) {
+        Assert.notNull(user, "In method createUser(user) the input must not be null.");
+        return userRepository.saveAndFlush(user);
     }
 
     @Override
-    @IsAdmin
+    public User updateUser(User user) {
+        Assert.notNull(user, "In method updateUser(user) the input must not be null.");
+        return userRepository.saveAndFlush(user);
+    }
+
+    @Override
     public void changeAdminRole(Long id) {
-        Assert.notNull(id, "Input id must not be null");
-        User user = get(id);
+        Assert.notNull(id, "In method changeAdminRole(id) the input must not be null.");
+        User user = this.getUserById(id);
+        //TODO create new private method to get administrator group
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
-        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be  found."));
+        IDMGroup administratorGroup = optionalAdministratorGroup
+                .orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be found.", ErrorCode.RESOURCE_NOT_FOUND));
         if (user.getGroups().contains(administratorGroup)) {
             administratorGroup.removeUser(user);
         } else {
@@ -106,116 +104,79 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
-            "or @securityService.hasLoggedInUserSameId(#id)")
     public boolean isUserAdmin(Long id) {
-        Assert.notNull(id, "Input id must not be null");
-        User user = get(id);
+        Assert.notNull(id, "In method isUserAdmin(id) the input must not be null.");
+        User user = getUserById(id);
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
-        IDMGroup administratorGroup = optionalAdministratorGroup.orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be found."));
-
+        IDMGroup administratorGroup = optionalAdministratorGroup
+                .orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be found.", ErrorCode.RESOURCE_NOT_FOUND));
         return user.getGroups().contains(administratorGroup);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR) " +
-            "or @securityService.hasLoggedInUserSameLogin(#login)")
-    public User getUserByLoginAndIss(String login, String iss) {
-        Assert.hasLength(login, "Input login must not be empty");
-        return userRepository.findByLoginAndIss(login, iss).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " could not be found"));
-    }
-
-    @Override
-    @IsAdmin
-    public Page<User> getAllUsers(Predicate predicate, Pageable pageable) {
-        return userRepository.findAll(predicate, pageable);
-    }
-
-    @Override
     public Page<User> getUsersWithGivenRoleAndNotWithGivenIds(String roleType, Set<Long> userIds, Predicate predicate, Pageable pageable) {
+        Assert.notNull(roleType, "In method getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable) the input role type must not be null.");
+        Assert.notNull(userIds, "In method getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable) the input user ids must not be null.");
         return userRepository.findAllByRoleAndNotWithIds(predicate, pageable, roleType, userIds);
     }
 
     @Override
-    @IsAdmin
     public Page<User> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
+        Assert.notNull(groupId, "In method getAllUsersNotInGivenGroup(groupId, predicate, pageable) the input group id must not be null.");
         return userRepository.usersNotInGivenGroup(groupId, predicate, pageable);
     }
 
     @Override
     public Page<User> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable) {
+        Assert.notNull(groupsIds, "In method getUsersInGroups(groupsIds, predicate, pageable) the input groups ids must not be null.");
         return userRepository.usersInGivenGroups(groupsIds, predicate, pageable);
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
     public User getUserWithGroups(Long id) {
-        Assert.notNull(id, "Input id must not be null");
-        return userRepository.getUserByIdWithGroups(id).orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found"));
+        Assert.notNull(id, "In method getUserWithGroups(id) the input must not be null.");
+        return userRepository.getUserByIdWithGroups(id)
+                .orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found", ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
-            "or @securityService.hasLoggedInUserSameLogin(#login)")
     public User getUserWithGroups(String login, String iss) {
-        Assert.hasLength(login, "Input login must not be empty");
-        Assert.hasLength(iss, "Input iss must not be empty");
-        return userRepository.getUserByLoginWithGroups(login, iss).orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found"));
+        Assert.hasLength(login, "In method getUserWithGroups(login, iss) the input login must not be empty.");
+        Assert.hasLength(iss, "In method getUserWithGroups(login, iss) the input iss must not be null.");
+        return userRepository.getUserByLoginWithGroups(login, iss)
+                .orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found", ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_ADMINISTRATOR)" +
-            "or @securityService.hasLoggedInUserSameId(#id)")
-    public boolean isUserInternal(Long id) {
-        Assert.notNull(id, "Input id must not be null");
-        if (!userRepository.existsById(id)) {
-            throw new UserAndGroupServiceException("User with id " + id + " could not be found.");
-        }
-        return userRepository.isUserInternal(id);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
     public Set<Role> getRolesOfUser(Long id) {
-        Assert.notNull(id, "Input id must not be null");
+        Assert.notNull(id, "In method getRolesOfUser(id) the input must not be null.");
         if (!userRepository.existsById(id)) {
-            throw new UserAndGroupServiceException("User with id " + id + " could not be found.");
+            throw new UserAndGroupServiceException("User with id " + id + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND);
         }
         return userRepository.getRolesOfUser(id);
     }
 
-    private UserDeletionStatusDTO checkKypoUserBeforeDelete(User user) {
-        if (user.getExternalId() != null && user.getStatus().equals(UserAndGroupStatus.VALID)) {
-            return UserDeletionStatusDTO.EXTERNAL_VALID;
-        }
-        return UserDeletionStatusDTO.SUCCESS;
-    }
-
     @Override
     public Page<User> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
-        Assert.notNull(roleId, "Input role type must not be null");
+        Assert.notNull(roleId, "In method getUsersWithGivenRole(roleId, predicate, pageable) the input ids must not be null.");
         if (!roleRepository.existsById(roleId)) {
-            throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found.");
+            throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND);
         }
         return userRepository.findAllByRoleId(roleId, predicate, pageable);
     }
 
     @Override
     public Page<User> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
-        Assert.notNull(roleType, "Input role type must not be null");
-        Role role = roleRepository.findByRoleType(roleType).orElseThrow(() ->
-                new UserAndGroupServiceException("Role with role type: " + roleType + " could not be found."));
-        return userRepository.findAllByRoleId(role.getId(), predicate, pageable);
-    }
-
-    @Override
-    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable) {
-        Assert.notNull(ids, "Input list of ids must not be null");
-        return userRepository.findAllWithGivenIds(ids, pageable);
+        Assert.notNull(roleType, "In method getUsersWithGivenRoleType(roleType, predicate, pageable) the input role type must not be null.");
+        if (!roleRepository.existsByRoleType(roleType)) {
+            throw new UserAndGroupServiceException("Role with type: " + roleType + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND);
+        }
+        return userRepository.findAllByRoleType(roleType, predicate, pageable);
     }
 
     @Override
     public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+        Assert.notNull(ids, "In method getUsersWithGivenIds(ids, pageable, predicate) the input ids must not be null.");
         Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
         return userRepository.findAll(finalPredicate, pageable);
     }

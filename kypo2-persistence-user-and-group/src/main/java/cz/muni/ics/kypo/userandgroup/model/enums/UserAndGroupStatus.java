@@ -2,7 +2,6 @@ package cz.muni.ics.kypo.userandgroup.model.enums;
 
 /**
  * Enumeration of User and group status.
- *
  */
 public enum UserAndGroupStatus {
     /**

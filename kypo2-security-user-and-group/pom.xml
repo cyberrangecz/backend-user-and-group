@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
-            <artifactId>kypo2-persistence-user-and-group</artifactId>
+            <artifactId>kypo2-service-user-and-group</artifactId>
             <version>1.1.11</version>
         </dependency>
         <dependency>
@@ -52,11 +52,10 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-<!--        library to generate sha256 from login and issuer-->
+        <!-- library to generate sha256 from login and issuer-->
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.11</version>
         </dependency>
     </dependencies>
 </project>

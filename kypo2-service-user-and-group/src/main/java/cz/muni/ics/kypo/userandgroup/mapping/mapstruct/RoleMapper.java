@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
@@ -14,12 +15,13 @@ import java.util.*;
 /**
  * The RoleMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type Role and
  * DTOs classes. Code is generated during compile time.
- *
  */
 @Mapper(componentModel = "spring", uses = {MicroserviceMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RoleMapper extends ParentMapper {
 
     Role mapToEntity(RoleDTO dto);
+
+    Role mapToEntity(RoleForNewMicroserviceDTO dto);
 
     RoleDTO mapToDTO(Role entity);
 
@@ -28,6 +30,8 @@ public interface RoleMapper extends ParentMapper {
     List<RoleDTO> mapToListDTO(Collection<Role> entities);
 
     Set<Role> mapToSet(Collection<RoleDTO> dtos);
+
+    Set<Role> mapToSetOfNewRoles(Collection<RoleForNewMicroserviceDTO> dtos);
 
     Set<RoleDTO> mapToSetDTO(Collection<Role> entities);
 

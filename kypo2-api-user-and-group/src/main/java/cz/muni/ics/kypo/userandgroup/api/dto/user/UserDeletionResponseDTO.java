@@ -8,10 +8,8 @@ import java.util.Objects;
 
 /**
  * Encapsulates information about a deleted user.
- *
  */
-@ApiModel(value = "UserDeletionResponseDTO",
-        description = "The information provided immediately to the client after the client deletes a given user.")
+@ApiModel(value = "UserDeletionResponseDTO", description = "The information provided immediately to the client after the client deletes a given user.")
 public class UserDeletionResponseDTO {
 
     @ApiModelProperty(value = "User to be deleted.")

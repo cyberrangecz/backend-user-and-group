@@ -87,22 +87,6 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void isUserInternal() {
-        String expectedLogin = "user1";
-        User u = this.entityManager.persistAndFlush(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
-        assertTrue(this.userRepository.isUserInternal(u.getId()));
-    }
-
-    @Test
-    public void isUserExternal() {
-        String expectedLogin = "user1";
-        User user = new User(expectedLogin, "https://oidc.muni.cz/oidc/");
-        user.setExternalId(1L);
-        User u = this.entityManager.persistAndFlush(user);
-        assertFalse(this.userRepository.isUserInternal(u.getId()));
-    }
-
-    @Test
     public void getRolesOfUser() {
         entityManager.persistAndFlush(adminRole);
         entityManager.persistAndFlush(guestRole);
@@ -208,21 +192,21 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void findByLoginAndIss() {
-        String expectedLogin = "user1";
-        this.entityManager.persist(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
-        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedLogin, "https://oidc.muni.cz/oidc/");
+    public void findBySubAndIss() {
+        String expectedSub = "user1";
+        this.entityManager.persist(new User(expectedSub, "https://oidc.muni.cz/oidc/"));
+        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedSub, "https://oidc.muni.cz/oidc/");
         assertTrue(optionalUser.isPresent());
-        assertEquals(expectedLogin, optionalUser.get().getLogin());
+        assertEquals(expectedSub, optionalUser.get().getLogin());
         assertEquals("https://oidc.muni.cz/oidc/", optionalUser.get().getIss());
 
     }
 
     @Test
-    public void findByLoginAndDifferentIss() {
-        String expectedLogin = "user1";
-        this.entityManager.persist(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
-        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedLogin, "https://kypo.muni.cz/oidc/");
+    public void findBySubAndDifferentIss() {
+        String expectedSub = "user1";
+        this.entityManager.persist(new User(expectedSub, "https://oidc.muni.cz/oidc/"));
+        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedSub, "https://kypo.muni.cz/oidc/");
         assertFalse(optionalUser.isPresent());
 
     }

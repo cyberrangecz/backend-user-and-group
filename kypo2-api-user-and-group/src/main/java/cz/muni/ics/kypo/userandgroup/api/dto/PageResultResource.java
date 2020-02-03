@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -10,17 +9,14 @@ import java.util.List;
 /**
  * This class is used to replace Page class and reduce the number of returned elements (standard Page class contains
  * fields, which are not useful (backward compatibility)).
- *
  */
 @ApiModel(value = "Result info (Page)",
         description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")
 public class PageResultResource<E> {
 
-    @JsonProperty(required = true)
-    @ApiModelProperty(value = "Content - (Retrieved data) from databases.", position = 1)
+    @ApiModelProperty(value = "Content - (Retrieved data) from databases.", required = true, position = 1)
     private List<E> content;
-    @JsonProperty(required = true)
-    @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.", position = 2)
+    @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.", required = true, position = 2)
     private Pagination pagination;
 
     public PageResultResource() {
@@ -55,20 +51,15 @@ public class PageResultResource<E> {
 
     public static class Pagination {
 
-        @ApiModelProperty(value = "Page number.", example = "1")
-        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Page number.", required = true, example = "1")
         private int number;
-        @ApiModelProperty(value = "Number of elements in page.", example = "20")
-        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Number of elements in page.", required = true, example = "20")
         private int numberOfElements;
-        @ApiModelProperty(value = "Page size.", example = "20")
-        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Page size.", required = true, example = "20")
         private int size;
-        @ApiModelProperty(value = "Total number of elements in this resource (in all Pages).", example = "100")
-        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Total number of elements in this resource (in all Pages).", required = true, example = "100")
         private long totalElements;
-        @ApiModelProperty(value = "Total number of pages.", example = "5")
-        @JsonProperty(required = true)
+        @ApiModelProperty(value = "Total number of pages.", required = true, example = "5")
         private int totalPages;
 
         public Pagination() {

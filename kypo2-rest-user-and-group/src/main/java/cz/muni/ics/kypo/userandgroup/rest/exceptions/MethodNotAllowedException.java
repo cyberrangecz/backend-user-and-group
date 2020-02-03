@@ -4,21 +4,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.METHOD_NOT_ALLOWED,
-    reason = "A request method is not supported for the requested resource; for example, a GET request on a form that requires data to be presented via POST, or a PUT request on a read-only resource.")
+        reason = "A request method is not supported for the requested resource; for example, a GET request on a form that requires data to be presented via POST, or a PUT request on a read-only resource.")
 public class MethodNotAllowedException extends RuntimeException {
 
-  public MethodNotAllowedException() {}
+    public MethodNotAllowedException() {
+    }
 
-  public MethodNotAllowedException(String message) {
-    super(message);
-  }
-  
-  public MethodNotAllowedException(String message, Throwable ex) {
-	super(message,ex);
-  }
+    public MethodNotAllowedException(String message) {
+        super(message);
+    }
 
-  public MethodNotAllowedException(Throwable ex) {
-    super(ex);
-  }
+    public MethodNotAllowedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
+    public MethodNotAllowedException(Throwable cause) {
+        super(cause);
+    }
+
+    public MethodNotAllowedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

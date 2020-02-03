@@ -8,10 +8,8 @@ import java.util.Objects;
 
 /**
  * Encapsulates information about the role.
- *
  */
-@ApiModel(value = "RoleDTO",
-        description = "The detailed information about role.")
+@ApiModel(value = "RoleDTO", description = "The detailed information about role.")
 public class RoleDTO {
 
     @ApiModelProperty(value = "Main identifier of the role.", example = "1", position = 1)

@@ -80,7 +80,27 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .where(roles.id.eq(roleId));
 
         if (predicate != null) {
-            query.where( predicate);
+            query.where(predicate);
+        }
+        return getPage(query, pageable);
+    }
+
+    @Override
+    public Page<User> findAllByRoleType(String roleType, Predicate predicate, Pageable pageable) {
+        QUser users = QUser.user;
+        QIDMGroup groups = QIDMGroup.iDMGroup;
+        QRole roles = QRole.role;
+        QMicroservice microservices = QMicroservice.microservice;
+
+        JPQLQuery<User> query = new JPAQueryFactory(entityManager).selectFrom(users)
+                .distinct()
+                .join(users.groups, groups)
+                .join(groups.roles, roles)
+                .join(roles.microservice, microservices)
+                .where(roles.roleType.eq(roleType));
+
+        if (predicate != null) {
+            query.where(predicate);
         }
         return getPage(query, pageable);
     }
@@ -97,14 +117,13 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
                 .join(users.groups, groups)
                 .join(groups.roles, roles)
                 .join(roles.microservice, microservices)
-                .where(roles.roleType.eq(roleType),users.id.notIn(userIds));
+                .where(roles.roleType.eq(roleType), users.id.notIn(userIds));
 
         if (predicate != null) {
             query.where(predicate);
         }
         return getPage(query, pageable);
     }
-
 
     private <T> Page getPage(JPQLQuery<T> query, Pageable pageable) {
         if (pageable == null) {

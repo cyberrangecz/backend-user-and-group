@@ -1,19 +1,19 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
-import cz.muni.ics.kypo.userandgroup.security.enums.ImplicitGroupNames;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
-import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
-import cz.muni.ics.kypo.userandgroup.security.service.SecurityService;
 import cz.muni.ics.kypo.userandgroup.service.impl.IDMGroupServiceImpl;
+import cz.muni.ics.kypo.userandgroup.service.impl.SecurityService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import org.junit.After;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class IDMGroupServiceTest {
 
     @Before
     public void init() {
-        groupService = new IDMGroupServiceImpl(groupRepository, roleRepository, userRepository, securityService);
+        groupService = new IDMGroupServiceImpl(groupRepository, roleRepository, securityService);
 
         group1 = new IDMGroup("group1", "Great group1");
         group1.setId(1L);
@@ -106,7 +106,7 @@ public class IDMGroupServiceTest {
     @Test
     public void getGroup() {
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        IDMGroup g = groupService.get(group1.getId());
+        IDMGroup g = groupService.getGroupById(group1.getId());
         deepEquals(group1, g);
 
         then(groupRepository).should().findById(group1.getId());
@@ -118,21 +118,21 @@ public class IDMGroupServiceTest {
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("IDMGroup with id " + id + " not found");
         given(groupRepository.findById(id)).willReturn(Optional.empty());
-        groupService.get(id);
+        groupService.getGroupById(id);
     }
 
     @Test
     public void getGroupWithNullIdShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
-        groupService.get(null);
+        thrown.expectMessage("In method getGroupById(id) the input must not be null.");
+        groupService.getGroupById(null);
     }
 
     @Test
     public void createGroup() {
         given(groupRepository.save(group1)).willReturn(group1);
         given(roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString())).willReturn(Optional.ofNullable(guestRole));
-        IDMGroup g = groupService.create(group1, new ArrayList<>());
+        IDMGroup g = groupService.createIDMGroup(group1, new ArrayList<>());
         deepEquals(group1, g);
 
         then(groupRepository).should().save(group1);
@@ -141,16 +141,15 @@ public class IDMGroupServiceTest {
     @Test
     public void createGroupWithNullGroupShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input group must not be null");
-        groupService.create(null, new ArrayList<>());
+        thrown.expectMessage("In method createIDMGroup(id) the input must not be null.");
+        groupService.createIDMGroup(null, new ArrayList<>());
     }
 
     @Test
     public void updateGroup() {
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(groupRepository.save(group1)).willReturn(group1);
-        IDMGroup g = groupService.update(group1);
+        IDMGroup g = groupService.updateIDMGroup(group1);
         deepEquals(group1, g);
 
         then(groupRepository).should().save(group1);
@@ -159,29 +158,31 @@ public class IDMGroupServiceTest {
     @Test
     public void updateGroupWithNullGroupShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input group must not be null");
-        groupService.update(null);
+        thrown.expectMessage("In method updateIDMGroup(id) the input must not be null.");
+        groupService.updateIDMGroup(null);
     }
 
     @Test
     public void testDeleteGroupSuccess() {
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        assertEquals(GroupDeletionStatusDTO.SUCCESS, groupService.delete(group1));
+        groupService.deleteIDMGroup(group1);
         then(groupRepository).should().delete(group1);
     }
 
     @Test
     public void testDeleteGroupErrorMainGroup() {
         given(roleRepository.findAll()).willReturn(Collections.singletonList(adminRole));
-        assertEquals(GroupDeletionStatusDTO.ERROR_MAIN_GROUP, groupService.delete(mainGroup));
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("It is not possible to delete group with id: " + mainGroup.getId() + ". " +
+        "This group is User and Group default group that could not be deleted.");
+        groupService.deleteIDMGroup(mainGroup);
         then(groupRepository).should(never()).delete(mainGroup);
     }
 
     @Test
     public void deleteGroupWithNullGroupShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input group must not be null");
-        groupService.delete(null);
+        thrown.expectMessage("In method updateIDMGroup(id) the input must not be null.");
+        groupService.deleteIDMGroup(null);
     }
 
     @Test
@@ -189,7 +190,7 @@ public class IDMGroupServiceTest {
         given(groupRepository.findAll(predicate, pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(group1, group2)));
 
-        // do not create user3
+        // do not createMicroservice user3
         IDMGroup group3 = new IDMGroup("Participants", "third group");
 
         List<IDMGroup> groups = groupService.getAllIDMGroups(predicate, pageable).getContent();
@@ -235,28 +236,6 @@ public class IDMGroupServiceTest {
     }
 
     @Test
-    public void isGroupInternal() {
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        assertTrue(groupService.isGroupInternal(group1.getId()));
-        then(groupRepository).should().isIDMGroupInternal(group1.getId());
-    }
-
-    @Test
-    public void isGroupExternal() {
-        group1.setExternalId(1L);
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(false);
-        assertFalse(groupService.isGroupInternal(group1.getId()));
-        then(groupRepository).should().isIDMGroupInternal(group1.getId());
-    }
-
-    @Test
-    public void isGroupExternalWithNullIdShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
-        groupService.isGroupInternal(null);
-    }
-
-    @Test
     public void getRolesOfGroup() {
         given(groupRepository.findById(group1.getId()))
                 .willReturn(Optional.ofNullable(group1));
@@ -270,14 +249,14 @@ public class IDMGroupServiceTest {
     @Test
     public void getRolesOfGroupWithNullIdShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input id must not be null");
+        thrown.expectMessage("In method getRolesOfGroup(id) the input must not be null.");
         groupService.getRolesOfGroup(null);
     }
 
     @Test
     public void getRolesOfGroupWithGroupNotFoundShouldThrowException() {
         thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Group with id: " + group1.getId() + " could not be found.");
+        thrown.expectMessage("IDMGroup with id " + group1.getId() + " not found.");
         groupService.getRolesOfGroup(group1.getId());
     }
 
@@ -297,150 +276,25 @@ public class IDMGroupServiceTest {
     }
 
     @Test
-    public void assignRoleWihtInputGroupIdIsNullShouldThrowException() {
+    public void assignRoleWithInputGroupIdIsNullShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input groupId must not be null");
+        thrown.expectMessage("In method assignRole(groupId, roleId) the input groupId must not be null.");
         groupService.assignRole(null, 1L);
     }
 
     @Test
     public void assignRoleWihtInputRoleIdIsNullShouldThrowException() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input roleId must not be null");
+        thrown.expectMessage("In method assignRole(groupId, roleId) the input roleId must not be null.");
         groupService.assignRole(1L, null);
     }
 
     @Test
-    public void assignRoleWihtGroupNotFoundShouldThrowException() {
+    public void assignRoleWithGroupNotFoundShouldThrowException() {
         thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Group with id: " + group1.getId() + " could not be found.");
+        thrown.expectMessage("IDMGroup with id "+ group1.getId() + " not found.");
         given(groupRepository.findById(group1.getId())).willReturn(Optional.empty());
         groupService.assignRole(group1.getId(), 1L);
-    }
-
-    @Test
-    public void removeUsers() {
-        group1.addUser(user1);
-        group1.addUser(user2);
-        group1.addUser(user3);
-
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
-        given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
-        given(groupRepository.save(group1)).willReturn(group1);
-
-        IDMGroup g = groupService.removeUsers(group1.getId(), Arrays.asList(user1.getId(), group2.getId()));
-
-        assertEquals(group1, g);
-        assertFalse(g.getUsers().contains(user1));
-        assertFalse(g.getUsers().contains(user2));
-        assertTrue(g.getUsers().contains(user3));
-
-        then(groupRepository).should().isIDMGroupInternal(group1.getId());
-        then(groupRepository).should().findById(group1.getId());
-        then(userRepository).should().findById(user1.getId());
-        then(userRepository).should().findById(user2.getId());
-        then(groupRepository).should().save(group1);
-    }
-
-    @Test
-    public void removeUsersWithGroupIdNullShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input groupId must not be null");
-        groupService.removeUsers(null, Collections.singletonList(1L));
-    }
-
-    @Test
-    public void removeUsersWithUserIdsNullShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input list of users ids must not be null");
-        groupService.removeUsers(1L, null);
-    }
-
-    @Test
-    public void removeUsersWithGroupIsExternalShouldThrowException() {
-        group1.setExternalId(123L);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(false);
-        thrown.expect(ExternalSourceException.class);
-        thrown.expectMessage("Group is external therefore it could not be updated");
-        groupService.removeUsers(group1.getId(), Arrays.asList(user1.getId(), user2.getId()));
-    }
-
-    @Test
-    public void removeUsersWithUserNotFoundShouldThrowException() {
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + user1.getId() + " could not be found");
-        groupService.removeUsers(group1.getId(), List.of(user1.getId(), user2.getId()));
-    }
-
-    @Test
-    public void addUsers() {
-        group2.addUser(user2);
-
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
-        given(groupRepository.findById(group2.getId())).willReturn(Optional.of(group2));
-        given(groupRepository.save(group1)).willReturn(group1);
-
-        IDMGroup g = groupService.addUsers(group1.getId(), Collections.singletonList(group2.getId()), Collections.singletonList(user1.getId()));
-
-        assertEquals(group1, g);
-        assertTrue(g.getUsers().contains(user1));
-        assertTrue(g.getUsers().contains(user2));
-        assertFalse(g.getUsers().contains(user3));
-
-        then(groupRepository).should().isIDMGroupInternal(group1.getId());
-        then(groupRepository).should().findById(group1.getId());
-        then(userRepository).should().findById(user1.getId());
-        then(groupRepository).should().findById(group2.getId());
-        then(groupRepository).should().save(group1);
-    }
-
-    @Test
-    public void addUsersWithGroupIdNullShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input groupId must not be null");
-        groupService.addUsers(null, Collections.singletonList(1L), Collections.singletonList(1L));
-    }
-
-    @Test
-    public void addUsersWithListOfGroupsIdsNullShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input list of groups ids must not be null");
-        groupService.addUsers(1L, null, Collections.singletonList(1L));
-    }
-
-    @Test
-    public void addUsersWithUserIdsNullShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input list of users ids must not be null");
-        groupService.addUsers(1L, Collections.singletonList(1L), null);
-    }
-
-    @Test
-    public void addUsersWithGroupIsExternalShouldThrowException() {
-        group1.setExternalId(123L);
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(false);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        thrown.expect(ExternalSourceException.class);
-        thrown.expectMessage("Group is external therefore it could not be updated");
-        groupService.addUsers(group1.getId(), Collections.singletonList(group2.getId()), Arrays.asList(user1.getId(), user2.getId()));
-    }
-
-    @Test
-    public void addUsersWithUserNotFoundShouldThrowException() {
-        given(groupRepository.isIDMGroupInternal(group1.getId())).willReturn(true);
-        given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
-        given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + user1.getId() + " could not be found");
-        groupService.addUsers(group1.getId(), Collections.singletonList(group2.getId()), Arrays.asList(user1.getId(), user2.getId()));
     }
 
     private void deepEquals(IDMGroup expectedGroup, IDMGroup actualGroup) {

@@ -12,24 +12,7 @@ import java.util.Set;
  * That class is used for mapping entities to dto classes. Example of usage for this mapper shown
  * below:
  *
- * <pre>
- * <code>
- public class UserFacadeImpl implements UserFacade {
-
- &#64;Autowired
- private BeanMapping beanMapping;
-
- &#64;Override
- public List&lt;UserDTO&gt; getAllUsers() {
- return beanMapping.mapTo(userService.findAll(), UserDTO.class);
- }
- }
- * </code>
- * </pre>
- *
  * This example shows mapping list of user entities to list of user dto classes.
- *
- *
  */
 public interface BeanMapping {
 

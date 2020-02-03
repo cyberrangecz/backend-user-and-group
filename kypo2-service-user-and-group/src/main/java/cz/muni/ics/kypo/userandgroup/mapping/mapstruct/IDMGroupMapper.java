@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupWithRolesDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -15,7 +16,6 @@ import java.util.*;
 /**
  * The IDMGroupMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type IDMGroup and
  * DTOs classes. Code is generated during compile time.
- *
  */
 @Mapper(componentModel = "spring", uses = {RoleMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IDMGroupMapper extends ParentMapper {
@@ -23,6 +23,8 @@ public interface IDMGroupMapper extends ParentMapper {
     IDMGroup mapToEntity(GroupDTO dto);
 
     GroupDTO mapToDTO(IDMGroup entity);
+
+    GroupWithRolesDTO mapTOWithRolesDto(IDMGroup entity);
 
     IDMGroup mapCreateToEntity(NewGroupDTO dto);
 

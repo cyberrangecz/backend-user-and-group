@@ -2,7 +2,6 @@ package cz.muni.ics.kypo.userandgroup.api.exceptions;
 
 /**
  * Custom <i>RuntimeException</i> is thrown when a role cannot be removed from a group.
- *
  */
 public class RoleCannotBeRemovedToGroupException extends RuntimeException {
 

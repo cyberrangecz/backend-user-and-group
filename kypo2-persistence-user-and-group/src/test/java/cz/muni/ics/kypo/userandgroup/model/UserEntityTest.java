@@ -10,6 +10,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.PersistenceException;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
@@ -30,16 +32,8 @@ public class UserEntityTest {
 
     @Test
     public void createWhenLoginIsNullShouldThrowException() {
-        this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Login must not be empty");
-        new User(null, "https://oidc.muni.cz/oidc/");
-    }
-
-    @Test
-    public void createWhenLoginIsEmptyShouldThrowException() {
-        this.thrown.expect(IllegalArgumentException.class);
-        this.thrown.expectMessage("Login must not be empty");
-        new User("", "https://oidc.muni.cz/oidc/");
+        this.thrown.expect(PersistenceException.class);
+        this.entityManager.persist(new User(null, "https://oidc.muni.cz/oidc/"));
     }
 
     @Test

@@ -9,7 +9,6 @@ import java.util.*;
 
 /**
  * Represents a group of users who can have some roles.
- *
  */
 @Entity
 @Table(name = "idm_group")

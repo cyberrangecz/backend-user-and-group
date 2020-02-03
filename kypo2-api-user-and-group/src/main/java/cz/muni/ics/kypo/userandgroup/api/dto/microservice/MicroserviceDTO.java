@@ -7,10 +7,8 @@ import java.util.Objects;
 
 /**
  * Encapsulates information about a microservice.
- *
  */
-@ApiModel(value = "MicroserviceDTO",
-        description = "Information about a microservice.")
+@ApiModel(value = "MicroserviceDTO", description = "Information about a microservice.")
 public class MicroserviceDTO {
 
     @ApiModelProperty(value = "Main identifier of the microservice.", example = "1", position = 1)

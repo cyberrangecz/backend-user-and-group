@@ -5,16 +5,16 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.Source;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.ExternalSourceException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
+import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
+import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.rest.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import org.junit.Before;
@@ -66,14 +66,10 @@ public class GroupsRestControllerTest {
     private GroupDTO groupDTO1, groupDTO2;
     private NewGroupDTO newGroupDTO;
     private UpdateGroupDTO updateGroupDTO;
-    private int page, size;
     private PageResultResource<GroupDTO> groupPageResultResource;
 
     @Before
     public void setup() throws RuntimeException {
-        page = 0;
-        size = 10;
-
         groupDTO1 = new GroupDTO();
         groupDTO1.setId(1L);
         groupDTO1.setName("GroupOne");
@@ -134,26 +130,12 @@ public class GroupsRestControllerTest {
     }
 
     @Test
-    public void testCreateGroupCouldNotBeCreated() throws Exception {
-        given(groupFacade.createGroup(any(NewGroupDTO.class))).willThrow(new UserAndGroupFacadeException());
-        Exception ex = mockMvc.perform(
-                post("/groups" + "/")
-                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                        .content(convertObjectToJsonBytes(getNewGroupDTO())))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("Some of given groups could not be found in database.", ex.getLocalizedMessage());
-        then(groupFacade).should().createGroup(any(NewGroupDTO.class));
-    }
-
-    @Test
     public void testCreateGroupWithNullRequestBody() throws Exception {
         mockMvc.perform(
                 post("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
-        then(groupFacade).should(never()).isGroupInternal(anyLong());
         then(groupFacade).should(never()).updateGroup(any(UpdateGroupDTO.class));
     }
 
@@ -164,19 +146,6 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(updateGroupDTO)))
                 .andExpect(status().isNoContent());
-        then(groupFacade).should().updateGroup(any(UpdateGroupDTO.class));
-    }
-
-    @Test
-    public void testUpdateExternalGroup() throws Exception {
-        willThrow(ExternalSourceException.class).given(groupFacade).updateGroup(any(UpdateGroupDTO.class));
-        Exception ex = mockMvc.perform(
-                put("/groups" + "/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(updateGroupDTO)))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group is external therefore they could not be updated", ex.getLocalizedMessage());
         then(groupFacade).should().updateGroup(any(UpdateGroupDTO.class));
     }
 
@@ -205,27 +174,14 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testRemoveUsersWithUserAndGroupFacadeException() throws Exception {
-        willThrow(new UserAndGroupFacadeException("Given group or users could not be found")).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("No users with given ids were found", ErrorCode.RESOURCE_NOT_FOUND))).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
         Exception ex = mockMvc.perform(
                 delete("/groups" + "/{id}" + "/users", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Given group or users could not be found", ex.getLocalizedMessage());
-        then(groupFacade).should().removeUsers(100L, Collections.singletonList(1L));
-    }
-
-    @Test
-    public void testRemoveUsersWithExternalSourceException() throws Exception {
-        willThrow(ExternalSourceException.class).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
-        Exception ex = mockMvc.perform(
-                delete("/groups" + "/{id}" + "/users", 100L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(Arrays.asList(1L))))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group is external therefore it could not be edited", ex.getLocalizedMessage());
+        assertEquals("No users with given ids were found", getInitialExceptionMessage(ex));
         then(groupFacade).should().removeUsers(100L, Collections.singletonList(1L));
     }
 
@@ -236,7 +192,6 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
-        then(groupFacade).should(never()).isGroupInternal(anyLong());
         then(groupFacade).should(never()).removeUsers(anyLong(), anyList());
     }
 
@@ -254,20 +209,21 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNoContent());
-        then(groupFacade).should().addUsers(anyLong(), any(AddUsersToGroupDTO.class));
+        then(groupFacade).should().addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
     }
 
     @Test
     public void testAddUsersWithNotFoundError() throws Exception {
-        willThrow(new UserAndGroupFacadeException("Given group or users could not be found")).given(groupFacade).addUsers(anyLong(), any(AddUsersToGroupDTO.class));
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("Given group or users could not be found", ErrorCode.RESOURCE_NOT_FOUND)))
+                .given(groupFacade).addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
         Exception ex = mockMvc.perform(
                 put("/groups" + "/{id}/users", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Given group or users could not be found", ex.getLocalizedMessage());
-        then(groupFacade).should().addUsers(anyLong(), any(AddUsersToGroupDTO.class));
+        assertEquals("Given group or users could not be found", getInitialExceptionMessage(ex));
+        then(groupFacade).should().addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
     }
 
     @Test
@@ -277,45 +233,25 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
-        then(groupFacade).should(never()).isGroupInternal(anyLong());
-        then(groupFacade).should(never()).addUsers(anyLong(), any(AddUsersToGroupDTO.class));
-    }
-
-    @Test
-    public void testAddUsersWithExternalSourceException() throws Exception {
-        willThrow(ExternalSourceException.class).given(groupFacade).addUsers(anyLong(), any(AddUsersToGroupDTO.class));
-        Exception ex = mockMvc.perform(
-                put("/groups" + "/{id}/users", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
-                .andExpect(status().isNotModified())
-                .andReturn().getResolvedException();
-        assertEquals("Group is external therefore it could not be edited", ex.getLocalizedMessage());
-        then(groupFacade).should().addUsers(anyLong(), any(AddUsersToGroupDTO.class));
+        then(groupFacade).should(never()).addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
     }
 
     @Test
     public void testDeleteGroup() throws Exception {
-        given(groupFacade.deleteGroup(groupDTO1.getId())).willReturn(getGroupDeletionResponse());
         mockMvc.perform(
                 delete("/groups" + "/{id}", groupDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getGroupDeletionResponse())));
+                .andExpect(status().isOk());
         then(groupFacade).should().deleteGroup(groupDTO1.getId());
     }
 
     @Test
     public void testDeleteGroups() throws Exception {
-        given(groupFacade.deleteGroups(Collections.singletonList(1L))).willReturn(Collections.singletonList(getGroupDeletionResponse()));
         mockMvc.perform(
                 delete("/groups" + "/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(Collections.singletonList(getGroupDeletionResponse()))));
+                .andExpect(status().isOk());
         then(groupFacade).should().deleteGroups(Collections.singletonList(1L));
     }
 
@@ -345,23 +281,24 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testGetGroup() throws Exception {
-        given(groupFacade.getGroup(groupDTO1.getId())).willReturn(groupDTO1);
+        given(groupFacade.getGroupById(groupDTO1.getId())).willReturn(groupDTO1);
         mockMvc.perform(
                 get("/groups" + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
-        then(groupFacade).should().getGroup(groupDTO1.getId());
+        then(groupFacade).should().getGroupById(groupDTO1.getId());
     }
 
     @Test
     public void testGetGroupWithGroupNotFound() throws Exception {
-        given(groupFacade.getGroup(groupDTO1.getId())).willThrow(new UserAndGroupFacadeException("Group with id " + groupDTO1.getId() + " could not be found."));
+        given(groupFacade.getGroupById(groupDTO1.getId())).willThrow(
+                new UserAndGroupFacadeException(new UserAndGroupServiceException("Group with id " + groupDTO1.getId() + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
         Exception ex = mockMvc.perform(
                 get("/groups" + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", ex.getLocalizedMessage());
+        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
     }
 
     @Test
@@ -375,16 +312,6 @@ public class GroupsRestControllerTest {
         then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
     }
 
-    @Test
-    public void testGetRolesOfGroupWithExceptionFromFacade() throws Exception {
-        given(groupFacade.getRolesOfGroup(groupDTO1.getId())).willThrow(new UserAndGroupFacadeException("Group with id " + groupDTO1.getId() + " could not be found or some of microservice did not return status code 2xx."));
-        Exception ex = mockMvc.perform(
-                get("/groups" + "/{id}/roles", groupDTO1.getId()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " could not be found or some of microservice did not return status code 2xx.", ex.getLocalizedMessage());
-        then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
-    }
 
     @Test
     public void assignRoleToGroup() throws Exception {
@@ -396,7 +323,7 @@ public class GroupsRestControllerTest {
 
     @Test
     public void assignRoleToGroupWithUserAndGroupException() throws Exception {
-        willThrow(UserAndGroupFacadeException.class).given(groupFacade).assignRole(1L, 2L);
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND))).given(groupFacade).assignRole(1L, 2L);
         Exception exception = mockMvc.perform(
                 put("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isNotFound())
@@ -414,7 +341,7 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testRemoveRoleWithUserAndGroupException() throws Exception {
-        willThrow(UserAndGroupFacadeException.class).given(groupFacade).removeRoleFromGroup(1L, 2L);
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND))).given(groupFacade).removeRoleFromGroup(1L, 2L);
         Exception exception = mockMvc.perform(
                 delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isNotFound())
@@ -424,7 +351,7 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testRemoveRoleFromGroupWithRoleCannotBeRemovedException() throws Exception {
-        willThrow(RoleCannotBeRemovedToGroupException.class).given(groupFacade).removeRoleFromGroup(1L, 2L);
+        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("Cannot be removed.", ErrorCode.RESOURCE_CONFLICT))).given(groupFacade).removeRoleFromGroup(1L, 2L);
         Exception exception = mockMvc.perform(
                 delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isConflict())
@@ -457,13 +384,6 @@ public class GroupsRestControllerTest {
         return newGroupDTO;
     }
 
-    private GroupDeletionResponseDTO getGroupDeletionResponse() {
-        GroupDeletionResponseDTO groupDeletionResponseDTO = new GroupDeletionResponseDTO();
-        groupDeletionResponseDTO.setId(1L);
-        groupDeletionResponseDTO.setStatus(GroupDeletionStatusDTO.SUCCESS);
-        return groupDeletionResponseDTO;
-    }
-
     private UserForGroupsDTO getUserForGroupsDTO() {
         UserForGroupsDTO userDTO = new UserForGroupsDTO();
         userDTO.setId(1L);
@@ -490,4 +410,12 @@ public class GroupsRestControllerTest {
     private Set<RoleDTO> getRolesDTO() {
         return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
     }
+
+    private String getInitialExceptionMessage(Exception exception) {
+        while (exception.getCause() != null) {
+            exception = (Exception) exception.getCause();
+        }
+        return exception.getMessage();
+    }
+
 }

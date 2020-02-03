@@ -13,17 +13,15 @@ import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.rest.ApiError;
+import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,14 +31,11 @@ import java.util.Set;
 
 /**
  * Rest controller for the Role resource.
- *
  */
 @Api(value = "Endpoint for Roles", tags = "roles")
 @RestController
 @RequestMapping(path = "/roles")
 public class RolesRestController {
-
-    private static Logger LOG = LoggerFactory.getLogger(RolesRestController.class);
 
     private RoleFacade roleFacade;
     private UserFacade userFacade;
@@ -63,9 +58,9 @@ public class RolesRestController {
     /**
      * Gets all roles.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
      * @return the roles
      */
     @ApiOperation(httpMethod = "GET",
@@ -85,7 +80,7 @@ public class RolesRestController {
                                            @RequestParam(value = "fields", required = false) String fields) {
         PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
         Squiggly.init(objectMapper, fields);
-        return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, roleDTOs), HttpStatus.OK);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, roleDTOs));
     }
 
     /**
@@ -108,19 +103,19 @@ public class RolesRestController {
     public ResponseEntity<RoleDTO> getRole(@ApiParam(value = "Id of role to be returned", required = true)
                                            @PathVariable("id") final Long id) {
         try {
-            return new ResponseEntity<>(roleFacade.getById(id), HttpStatus.OK);
+            return ResponseEntity.ok(roleFacade.getRoleById(id));
         } catch (UserAndGroupFacadeException ex) {
-            throw new ResourceNotFoundException("Role with given id " + id + " could not be found");
+            throw ExceptionSorter.throwException(ex);
         }
     }
 
     /**
      * Gets users with a given role ID.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
-     * @param roleId     the ID of the role
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
+     * @param roleId    the ID of the role
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
@@ -140,29 +135,29 @@ public class RolesRestController {
                                                         Pageable pageable,
                                                         @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                         @RequestParam(value = "fields", required = false) String fields,
-                                                        @ApiParam(value = "Type of role to get users for.", required = true)
+                                                        @ApiParam(value = "Type of role to getGroupById users for.", required = true)
                                                         @PathVariable("roleId") Long roleId) {
         try {
             PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleId, predicate, pageable);
             Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+            return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
     /**
      * Gets users with a given role type.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
-     * @param roleType   the type of the role
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
+     * @param roleType  the type of the role
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
             value = "Gets all users with given role type.",
-            nickname = "getUsersWithGivenRole",
+            nickname = "getUsersWithGivenRoleType",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
@@ -177,14 +172,14 @@ public class RolesRestController {
                                                             Pageable pageable,
                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                             @RequestParam(value = "fields", required = false) String fields,
-                                                            @ApiParam(value = "Type of role to get users for.", required = true)
+                                                            @ApiParam(value = "Type of role to getGroupById users for.", required = true)
                                                             @RequestParam("roleType") String roleType) {
         try {
             PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
             Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
+            return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
         } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
+            throw ExceptionSorter.throwException(e);
         }
     }
 
@@ -192,11 +187,11 @@ public class RolesRestController {
     /**
      * Gets users with a given role type and not with given ids.
      *
-     * @param predicate  specifies query to database.
-     * @param pageable   pageable parameter with information about pagination.
-     * @param fields     attributes of the object to be returned as the result.
-     * @param roleType   the type of the role
-     * @param userIds    ids of the users to be excluded from the result.
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @param fields    attributes of the object to be returned as the result.
+     * @param roleType  the type of the role
+     * @param userIds   ids of the users to be excluded from the result.
      * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
@@ -212,29 +207,25 @@ public class RolesRestController {
     @ApiPageableSwagger
     @GetMapping(path = "/users-not-with-ids", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenRoleTypeAndNotWithGivenIds(
-                                                            @ApiParam(value = "Filtering on User entity attributes", required = false)
-                                                            @QuerydslPredicate(root = User.class) Predicate predicate,
-                                                            Pageable pageable,
-                                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                            @RequestParam(value = "fields", required = false) String fields,
-                                                            @ApiParam(value = "Type of role to get users for.", required = true)
-                                                            @RequestParam("roleType") String roleType,
-                                                            @ApiParam(value = "Ids of the users to be excluded from the result.", required = true)
-                                                            @RequestParam("ids") Set<Long> userIds) {
-        if(pageable.getPageSize() >= 1000) {
+            @ApiParam(value = "Filtering on User entity attributes", required = false)
+            @QuerydslPredicate(root = User.class) Predicate predicate,
+            Pageable pageable,
+            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+            @RequestParam(value = "fields", required = false) String fields,
+            @ApiParam(value = "Type of role to getGroupById users for.", required = true)
+            @RequestParam("roleType") String roleType,
+            @ApiParam(value = "Ids of the users to be excluded from the result.", required = true)
+            @RequestParam("ids") Set<Long> userIds) {
+        if (pageable.getPageSize() >= 1000) {
             throw new BadRequestException("Choose page size lower than 1000");
         }
-        try {
-            PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable, roleType, userIds);
-            Squiggly.init(objectMapper, fields);
-            return new ResponseEntity<>(SquigglyUtils.stringify(objectMapper, userDTOs), HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
-        }
+        PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable, roleType, userIds);
+        Squiggly.init(objectMapper, fields);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
 
     @ApiModel(value = "RoleRestResource",
-            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages")
+            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
     public static class RoleRestResource extends PageResultResource<RoleDTO> {
         @JsonProperty(required = true)
         @ApiModelProperty(value = "Retrieved Roles from databases.")

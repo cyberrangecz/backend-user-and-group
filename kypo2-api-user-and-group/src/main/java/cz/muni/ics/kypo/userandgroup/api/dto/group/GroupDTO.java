@@ -14,10 +14,8 @@ import java.util.*;
 
 /**
  * GroupDTO encapsulates information about a group.
- *
  */
-@ApiModel(value = "GroupDTO",
-        description = "The detailed information about a group.")
+@ApiModel(value = "GroupDTO", description = "The detailed information about a group.")
 public class GroupDTO {
 
     @ApiModelProperty(value = "Main identifier of group.", example = "1", position = 1)

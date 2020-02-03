@@ -12,9 +12,7 @@ import java.io.IOException;
 
 /**
  * Configuration of Spring Security beans in production and developer mode.
- *
  */
-
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CustomCorsFilter implements Filter {

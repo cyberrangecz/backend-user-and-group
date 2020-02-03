@@ -7,26 +7,24 @@ import java.util.Objects;
 
 /**
  * Encapsulates information about a user used in {@link cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO}.
- *
  */
-@ApiModel(value = "User for Groups Dto.",
-        description = "Encapsulates information about a user used in a given groups.")
+@ApiModel(value = "User for Groups Dto.", description = "Encapsulates information about a user used in a given groups.")
 public class UserForGroupsDTO {
 
     @ApiModelProperty(value = "Main identifiers of the user.", example = "1", position = 1)
     private Long id;
+    @ApiModelProperty(value = "Login of the user.", example = "{\"login\":\"pavelseda\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
+    private String login;
+    @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
+    private String iss;
     @ApiModelProperty(value = "Full name of the user including his titles.", example = "Pavel Seda.")
     private String fullName;
     @ApiModelProperty(value = "First name of a user.", example = "Pavel")
     private String givenName;
     @ApiModelProperty(value = "Surname of a user.", example = "Seda")
     private String familyName;
-    @ApiModelProperty(value = "Login of the user.", example = "{\"sub\":\"pavelseda\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
-    private String login;
     @ApiModelProperty(value = "Email of the user.", example = "pavelseda@mail.muni.cz")
     private String mail;
-    @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
-    private String iss;
     @ApiModelProperty(value = "Identicon of a user.", example = "iVBORw0KGgoAAAANSUhEUgAAAEsAAABLCAYAAAA4TnrqAAACIUlEQVR4Xu3YsY0dSQxAQQUlpXT5Z3CS/YgxSrQa4gLlEOBb9pj/x6//fv7/t/78/XhN3yBWyz3kBX2DWC33kBf0DWK13ENe0DeI1XIPeUHfIFbLPeQFfYNYLfeQF/QNYrXcQ17QN4jVcg95Qd8gVss95AV9g1gt95AX9A1itdxDXtA3iNVyD3lB3yBWyz3kBX2DWC33kBf0DWLERGOiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS4yB6CGiLdGWaEuMgeghoi3RlmhLjIHoIaIt0ZZoS6z+8b/mPha4jwXuY4H7WOA+FriPBe5jgftY4D4WuI8F7mOB+1jgPha4jwXGbzbn2xicb2Nwvo3B+TYG59sYnG9jcL6Nwfk2BufbGJxvY3C+jcH5Ngbn2xicb2Nwvq1+z2pMtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3Rllgt9xDRlmhLtCVWyz1EtCXaEm2J1XIPEW2JtkRbYrXcQ0Rboi3RlvgNt34wfeJElG8AAAAASUVORK5CYII=")
     private byte[] picture;
 

@@ -209,7 +209,7 @@ public class RolesIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("Role with given id 100 could not be found", exception.getMessage());
+        assertEquals("Role with id 100 could not be found", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -230,7 +230,7 @@ public class RolesIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
         assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("Role with id: 100 could not be found.", exception.getMessage());
+        assertEquals("Role with id: 100 could not be found.", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -269,6 +269,13 @@ public class RolesIntegrationTests {
     private static String convertJsonBytesToObject(String object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(object, String.class);
+    }
+
+    private String getInitialExceptionMessage(Exception exception) {
+        while (exception.getCause() != null) {
+            exception = (Exception) exception.getCause();
+        }
+        return exception.getMessage();
     }
 
 }
