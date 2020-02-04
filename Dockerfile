@@ -11,7 +11,7 @@ RUN mvn clean package
 #
 # Package stage
 #
-FROM openjdk:11-jdk AS jdk
+FROM adoptopenjdk/openjdk11:debian-slim AS jdk
 COPY --from=build /app/kypo2-rest-user-and-group/target/kypo2-rest-user-and-group-*.jar /app/kypo-rest-user-and-group.jar
 COPY --from=build /app/etc/user-and-group.properties /app/etc/user-and-group.properties
 COPY --from=build /app/etc/initial-users.yml /app/etc/initial-users.yml
