@@ -115,27 +115,34 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         Assert.notNull(groupId, "In method addUsersToGroup(id) the input id must not be null.");
         try {
             IDMGroup groupToUpdate = groupService.getGroupById(groupId);
-            if (!addUsers.getIdsOfUsersToBeAdd().isEmpty()) {
-                List<User> users = userService.getUsersByIds(addUsers.getIdsOfUsersToBeAdd());
-                for (User user : users) {
-                    groupToUpdate.addUser(user);
-                    groupService.evictUserFromCache(user);
-                }
-            }
-
-            if (!addUsers.getIdsOfGroupsOfImportedUsers().isEmpty()) {
-                List<IDMGroup> groups = groupService.getGroupsByIds(addUsers.getIdsOfGroupsOfImportedUsers());
-                for (IDMGroup groupOfImportedMembers : groups) {
-                    groupOfImportedMembers.getUsers().forEach(user -> {
-                        if (!groupToUpdate.getUsers().contains(user)) {
-                            groupToUpdate.addUser(user);
-                        }
-                    });
-                }
-            }
+            addUsersWithIdsToGroup(groupToUpdate, addUsers.getIdsOfUsersToBeAdd());
+            importUsersFromGroupsToGroup(groupToUpdate, addUsers.getIdsOfGroupsOfImportedUsers());
             groupService.updateIDMGroup(groupToUpdate);
         } catch (UserAndGroupServiceException e) {
             throw new UserAndGroupFacadeException(e);
+        }
+    }
+
+    private void addUsersWithIdsToGroup(IDMGroup group, List<Long> idsOfUsers) {
+        if (!idsOfUsers.isEmpty()) {
+            List<User> users = userService.getUsersByIds(idsOfUsers);
+            for (User user : users) {
+                group.addUser(user);
+                groupService.evictUserFromCache(user);
+            }
+        }
+    }
+
+    private void importUsersFromGroupsToGroup(IDMGroup group, List<Long> idsOfGroups) {
+        if (!idsOfGroups.isEmpty()) {
+            List<IDMGroup> groups = groupService.getGroupsByIds(idsOfGroups);
+            for (IDMGroup groupOfImportedMembers : groups) {
+                groupOfImportedMembers.getUsers().forEach(user -> {
+                    if (!group.getUsers().contains(user)) {
+                        group.addUser(user);
+                    }
+                });
+            }
         }
     }
 
@@ -171,18 +178,11 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @TransactionalRO
     public PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) {
         PageResultResource<GroupDTO> groups = groupMapper.mapToPageResultResource(groupService.getAllIDMGroups(predicate, pageable));
-        List<GroupDTO> groupsWithRoles = groups.getContent().stream()
-                .map(groupDTO -> {
-                    groupDTO.setRoles(this.getRolesOfGroup(groupDTO.getId()));
-                    return groupDTO;
-                })
-                .collect(Collectors.toCollection(ArrayList::new));
         groups.getContent().forEach(groupDTO -> {
             if (getListOfAllGroupsInUserAndGroupMicroservice().contains(groupDTO.getName())) {
                 groupDTO.setCanBeDeleted(false);
             }
         });
-        groups.setContent(groupsWithRoles);
         return groups;
     }
 
@@ -197,7 +197,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         Assert.notNull(id, "In method getGroupById(id) the input id must not be null.");
         try {
             GroupDTO groupDTO = groupMapper.mapToDTO(groupService.getGroupById(id));
-            groupDTO.setRoles(this.getRolesOfGroup(id));
             if (getListOfAllGroupsInUserAndGroupMicroservice().contains(groupDTO.getName())) {
                 groupDTO.setCanBeDeleted(false);
             }

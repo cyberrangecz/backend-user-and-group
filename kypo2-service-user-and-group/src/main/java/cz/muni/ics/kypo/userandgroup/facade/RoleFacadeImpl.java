@@ -46,8 +46,7 @@ public class RoleFacadeImpl implements RoleFacade {
     public RoleDTO getRoleById(Long id) {
         Assert.notNull(id, "In method getRoleById(id) the input id must not be null.");
         try {
-            Role role = roleService.getRoleById(id);
-            return convertToRoleDTO(role);
+            return roleMapper.mapToRoleDTOWithMicroservice(roleService.getRoleById(id));
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException(ex);
         }
@@ -59,8 +58,7 @@ public class RoleFacadeImpl implements RoleFacade {
     public RoleDTO getByRoleType(String roleType) {
         Assert.hasLength(roleType, "In method getByRoleType(roleType) the input roleType must not be empty.");
         try {
-            Role role = roleService.getByRoleType(roleType.toUpperCase());
-            return convertToRoleDTO(role);
+            return roleMapper.mapToRoleDTOWithMicroservice(roleService.getByRoleType(roleType.toUpperCase()));
         } catch (UserAndGroupServiceException ex) {
             throw new UserAndGroupFacadeException("Role with role type: " + roleType + " could not be found.", ex);
         }
@@ -71,20 +69,10 @@ public class RoleFacadeImpl implements RoleFacade {
     @TransactionalRO
     public PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable) {
         Page<Role> roles = roleService.getAllRoles(predicate, pageable);
-        List<RoleDTO> roleDtos = roles.getContent().stream()
-                .map(this::convertToRoleDTO)
+        List<RoleDTO> roleDTOs = roles.getContent().stream()
+                .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
                 .collect(Collectors.toCollection(ArrayList::new));
         PageResultResource.Pagination pagination = roleMapper.createPagination(roles);
-        return new PageResultResource<>(roleDtos, pagination);
-    }
-
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO = roleMapper.mapToDTO(role);
-        Microservice microservice = role.getMicroservice();
-        if (microservice != null) {
-            roleDTO.setIdOfMicroservice(microservice.getId());
-            roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
-        }
-        return roleDTO;
+        return new PageResultResource<>(roleDTOs, pagination);
     }
 }

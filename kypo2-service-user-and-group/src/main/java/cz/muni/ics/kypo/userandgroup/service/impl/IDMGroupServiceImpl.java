@@ -147,16 +147,20 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
         for (Role role : group.getRoles()) {
             if (role.getId().equals(roleId)) {
-                if (group.getName().equals(ImplicitGroupNames.DEFAULT_GROUP.getName()) && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
-                        group.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
-                        group.getName().equals(ImplicitGroupNames.USER_AND_GROUP_USER.getName()) && role.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
-                    throw new UserAndGroupServiceException("Role " + role.getRoleType() + " cannot be removed from group. This role is main role of the group.", ErrorCode.RESOURCE_CONFLICT);
-                }
+                checkIfCanBeRemoved(group.getName(), role.getRoleType());
                 group.removeRole(role);
                 return groupRepository.save(group);
             }
         }
         throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found in given group.", ErrorCode.RESOURCE_NOT_FOUND);
+    }
+
+    private void checkIfCanBeRemoved(String groupName, String roleType) {
+        if (groupName.equals(ImplicitGroupNames.DEFAULT_GROUP.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
+                groupName.equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
+                groupName.equals(ImplicitGroupNames.USER_AND_GROUP_USER.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
+            throw new UserAndGroupServiceException("Role " + roleType + " cannot be removed from group. This role is main role of the group.", ErrorCode.RESOURCE_CONFLICT);
+        }
     }
 
     //    @CacheEvict(value = AbstractCacheNames.USERS_CACHE_NAME, key = "{#user.sub+#user.iss}")

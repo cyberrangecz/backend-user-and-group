@@ -3,9 +3,11 @@ package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
@@ -41,6 +43,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -548,9 +551,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToGroupDTO(defaultGroup))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToGroupDTO(userGroup))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToGroupDTO(organizerGroup))));
+        List<GroupDTO> responseGroupDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<GroupDTO>>() {}).getContent();
+        assertTrue(responseGroupDTOs.contains(convertToGroupDTO(userGroup)));
+        assertTrue(responseGroupDTOs.contains(convertToGroupDTO(userGroup)));
+        assertTrue(responseGroupDTOs.contains(convertToGroupDTO(organizerGroup)));
     }
 
     @Test
@@ -559,7 +563,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToGroupDTO(userGroup))));
+        assertEquals(convertJsonBytesToObject(response.getContentAsString(), GroupDTO.class), convertToGroupDTO(userGroup));
     }
 
     @Test
@@ -679,6 +683,12 @@ public class IDMGroupsIntegrationTests {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         return mapper.readValue(object, objectClass);
+    }
+
+    private static <T> T convertJsonBytesToObject(String object, TypeReference<T> tTypeReference) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        return mapper.readValue(object, tTypeReference);
     }
 
     private GroupDTO convertToGroupDTO(IDMGroup group) {

@@ -198,7 +198,6 @@ public class IDMGroupFacadeTest {
 
         assertEquals(g1.getName(), groupDTO.getName());
         then(groupService).should(times(1)).getGroupById(1L);
-        then(groupService).should().getRolesOfGroup(1L);
     }
 
     @Test
