@@ -146,8 +146,7 @@ public class UserFacadeImpl implements UserFacade {
             user.setFamilyName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.FAMILY_NAME));
             user.setFullName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.NAME));
             user.setMail(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.EMAIL));
-            User newUser = userService.updateUser(user);
-            return userMapper.mapToDTO(newUser);
+            userService.updateUser(user);
         }
         UserDTO updatedUser = userMapper.mapToDTO(user);
         updatedUser.setRoles(roleMapper.mapToSetDTO(user.getGroups().stream()
