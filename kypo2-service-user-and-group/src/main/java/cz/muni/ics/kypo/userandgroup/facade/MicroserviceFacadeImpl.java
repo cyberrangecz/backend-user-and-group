@@ -106,7 +106,7 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
                         defaultGroup.removeRole(roleService.getDefaultRoleOfMicroservice(microservice.getName()));
                     }
                 } catch (UserAndGroupServiceException e) {
-                    throw new UserAndGroupFacadeException(e);
+                    throw new UserAndGroupFacadeException(e.getLocalizedMessage());
                 }
             }
         });

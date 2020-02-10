@@ -1,13 +1,11 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -21,10 +19,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
@@ -33,8 +33,11 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = {TestDataFactory.class})
 public class IDMGroupServiceTest {
 
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     private IDMGroupService groupService;
@@ -50,8 +53,7 @@ public class IDMGroupServiceTest {
     private UserRepository userRepository;
 
     private IDMGroup group1, group2, mainGroup;
-    private Role adminRole, userRole, guestRole;
-    private User user1, user2, user3;
+    private Role adminRole, userRole;
 
     private Pageable pageable;
     private Predicate predicate;
@@ -60,44 +62,12 @@ public class IDMGroupServiceTest {
     public void init() {
         groupService = new IDMGroupServiceImpl(groupRepository, roleRepository, securityService);
 
-        group1 = new IDMGroup("group1", "Great group1");
-        group1.setId(1L);
+        group1 = testDataFactory.getUAGDefaultGroup();
+        group2 = testDataFactory.getTrainingDesignerGroup();
+        mainGroup = testDataFactory.getUAGAdminGroup();
 
-        group2 = new IDMGroup("group2", "Great group2");
-        group2.setId(2L);
-
-        mainGroup = new IDMGroup(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), "Main group of administrators");
-        mainGroup.setId(3L);
-
-        adminRole = new Role();
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        adminRole.setId(1L);
-
-        userRole = new Role();
-        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
-        userRole.setId(2L);
-
-        guestRole = new Role();
-        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        guestRole.setId(3L);
-
-        user1 = new User("user1", "https://oidc.muni.cz/oidc/");
-        user1.setId(1L);
-        user1.setFullName("User One");
-        user1.setMail("user.one@mail.com");
-        user1.setStatus(UserAndGroupStatus.VALID);
-
-        user2 = new User("user2", "https://oidc.muni.cz/oidc/");
-        user2.setId(2L);
-        user2.setFullName("User Two");
-        user2.setMail("user.two@mail.com");
-        user2.setStatus(UserAndGroupStatus.VALID);
-
-        user3 = new User("user3", "https://oidc.muni.cz/oidc/");
-        user3.setId(3L);
-        user3.setFullName("User Three");
-        user3.setMail("user.three@mail.com");
-        user3.setStatus(UserAndGroupStatus.VALID);
+        adminRole = testDataFactory.getUAGAdminRole();
+        userRole = testDataFactory.getUAGUserRole();
 
         group1.setRoles(new HashSet<>(Arrays.asList(adminRole, userRole)));
         pageable = PageRequest.of(0, 10);
@@ -105,6 +75,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getGroup() {
+        group1.setId(1L);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         IDMGroup g = groupService.getGroupById(group1.getId());
         deepEquals(group1, g);
@@ -130,6 +101,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void createGroup() {
+        Role guestRole = testDataFactory.getUAGGuestRole();
         given(groupRepository.save(group1)).willReturn(group1);
         given(roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString())).willReturn(Optional.ofNullable(guestRole));
         IDMGroup g = groupService.createIDMGroup(group1, new ArrayList<>());
@@ -147,6 +119,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void updateGroup() {
+        group1.setId(1L);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(groupRepository.save(group1)).willReturn(group1);
         IDMGroup g = groupService.updateIDMGroup(group1);
@@ -164,12 +137,15 @@ public class IDMGroupServiceTest {
 
     @Test
     public void testDeleteGroupSuccess() {
-        groupService.deleteIDMGroup(group1);
-        then(groupRepository).should().delete(group1);
+        group2.setId(1L);
+        groupService.deleteIDMGroup(group2);
+        then(groupRepository).should().delete(group2);
+
     }
 
     @Test
     public void testDeleteGroupErrorMainGroup() {
+        mainGroup.setId(1L);
         given(roleRepository.findAll()).willReturn(Collections.singletonList(adminRole));
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("It is not possible to delete group with id: " + mainGroup.getId() + ". " +
@@ -237,6 +213,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getRolesOfGroup() {
+        group1.setId(1L);
         given(groupRepository.findById(group1.getId()))
                 .willReturn(Optional.ofNullable(group1));
         Set<Role> roles = groupService.getRolesOfGroup(group1.getId());
@@ -255,6 +232,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getRolesOfGroupWithGroupNotFoundShouldThrowException() {
+        group1.setId(1L);
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("IDMGroup with id " + group1.getId() + " not found.");
         groupService.getRolesOfGroup(group1.getId());
@@ -262,6 +240,8 @@ public class IDMGroupServiceTest {
 
     @Test
     public void assignRole() {
+        group1.setId(1L);
+        adminRole.setId(1L);
         given(groupRepository.findById(group1.getId())).willReturn(Optional.of(group1));
         given(roleRepository.findById(adminRole.getId())).willReturn(Optional.of(adminRole));
         given(groupRepository.save(group1)).willReturn(group1);
@@ -291,6 +271,7 @@ public class IDMGroupServiceTest {
 
     @Test
     public void assignRoleWithGroupNotFoundShouldThrowException() {
+        group1.setId(1L);
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("IDMGroup with id "+ group1.getId() + " not found.");
         given(groupRepository.findById(group1.getId())).willReturn(Optional.empty());

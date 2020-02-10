@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -9,7 +10,6 @@ import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
@@ -35,8 +36,11 @@ import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RoleMapperImpl.class})
+@ContextConfiguration(classes = {TestDataFactory.class})
 public class RoleFacadeTest {
 
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     private RoleFacade roleFacade;
@@ -46,11 +50,8 @@ public class RoleFacadeTest {
     private RoleMapperImpl roleMapper;
 
     private Role r1, r2;
-    private Microservice microservice;
-    private RoleDTO roleDTO1, roleDTO2;
     private Predicate predicate;
     private Pageable pageable;
-    private static final String NAME_OF_USER_AND_GROUP_SERVICE = "kypo2-user-and-group";
 
     @Before
     public void init() {
@@ -58,33 +59,8 @@ public class RoleFacadeTest {
 
         roleFacade = new RoleFacadeImpl(roleService, roleMapper);
 
-        microservice = new Microservice();
-        microservice.setId(1L);
-        microservice.setName(NAME_OF_USER_AND_GROUP_SERVICE);
-        microservice.setEndpoint("/");
-
-        r1 = new Role();
-        r1.setId(1L);
-        r1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        r1.setMicroservice(microservice);
-
-        r2 = new Role();
-        r2.setId(2L);
-        r2.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        r2.setMicroservice(microservice);
-
-        roleDTO1 = new RoleDTO();
-        roleDTO1.setId(1L);
-        roleDTO1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        roleDTO1.setNameOfMicroservice(microservice.getName());
-        roleDTO1.setIdOfMicroservice(microservice.getId());
-
-        roleDTO2 = new RoleDTO();
-        roleDTO2.setId(2L);
-        roleDTO2.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        roleDTO2.setNameOfMicroservice(microservice.getName());
-        roleDTO2.setIdOfMicroservice(microservice.getId());
-
+        r1 = testDataFactory.getUAGAdminRole();
+        r2 = testDataFactory.getUAGGuestRole();
         pageable = PageRequest.of(0, 10);
     }
 
@@ -94,7 +70,6 @@ public class RoleFacadeTest {
         RoleDTO roleDTO = roleFacade.getRoleById(1L);
 
         assertRoleAndRoleDTO(r1, roleDTO);
-
     }
 
     @Test
@@ -121,6 +96,19 @@ public class RoleFacadeTest {
 
     @Test
     public void testGetAllRoles() {
+        r1.setId(1L);
+        r2.setId(2L);
+
+        RoleDTO roleDTO1 = new RoleDTO();
+        roleDTO1.setId(r1.getId());
+        roleDTO1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        roleDTO1.setNameOfMicroservice(r1.getMicroservice().getName());
+
+        RoleDTO roleDTO2 = new RoleDTO();
+        roleDTO2.setId(r2.getId());
+        roleDTO2.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
+        roleDTO2.setNameOfMicroservice(r2.getMicroservice().getName());
+
         given(roleService.getAllRoles(predicate, pageable)).willReturn(new PageImpl<>(Arrays.asList(r1, r2)));
         PageResultResource<RoleDTO> pageResultResource = roleFacade.getAllRoles(predicate, pageable);
 

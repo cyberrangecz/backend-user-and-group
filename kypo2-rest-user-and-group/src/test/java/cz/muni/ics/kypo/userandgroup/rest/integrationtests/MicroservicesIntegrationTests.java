@@ -6,16 +6,15 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,7 +46,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = MicroservicesRestController.class)
+@ContextConfiguration(classes = {TestDataFactory.class, MicroservicesRestController.class})
 @DataJpaTest
 @Import(RestConfigTest.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -64,10 +63,12 @@ public class MicroservicesIntegrationTests {
     private RoleRepository roleRepository;
     @Autowired
     private IDMGroupRepository groupRepository;
+    @Autowired
+    private TestDataFactory testDataFactory;
 
     private NewMicroserviceDTO newMicroserviceDTO;
     private Microservice microserviceUserAndGroup;
-    private Role roleAdmin, roleGuest;
+    private Role adminRole, guestRole;
     private RoleForNewMicroserviceDTO roleAdminDTO, roleDesignerDTO, roleOrganizerDTO, roleTraineeDTO;
     private IDMGroup defaultGroup;
 
@@ -83,43 +84,22 @@ public class MicroservicesIntegrationTests {
                         new QuerydslPredicateArgumentResolver(new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE), Optional.empty()))
                 .setMessageConverters(new MappingJackson2HttpMessageConverter()).build();
 
-        microserviceUserAndGroup = new Microservice();
-        microserviceUserAndGroup.setName("kypo2-user-and-group");
-        microserviceUserAndGroup.setEndpoint("kypo2-rest-user-and-group/api/v1");
+        defaultGroup = testDataFactory.getUAGDefaultGroup();
+        guestRole = defaultGroup.getRoles().iterator().next();
+
+        adminRole = testDataFactory.getUAGAdminRole();
+        microserviceUserAndGroup = adminRole.getMicroservice();
+
+        guestRole.setMicroservice(microserviceUserAndGroup);
         microserviceRepository.save(microserviceUserAndGroup);
+        roleRepository.saveAll(Set.of(adminRole, guestRole));
 
-        roleAdmin = new Role();
-        roleAdmin.setMicroservice(microserviceUserAndGroup);
-        roleAdmin.setRoleType("ROLE_USER_AND_GROUP_ADMINISTRATOR");
+        roleAdminDTO = testDataFactory.getTrainingAdminRoleForNewMicroserviceDTO();
+        roleOrganizerDTO = testDataFactory.getTrainingOrganizerRoleForNewMicroserviceDTO();
+        roleDesignerDTO = testDataFactory.getTrainingDesignerRoleForNewMicroserviceDTO();
 
-        roleGuest = new Role();
-        roleGuest.setMicroservice(microserviceUserAndGroup);
-        roleGuest.setRoleType("ROLE_USER_AND_GROUP_GUEST");
-
-        roleRepository.saveAll(Set.of(roleAdmin, roleGuest));
-
-        roleAdminDTO = new RoleForNewMicroserviceDTO();
-        roleAdminDTO.setRoleType("ROLE_TRAINING_ADMINISTRATOR");
-        roleAdminDTO.setDescription("Des");
-
-        roleOrganizerDTO = new RoleForNewMicroserviceDTO();
-        roleOrganizerDTO.setRoleType("ROLE_TRAINING_ORGANIZER");
-        roleOrganizerDTO.setDescription("Description of organizer role.");
-
-        roleDesignerDTO = new RoleForNewMicroserviceDTO();
-        roleDesignerDTO.setRoleType("ROLE_TRAINING_DESIGNER");
-        roleDesignerDTO.setDescription("Description of designer role.");
-
-        roleTraineeDTO = new RoleForNewMicroserviceDTO();
-        roleTraineeDTO.setRoleType("ROLE_TRAINING_TRAINEE");
+        roleTraineeDTO = testDataFactory.getTrainingTraineeRoleForNewMicroserviceDTO();
         roleTraineeDTO.setDefault(true);
-        roleTraineeDTO.setDescription("Description of trainee role");
-
-        defaultGroup = new IDMGroup();
-        defaultGroup.addRole(roleGuest);
-        defaultGroup.setDescription("Default group for users");
-        defaultGroup.setStatus(UserAndGroupStatus.VALID);
-        defaultGroup.setName("DEFAULT-GROUP");
         groupRepository.save(defaultGroup);
 
         newMicroserviceDTO = new NewMicroserviceDTO();
@@ -147,7 +127,7 @@ public class MicroservicesIntegrationTests {
 
         Set<Role> roles = roleRepository.getAllRolesByMicroserviceName("kypo2-training");
         assertEquals(4, roles.size());
-        assertTrue(roles.stream().anyMatch(role -> role.getRoleType().equals("ROLE_TRAINING_ADMINISTRATOR")));
+        assertTrue(roles.stream().anyMatch(role -> role.getRoleType().equals("ROLE_TRAINING_ADMIN")));
         assertTrue(roles.stream().anyMatch(role -> role.getRoleType().equals("ROLE_TRAINING_DESIGNER")));
         assertTrue(roles.stream().anyMatch(role -> role.getRoleType().equals("ROLE_TRAINING_ORGANIZER")));
     }
@@ -196,9 +176,8 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
-        System.out.println(getInitialExceptionMessage(exception));
 
-        assertTrue(getInitialExceptionMessage(exception).contains("Role with given role type: " + roleDesignerDTO.getRoleType() + " already exist. Please name the role with different role type.") &&
+        assertTrue(getInitialExceptionMessage(exception).contains("Role with given role type: " + roleTraineeDTO.getRoleType() + " already exist. Please name the role with different role type.") &&
                 getInitialExceptionMessage(exception).contains("Please name the role with different role type."));
         assertEquals(ResourceNotCreatedException.class, exception.getClass());
     }

@@ -343,7 +343,7 @@ public class GroupsRestController {
             groupFacade.assignRole(groupId, roleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
+            throw new ResourceNotFoundException(e.getLocalizedMessage());
         }
     }
 

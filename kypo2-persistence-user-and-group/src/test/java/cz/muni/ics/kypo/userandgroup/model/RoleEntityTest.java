@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.model;
 
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import org.junit.Before;
 import org.junit.Rule;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.PersistenceException;
@@ -18,11 +20,13 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
+@ComponentScan(basePackages = "cz.muni.ics.kypo.userandgroup.util")
 public class RoleEntityTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Autowired
     private TestEntityManager entityManager;
 
@@ -36,8 +40,7 @@ public class RoleEntityTest {
 
     @Before
     public void setup() throws RuntimeException {
-        microservice = new Microservice();
-        microservice.setEndpoint("http://kypo2-training/api/v1");
+        microservice = testDataFactory.getKypoUaGMicroservice();
         microservice.setName("training");
         this.entityManager.persistAndFlush(microservice);
 

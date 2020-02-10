@@ -17,11 +17,13 @@ import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -32,6 +34,7 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -50,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @EnableSpringDataWebSupport
+@ContextConfiguration(classes = TestDataFactory.class)
 public class GroupsRestControllerTest {
 
     @InjectMocks
@@ -61,6 +65,9 @@ public class GroupsRestControllerTest {
     @MockBean
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TestDataFactory testDataFactory;
+
     private MockMvc mockMvc;
 
     private GroupDTO groupDTO1, groupDTO2;
@@ -70,26 +77,16 @@ public class GroupsRestControllerTest {
 
     @Before
     public void setup() throws RuntimeException {
-        groupDTO1 = new GroupDTO();
+        groupDTO1 = testDataFactory.getUAGUAdminGroupDTO();
         groupDTO1.setId(1L);
-        groupDTO1.setName("GroupOne");
-        groupDTO1.setDescription("Group one");
-        groupDTO1.setSource(Source.INTERNAL);
 
-        groupDTO2 = new GroupDTO();
+        groupDTO2 = testDataFactory.getUAGUserGroupDTO();
         groupDTO2.setId(2L);
-        groupDTO2.setName("GroupTwo");
-        groupDTO2.setDescription("Group two");
-        groupDTO2.setSource(Source.INTERNAL);
 
-        newGroupDTO = new NewGroupDTO();
-        newGroupDTO.setName("GroupOne");
-        newGroupDTO.setDescription("Group one");
+        newGroupDTO = testDataFactory.getNewGroupDTO();
 
-        updateGroupDTO = new UpdateGroupDTO();
+        updateGroupDTO = testDataFactory.getUpdateGroupDTO();
         updateGroupDTO.setId(1L);
-        updateGroupDTO.setName("GroupOne");
-        updateGroupDTO.setDescription("Group one");
 
         groupPageResultResource = new PageResultResource<>(Arrays.asList(groupDTO1, groupDTO2));
 

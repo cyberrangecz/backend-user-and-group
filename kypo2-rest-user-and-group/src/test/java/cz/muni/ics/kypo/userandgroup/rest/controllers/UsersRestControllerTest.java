@@ -22,6 +22,7 @@ import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -67,6 +69,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {UserMapperImpl.class, RoleMapperImpl.class})
+@ContextConfiguration(classes = TestDataFactory.class)
 public class UsersRestControllerTest {
 
     @MockBean
@@ -77,6 +80,8 @@ public class UsersRestControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     UserMapper userMapper;
+    @Autowired
+    private TestDataFactory testDataFactory;
 
     private MockMvc mockMvc;
     private UserDTO userDTO1, userDTO2;
@@ -97,20 +102,11 @@ public class UsersRestControllerTest {
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
 
-        userDTO1 = new UserDTO();
-        userDTO1.setLogin("user1");
+        userDTO1 = testDataFactory.getUser1DTO();
         userDTO1.setId(1L);
-        userDTO1.setFullName("User One");
-        userDTO1.setMail("user.one@mail.com");
-        userDTO1.setIss("https://oidc.muni.cz/oidc/");
-        userDTO1.setGivenName("User");
-        userDTO1.setFamilyName("One");
 
-        userDTO2 = new UserDTO();
+        userDTO2 = testDataFactory.getUser2DTO();
         userDTO2.setId(2L);
-        userDTO2.setLogin("user2");
-        userDTO2.setFullName("User Two");
-        userDTO2.setMail("user.two@mail.com");
 
         userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
 
@@ -300,7 +296,6 @@ public class UsersRestControllerTest {
         }
         return exception.getMessage();
     }
-
 
 }
 

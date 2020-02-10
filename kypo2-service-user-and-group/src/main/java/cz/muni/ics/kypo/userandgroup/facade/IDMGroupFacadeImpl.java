@@ -236,7 +236,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
             IDMGroup idmGroup = groupService.assignRole(groupId, roleId);
             idmGroup.getUsers().forEach(user -> groupService.evictUserFromCache(user));
         } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e);
+            throw new UserAndGroupFacadeException(e.getLocalizedMessage());
         }
     }
 

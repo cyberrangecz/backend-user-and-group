@@ -26,6 +26,13 @@
             <artifactId>kypo2-service-user-and-group</artifactId>
             <version>1.1.11</version>
         </dependency>
+        <dependency> <!-- reuse src/test/java code from persistence module! -->
+            <groupId>cz.muni.ics.kypo</groupId>
+            <artifactId>kypo2-persistence-user-and-group</artifactId>
+            <version>1.1.11</version>
+            <scope>test</scope>
+            <classifier>tests</classifier>
+        </dependency>
         <dependency>
             <groupId>cz.muni.ics.kypo</groupId>
             <artifactId>kypo2-security-user-and-group</artifactId>
