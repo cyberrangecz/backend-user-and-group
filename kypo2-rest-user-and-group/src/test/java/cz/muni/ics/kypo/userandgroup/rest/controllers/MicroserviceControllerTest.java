@@ -9,11 +9,13 @@ import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
@@ -21,6 +23,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -37,12 +40,15 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = TestDataFactory.class)
 public class MicroserviceControllerTest {
 
     @InjectMocks
     private MicroservicesRestController microservicesRestController;
     @MockBean
     private MicroserviceFacade microserviceFacade;
+    @Autowired
+    private TestDataFactory testDataFactory;
 
     private MockMvc mockMvc;
     private NewMicroserviceDTO newMicroserviceDTO;
@@ -50,13 +56,8 @@ public class MicroserviceControllerTest {
 
     @Before
     public void setup() throws RuntimeException {
-        role = new RoleForNewMicroserviceDTO();
-        role.setRoleType("ROLE_TRAINING_DESIGNER");
-        role.setDescription("This role will allow you ...");
-        newMicroserviceDTO = new NewMicroserviceDTO();
-        newMicroserviceDTO.setName("kypo2-training");
-        newMicroserviceDTO.setEndpoint("http://localhost:8080/kypo2-rest-training/api/v1");
-
+        role = testDataFactory.getTrainingDesignerRoleForNewMicroserviceDTO();
+        newMicroserviceDTO = testDataFactory.getNewMicroserviceDTO();
         newMicroserviceDTO.setRoles(Set.of(role));
 
         MockitoAnnotations.initMocks(this);

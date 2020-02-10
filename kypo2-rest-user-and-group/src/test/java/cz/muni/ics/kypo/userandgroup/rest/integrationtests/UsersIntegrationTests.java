@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.rest.controllers.UsersRestController;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +59,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = UsersRestController.class)
+@ContextConfiguration(classes = {TestDataFactory.class, UsersRestController.class})
 @DataJpaTest
 @Import(RestConfigTest.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -77,6 +78,8 @@ public class UsersIntegrationTests {
     private IDMGroupRepository groupRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private TestDataFactory testDataFactory;
 
     private Microservice microserviceUserAndGroup, microserviceTraining;
     private Role roleAdmin, roleGuest, roleDesigner, roleOrganizer, roleTrainee, roleUser;
@@ -97,84 +100,40 @@ public class UsersIntegrationTests {
 
         beanMapping = new BeanMappingImpl(new ModelMapper());
 
-        microserviceUserAndGroup = new Microservice();
-        microserviceUserAndGroup.setName("kypo2-user-and-group");
-        microserviceUserAndGroup.setEndpoint("kypo2-rest-user-and-group/api/v1");
-
-        microserviceTraining = new Microservice();
-        microserviceTraining.setName("kypo2-training");
-        microserviceTraining.setEndpoint("kypo2-training/api/v1");
-        microserviceRepository.save(microserviceTraining);
+        microserviceUserAndGroup = testDataFactory.getKypoUaGMicroservice();
+        microserviceTraining = testDataFactory.getKypoTrainingMicroservice();
         microserviceRepository.saveAll(new HashSet<>(Set.of(microserviceTraining, microserviceUserAndGroup)));
 
-        roleAdmin = new Role();
+        roleAdmin = testDataFactory.getUAGAdminRole();
         roleAdmin.setMicroservice(microserviceUserAndGroup);
-        roleAdmin.setRoleType("ROLE_USER_AND_GROUP_ADMINISTRATOR");
 
-        roleGuest = new Role();
+        roleGuest = testDataFactory.getUAGGuestRole();
         roleGuest.setMicroservice(microserviceUserAndGroup);
-        roleGuest.setRoleType("ROLE_USER_AND_GROUP_GUEST");
 
-        roleUser = new Role();
+        roleUser = testDataFactory.getUAGUserRole();
         roleUser.setMicroservice(microserviceUserAndGroup);
-        roleUser.setRoleType("ROLE_USER_AND_GROUP_USER");
 
-        roleDesigner = new Role();
+        roleDesigner = testDataFactory.getTrainingDesignerRole();
         roleDesigner.setMicroservice(microserviceTraining);
-        roleDesigner.setRoleType("ROLE_TRAINING_DESIGNER");
 
-        roleOrganizer = new Role();
+        roleOrganizer = testDataFactory.getTrainingOrganizerRole();
         roleOrganizer.setMicroservice(microserviceTraining);
-        roleOrganizer.setRoleType("ROLE_TRAINING_ORGANIZER");
 
-        roleTrainee = new Role();
+        roleTrainee = testDataFactory.getTrainingTraineeRole();
         roleTrainee.setMicroservice(microserviceTraining);
-        roleTrainee.setRoleType("ROLE_TRAINING_TRAINEE");
         roleRepository.saveAll(new HashSet<>(Set.of(roleAdmin, roleUser, roleGuest, roleDesigner, roleOrganizer, roleTrainee)));
 
-        user1 = new User();
-        user1.setFullName("Garfield Pokorny");
-        user1.setLogin("852374@muni.cz");
-        user1.setMail("852374@mail.muni.cz");
-        user1.setStatus(UserAndGroupStatus.VALID);
-        user1.setIss("https://oidc.muni.cz/oidc/");
-
-        user2 = new User();
-        user2.setFullName("Marcel Watchman");
-        user2.setLogin("632145@muni.cz");
-        user2.setMail("632145@mail.muni.cz");
-        user2.setStatus(UserAndGroupStatus.VALID);
-        user2.setIss("https://oidc.muni.cz/oidc/");
-
-        user3 = new User();
-        user3.setFullName("Drew Coyer");
-        user3.setLogin("77863@muni.cz");
-        user3.setMail("77863@mail.muni.cz");
-        user3.setStatus(UserAndGroupStatus.VALID);
-        user3.setIss("https://oidc.muni.cz/oidc/");
-
-        user4 = new User();
-        user4.setFullName("Garret Cull");
-        user4.setLogin("794254@muni.cz");
-        user4.setMail("794254@mail.muni.cz");
-        user4.setStatus(UserAndGroupStatus.VALID);
-        user4.setFamilyName("Garret");
-        user4.setGivenName("Cull");
-        user4.setIss("https://oidc.muni.cz/oidc/");
-
+        user1 = testDataFactory.getUser1();
+        user2 = testDataFactory.getUser2();
+        user3 = testDataFactory.getUser3();
+        user4 = testDataFactory.getUser4();
         userRepository.saveAll(new HashSet<>(Set.of(user1, user2, user3, user4)));
 
-        group1 = new IDMGroup();
-        group1.setName("Organizers group");
-        group1.setDescription("Group for users");
-        group1.setStatus(UserAndGroupStatus.VALID);
-        group1.addRole(roleOrganizer);
+        group1 = testDataFactory.getTrainingOrganizerGroup();
+        group1.setRoles(new HashSet<>(Set.of(roleOrganizer)));
         group1.addUser(user4);
 
-        group2 = new IDMGroup();
-        group2.setName("DEFAULT-GROUP");
-        group2.setDescription("Group for all default roles");
-        group2.setStatus(UserAndGroupStatus.VALID);
+        group2 = testDataFactory.getUAGDefaultGroup();
         group2.setRoles(Set.of(roleOrganizer, roleTrainee, roleGuest));
         group2.setUsers(new HashSet<>(Set.of(user1, user2)));
         groupRepository.saveAll(new HashSet<>(Set.of(group1, group2)));

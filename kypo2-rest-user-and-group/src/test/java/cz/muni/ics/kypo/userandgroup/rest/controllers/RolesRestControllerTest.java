@@ -14,12 +14,14 @@ import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -29,6 +31,7 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -46,8 +49,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = TestDataFactory.class)
 public class RolesRestControllerTest {
 
+    @Autowired
+    private TestDataFactory testDataFactory;
     @InjectMocks
     private RolesRestController roleRestController;
     @Mock
@@ -76,19 +82,17 @@ public class RolesRestControllerTest {
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        adminRoleDTO = new RoleDTO();
+        adminRoleDTO = testDataFactory.getuAGAdminRoleDTO();
         adminRoleDTO.setId(1L);
-        adminRoleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
 
-        userRoleDTO = new RoleDTO();
+        userRoleDTO = testDataFactory.getUAGUserRoleDTO();
         userRoleDTO.setId(2L);
-        userRoleDTO.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.name());
 
-        userDTO1 = new UserDTO();
+        userDTO1 = testDataFactory.getUser1DTO();
         userDTO1.setId(1L);
         userDTO1.setRoles(Set.of(adminRoleDTO));
 
-        userDTO2 = new UserDTO();
+        userDTO2 = testDataFactory.getUser2DTO();
         userDTO2.setId(2L);
         userDTO2.setRoles(Set.of(userRoleDTO, adminRoleDTO));
 

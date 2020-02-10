@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
@@ -12,13 +13,9 @@ import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.IDMGroupMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,6 +38,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -53,6 +51,7 @@ import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RoleMapperImpl.class, IDMGroupMapperImpl.class})
+@ContextConfiguration(classes = {TestDataFactory.class})
 public class IDMGroupFacadeTest {
 
     @Rule
@@ -63,10 +62,9 @@ public class IDMGroupFacadeTest {
     @Mock
     private UserService userService;
     @Mock
-    private MicroserviceService microserviceService;
-    @Mock
     private RestTemplate restTemplate;
-
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Autowired
     private RoleMapperImpl roleMapper;
     @Autowired
@@ -75,10 +73,6 @@ public class IDMGroupFacadeTest {
     private IDMGroup g1, g2;
     private Role adminRole, userRole;
     private GroupDTO groupDTO;
-    private NewGroupDTO newGroupDTO;
-    private User user1;
-    private UserForGroupsDTO userForGroupsDTO;
-    private Microservice microservice;
     private Predicate predicate;
     private Pageable pageable;
 
@@ -88,66 +82,35 @@ public class IDMGroupFacadeTest {
 
         groupFacade = new IDMGroupFacadeImpl(groupService, userService, roleMapper, groupMapper);
 
-        user1 = new User();
-        user1.setId(1L);
-        user1.setLogin("user1");
-        user1.setFullName("User 1");
-
-        userForGroupsDTO = new UserForGroupsDTO();
-        userForGroupsDTO.setId(1L);
-        userForGroupsDTO.setLogin("user1");
-        userForGroupsDTO.setFullName("User 1");
-
-        g1 = new IDMGroup();
-        g1.setId(1L);
-        g1.setName("Group 1");
-        g1.setStatus(UserAndGroupStatus.VALID);
-        g1.addUser(user1);
-
-        g2 = new IDMGroup();
-        g2.setId(2L);
-        g2.setName("Group 2");
-        g2.setStatus(UserAndGroupStatus.VALID);
+        g1 = testDataFactory.getUAGAdminGroup();
+        g2 = testDataFactory.getTrainingDesignerGroup();
 
         groupDTO = new GroupDTO();
         groupDTO.setId(1L);
         groupDTO.setName("Group 1");
 
-        newGroupDTO = new NewGroupDTO();
-        newGroupDTO.setName("Group 1");
-        newGroupDTO.setUsers(Set.of(userForGroupsDTO));
-
-        microservice = new Microservice("training", "www.ttt.com/trainings");
-
-        adminRole = new Role();
-        adminRole.setId(1L);
-        adminRole.setMicroservice(microservice);
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
-
-        userRole = new Role();
-        userRole.setId(2L);
-        userRole.setMicroservice(microservice);
-        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.name());
-
-        Role role = new Role();
-        role.setId(1L);
-        role.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        Role[] rolesArray = new Role[1];
-        rolesArray[0] = role;
+        adminRole = testDataFactory.getUAGAdminRole();
+        userRole = testDataFactory.getUAGUserRole();
 
         mockAuthentication();
     }
 
     @Test
     public void testCreateGroup() {
+        g1.addUser(testDataFactory.getUser1());
+        UserForGroupsDTO userForGroupsDTO = testDataFactory.getUserForGroupsDTO1();
+
+        NewGroupDTO newGroupDTO = new NewGroupDTO();
+        newGroupDTO.setName("Group 1");
+        newGroupDTO.setUsers(Set.of(userForGroupsDTO));
+
         given(groupService.createIDMGroup(any(IDMGroup.class), anyList())).willReturn(g1);
-        GroupDTO groupDTO = groupFacade.createGroup(newGroupDTO);
+        GroupDTO groupDTO = groupFacade.createGroup(new NewGroupDTO());
 
         assertEquals(g1.getName(), groupDTO.getName());
         assertEquals(1, groupDTO.getUsers().size());
         assertTrue(groupDTO.getUsers().contains(userForGroupsDTO));
         then(groupService).should().createIDMGroup(any(IDMGroup.class), anyList());
-
     }
 
     @Test
@@ -162,6 +125,7 @@ public class IDMGroupFacadeTest {
 
     @Test(expected = UserAndGroupFacadeException.class)
     public void testDeleteGroupWithUsersThrowsException() {
+        g1.setId(1L);
         given(groupService.getGroupById(g1.getId())).willReturn(g1);
         willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_CONFLICT)).given(groupService).deleteIDMGroup(g1);
         groupFacade.deleteGroup(g1.getId());
@@ -176,6 +140,7 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetAllGroups() {
+        g1.setId(1L);
         RoleDTO[] rolesArray = new RoleDTO[1];
         rolesArray[0] = getRoleDTO();
         mockSpringSecurityContextForGet(rolesArray);
@@ -222,28 +187,6 @@ public class IDMGroupFacadeTest {
         given(groupService.getRolesOfGroup(anyLong())).willThrow(UserAndGroupServiceException.class);
         thrown.expect(UserAndGroupFacadeException.class);
         groupFacade.getRolesOfGroup(1L);
-    }
-
-    private UpdateGroupDTO getUpdateGroupDTO() {
-        UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
-        updateGroupDTO.setId(2L);
-        updateGroupDTO.setName("Group 2");
-        return updateGroupDTO;
-    }
-
-
-    private AddUsersToGroupDTO getaddUsersToGroupDTO() {
-        AddUsersToGroupDTO addUsers = new AddUsersToGroupDTO();
-        addUsers.setIdsOfUsersToBeAdd(Collections.singletonList(1L));
-        addUsers.setIdsOfGroupsOfImportedUsers(Collections.singletonList(1L));
-        return addUsers;
-    }
-
-    private Role getRole() {
-        Role role = new Role();
-        role.setId(1L);
-        role.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
-        return role;
     }
 
     private RoleDTO getRoleDTO() {

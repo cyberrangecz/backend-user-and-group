@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Optional;
@@ -21,6 +23,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@ComponentScan(basePackages = "cz.muni.ics.kypo.userandgroup.util")
 public class RoleRepositoryTest {
 
     @Autowired
@@ -28,7 +31,8 @@ public class RoleRepositoryTest {
 
     @Autowired
     private RoleRepository roleRepository;
-
+    @Autowired
+    private TestDataFactory testDataFactory;
     private Microservice kypoTraining, kypoUserAndGroup;
     private Role adminRole, designerRole, traineeRole;
 
@@ -38,32 +42,22 @@ public class RoleRepositoryTest {
 
     @Before
     public void setup() {
-        kypoTraining = new Microservice();
-        kypoTraining.setEndpoint("http://kypo2-training/api/v1");
-        kypoTraining.setName("training");
+        kypoTraining = testDataFactory.getKypoTrainingMicroservice();
         this.entityManager.persistAndFlush(kypoTraining);
 
-        kypoUserAndGroup = new Microservice();
-        kypoUserAndGroup.setEndpoint("http://kypo2-user-and-group/api/v1");
-        kypoUserAndGroup.setName("userAndGroup");
+        kypoUserAndGroup = testDataFactory.getKypoUaGMicroservice();
         this.entityManager.persistAndFlush(kypoUserAndGroup);
 
-        adminRole = new Role();
+        adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setMicroservice(kypoUserAndGroup);
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
-        adminRole.setDescription("This role will allow you everything.");
         this.entityManager.persistAndFlush(adminRole);
 
-        designerRole = new Role();
+        designerRole = testDataFactory.getTrainingDesignerRole();
         designerRole.setMicroservice(kypoTraining);
-        designerRole.setRoleType("ROLE_TRAINING_DESIGNER");
-        designerRole.setDescription("This role will allow you manage training definitions.");
         this.entityManager.persistAndFlush(designerRole);
 
-        traineeRole = new Role();
+        traineeRole = testDataFactory.getTrainingTraineeRole();
         traineeRole.setMicroservice(kypoTraining);
-        traineeRole.setRoleType("ROLE_TRAINING_TRAINEE");
-        traineeRole.setDescription("This role will allow you access training run and play game.");
         this.entityManager.persistAndFlush(traineeRole);
     }
 

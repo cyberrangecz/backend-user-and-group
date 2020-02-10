@@ -1,21 +1,19 @@
 package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
@@ -27,7 +25,6 @@ import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.GroupsRestController;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
 import cz.muni.ics.kypo.userandgroup.service.impl.SecurityService;
@@ -35,7 +32,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -51,12 +47,6 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -68,14 +58,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = GroupsRestController.class)
+@ContextConfiguration(classes = {GroupsRestController.class, TestDataFactory.class})
 @DataJpaTest
 @Import(RestConfigTest.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -97,13 +84,15 @@ public class IDMGroupsIntegrationTests {
     private UserRepository userRepository;
     @Autowired
     private SecurityService securityService;
+    @Autowired
+    private TestDataFactory testDataFactory;
 
     private NewGroupDTO newOrganizerGroupDTO;
     private UserForGroupsDTO organizerDTO1, organizerDTO2;
     private User organizer1, organizer2, user1, user2;
     private GroupDTO groupDTO;
     private IDMGroup adminGroup, userGroup, defaultGroup, organizerGroup, designerGroup;
-    private Role roleAdmin, roleGuest, roleUser, roleDesigner, roleOrganizer, roleTrainee;
+    private Role adminRole, guestRole, userRole, designerRole, organizerRole, traineeRole;
     private Microservice microserviceUserAndGroup, microserviceTraining;
 
     @SpringBootApplication
@@ -119,112 +108,55 @@ public class IDMGroupsIntegrationTests {
                 .setMessageConverters(new MappingJackson2HttpMessageConverter()).build();
         beanMapping = new BeanMappingImpl(new ModelMapper());
 
-        microserviceUserAndGroup = new Microservice();
-        microserviceUserAndGroup.setName("kypo2-user-and-group");
-        microserviceUserAndGroup.setEndpoint("kypo2-rest-user-and-group/api/v1");
-        microserviceRepository.save(microserviceUserAndGroup);
-
-        microserviceTraining = new Microservice();
-        microserviceTraining.setName("kypo2-training");
-        microserviceTraining.setEndpoint("kypo2-training/api/v1");
-        microserviceRepository.save(microserviceTraining);
-        microserviceRepository.saveAll(new HashSet<>(Set.of(microserviceTraining, microserviceUserAndGroup)));
-
-        roleAdmin = new Role();
-        roleAdmin.setMicroservice(microserviceUserAndGroup);
-        roleAdmin.setRoleType("ROLE_USER_AND_GROUP_ADMINISTRATOR");
-
-        roleGuest = new Role();
-        roleGuest.setMicroservice(microserviceUserAndGroup);
-        roleGuest.setRoleType("ROLE_USER_AND_GROUP_GUEST");
-
-        roleUser = new Role();
-        roleUser.setMicroservice(microserviceUserAndGroup);
-        roleUser.setRoleType("ROLE_USER_AND_GROUP_USER");
-
-        roleDesigner = new Role();
-        roleDesigner.setMicroservice(microserviceTraining);
-        roleDesigner.setRoleType("ROLE_TRAINING_DESIGNER");
-
-        roleOrganizer = new Role();
-        roleOrganizer.setMicroservice(microserviceTraining);
-        roleOrganizer.setRoleType("ROLE_TRAINING_ORGANIZER");
-
-        roleTrainee = new Role();
-        roleTrainee.setMicroservice(microserviceTraining);
-        roleTrainee.setRoleType("ROLE_TRAINING_TRAINEE");
-        roleRepository.saveAll(new HashSet<>(Set.of(roleAdmin, roleUser, roleGuest, roleDesigner, roleOrganizer, roleTrainee)));
-
-
-        organizer1 = new User();
-        organizer1.setFullName("Drew Coyer");
-        organizer1.setLogin("77863@muni.cz");
-        organizer1.setMail("77863@mail.muni.cz");
-        organizer1.setStatus(UserAndGroupStatus.VALID);
-        organizer1.setIss("https://oidc.muni.cz/oidc/");
-
-        organizer2 = new User();
-        organizer2.setFullName("Garret Cull");
-        organizer2.setLogin("794254@muni.cz");
-        organizer2.setMail("794254@mail.muni.cz");
-        organizer2.setStatus(UserAndGroupStatus.VALID);
-        organizer2.setIss("https://oidc.muni.cz/oidc/");
-
-        user1 = new User();
-        user1.setFullName("Garfield Pokorny");
-        user1.setLogin("852374@muni.cz");
-        user1.setMail("852374@mail.muni.cz");
-        user1.setStatus(UserAndGroupStatus.VALID);
-        user1.setIss("https://oidc.muni.cz/oidc/");
-
-        user2 = new User();
-        user2.setFullName("Marcel Watchman");
-        user2.setLogin("632145@muni.cz");
-        user2.setMail("632145@mail.muni.cz");
-        user2.setStatus(UserAndGroupStatus.VALID);
-        user2.setIss("https://oidc.muni.cz/oidc/");
+        organizer1 = testDataFactory.getUser1();
+        organizer2 = testDataFactory.getUser2();
+        user1 = testDataFactory.getUser3();
+        user2 = testDataFactory.getUser4();
         userRepository.saveAll(new HashSet<>(Set.of(organizer1, organizer2, user1, user2)));
 
-        userGroup = new IDMGroup();
-        userGroup.setName(ImplicitGroupNames.USER_AND_GROUP_USER.getName());
-        userGroup.setDescription("Group for users");
-        userGroup.setStatus(UserAndGroupStatus.VALID);
-        userGroup.setRoles(new HashSet<>(Set.of(roleUser)));
-        userGroup.addUser(user1);
+        microserviceUserAndGroup = testDataFactory.getKypoUaGMicroservice();
+        microserviceTraining = testDataFactory.getKypoTrainingMicroservice();
+        microserviceRepository.saveAll(new HashSet<>(Set.of(microserviceTraining, microserviceUserAndGroup)));
 
-        organizerGroup = new IDMGroup();
-        organizerGroup.setName("Organizers group");
-        organizerGroup.setDescription("Group for organizers");
-        organizerGroup.setStatus(UserAndGroupStatus.VALID);
+        adminGroup = testDataFactory.getUAGAdminGroup();
+        adminGroup.setExpirationDate(null);
+        userGroup = testDataFactory.getUAGUserGroup();
+        userGroup.setExpirationDate(null);
+        defaultGroup = testDataFactory.getUAGDefaultGroup();
+        defaultGroup.setExpirationDate(null);
+        organizerGroup = testDataFactory.getTrainingOrganizerGroup();
+        organizerGroup.setExpirationDate(null);
+        designerGroup = testDataFactory.getTrainingDesignerGroup();
+        designerGroup.setExpirationDate(null);
 
-        designerGroup = new IDMGroup();
-        designerGroup.setName("Designers group");
-        designerGroup.setDescription("Group for designer");
-        designerGroup.setStatus(UserAndGroupStatus.VALID);
+        adminRole = adminGroup.getRoles().iterator().next();
+        adminRole.setMicroservice(microserviceUserAndGroup);
+        userRole = userGroup.getRoles().iterator().next();
+        userRole.setMicroservice(microserviceUserAndGroup);
+        guestRole = defaultGroup.getRoles().iterator().next();
+        guestRole.setMicroservice(microserviceUserAndGroup);
+        designerRole = designerGroup.getRoles().iterator().next();
+        designerRole.setMicroservice(microserviceTraining);
+        organizerRole = organizerGroup.getRoles().iterator().next();
+        organizerRole.setMicroservice(microserviceTraining);
+        traineeRole = testDataFactory.getTrainingTraineeRole();
+        traineeRole.setMicroservice(microserviceTraining);
+        roleRepository.saveAll(new HashSet<>(Set.of(adminRole, userRole, guestRole, designerRole, organizerRole, traineeRole)));
 
-        defaultGroup = new IDMGroup();
-        defaultGroup.setName(ImplicitGroupNames.DEFAULT_GROUP.getName());
-        defaultGroup.setDescription("Group for all default roles");
-        defaultGroup.setStatus(UserAndGroupStatus.VALID);
-        defaultGroup.setRoles(Set.of(roleGuest, roleTrainee));
-        defaultGroup.setUsers(Set.of(user1, user2));
-        groupRepository.saveAll(new HashSet<>(Set.of(userGroup, defaultGroup, organizerGroup)));
+        defaultGroup.addRole(traineeRole);
+        groupRepository.saveAll(new HashSet<>(Set.of(adminGroup, userGroup, defaultGroup, organizerGroup, designerGroup)));
 
-        organizerDTO1 = new UserForGroupsDTO();
-        organizerDTO1.setFullName("Drew Coyer");
-        organizerDTO1.setLogin("77863@muni.cz");
-        organizerDTO1.setMail("77863@mail.muni.cz");
-        organizerDTO1.setIss("http://oidc.cz");
 
-        organizerDTO2 = new UserForGroupsDTO();
-        organizerDTO2.setFullName("Garret Cull");
-        organizerDTO2.setLogin("794254@muni.cz");
-        organizerDTO2.setMail("794254@mail.muni.cz");
-        organizerDTO2.setIss("http://oidc.cz");
+        organizerDTO1 = testDataFactory.getUserForGroupsDTO2();
+        organizerDTO2 = testDataFactory.getUserForGroupsDTO3();
 
         newOrganizerGroupDTO = new NewGroupDTO();
         newOrganizerGroupDTO.setName("Organizer group");
         newOrganizerGroupDTO.setDescription("Main group for organizers");
+
+        defaultGroup.setUsers(new HashSet<>(Set.of(organizer1, organizer2, user1, user2)));
+        userGroup.setUsers(new HashSet<>(Set.of(user1, user2)));
+        groupRepository.save(userGroup);
 
     }
 
@@ -327,8 +259,6 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void removeAllUsersFromGroup() throws Exception {
-        userGroup.addUser(user2);
-        groupRepository.save(userGroup);
         assertEquals(2, userGroup.getUsers().size());
 
         mvc.perform(delete("/groups/{id}/users", userGroup.getId())
@@ -340,8 +270,6 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void removeOneUserFromGroup() throws Exception {
-        userGroup.addUser(user2);
-        groupRepository.save(userGroup);
         assertEquals(2, userGroup.getUsers().size());
 
         mvc.perform(delete("/groups/{id}/users", userGroup.getId())
@@ -365,7 +293,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void addUsersToGroup() throws Exception {
-        assertEquals(1, userGroup.getUsers().size());
+        assertEquals(2, userGroup.getUsers().size());
         AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), organizer1.getId()));
 
@@ -381,11 +309,12 @@ public class IDMGroupsIntegrationTests {
     public void addUserToGroupAlreadyThere() throws Exception {
         AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user1.getId()));
+        int numberOfUsersBefore = userGroup.getUsers().size();
         mvc.perform(put("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-        assertEquals(1, userGroup.getUsers().size());
+        assertEquals(numberOfUsersBefore, userGroup.getUsers().size());
         assertTrue(userGroup.getUsers().contains(user1));
     }
 
@@ -410,7 +339,7 @@ public class IDMGroupsIntegrationTests {
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-        assertEquals(defaultGroup.getUsers().size() + 1, userGroup.getUsers().size());
+        assertEquals(defaultGroup.getUsers().size(), userGroup.getUsers().size());
         assertTrue(userGroup.getUsers().containsAll(defaultGroup.getUsers()));
         assertTrue(userGroup.getUsers().contains(organizer1));
     }
@@ -582,8 +511,9 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(roleTrainee))));
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(roleGuest))));
+        System.out.println(response.getContentAsString());
+        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(traineeRole))));
+        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(guestRole))));
     }
 
     @Test
@@ -599,12 +529,13 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void assignRoleToGroup() throws Exception {
-        assertFalse(organizerGroup.getRoles().contains(roleDesigner));
-        mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), roleDesigner.getId())
+        assertFalse(organizerGroup.getRoles().contains(designerRole));
+        int numberOfRolesBefore = organizerGroup.getRoles().size();
+        mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-        assertTrue(organizerGroup.getRoles().contains(roleDesigner));
-        assertEquals(1, organizerGroup.getRoles().size());
+        assertTrue(organizerGroup.getRoles().contains(designerRole));
+        assertEquals(numberOfRolesBefore + 1, organizerGroup.getRoles().size());
     }
 
     @Test
@@ -619,7 +550,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void assignRoleToGroupGroupNotFound() throws Exception {
-        Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", 100L, roleDesigner.getId())
+        Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", 100L, designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
@@ -629,13 +560,13 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void removeRoleFromGroup() throws Exception {
-        organizerGroup.addRole(roleDesigner);
+        organizerGroup.addRole(designerRole);
         groupRepository.save(organizerGroup);
-        mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), roleDesigner.getId())
+        mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-        assertFalse(organizerGroup.getRoles().contains(roleDesigner));
-        assertEquals(0, organizerGroup.getRoles().size());
+        assertFalse(organizerGroup.getRoles().contains(designerRole));
+        assertEquals(1, organizerGroup.getRoles().size());
     }
 
     @Test
@@ -650,7 +581,7 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void removeRoleFromGroupGroupNotFound() throws Exception {
-        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", 100L, roleDesigner.getId())
+        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", 100L, designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
@@ -660,12 +591,12 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void removeMainRoleFromMainGroup() throws Exception {
-        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", userGroup.getId(), roleUser.getId())
+        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", userGroup.getId(), userRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
         assertEquals(ConflictException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Role " + roleUser.getRoleType() + " cannot be removed from group. This role is main role of the group"));
+        assertTrue(exception.getMessage().contains("Role " + userRole.getRoleType() + " cannot be removed from group. This role is main role of the group"));
     }
 
 
@@ -682,12 +613,14 @@ public class IDMGroupsIntegrationTests {
     private static <T> T convertJsonBytesToObject(String object, Class<T> objectClass) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.registerModule( new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper.readValue(object, objectClass);
     }
 
     private static <T> T convertJsonBytesToObject(String object, TypeReference<T> tTypeReference) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.registerModule( new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper.readValue(object, tTypeReference);
     }
 
@@ -724,5 +657,4 @@ public class IDMGroupsIntegrationTests {
         return exception.getMessage();
     }
 }
-
 

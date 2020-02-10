@@ -1,10 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -17,11 +16,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityNotFoundException;
@@ -33,8 +34,11 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = {TestDataFactory.class})
 public class UserServiceTest {
 
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     private UserService userService;
@@ -53,49 +57,22 @@ public class UserServiceTest {
 
     @Before
     public void init() {
-
         userService = new UserServiceImpl(userRepository, groupRepository, roleRepository);
+        user1 = testDataFactory.getUser1();
+        user2 = testDataFactory.getUser2();
 
-        user1 = new User();
-        user1.setId(1L);
-        user1.setFullName("test user1");
-        user1.setLogin("user1");
-        user1.setStatus(UserAndGroupStatus.VALID);
-        user1.setIss("https://oidc.muni.cz/oidc/");
-        user1.setGivenName("test");
-        user1.setFamilyName("user1");
-        user1.setPicture(new byte[] { (byte)0xe0, 0x4f, (byte)0xd0, (byte)0xea});
+        adminGroup = testDataFactory.getUAGAdminGroup();
+        userGroup = testDataFactory.getUAGUserGroup();
 
-        user2 = new User();
-        user2.setId(2L);
-        user2.setFullName("test user2");
-        user2.setLogin("user2");
-        user2.setStatus(UserAndGroupStatus.VALID);
-        user2.setIss("https://oidc.muni.cz/oidc/");
-
-        adminGroup = new IDMGroup("adminGroup", "Administrator group");
-        adminGroup.setId(1L);
-
-        userGroup = new IDMGroup("userGroup", "User group");
-        userGroup.setId(10L);
-
-        adminRole = new Role();
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        adminRole.setId(1L);
-
-        guestRole = new Role();
-        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        guestRole.setId(2L);
-
-        adminGroup.addRole(adminRole);
-        adminGroup.addUser(user1);
-
+        adminRole = testDataFactory.getUAGAdminRole();
+        guestRole = testDataFactory.getUAGGuestRole();
 
         pageable = PageRequest.of(0, 10);
     }
 
     @Test
     public void getUser() {
+        user1.setId(1L);
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
 
         User u = userService.getUserById(user1.getId());
@@ -138,6 +115,8 @@ public class UserServiceTest {
 
     @Test
     public void changeAdminRoleToUser() {
+        user1.setId(1L);
+        user2.setId(2L);
         adminGroup.addUser(user1);
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
@@ -164,6 +143,8 @@ public class UserServiceTest {
 
     @Test
     public void isUserAdmin() {
+        user1.setId(1L);
+        user2.setId(2L);
         adminGroup.addUser(user1);
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(userRepository.findById(user2.getId())).willReturn(Optional.of(user2));
@@ -231,6 +212,7 @@ public class UserServiceTest {
 
     @Test
     public void getUserWithGroups() {
+        user1.setId(1L);
         given(userRepository.getUserByIdWithGroups(user1.getId())).willReturn(Optional.of(user1));
         User u = userService.getUserWithGroups(user1.getId());
         assertEquals(user1, u);
@@ -256,6 +238,7 @@ public class UserServiceTest {
 
     @Test
     public void getRolesOfUser() {
+        user1.setId(1L);
         given(userRepository.existsById(user1.getId())).willReturn(true);
         given(userRepository.getRolesOfUser(user1.getId()))
                 .willReturn(Stream.of(adminRole, guestRole).collect(Collectors.toSet()));
@@ -275,6 +258,7 @@ public class UserServiceTest {
 
     @Test
     public void getRolesOfUserWithUserNotFoundShouldThrowException() {
+        user1.setId(1L);
         given(userRepository.existsById(user1.getId())).willReturn(false);
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("User with id " + user1.getId() + " could not be found.");
@@ -283,6 +267,7 @@ public class UserServiceTest {
 
     @Test
     public void getUsersWithGivenRole() {
+        adminRole.setId(1L);
         given(userRepository.findAllByRoleId(adminRole.getId(), null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         given(roleRepository.existsById(adminRole.getId())).willReturn(true);
 
@@ -293,6 +278,7 @@ public class UserServiceTest {
 
     @Test
     public void getUsersWithGivenRoleWithRoleNotFound() {
+        adminRole.setId(1L);
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Role with id: " + 1L + " could not be found.");
         given(roleRepository.existsById(1L)).willReturn(false);

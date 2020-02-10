@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -26,18 +28,19 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@ComponentScan(basePackages = "cz.muni.ics.kypo.userandgroup.util")
 public class UserRepositoryTest {
 
     @Autowired
+    private TestDataFactory testDataFactory;
+    @Autowired
     private TestEntityManager entityManager;
-
     @Autowired
     private UserRepository userRepository;
 
     private Role adminRole, guestRole;
     private IDMGroup group1, group2;
     private User user;
-    private Microservice microservice;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -45,31 +48,23 @@ public class UserRepositoryTest {
 
     @Before
     public void setup() {
-        microservice = new Microservice();
-        microservice.setEndpoint("http://kypo2-training/api/v1");
-        microservice.setName("training");
+        Microservice microservice = testDataFactory.getKypoTrainingMicroservice();
         this.entityManager.persistAndFlush(microservice);
 
-        adminRole = new Role();
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setMicroservice(microservice);
-        adminRole.setDescription("This role will allow you everything ...");
+        this.entityManager.persistAndFlush(adminRole);
 
-        guestRole = new Role();
-        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
+        guestRole = testDataFactory.getUAGGuestRole();
         guestRole.setMicroservice(microservice);
-        guestRole.setDescription("This is default role ... ");
+        this.entityManager.persistAndFlush(guestRole);
 
-        group1 = new IDMGroup("group1", "group1 1");
-        group1.setStatus(UserAndGroupStatus.VALID);
+        group1 = testDataFactory.getUAGDefaultGroup();
+        group1.setRoles(Set.of(guestRole));
+        group2 = testDataFactory.getTrainingAdminGroup();
+        group2.setRoles(Set.of(adminRole));
 
-        group2 = new IDMGroup("group2", "group1 2");
-        group2.setStatus(UserAndGroupStatus.VALID);
-
-        user = new User("user", "https://oidc.muni.cz/oidc/");
-        user.setFullName("User one");
-        user.setMail("user.one@mail.com");
-        user.setStatus(UserAndGroupStatus.VALID);
+        user = testDataFactory.getUser1();
     }
 
     @Test
@@ -123,13 +118,9 @@ public class UserRepositoryTest {
             user3.setStatus(UserAndGroupStatus.VALID);
             entityManager.persistAndFlush(user3);
         }
-
         List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group1.getId(), null, PageRequest.of(0, 10)).getContent();
-        System.out.println(usersNotInGroup.toString());
-//        assertEquals(10, usersNotInGroup.size());
         assertFalse(usersNotInGroup.contains(user));
-//        assertTrue(usersNotInGroup.contains(user2));
-//        assertTrue(usersNotInGroup.contains(user3));
+
     }
 
     @Test
@@ -139,15 +130,9 @@ public class UserRepositoryTest {
         IDMGroup g1 = entityManager.persistAndFlush(group1);
         IDMGroup g2 = entityManager.persistAndFlush(group2);
 
-        User user2 = new User("user2", "https://oidc.muni.cz/oidc/");
-        user2.setFullName("User two");
-        user2.setMail("user.two@mail.com");
-        user2.setStatus(UserAndGroupStatus.VALID);
+        User user2 = testDataFactory.getUser2();
         entityManager.persistAndFlush(user2);
-        User user3 = new User("user3", "https://oidc.muni.cz/oidc/");
-        user3.setFullName("User three");
-        user3.setMail("user.three@mail.com");
-        user3.setStatus(UserAndGroupStatus.VALID);
+        User user3 = testDataFactory.getUser3();
         entityManager.persistAndFlush(user3);
         g2.addUser(user2);
 

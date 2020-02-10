@@ -1,11 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
@@ -14,7 +13,6 @@ import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.service.impl.IdenticonService;
 import cz.muni.ics.kypo.userandgroup.service.impl.SecurityService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
@@ -40,6 +38,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -50,8 +49,11 @@ import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RoleMapperImpl.class, UserMapperImpl.class})
+@ContextConfiguration(classes = {TestDataFactory.class})
 public class UserFacadeTest {
 
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     private UserFacade userFacade;
@@ -72,7 +74,6 @@ public class UserFacadeTest {
 
     private User user1, user2;
     private UserDTO userDTO1, userDTO2;
-    private Role adminRole, userRole;
     private Predicate predicate;
     private Pageable pageable;
     private IDMGroup adminGroup, userGroup;
@@ -84,61 +85,18 @@ public class UserFacadeTest {
         MockitoAnnotations.initMocks(this);
         userFacade = new UserFacadeImpl(userService, idmGroupService, identiconService, securityService, userMapper, roleMapper);
 
-        user1 = new User("user1", "https://oidc.muni.cz/oidc/");
-        user1.setId(1L);
-        user1.setFullName("User One");
-        user1.setMail("user.one@mail.com");
-        user1.setStatus(UserAndGroupStatus.VALID);
-        user1.setFamilyName("One");
-        user1.setGivenName("User");
-        user1.setPicture(new byte[] { (byte)0xe0, 0x4f, (byte)0xd0, (byte)0xea});
+        user1 = testDataFactory.getUser1();
 
-        user2 = new User("user2", "https://oidc.muni.cz/oidc/");
-        user2.setId(2L);
-        user2.setFullName("User Two");
-        user2.setMail("user.two@mail.com");
-        user2.setStatus(UserAndGroupStatus.VALID);
+        user2 = testDataFactory.getUser2();
 
-        adminGroup = new IDMGroup("adminGroup", "Administrator group");
-        adminGroup.setId(1L);
-
-        userGroup = new IDMGroup("userGroup", "User group");
-        userGroup.setId(10L);
-
-        Microservice microservice = new Microservice();
-        microservice.setId(1L);
-        microservice.setName("TestMicroservice");
-
-        adminRole = new Role();
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        adminRole.setId(1L);
-        adminRole.setMicroservice(microservice);
-        adminGroup.setRoles(Set.of(adminRole));
-
-        userRole = new Role();
-        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
-        userRole.setId(2L);
-        userRole.setMicroservice(microservice);
-        userGroup.setRoles(Set.of(userRole));
+        adminGroup = testDataFactory.getUAGAdminGroup();
+        userGroup = testDataFactory.getUAGUserGroup();
 
         adminGroup.addUser(user1);
         userGroup.addUser(user1);
 
-        userDTO1 = new UserDTO();
-        userDTO1.setLogin("user1");
-        userDTO1.setId(1L);
-        userDTO1.setFullName("User One");
-        userDTO1.setMail("user.one@mail.com");
-        userDTO1.setIss("https://oidc.muni.cz/oidc/");
-        userDTO1.setGivenName("User");
-        userDTO1.setFamilyName("One");
-
-        userDTO2 = new UserDTO();
-        userDTO2.setLogin("user2");
-        userDTO2.setId(2L);
-        userDTO2.setFullName("User Two");
-        userDTO2.setMail("user.two@mail.com");
-        userDTO2.setIss("https://oidc.muni.cz/oidc/");
+        userDTO1 = testDataFactory.getUser1DTO();
+        userDTO2 = testDataFactory.getUser2DTO();
     }
 
     @Test
@@ -232,6 +190,10 @@ public class UserFacadeTest {
 
     @Test
     public void testGetAllUsersNotInGivenGroup() {
+        user1.setId(1L);
+        user2.setId(2L);
+        userDTO1.setId(1L);
+        userDTO2.setId(2L);
         Page<User> rolePage = new PageImpl<>(Arrays.asList(user1, user2));
         PageResultResource<UserDTO> pageResult = new PageResultResource<>();
         pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
@@ -246,6 +208,7 @@ public class UserFacadeTest {
 
     @Test
     public void testDeleteUser() {
+        user1.setId(1L);
         given(userService.getUserById(anyLong())).willReturn(user1);
         userFacade.deleteUser(user1.getId());
         then(userService).should().deleteUser(user1);

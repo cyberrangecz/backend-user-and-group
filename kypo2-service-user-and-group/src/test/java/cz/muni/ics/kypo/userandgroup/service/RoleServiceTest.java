@@ -1,6 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
@@ -13,10 +14,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
@@ -28,6 +31,7 @@ import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = TestDataFactory.class)
 public class RoleServiceTest {
 
     @Rule
@@ -35,6 +39,8 @@ public class RoleServiceTest {
     private RoleService roleService;
     @MockBean
     private RoleRepository roleRepository;
+    @Autowired
+    private TestDataFactory testDataFactory;
 
     private Role adminRole, userRole;
     private Pageable pageable;
@@ -44,19 +50,16 @@ public class RoleServiceTest {
     public void init() {
         roleService = new RoleServiceImpl(roleRepository);
 
-        adminRole = new Role();
-        adminRole.setId(1L);
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        adminRole = testDataFactory.getUAGAdminRole();
+        userRole = testDataFactory.getUAGUserRole();
 
-        userRole = new Role();
-        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
-        userRole.setId(2L);
 
         pageable = PageRequest.of(0, 10);
     }
 
     @Test
     public void getById() {
+        adminRole.setId(1L);
         given(roleRepository.findById(adminRole.getId())).willReturn(Optional.of(adminRole));
 
         Role r = roleService.getRoleById(adminRole.getId());
@@ -68,7 +71,8 @@ public class RoleServiceTest {
 
     @Test
     public void getByIdNotFoundShouldThrowException() {
-        Long id = 3L;
+        System.out.println(adminRole.getId()+"<----------*********");
+        Long id = 100L;
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Role with id " + id + " could not be found");
         given(roleRepository.findById(id)).willReturn(Optional.empty());
@@ -77,6 +81,7 @@ public class RoleServiceTest {
 
     @Test
     public void getByIdWithNullIdShouldThrowException() {
+        System.out.println(adminRole.getId()+"<----------*********");
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("In method getRoleById(id) the input must not be null.");
         roleService.getRoleById(null);
@@ -84,6 +89,7 @@ public class RoleServiceTest {
 
     @Test
     public void getByRoleType() {
+        System.out.println(adminRole.getId()+"<----------*********");
         given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.of(adminRole));
 
         Role r = roleService.getByRoleType(adminRole.getRoleType());
@@ -95,6 +101,7 @@ public class RoleServiceTest {
 
     @Test
     public void getByRoleTypeWithNullRoleTypeShouldThrowException() {
+        System.out.println(adminRole.getId()+"<----------*********");
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("In method getByRoleType(roleType) the input must not be null.");
         roleService.getByRoleType(null);
@@ -102,6 +109,7 @@ public class RoleServiceTest {
 
     @Test
     public void getAllRoles() {
+        System.out.println(adminRole.getId()+"<----------*********");
         given(roleRepository.findAll(predicate, pageable))
                 .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
 
@@ -119,6 +127,7 @@ public class RoleServiceTest {
 
     @Test
     public void getAllRolesOfMicroservice() {
+        System.out.println(adminRole.getId()+"<----------*********");
         given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
         Set<Role> roles = roleService.getAllRolesOfMicroservice("kypo2-training");
         assertEquals(2, roles.size());
@@ -128,6 +137,7 @@ public class RoleServiceTest {
 
     @Test
     public void getAllRolesOfMicroserviceWithNullName() {
+        System.out.println(adminRole.getId()+"<----------*********");
         thrown.expect(IllegalArgumentException.class);
         given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
         roleService.getAllRolesOfMicroservice(null);

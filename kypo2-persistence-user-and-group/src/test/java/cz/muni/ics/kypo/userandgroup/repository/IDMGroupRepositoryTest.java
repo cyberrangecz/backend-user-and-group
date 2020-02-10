@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import cz.muni.ics.kypo.userandgroup.model.*;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,20 +12,25 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@ComponentScan(basePackages = "cz.muni.ics.kypo.userandgroup.util")
 public class IDMGroupRepositoryTest {
 
+    @Autowired
+    private TestDataFactory testDataFactory;
     @Autowired
     private TestEntityManager entityManager;
 
@@ -45,28 +51,16 @@ public class IDMGroupRepositoryTest {
 
     @Before
     public void init() {
-        microservice = new Microservice();
-        microservice.setEndpoint("http://kypo2-training/api/v1");
-        microservice.setName("training");
+        microservice = testDataFactory.getKypoUaGMicroservice();
         this.entityManager.persistAndFlush(microservice);
 
-        adminRole = new Role();
-        adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setMicroservice(microservice);
-        adminRole.setDescription("This role will allow you everything.");
+        this.entityManager.persistAndFlush(adminRole);
 
-        userRole = new Role();
-        userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
-        userRole.setMicroservice(microservice);
-        userRole.setDescription("");
 
-        guestRole = new Role();
-        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        guestRole.setMicroservice(microservice);
-        guestRole.setDescription("This role is default.");
-
-        group = new IDMGroup("groupWithRoles", "Group with roles");
-
+        group = testDataFactory.getTrainingAdminGroup();
+        group.setRoles(Set.of(adminRole));
         pageable = PageRequest.of(0, 10);
     }
 
@@ -91,11 +85,9 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findAllByRoleType() {
-        entityManager.persistFlushFind(adminRole);
-        group.addRole(adminRole);
         entityManager.persistFlushFind(group);
 
-        List<IDMGroup> groups = groupRepository.findAllByRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
+        List<IDMGroup> groups = groupRepository.findAllByRoleType(adminRole.getRoleType());
         assertEquals(1, groups.size());
         assertEquals(this.group.getName(), groups.get(0).getName());
         assertEquals(this.group.getDescription(), groups.get(0).getDescription());
@@ -103,8 +95,6 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findAdministratorGroup() throws Exception {
-        entityManager.persistFlushFind(adminRole);
-        group.addRole(adminRole);
         entityManager.persistFlushFind(group);
 
         Optional<IDMGroup> optionalGroup = groupRepository.findAdministratorGroup();
