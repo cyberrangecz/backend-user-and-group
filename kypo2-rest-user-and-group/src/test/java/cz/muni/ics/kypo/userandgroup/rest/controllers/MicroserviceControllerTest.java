@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.rest.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
@@ -30,10 +29,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
@@ -116,8 +115,4 @@ public class MicroserviceControllerTest {
         assertEquals(MethodArgumentNotValidException.class, ex.getClass());
     }
 
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
 }

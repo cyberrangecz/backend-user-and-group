@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
@@ -39,11 +37,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.getInitialExceptionMessage;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -357,12 +356,6 @@ public class GroupsRestControllerTest {
 
     }
 
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
-
-
     private AddUsersToGroupDTO getAddUsersToGroupDTO() {
         AddUsersToGroupDTO groupDTO = new AddUsersToGroupDTO();
         groupDTO.setIdsOfGroupsOfImportedUsers(Arrays.asList(2L));
@@ -406,13 +399,6 @@ public class GroupsRestControllerTest {
 
     private Set<RoleDTO> getRolesDTO() {
         return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
-    }
-
-    private String getInitialExceptionMessage(Exception exception) {
-        while (exception.getCause() != null) {
-            exception = (Exception) exception.getCause();
-        }
-        return exception.getMessage();
     }
 
 }

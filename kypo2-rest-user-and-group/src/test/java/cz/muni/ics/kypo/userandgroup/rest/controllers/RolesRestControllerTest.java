@@ -11,7 +11,6 @@ import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -36,12 +35,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.getInitialExceptionMessage;
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -170,15 +170,4 @@ public class RolesRestControllerTest {
         assertEquals(ResourceNotFoundException.class, exception.getClass());
     }
 
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
-
-    private String getInitialExceptionMessage(Exception exception) {
-        while (exception.getCause() != null) {
-            exception = (Exception) exception.getCause();
-        }
-        return exception.getMessage();
-    }
 }

@@ -17,9 +17,7 @@ import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -41,7 +39,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -50,14 +47,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.getInitialExceptionMessage;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -100,7 +97,6 @@ public class UsersRestControllerTest {
                 )
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
-
 
         userDTO1 = testDataFactory.getUser1DTO();
         userDTO1.setId(1L);
@@ -252,11 +248,6 @@ public class UsersRestControllerTest {
         assertEquals("User with id " + userDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
     }
 
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
-
     private RoleDTO getAdminRoleDTO() {
         RoleDTO adminRole = new RoleDTO();
         adminRole.setId(1L);
@@ -288,13 +279,6 @@ public class UsersRestControllerTest {
         given(auth.getUserAuthentication()).willReturn(auth);
         given(auth.getCredentials()).willReturn(sub);
         given(authentication.getDetails()).willReturn(auth);
-    }
-
-    private String getInitialExceptionMessage(Exception exception) {
-        while (exception.getCause() != null) {
-            exception = (Exception) exception.getCause();
-        }
-        return exception.getMessage();
     }
 
 }

@@ -10,6 +10,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.Source;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
@@ -47,6 +48,11 @@ public class TestDataFactory {
 
     private NewMicroserviceDTO newMicroserviceDTO
             = generateNewMicroserviceDTO("training", "http://kypo2-training/api/v1");
+
+    private MicroserviceDTO microserviceTrainingDTO
+            = generateMicroserviceDTO("training", "http://kypo2-training/api/v1");
+    private MicroserviceDTO microserviceUserAndGroupDTO
+            = generateMicroserviceDTO("userAndGroup", "http://kypo2-user-and-group/api/v1");
 
     private Role trainingTraineeRole
             = generateRole("ROLE_TRAINING_TRAINEE", kypoTrainingMicroservice, "Trainee description");
@@ -95,7 +101,7 @@ public class TestDataFactory {
     private UserForGroupsDTO userForGroupsDTO1
             = generateUserForGroupsDTO("852374@muni.cz", "Garfield", "Pokorny", "852374@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
     private UserForGroupsDTO userForGroupsDTO2
-            = generateUserForGroupsDTO("77863@muni.cz", "Drew", "Coyer", "77863@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
+            = generateUserForGroupsDTO("632145@muni.cz", "Marcel", "Watchman", "632145@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
     private UserForGroupsDTO userForGroupsDTO3
             = generateUserForGroupsDTO("794254@muni.cz", "Garret", "Cull", "794254@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
 
@@ -122,6 +128,14 @@ public class TestDataFactory {
 
     public NewMicroserviceDTO getNewMicroserviceDTO(){
         return clone(newMicroserviceDTO, NewMicroserviceDTO.class);
+    }
+
+    public MicroserviceDTO getMicroserviceTrainingDTO(){
+        return clone(microserviceTrainingDTO, MicroserviceDTO.class);
+    }
+
+    public MicroserviceDTO getMicroserviceUserAndGroupDTO(){
+        return clone(microserviceUserAndGroupDTO, MicroserviceDTO.class);
     }
 
     public Role getTrainingTraineeRole() {
@@ -368,6 +382,13 @@ public class TestDataFactory {
         newMicroserviceDTO.setName(name);
         newMicroserviceDTO.setEndpoint(endpoint);
         return newMicroserviceDTO;
+    }
+
+    private MicroserviceDTO generateMicroserviceDTO(String name, String endpoint){
+        MicroserviceDTO microserviceDTO = new MicroserviceDTO();
+        microserviceDTO.setName(name);
+        microserviceDTO.setEndpoint(endpoint);
+        return microserviceDTO;
     }
 
     private List<Role> generateRoleList(int count){

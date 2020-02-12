@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class MicroserviceFacadeImpl implements MicroserviceFacade {
 
     private MicroserviceService microserviceService;

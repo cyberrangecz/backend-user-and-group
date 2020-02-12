@@ -1,15 +1,19 @@
 package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
@@ -31,17 +35,22 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.*;
+import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
 import static org.junit.Assert.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,8 +76,9 @@ public class MicroservicesIntegrationTests {
     private TestDataFactory testDataFactory;
 
     private NewMicroserviceDTO newMicroserviceDTO;
-    private Microservice microserviceUserAndGroup;
-    private Role adminRole, guestRole;
+    private MicroserviceDTO microserviceUserAndGroupDTO, microserviceTrainingDTO;
+    private Microservice microserviceUserAndGroup, microserviceTraining;
+    private Role adminRole, guestRole, organizerRole, designerRole;
     private RoleForNewMicroserviceDTO roleAdminDTO, roleDesignerDTO, roleOrganizerDTO, roleTraineeDTO;
     private IDMGroup defaultGroup;
 
@@ -82,15 +92,22 @@ public class MicroservicesIntegrationTests {
         this.mvc = MockMvcBuilders.standaloneSetup(microservicesRestController)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
                         new QuerydslPredicateArgumentResolver(new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE), Optional.empty()))
-                .setMessageConverters(new MappingJackson2HttpMessageConverter()).build();
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .setControllerAdvice(new CustomRestExceptionHandler())
+                .build();
 
         defaultGroup = testDataFactory.getUAGDefaultGroup();
         guestRole = defaultGroup.getRoles().iterator().next();
-
         adminRole = testDataFactory.getUAGAdminRole();
+        organizerRole = testDataFactory.getTrainingOrganizerRole();
+        designerRole = testDataFactory.getTrainingDesignerRole();
+
+        microserviceTraining = testDataFactory.getKypoTrainingMicroservice();
         microserviceUserAndGroup = adminRole.getMicroservice();
 
         guestRole.setMicroservice(microserviceUserAndGroup);
+        organizerRole.setMicroservice(microserviceTraining);
+        designerRole.setMicroservice(microserviceTraining);
         microserviceRepository.save(microserviceUserAndGroup);
         roleRepository.saveAll(Set.of(adminRole, guestRole));
 
@@ -107,6 +124,11 @@ public class MicroservicesIntegrationTests {
         newMicroserviceDTO.setRoles(Set.of(roleAdminDTO, roleDesignerDTO, roleOrganizerDTO, roleTraineeDTO));
         newMicroserviceDTO.setEndpoint("/kypo2-training/api/v1");
 
+        microserviceUserAndGroupDTO = testDataFactory.getMicroserviceUserAndGroupDTO();
+        microserviceUserAndGroupDTO.setId(microserviceUserAndGroup.getId());
+        microserviceTrainingDTO = testDataFactory.getMicroserviceTrainingDTO();
+
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR);
     }
 
     @After
@@ -177,8 +199,8 @@ public class MicroservicesIntegrationTests {
                 .andExpect(status().isNotAcceptable())
                 .andReturn().getResolvedException();
 
-        assertTrue(getInitialExceptionMessage(exception).contains("Role with given role type: " + roleTraineeDTO.getRoleType() + " already exist. Please name the role with different role type.") &&
-                getInitialExceptionMessage(exception).contains("Please name the role with different role type."));
+        assert exception != null;
+        assertEquals("Role with given role type: " + roleTraineeDTO.getRoleType() + " already exist. Please name the role with different role type.", getInitialExceptionMessage(exception));
         assertEquals(ResourceNotCreatedException.class, exception.getClass());
     }
 
@@ -208,20 +230,48 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ConflictException.class, exception.getClass());
         assertEquals("Microservice which you are trying to register cannot have more than 1 default role.", getInitialExceptionMessage(exception));
     }
 
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
+
+    @Test
+    public void getMicroservices() throws Exception {
+        microserviceRepository.save(microserviceTraining);
+        roleRepository.saveAll(Set.of(organizerRole, designerRole));
+        microserviceTrainingDTO.setId(microserviceTraining.getId());
+
+        MockHttpServletResponse response = mvc.perform(get("/microservices")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<MicroserviceDTO> microserviceResponseDTO = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<MicroserviceDTO>>() {}).getContent();
+        assertTrue(microserviceResponseDTO.containsAll(Set.of(microserviceTrainingDTO, microserviceUserAndGroupDTO)));
     }
 
-    private String getInitialExceptionMessage(Exception exception) {
-        while (exception.getCause() != null) {
-            exception = (Exception) exception.getCause();
-        }
-        return exception.getMessage();
+    @Test
+    public void getMicroservicesWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/microservices")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getMicroservicesWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/microservices")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
 }
