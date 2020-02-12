@@ -2,10 +2,8 @@ package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
@@ -16,7 +14,6 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
@@ -27,7 +24,6 @@ import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.GroupsRestController;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
-import cz.muni.ics.kypo.userandgroup.service.impl.SecurityService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +35,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -47,16 +42,17 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.*;
+import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,14 +79,11 @@ public class IDMGroupsIntegrationTests {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private SecurityService securityService;
-    @Autowired
     private TestDataFactory testDataFactory;
 
     private NewGroupDTO newOrganizerGroupDTO;
     private UserForGroupsDTO organizerDTO1, organizerDTO2;
     private User organizer1, organizer2, user1, user2;
-    private GroupDTO groupDTO;
     private IDMGroup adminGroup, userGroup, defaultGroup, organizerGroup, designerGroup;
     private Role adminRole, guestRole, userRole, designerRole, organizerRole, traineeRole;
     private Microservice microserviceUserAndGroup, microserviceTraining;
@@ -102,10 +95,13 @@ public class IDMGroupsIntegrationTests {
 
     @Before
     public void init() {
-        this.mvc = MockMvcBuilders.standaloneSetup(groupsRestController)
+        this.mvc = MockMvcBuilders
+                .standaloneSetup(groupsRestController)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
                         new QuerydslPredicateArgumentResolver(new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE), Optional.empty()))
-                .setMessageConverters(new MappingJackson2HttpMessageConverter()).build();
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .setControllerAdvice(new CustomRestExceptionHandler())
+                .build();
         beanMapping = new BeanMappingImpl(new ModelMapper());
 
         organizer1 = testDataFactory.getUser1();
@@ -147,8 +143,8 @@ public class IDMGroupsIntegrationTests {
         groupRepository.saveAll(new HashSet<>(Set.of(adminGroup, userGroup, defaultGroup, organizerGroup, designerGroup)));
 
 
-        organizerDTO1 = testDataFactory.getUserForGroupsDTO2();
-        organizerDTO2 = testDataFactory.getUserForGroupsDTO3();
+        organizerDTO1 = testDataFactory.getUserForGroupsDTO1();
+        organizerDTO2 = testDataFactory.getUserForGroupsDTO2();
 
         newOrganizerGroupDTO = new NewGroupDTO();
         newOrganizerGroupDTO.setName("Organizer group");
@@ -158,11 +154,39 @@ public class IDMGroupsIntegrationTests {
         userGroup.setUsers(new HashSet<>(Set.of(user1, user2)));
         groupRepository.save(userGroup);
 
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR);
+
     }
 
     @After
     public void reset() throws SQLException {
         DBTestUtil.resetAutoIncrementColumns(applicationContext, "microservice", "idm_group", "users", "role");
+    }
+
+    @Test
+    public void createNewGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(post("/groups")
+                .content(convertObjectToJsonBytes(newOrganizerGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void createNewGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(post("/groups")
+                .content(convertObjectToJsonBytes(newOrganizerGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -181,7 +205,6 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void createNewGroupWithUsers() throws Exception {
-        userRepository.saveAll(Set.of(organizer1, organizer2));
         organizerDTO1.setId(organizer1.getId());
         organizerDTO2.setId(organizer2.getId());
         newOrganizerGroupDTO.setUsers(Set.of(organizerDTO1, organizerDTO2));
@@ -193,13 +216,12 @@ public class IDMGroupsIntegrationTests {
         Optional<IDMGroup> createdGroup = groupRepository.findByName(newOrganizerGroupDTO.getName());
         assertTrue(createdGroup.isPresent());
         assertEquals(2, createdGroup.get().getUsers().size());
+        assertTrue(createdGroup.get().getUsers().containsAll(Set.of(organizer1, organizer2)));
         assertEquals(convertJsonBytesToObject(response.getContentAsString(), GroupDTO.class), beanMapping.mapTo(createdGroup.get(), GroupDTO.class));
     }
 
     @Test
     public void createNewGroupWithImportedUsersFromGroups() throws Exception {
-        userRepository.saveAll(Set.of(user1));
-
         newOrganizerGroupDTO.setGroupIdsOfImportedUsers(List.of(userGroup.getId()));
         MockHttpServletResponse response = mvc.perform(post("/groups")
                 .content(convertObjectToJsonBytes(newOrganizerGroupDTO))
@@ -209,6 +231,7 @@ public class IDMGroupsIntegrationTests {
         Optional<IDMGroup> createdGroup = groupRepository.findByName(newOrganizerGroupDTO.getName());
         assertTrue(createdGroup.isPresent());
         assertEquals(userGroup.getUsers().size(), createdGroup.get().getUsers().size());
+        assertTrue(createdGroup.get().getUsers().containsAll(userGroup.getUsers()));
 
         GroupDTO createdGroupDTO = convertJsonBytesToObject(response.getContentAsString(), GroupDTO.class);
         assertTrue(createdGroupDTO.getUsers().containsAll(beanMapping.mapTo(createdGroup.get().getUsers(), UserForGroupsDTO.class)));
@@ -216,50 +239,128 @@ public class IDMGroupsIntegrationTests {
     }
 
     @Test
-    public void updateGroupChangeNameOfMainGroup() throws Exception {
+    public void updateNewGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
         UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
         updateGroupDTO.setId(userGroup.getId());
         updateGroupDTO.setName("Changed user group name");
-        updateGroupDTO.setDescription("Description");
+        updateGroupDTO.setDescription(userGroup.getDescription());
+        Exception exception = mvc.perform(put("/groups")
+                .content(convertObjectToJsonBytes(updateGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void updateGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
+        updateGroupDTO.setId(userGroup.getId());
+        updateGroupDTO.setName("Changed user group name");
+        updateGroupDTO.setDescription(userGroup.getDescription());
+        Exception exception = mvc.perform(put("/groups")
+                .content(convertObjectToJsonBytes(updateGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void updateNameOfMainGroup() throws Exception {
+        UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
+        updateGroupDTO.setId(userGroup.getId());
+        updateGroupDTO.setName("Changed user group name");
+        updateGroupDTO.setDescription(userGroup.getDescription());
+        String groupNameBefore = userGroup.getName();
 
         Exception exception = mvc.perform(put("/groups")
                 .content(convertObjectToJsonBytes(updateGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
+        assert exception != null;
+        Optional<IDMGroup> updatedGroup = groupRepository.findById(userGroup.getId());
+        assertTrue(updatedGroup.isPresent());
+        assertEquals(groupNameBefore, updatedGroup.get().getName());
         assertEquals(ConflictException.class, exception.getClass());
         assertEquals("Cannot change name of main group " + userGroup.getName() + " to " + updateGroupDTO.getName() + ".", getInitialExceptionMessage(exception));
     }
 
     @Test
-    public void updateMainGroup() throws Exception {
+    public void updateDescriptionOfMainGroup() throws Exception {
+        String newDescription = "New description of main group";
+        String groupDescriptionBefore = userGroup.getName();
         UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
         updateGroupDTO.setId(userGroup.getId());
         updateGroupDTO.setName(userGroup.getName());
-        updateGroupDTO.setDescription("Description of main group");
+        updateGroupDTO.setDescription(newDescription);
 
         mvc.perform(put("/groups")
                 .content(convertObjectToJsonBytes(updateGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
+        Optional<IDMGroup> updatedGroup = groupRepository.findById(userGroup.getId());
+        assertTrue(updatedGroup.isPresent());
+        assertNotEquals(groupDescriptionBefore, updatedGroup.get().getDescription());
+        assertEquals(newDescription, updatedGroup.get().getDescription());
     }
 
     @Test
-    public void updateGroup() throws Exception {
+    public void updateNameOfGroup() throws Exception {
+        String newName = "Changed name of group";
+        String groupNameBefore = organizerGroup.getName();
         UpdateGroupDTO updateGroupDTO = new UpdateGroupDTO();
         updateGroupDTO.setId(organizerGroup.getId());
-        updateGroupDTO.setName("Change group name");
-        updateGroupDTO.setDescription("Now group for designers.");
+        updateGroupDTO.setName(newName);
+        updateGroupDTO.setDescription(organizerGroup.getDescription());
 
         mvc.perform(put("/groups")
                 .content(convertObjectToJsonBytes(updateGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
+        Optional<IDMGroup> updatedGroup = groupRepository.findById(organizerGroup.getId());
+        assertTrue(updatedGroup.isPresent());
+        assertNotEquals(groupNameBefore, updatedGroup.get().getName());
+        assertEquals(newName, updatedGroup.get().getName());
+    }
+
+    @Test
+    public void removeUsersFromGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(delete("/groups/{id}/users", userGroup.getId())
+                .content(convertObjectToJsonBytes(List.of(user1.getId(), user2.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void removeUsersFromGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(delete("/groups/{id}/users", userGroup.getId())
+                .content(convertObjectToJsonBytes(List.of(user1.getId(), user2.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
     public void removeAllUsersFromGroup() throws Exception {
         assertEquals(2, userGroup.getUsers().size());
+        System.out.println(mvc);
 
         mvc.perform(delete("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(List.of(user1.getId(), user2.getId())))
@@ -280,20 +381,63 @@ public class IDMGroupsIntegrationTests {
         assertTrue(userGroup.getUsers().contains(user2));
     }
 
-//    @Test
-//    public void removeUserNotInDBFromGroup() throws Exception {
-//        Exception exception = mvc.perform(delete("/groups/{id}/users", userGroup.getId())
-//                .content(convertObjectToJsonBytes(List.of(100L)))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isNotFound())
-//                .andReturn().getResolvedException();
-//        assertEquals(ResourceNotFoundException.class, exception.getClass());
-//        assertTrue(exception.getMessage().contains("No users with given ids were found"));
-//    }
+    @Test
+    public void removeUserFromGroupWithGroupNotFound() throws Exception {
+        Long groupId = 500L;
+        Exception exception = mvc.perform(delete("/groups/{id}/users", groupId)
+                .content(convertObjectToJsonBytes(List.of(user1.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(ResourceNotFoundException.class, exception.getClass());
+        assertTrue(exception.getMessage().contains("IDMGroup with id " + groupId + " not found."));
+    }
+
+    @Test
+    public void removeUserNotInDBFromGroup() throws Exception {
+        int numberOfUsersBefore = userGroup.getUsers().size();
+        mvc.perform(delete("/groups/{id}/users", userGroup.getId())
+                .content(convertObjectToJsonBytes(List.of(100L)))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+        assertEquals(numberOfUsersBefore, userGroup.getUsers().size());
+    }
+
+    @Test
+    public void addUsersToGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
+        addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), organizer1.getId()));
+        Exception exception = mvc.perform(put("/groups/{id}/users", userGroup.getId())
+                .content(convertObjectToJsonBytes(addUsersToGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void addUsersToGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
+        addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), organizer1.getId()));
+        Exception exception = mvc.perform(put("/groups/{id}/users", userGroup.getId())
+                .content(convertObjectToJsonBytes(addUsersToGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
 
     @Test
     public void addUsersToGroup() throws Exception {
         assertEquals(2, userGroup.getUsers().size());
+        Set<User> usersInGroupBefore = userGroup.getUsers();
         AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), organizer1.getId()));
 
@@ -302,7 +446,9 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
         assertEquals(3, userGroup.getUsers().size());
-        assertTrue(userGroup.getUsers().containsAll(Set.of(user1, user2, organizer1)));
+        usersInGroupBefore.add(organizer1);
+        assertTrue(userGroup.getUsers().containsAll(usersInGroupBefore));
+
     }
 
     @Test
@@ -344,31 +490,47 @@ public class IDMGroupsIntegrationTests {
         assertTrue(userGroup.getUsers().contains(organizer1));
     }
 
-//    @Test
-//    public void addUserNotInDBToGroup() throws Exception {
-//        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
-//        addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(100L));
-//        Exception exception = mvc.perform(put("/groups/{id}/users", userGroup.getId())
-//                .content(convertObjectToJsonBytes(addUsersToGroupDTO))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isNotFound())
-//                .andReturn().getResolvedException();
-//        assertEquals(ResourceNotFoundException.class, exception.getClass());
-//        assertTrue(exception.getMessage().contains("No users with given ids were found"));
-//    }
+    @Test
+    public void addUsersToGroupFromWithGroupNotFound() throws Exception {
+        Long groupId = 600L;
+        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
+        addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(defaultGroup.getId()));
 
-//    @Test
-//    public void addUsersFromGroupNotInDB() throws Exception {
-//        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
-//        addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(100L));
-//        Exception exception = mvc.perform(put("/groups/{id}/users", userGroup.getId())
-//                .content(convertObjectToJsonBytes(addUsersToGroupDTO))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isNotFound())
-//                .andReturn().getResolvedException();
-//        assertEquals(ResourceNotFoundException.class, exception.getClass());
-//        assertTrue(exception.getMessage().contains("No groups with given ids were found. Ids: " + List.of(100L)));
-//    }
+        Exception exception = mvc.perform(put("/groups/{id}/users", groupId)
+                .content(convertObjectToJsonBytes(addUsersToGroupDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(ResourceNotFoundException.class, exception.getClass());
+        assertEquals("IDMGroup with id " + groupId + " not found.", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void deleteGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Long organizerId = organizerGroup.getId();
+        Exception exception = mvc.perform(delete("/groups/{id}", organizerId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void deleteGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Long organizerId = organizerGroup.getId();
+        Exception exception = mvc.perform(delete("/groups/{id}", organizerId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
 
     @Test
     public void deleteGroup() throws Exception {
@@ -377,6 +539,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
+        assertFalse(groupRepository.existsById(organizerId));
     }
 
     @Test
@@ -385,8 +548,9 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("IDMGroup with id " + 100 + " not found."));
+        assertEquals( "IDMGroup with id " + 100 + " not found.", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -397,25 +561,51 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ConflictException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("It is not possible to delete group with id: " + userGroup.getId() +
-                ". This group is User and Group default group that could not be deleted."));
+        assertEquals("It is not possible to delete group with id: " + userGroup.getId() +
+                ". This group is User and Group default group that could not be deleted.", getInitialExceptionMessage(exception));
         assertTrue(groupRepository.existsById(userGroup.getId()));
     }
 
     @Test
     public void deleteGroupWithUsers() throws Exception {
-        userRepository.saveAll(Set.of(user1, user2));
         organizerGroup.addUser(user1);
         groupRepository.save(organizerGroup);
         Exception exception = mvc.perform(delete("/groups/{id}", organizerGroup.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ConflictException.class, exception.getClass());
-        System.out.println(getInitialExceptionMessage(exception));
-        assertTrue(getInitialExceptionMessage(exception).contains("It is not possible to delete group with id: " + organizerGroup.getId() + ". The group must be empty (without users)"));
+        assertEquals("It is not possible to delete group with id: " + organizerGroup.getId() + ". The group must be empty (without users)", getInitialExceptionMessage(exception));
         assertTrue(groupRepository.existsById(organizerGroup.getId()));
+    }
+
+    @Test
+    public void deleteGroupsUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(delete("/groups")
+                .content(convertObjectToJsonBytes(List.of(organizerGroup.getId(), designerGroup.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void deleteGroupsGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(delete("/groups")
+                .content(convertObjectToJsonBytes(List.of(organizerGroup.getId(), designerGroup.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -444,9 +634,10 @@ public class IDMGroupsIntegrationTests {
                 .andReturn().getResolvedException();
         assertTrue(groupRepository.existsById(userGroup.getId()));
         assertTrue(groupRepository.existsById(organizerGroupId));
+        assert exception != null;
         assertEquals(ConflictException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("It is not possible to delete group with id: " + userGroup.getId() + ". " +
-                "This group is User and Group default group that could not be deleted."));
+        assertEquals("It is not possible to delete group with id: " + userGroup.getId() + ". " +
+                "This group is User and Group default group that could not be deleted.", getInitialExceptionMessage(exception));
 
     }
 
@@ -461,17 +652,41 @@ public class IDMGroupsIntegrationTests {
                 .andReturn().getResolvedException();
         assertTrue(groupRepository.existsById(userGroup.getId()));
 
+        assert exception != null;
         assertEquals(ConflictException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("It is not possible to delete group with id: " + organizerGroup.getId() + ". The group must be empty (without users)"));
+        assertEquals("It is not possible to delete group with id: " + organizerGroup.getId() + ". The group must be empty (without users)", getInitialExceptionMessage(exception));
     }
 
     @Test
     public void deleteGroupsWithEmptyList() throws Exception {
         mvc.perform(delete("/groups")
                 .content(convertObjectToJsonBytes(List.of()))
-                .content(convertObjectToJsonBytes(List.of()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getGroupsUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/groups")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getGroupsGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/groups")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -487,12 +702,36 @@ public class IDMGroupsIntegrationTests {
     }
 
     @Test
+    public void getGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/groups/{id}", userGroup.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/groups/{id}", userGroup.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
     public void getGroup() throws Exception {
         MockHttpServletResponse response = mvc.perform(get("/groups/{id}", userGroup.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertEquals(convertJsonBytesToObject(response.getContentAsString(), GroupDTO.class), convertToGroupDTO(userGroup));
+        assertEquals(convertJsonBytesToObject(response.getContentAsString(), GroupDTO.class), beanMapping.mapTo(userGroup, GroupDTO.class));
     }
 
     @Test
@@ -501,8 +740,33 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("IDMGroup with id " + 100 + " not found"));
+    }
+
+    @Test
+    public void getRolesOfGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/groups/{id}/roles", defaultGroup.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getRolesOfGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/groups/{id}/roles", defaultGroup.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
@@ -511,9 +775,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        System.out.println(response.getContentAsString());
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(traineeRole))));
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(guestRole))));
+        List<RoleDTO> responseRoles = convertJsonBytesToObject(response.getContentAsString(), new TypeReference<List<RoleDTO>>() {});
+        assertTrue(responseRoles.contains(convertToRoleDTO(traineeRole)));
+        assertTrue(responseRoles.contains(convertToRoleDTO(guestRole)));
+        assertEquals(groupRepository.findByNameWithRoles(defaultGroup.getName()).get().getRoles().size(), responseRoles.size());
     }
 
     @Test
@@ -522,10 +787,34 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("Group with id " + 100 + " not found."));
     }
 
+    @Test
+    public void assignRoleToGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), organizerRole.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void assignRoleToGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), organizerRole.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
 
     @Test
     public void assignRoleToGroup() throws Exception {
@@ -539,11 +828,23 @@ public class IDMGroupsIntegrationTests {
     }
 
     @Test
+    public void assignRoleToGroupAlreadyAssigned() throws Exception {
+        assertTrue(organizerGroup.getRoles().contains(organizerRole));
+        int numberOfRolesBefore = organizerGroup.getRoles().size();
+        mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), organizerRole.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+        assertTrue(organizerGroup.getRoles().contains(organizerRole));
+        assertEquals(numberOfRolesBefore, organizerGroup.getRoles().size());
+    }
+
+    @Test
     public void assignRoleToGroupRoleNotFound() throws Exception {
         Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("Role with id: " + 100 + " could not be found."));
     }
@@ -554,19 +855,61 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("Group with id " + 100 + " not found."));
+    }
+
+    @Test
+    public void removeRoleToGroupUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void removeRoleToGroupGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
     public void removeRoleFromGroup() throws Exception {
         organizerGroup.addRole(designerRole);
         groupRepository.save(organizerGroup);
+        int numberOfRolesBefore = organizerGroup.getRoles().size();
         mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
         assertFalse(organizerGroup.getRoles().contains(designerRole));
-        assertEquals(1, organizerGroup.getRoles().size());
+        assertEquals(numberOfRolesBefore - 1, organizerGroup.getRoles().size());
+    }
+
+    @Test
+    public void removeRoleFromGroupNotAssignedToGroup() throws Exception {
+        assertFalse(organizerGroup.getRoles().contains(designerRole));
+        int numberOfRolesBefore = organizerGroup.getRoles().size();
+        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException();
+
+        assert exception != null;
+        assertEquals(ResourceNotFoundException.class, exception.getClass());
+        assertTrue(exception.getMessage().contains("Role with id: " + designerRole.getId() + " could not be found in given group."));
+        assertFalse(organizerGroup.getRoles().contains(designerRole));
+        assertEquals(numberOfRolesBefore, organizerGroup.getRoles().size());
     }
 
     @Test
@@ -575,6 +918,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("Role with id: " + 100 + " could not be found in given group."));
     }
@@ -585,6 +929,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("Group with id " + 100 + " not found."));
     }
@@ -595,66 +940,11 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ConflictException.class, exception.getClass());
         assertTrue(exception.getMessage().contains("Role " + userRole.getRoleType() + " cannot be removed from group. This role is main role of the group"));
+        assertTrue(userGroup.getRoles().contains(userRole));
     }
 
-
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
-
-    private static String convertJsonBytesToObject(String object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(object, String.class);
-    }
-
-    private static <T> T convertJsonBytesToObject(String object, Class<T> objectClass) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.registerModule( new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper.readValue(object, objectClass);
-    }
-
-    private static <T> T convertJsonBytesToObject(String object, TypeReference<T> tTypeReference) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.registerModule( new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper.readValue(object, tTypeReference);
-    }
-
-    private GroupDTO convertToGroupDTO(IDMGroup group) {
-        GroupDTO groupDTO = new GroupDTO();
-        groupDTO.setId(group.getId());
-        groupDTO.setDescription(group.getDescription());
-        groupDTO.setName(group.getName());
-        if (Set.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName()).contains(groupDTO.getName())) {
-            groupDTO.setCanBeDeleted(false);
-        }
-        groupDTO.setRoles(group.getRoles().stream()
-                .map(this::convertToRoleDTO)
-                .collect(Collectors.toSet()));
-        groupDTO.setUsers(group.getUsers().stream()
-                .map(user -> {
-                    return beanMapping.mapTo(user, UserForGroupsDTO.class);
-                })
-                .collect(Collectors.toSet()));
-        return groupDTO;
-    }
-
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO = beanMapping.mapTo(role, RoleDTO.class);
-        roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
-        roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
-        return roleDTO;
-    }
-
-    private String getInitialExceptionMessage(Exception exception) {
-        while (exception.getCause() != null) {
-            exception = (Exception) exception.getCause();
-        }
-        return exception.getMessage();
-    }
 }
 

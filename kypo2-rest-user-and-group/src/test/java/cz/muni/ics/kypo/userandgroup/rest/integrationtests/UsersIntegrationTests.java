@@ -1,29 +1,29 @@
 package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
+import com.fasterxml.jackson.core.type.TypeReference;
+import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
 import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.UsersRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,23 +38,19 @@ import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.*;
+import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
+import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo;
 import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -96,7 +92,9 @@ public class UsersIntegrationTests {
         this.mvc = MockMvcBuilders.standaloneSetup(usersRestController)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
                         new QuerydslPredicateArgumentResolver(new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE), Optional.empty()))
-                .setMessageConverters(new MappingJackson2HttpMessageConverter()).build();
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .setControllerAdvice(new CustomRestExceptionHandler())
+                .build();
 
         beanMapping = new BeanMappingImpl(new ModelMapper());
 
@@ -138,6 +136,8 @@ public class UsersIntegrationTests {
         group2.setUsers(new HashSet<>(Set.of(user1, user2)));
         groupRepository.saveAll(new HashSet<>(Set.of(group1, group2)));
 
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR);
+
     }
 
     @After
@@ -151,97 +151,233 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest)))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user2, List.of(roleTrainee, roleOrganizer, roleGuest)))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user3, List.of()))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user4, List.of(roleOrganizer)))));
+        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {}).getContent();
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user2, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user3, Set.of())));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
 
     }
 
     @Test
-    public void getUsersWithGivenIds() throws Exception {
+    public void getUsersWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/users")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getUsersWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/users")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getUsersWithGivenIdsWithAdminRole() throws Exception {
         userRepository.saveAll(Set.of(user1, user2, user3, user4));
         MockHttpServletResponse response = mvc.perform(get("/users/ids")
-                .param("ids", Set.of(user2.getId(), user4.getId()).toString()
-                        .replace("[", "")
-                        .replace("]", ""))
+                .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertFalse(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest)))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user2, List.of(roleTrainee, roleOrganizer, roleGuest)))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user4, List.of(roleOrganizer)))));
+        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {}).getContent();
+        assertFalse(responseUsersDTOs.contains(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user2, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+    }
+
+    @Test
+    public void getUsersWithGivenIdsWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        userRepository.saveAll(Set.of(user1, user2, user3, user4));
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {}).getContent();
+        assertFalse(responseUsersDTOs.contains(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user2, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+    }
+
+    @Test
+    public void getUsersWithGivenIdsWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        userRepository.saveAll(Set.of(user1, user2, user3, user4));
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {}).getContent();
+        assertFalse(responseUsersDTOs.contains(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user2, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
     }
 
     @Test
     public void getUsersWithGivenIdsNotInDB() throws Exception {
         userRepository.saveAll(Set.of(user1, user2, user3, user4));
         MockHttpServletResponse response = mvc.perform(get("/users/ids")
-                .param("ids", Set.of(100, 200).toString()
-                        .replace("[", "")
-                        .replace("]", ""))
+                .param("ids", StringUtils.join(Set.of(100, 200), ","))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains("[]"));
+        assertEquals(0, convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {}).getContent().size());
     }
 
     @Test
     public void getUsersWithGivenIdsEmptyListOfIds() throws Exception {
         userRepository.saveAll(Set.of());
         MockHttpServletResponse response = mvc.perform(get("/users/ids")
-                .param("ids", Set.of().toString()
-                        .replace("[", "")
-                        .replace("]", ""))
+                .param("ids", StringUtils.join(Set.of(), ","))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains("[]"));
+        assertEquals(0, convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {}).getContent().size());
     }
 
     @Test
-    public void getUserInfo() throws Exception {
-        mockSpringSecurityContextForGet(List.of());
+    public void getUserInfoWithAdministratorRole() throws Exception {
+        mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/info")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertEquals(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest))), response.getContentAsString());
+        assertEquals(convertJsonBytesToObject(response.getContentAsString(), UserDTO.class), convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)));
     }
 
     @Test
-    public void getUsersInTwoGroups() throws Exception {
-        MockHttpServletResponse response = mvc.perform(get("/users/groups")
-                .param("ids", convertObjectToJsonBytes(Set.of(group1.getId(), group2.getId()))
-                        .replace("[", "")
-                        .replace("]", ""))
+    public void getUserInfoWithUserRole() throws Exception {
+        mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_USER, user1);
+        MockHttpServletResponse response = mvc.perform(get("/users/info")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(beanMapping.mapTo(user1, UserForGroupsDTO.class))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(beanMapping.mapTo(user2, UserForGroupsDTO.class))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(beanMapping.mapTo(user4, UserForGroupsDTO.class))));
+        assertEquals(convertJsonBytesToObject(response.getContentAsString(), UserDTO.class), convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)));
+    }
+
+    @Test
+    public void getUserInfoWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_GUEST, user1);
+        MockHttpServletResponse response = mvc.perform(get("/users/info")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertJsonBytesToObject(response.getContentAsString(), UserDTO.class), convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)));
+    }
+
+    @Test
+    public void getUsersInGroups() throws Exception {
+        MockHttpServletResponse response = mvc.perform(get("/users/groups")
+                .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId()), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<UserForGroupsDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserForGroupsDTO>>() {}).getContent();
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user1, UserForGroupsDTO.class)));
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user2, UserForGroupsDTO.class)));
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user4, UserForGroupsDTO.class)));
+    }
+
+    @Test
+    public void getUsersInGroupsWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/users/groups")
+                .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId()), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getUsersInGroupsWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/users/groups")
+                .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId()), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+
+    @Test
+    public void getUsersInTwoGroupsAndNonExistGroup() throws Exception {
+        MockHttpServletResponse response = mvc.perform(get("/users/groups")
+                .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId(), 500L), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<UserForGroupsDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserForGroupsDTO>>() {}).getContent();
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user1, UserForGroupsDTO.class)));
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user2, UserForGroupsDTO.class)));
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user4, UserForGroupsDTO.class)));
     }
 
     @Test
     public void getUsersInOneGroups() throws Exception {
         MockHttpServletResponse response = mvc.perform(get("/users/groups")
-                .param("ids", convertObjectToJsonBytes(Set.of(group1.getId()))
-                        .replace("[", "")
-                        .replace("]", ""))
+                .param("ids", StringUtils.join(Set.of(group1.getId()), ","))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(beanMapping.mapTo(user4, UserForGroupsDTO.class))));
+        List<UserForGroupsDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserForGroupsDTO>>() {}).getContent();
+        assertTrue(responseUsersDTOs.contains(beanMapping.mapTo(user4, UserForGroupsDTO.class)));
     }
 
     @Test
-    public void getUser() throws Exception {
+    public void getUserWithAdministratorRole() throws Exception {
         MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertEquals(convertObjectToJsonBytes(convertToUserDTO(user1, List.of(roleTrainee, roleOrganizer, roleGuest))), response.getContentAsString());
+        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
+    }
+
+    @Test
+    public void getUserWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
+    }
+
+    @Test
+    public void getUserWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
     }
 
     @Test
@@ -250,6 +386,7 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertEquals("User with id 100 could not be found.", getInitialExceptionMessage(exception));
 
@@ -260,24 +397,76 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user3, List.of()))));
-        assertTrue(convertJsonBytesToObject(response.getContentAsString()).contains(convertObjectToJsonBytes(convertToUserDTO(user4, List.of(roleOrganizer)))));
+        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {}).getContent();
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user3, Set.of())));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+    }
+
+    @Test
+    public void getAllUsersNotInGivenGroupWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getAllUsersNotInGivenGroupWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
     public void deleteUser() throws Exception {
-        mvc.perform(delete("/users/{id}", user1.getId())
+        Long userId = user1.getId();
+        mvc.perform(delete("/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+        assertFalse(userRepository.existsById(userId));
+    }
+
+    @Test
+    public void deleteUserWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(delete("/users/{id}", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void deleteUserWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(delete("/users/{id}", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
     }
 
     @Test
     public void deleteUserNotFound() throws Exception {
-
         Exception exception = mvc.perform(delete("/users/{id}", 100)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertEquals("User with id 100 could not be found.", getInitialExceptionMessage(exception));
     }
@@ -297,14 +486,64 @@ public class UsersIntegrationTests {
     }
 
     @Test
-    public void getRolesOfUser() throws Exception {
+    public void deleteUsersWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        Exception exception = mvc.perform(delete("/users")
+                .content(convertObjectToJsonBytes(List.of(100L, user1.getId(), user3.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void deleteUsersWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        Exception exception = mvc.perform(delete("/users")
+                .content(convertObjectToJsonBytes(List.of(100L, user1.getId(), user3.getId())))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andReturn().getResolvedException();
+        assert exception != null;
+        assertEquals(AccessDeniedException.class, exception.getClass());
+        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    }
+
+    @Test
+    public void getRolesOfUserWithAdministratorRole() throws Exception {
         MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(roleOrganizer))));
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(roleTrainee))));
-        assertTrue(response.getContentAsString().contains(convertObjectToJsonBytes(convertToRoleDTO(roleGuest))));
+        List<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
+                new TypeReference<List<RoleDTO>>() {});
+        assertTrue(responseUsersDTOs.containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
+    }
+
+    @Test
+    public void getRolesOfUserWithUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
+                new TypeReference<List<RoleDTO>>() {});
+        assertTrue(responseUsersDTOs.containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
+    }
+
+    @Test
+    public void getRolesOfUserWithGuestRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
+                new TypeReference<List<RoleDTO>>() {});
+        assertTrue(responseUsersDTOs.containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
     }
 
     @Test
@@ -313,64 +552,10 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException();
+        assert exception != null;
         assertEquals(ResourceNotFoundException.class, exception.getClass());
         assertEquals("User with id 100 could not be found.", getInitialExceptionMessage(exception));
 
     }
 
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO  = beanMapping.mapTo(role, RoleDTO.class);
-        roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
-        roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
-        return roleDTO;
-    }
-
-    private UserDTO convertToUserDTO(User user, List<Role> roles) {
-        UserDTO userDTO = beanMapping.mapTo(user, UserDTO.class);
-        Set<RoleDTO> rolesDTO = new HashSet<>();
-        for(Role role : roles) {
-            rolesDTO.add(convertToRoleDTO(role));
-        }
-        userDTO.setRoles(rolesDTO);
-        return userDTO;
-    }
-
-    private static String convertObjectToJsonBytes(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(object);
-    }
-
-    private static String convertJsonBytesToObject(String object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(object, String.class);
-    }
-
-    private void mockSpringSecurityContextForGet(List<String> roles) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        for (String role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role));
-        }
-        JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user1.getLogin());
-        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user1.getFullName());
-        sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), user1.getGivenName());
-        sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), user1.getFamilyName());
-        sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), user1.getIss());
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2Authentication auth = Mockito.mock(OAuth2Authentication.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(auth);
-        given(auth.getUserAuthentication()).willReturn(auth);
-        given(auth.getCredentials()).willReturn(sub);
-        given(auth.getAuthorities()).willReturn(authorities);
-        given(authentication.getDetails()).willReturn(auth);
-    }
-
-    private String getInitialExceptionMessage(Exception exception) {
-        while (exception.getCause() != null) {
-            exception = (Exception) exception.getCause();
-        }
-        return exception.getMessage();
-    }
 }

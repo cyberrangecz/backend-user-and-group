@@ -15,6 +15,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,11 +26,13 @@ import java.nio.charset.Charset;
 
 @Configuration
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.facade", "cz.muni.ics.kypo.userandgroup.mapping", "cz.muni.ics.kypo.userandgroup.service",
-        "cz.muni.ics.kypo.userandgroup.api", "cz.muni.ics.kypo.userandgroup.security.service"})
+        "cz.muni.ics.kypo.userandgroup.api", "cz.muni.ics.kypo.userandgroup.rest.integrationtests.config"})
 @EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"},  basePackageClasses = Jsr310JpaConverters.class)
 @ContextConfiguration(classes = {TestDataFactory.class})
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
-public class RestConfigTest {
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableWebSecurity
+public class RestConfigTest extends WebSecurityConfigurerAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(RestConfigTest.class);
     @Autowired
     private Environment env;
@@ -37,7 +42,6 @@ public class RestConfigTest {
         LOG.debug("modelMapper()");
         return new ModelMapper();
     }
-
 
     @Bean
     public RestTemplate restTemplate() {
@@ -58,5 +62,4 @@ public class RestConfigTest {
     public HttpServletRequest httpServletRequest(){
         return new HttpServletRequestWrapper(new Request(new Connector()));
     }
-
 }

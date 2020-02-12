@@ -79,7 +79,7 @@ buildDebian:
     stage: buildDebian
     script: 
         - git checkout master && git pull
-        - mvn clean package -Dmaven.test.skip=true
+        - mvn clean install -DskipTests
         # --distribution $DEBIAN_DISTRIBUTION
         - >
             gbp dch
