@@ -41,7 +41,15 @@
         <github.kongchen.version>3.1.8</github.kongchen.version>
         <!-- library to generate sha256 from login and issuer-->
         <commons.codec.version>1.11</commons.codec.version>
+        <proprietary-repo-id>kypo-nexus</proprietary-repo-id>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>${proprietary-repo-id}</id>
+            <url>${proprietary-repo-url}</url>
+        </repository>
+    </repositories>
 
     <dependencyManagement>
         <dependencies>

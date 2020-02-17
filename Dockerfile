@@ -1,16 +1,18 @@
 # Build stage
 FROM maven:3.6.2-jdk-11-slim AS build
 
-COPY ./ /app
-#COPY ./etc/settings.xml /root/.m2/settings.xml # in case you need to set your proprietary Nexus or other repository
-WORKDIR /app
-RUN mvn clean install -DskipTests
-RUN apt-get update && apt-get install -y supervisor postgresql
+## default environment variables for database settings
+ARG USERNAME=postgres
+ARG PASSWORD=postgres
+ARG POSTGRES_DB=user-and-group
 
-# default arguments that should be overridden during start of the container
-ENV USERNAME=postgres
-ENV PASSWORD=postgres
-ENV POSTGRES_DB=user-and-group
+## default link to proprietary repository, e.g., Nexus repository
+ARG PROPRIETARY_REPO_URL=https://YOUR-PATH-TO-PROPRIETARY_REPO/repository/maven-public/
+
+COPY ./ /app
+WORKDIR /app
+RUN mvn clean install -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+RUN apt-get update && apt-get install -y supervisor postgresql
 
 WORKDIR /app/kypo2-persistence-user-and-group
 RUN /etc/init.d/postgresql start &&\
