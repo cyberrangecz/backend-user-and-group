@@ -4,7 +4,7 @@
 FROM maven:3.6.2-jdk-11-slim AS build
 
 COPY ./ /app
-COPY ./etc/settings.xml /root/.m2/settings.xml
+#COPY ./etc/settings.xml /root/.m2/settings.xml # in case you need to set your proprietary Nexus or other repository
 WORKDIR /app
 RUN mvn clean package
 RUN apt-get update && apt-get install -y supervisor postgresql

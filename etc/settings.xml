@@ -1,68 +1,18 @@
-<!-- This file should be placed in $HOME/.m2 directory to load artifacts from CSIRT Nexus-->
+<!-- This file should be placed in $HOME/.m2 directory to load artifacts from proprietary Nexus-->
 <settings>
     <servers>
         <server>
             <id>nexus</id>
-            <username>kypo</username>
-            <password>kypo</password>
+            <username>user</username>
+            <password>password</password>
         </server>
     </servers>
     <mirrors>
         <mirror>
             <id>nexus</id>
-            <url>https://kypo-storage.ics.muni.cz:8443/repository/maven-public/</url>
+            <!-- Here, the address would link to your proprietary Nexus or other repository -->
+            <url>https://localhost.com/repository/maven-public/</url>
             <mirrorOf>*</mirrorOf>
         </mirror>
     </mirrors>
-    <profiles>
-        <profile>
-            <id>nexus</id>
-            <!--Enable snapshots for the built in central repo to direct -->
-            <!--all requests to nexus via the mirror -->
-            <repositories>
-                <repository>
-                    <id>central</id>
-                    <url>http://central</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>central</id>
-                    <name>bintray</name>
-                    <url>https://jcenter.bintray.com</url>
-                </repository>
-            </repositories>
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>central</id>
-                    <url>http://central</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </pluginRepository>
-                <pluginRepository>
-                    <id>central</id>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <name>bintray-plugins</name>
-                    <url>https://jcenter.bintray.com</url>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
-    </profiles>
-    <activeProfiles>
-        <!--make the profile active all the time -->
-        <activeProfile>nexus</activeProfile>
-    </activeProfiles>
 </settings>
