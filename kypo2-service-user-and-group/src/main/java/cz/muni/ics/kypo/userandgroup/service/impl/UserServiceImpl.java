@@ -142,7 +142,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserWithGroups(String login, String iss) {
         Assert.hasLength(login, "In method getUserWithGroups(login, iss) the input login must not be empty.");
-        Assert.hasLength(iss, "In method getUserWithGroups(login, iss) the input iss must not be null.");
+        Assert.hasLength(iss, "In method getUserWithGroups(login, iss) the input iss must not be empty.");
         return userRepository.getUserByLoginWithGroups(login, iss)
                 .orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found", ErrorCode.RESOURCE_NOT_FOUND));
     }

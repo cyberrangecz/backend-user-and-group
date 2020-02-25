@@ -1,13 +1,12 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.RoleServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,7 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.*;
 
 @RunWith(SpringRunner.class)
@@ -42,7 +42,7 @@ public class RoleServiceTest {
     @Autowired
     private TestDataFactory testDataFactory;
 
-    private Role adminRole, userRole;
+    private Role adminRole, userRole, guestRole;
     private Pageable pageable;
     private Predicate predicate;
 
@@ -51,8 +51,11 @@ public class RoleServiceTest {
         roleService = new RoleServiceImpl(roleRepository);
 
         adminRole = testDataFactory.getUAGAdminRole();
+        adminRole.setId(1L);
         userRole = testDataFactory.getUAGUserRole();
-
+        userRole.setId(2L);
+        guestRole = testDataFactory.getUAGGuestRole();
+        userRole.setId(3L);
 
         pageable = PageRequest.of(0, 10);
     }
@@ -71,7 +74,6 @@ public class RoleServiceTest {
 
     @Test
     public void getByIdNotFoundShouldThrowException() {
-        System.out.println(adminRole.getId()+"<----------*********");
         Long id = 100L;
         thrown.expect(UserAndGroupServiceException.class);
         thrown.expectMessage("Role with id " + id + " could not be found");
@@ -80,67 +82,55 @@ public class RoleServiceTest {
     }
 
     @Test
-    public void getByIdWithNullIdShouldThrowException() {
-        System.out.println(adminRole.getId()+"<----------*********");
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("In method getRoleById(id) the input must not be null.");
-        roleService.getRoleById(null);
-    }
-
-    @Test
     public void getByRoleType() {
-        System.out.println(adminRole.getId()+"<----------*********");
         given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.of(adminRole));
 
         Role r = roleService.getByRoleType(adminRole.getRoleType());
         assertEquals(adminRole.getId(), r.getId());
         assertEquals(adminRole.getRoleType(), r.getRoleType());
-
         then(roleRepository).should().findByRoleType(adminRole.getRoleType());
     }
 
     @Test
-    public void getByRoleTypeWithNullRoleTypeShouldThrowException() {
-        System.out.println(adminRole.getId()+"<----------*********");
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("In method getByRoleType(roleType) the input must not be null.");
-        roleService.getByRoleType(null);
-    }
-
-    @Test
     public void getAllRoles() {
-        System.out.println(adminRole.getId()+"<----------*********");
         given(roleRepository.findAll(predicate, pageable))
-                .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole)));
-
-        Role role = new Role();
-        role.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
+                .willReturn(new PageImpl<>(Arrays.asList(adminRole, userRole, guestRole)));
 
         List<Role> roles = roleService.getAllRoles(predicate, pageable).getContent();
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains(adminRole));
-        assertTrue(roles.contains(userRole));
-        assertFalse(roles.contains(role));
-
+        assertEquals(3, roles.size());
+        assertTrue(roles.containsAll(Set.of(adminRole, userRole, guestRole)));
         then(roleRepository).should().findAll(predicate, pageable);
     }
 
     @Test
     public void getAllRolesOfMicroservice() {
-        System.out.println(adminRole.getId()+"<----------*********");
         given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
         Set<Role> roles = roleService.getAllRolesOfMicroservice("kypo2-training");
         assertEquals(2, roles.size());
-        assertTrue(roles.contains(adminRole));
-        assertTrue(roles.contains(userRole));
+        assertTrue(roles.containsAll(Set.of(adminRole, userRole)));
     }
 
     @Test
     public void getAllRolesOfMicroserviceWithNullName() {
-        System.out.println(adminRole.getId()+"<----------*********");
         thrown.expect(IllegalArgumentException.class);
         given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
         roleService.getAllRolesOfMicroservice(null);
+    }
+
+    @Test
+    public void createRole(){
+        given(roleRepository.existsByRoleType(userRole.getRoleType())).willReturn(false);
+        roleService.createRole(userRole);
+        then(roleRepository).should().save(userRole);
+    }
+
+    @Test
+    public void createExistingRole(){
+        thrown.expect(UserAndGroupServiceException.class);
+        thrown.expectMessage("Role with given role type: " + adminRole.getRoleType() + " already exist. " +
+                "Please name the role with different role type.");
+        given(roleRepository.existsByRoleType(adminRole.getRoleType())).willReturn(true);
+        roleService.createRole(adminRole);
     }
 
     @After

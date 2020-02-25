@@ -1,8 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,12 +40,10 @@ public class IDMGroupRepositoryTest {
     @Autowired
     private IDMGroupRepository groupRepository;
 
-    private IDMGroup group;
-
-    private Role adminRole, userRole, guestRole;
-
-    private Microservice microservice;
-
+    private IDMGroup group1, group2, group3, group4;
+    private User user1, user2, user3, user4;
+    private Role adminRole, userRole, guestRole, designerRole;
+    private Microservice uagMicroservice, trainingMicroservice;
     private Pageable pageable;
 
     @SpringBootApplication
@@ -51,31 +52,55 @@ public class IDMGroupRepositoryTest {
 
     @Before
     public void init() {
-        microservice = testDataFactory.getKypoUaGMicroservice();
-        this.entityManager.persistAndFlush(microservice);
+        uagMicroservice = testDataFactory.getKypoUaGMicroservice();
+        trainingMicroservice = testDataFactory.getKypoTrainingMicroservice();
+        this.entityManager.persistAndFlush(uagMicroservice);
+        this.entityManager.persistAndFlush(trainingMicroservice);
 
         adminRole = testDataFactory.getUAGAdminRole();
-        adminRole.setMicroservice(microservice);
+        adminRole.setMicroservice(uagMicroservice);
         this.entityManager.persistAndFlush(adminRole);
 
+        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole.setMicroservice(uagMicroservice);
+        this.entityManager.persistAndFlush(guestRole);
 
-        group = testDataFactory.getTrainingAdminGroup();
-        group.setRoles(Set.of(adminRole));
+        userRole = testDataFactory.getUAGUserRole();
+        userRole.setMicroservice(uagMicroservice);
+        this.entityManager.persistAndFlush(userRole);
+
+        designerRole = testDataFactory.getTrainingDesignerRole();
+        designerRole.setMicroservice(trainingMicroservice);
+        this.entityManager.persistAndFlush(designerRole);
+
+        group1 = testDataFactory.getUAGAdminGroup();
+        group2 = testDataFactory.getUAGDefaultGroup();
+        group3 = testDataFactory.getUAGUserGroup();
+        group4 = testDataFactory.getTrainingDesignerGroup();
+        group1.setRoles(new HashSet<>(Set.of(adminRole)));
+        group2.setRoles(new HashSet<>(Set.of(guestRole)));
+        group3.setRoles(new HashSet<>(Set.of(userRole)));
+        group4.setRoles(new HashSet<>(Set.of(designerRole)));
+
         pageable = PageRequest.of(0, 10);
+
+        user1 = testDataFactory.getUser1();
+        user2 = testDataFactory.getUser2();
+        user3 = testDataFactory.getUser3();
+        user4 = testDataFactory.getUser4();
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+        entityManager.persistAndFlush(user3);
+        entityManager.persistAndFlush(user4);
     }
 
     @Test
     public void findByName() throws Exception {
-        String expectedName = "group";
-        String expectedDescription = "Cool group";
-        IDMGroup group = new IDMGroup(expectedName, expectedDescription);
-        this.entityManager.persist(group);
-        Optional<IDMGroup> optionalGroup = this.groupRepository.findByName(expectedName);
+        this.entityManager.persistAndFlush(group1);
+        Optional<IDMGroup> optionalGroup = this.groupRepository.findByName(group1.getName());
         IDMGroup g = optionalGroup.orElseThrow(() -> new Exception("Group should be found"));
-        assertEquals(group, g);
-        assertEquals(expectedName, g.getName());
-        assertEquals(UserAndGroupStatus.VALID, g.getStatus());
-        assertEquals(expectedDescription, g.getDescription());
+        assertEquals(group1, g);
     }
 
     @Test
@@ -85,46 +110,66 @@ public class IDMGroupRepositoryTest {
 
     @Test
     public void findAllByRoleType() {
-        entityManager.persistFlushFind(group);
+        this.entityManager.persistAndFlush(group1);
+        this.entityManager.persistAndFlush(group2);
+        this.entityManager.persistAndFlush(group4);
+        group3.addRole(adminRole);
+        this.entityManager.persistAndFlush(group3);
 
         List<IDMGroup> groups = groupRepository.findAllByRoleType(adminRole.getRoleType());
-        assertEquals(1, groups.size());
-        assertEquals(this.group.getName(), groups.get(0).getName());
-        assertEquals(this.group.getDescription(), groups.get(0).getDescription());
+        assertEquals(2, groups.size());
+        assertTrue(groups.containsAll(Set.of(group1, group3)));
+        assertFalse(groups.containsAll(Set.of(group2, group4)));
     }
 
     @Test
     public void findAdministratorGroup() throws Exception {
-        entityManager.persistFlushFind(group);
+        entityManager.persistAndFlush(group1);
 
         Optional<IDMGroup> optionalGroup = groupRepository.findAdministratorGroup();
         IDMGroup g = optionalGroup.orElseThrow(() -> new Exception("Administrator group should be found"));
-        assertEquals(this.group, g);
-        assertEquals(this.group.getName(), g.getName());
-        assertEquals(this.group.getDescription(), g.getDescription());
+        assertEquals(this.group1, g);
+        assertEquals(this.group1.getName(), g.getName());
     }
 
 
     @Test
     public void getIDMGroupByNameWithUsers() throws Exception {
-        User user = new User("TestUser", "https://oidc.muni.cz/oidc/");
+        group1.setUsers(Set.of(user1, user2, user4));
+        this.entityManager.persist(group1);
 
-        this.entityManager.persist(user);
-
-        String expectedName = "group";
-        String expectedDescription = "Cool group";
-        IDMGroup expectedGroup = new IDMGroup(expectedName, expectedDescription);
-        expectedGroup.addUser(user);
-        this.entityManager.persist(expectedGroup);
-
-        Optional<IDMGroup> group = this.groupRepository.getIDMGroupByNameWithUsers(expectedName);
+        Optional<IDMGroup> group = this.groupRepository.getIDMGroupByNameWithUsers(group1.getName());
         IDMGroup g = group.orElseThrow(Exception::new);
 
-        assertEquals(expectedGroup, g);
-        assertEquals(expectedName, g.getName());
-        assertEquals(expectedDescription, g.getDescription());
-        assertEquals(1, g.getUsers().size());
-        assertTrue(g.getUsers().contains(user));
+        assertEquals(group1, g);
+        assertEquals(group1.getUsers().size(), g.getUsers().size());
+        assertTrue(g.getUsers().containsAll(group1.getUsers()));
+    }
+
+    @Test
+    public void deleteExpiredIDMGroups() {
+        group3.setExpirationDate(LocalDateTime.now().minusDays(5));
+        entityManager.persistAndFlush(group3);
+        Long groupId = group3.getId();
+        entityManager.detach(group3);
+        this.groupRepository.deleteExpiredIDMGroups();
+        assertFalse(this.groupRepository.findById(groupId).isPresent());
+    }
+
+    @Test
+    public void findUsersOfGivenGroups() {
+        group1.setUsers(Set.of(user4, user3));
+        group4.setUsers(Set.of(user2, user3));
+        group2.setUsers(Set.of(user1, user2));
+        entityManager.persistAndFlush(group1);
+        entityManager.persistAndFlush(group2);
+        entityManager.persistAndFlush(group3);
+        entityManager.persistAndFlush(group4);
+
+        Set<User> users = this.groupRepository.findUsersOfGivenGroups(List.of(group1.getId(), group4.getId()));
+        assertEquals(3, users.size());
+        assertTrue(users.containsAll(Set.of(user2, user3, user4)));
+        assertFalse(users.contains(user1));
     }
 
     @Test
