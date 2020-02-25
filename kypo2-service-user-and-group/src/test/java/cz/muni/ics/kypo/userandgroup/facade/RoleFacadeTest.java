@@ -1,22 +1,18 @@
 package cz.muni.ics.kypo.userandgroup.facade;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
 import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -41,15 +37,14 @@ public class RoleFacadeTest {
 
     @Autowired
     private TestDataFactory testDataFactory;
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
     private RoleFacade roleFacade;
     @Mock
     private RoleService roleService;
     @Autowired
     private RoleMapperImpl roleMapper;
 
-    private Role r1, r2;
+    private Role adminRole, guestRole;
+    private RoleDTO adminRoleDTO, guestRoleDTO;
     private Predicate predicate;
     private Pageable pageable;
 
@@ -59,68 +54,55 @@ public class RoleFacadeTest {
 
         roleFacade = new RoleFacadeImpl(roleService, roleMapper);
 
-        r1 = testDataFactory.getUAGAdminRole();
-        r2 = testDataFactory.getUAGGuestRole();
+        adminRole = testDataFactory.getUAGAdminRole();
+        adminRole.setId(1L);
+        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole.setId(2L);
+
+        adminRoleDTO = testDataFactory.getuAGAdminRoleDTO();
+        adminRoleDTO.setId(1L);
+        adminRoleDTO.setNameOfMicroservice(adminRole.getMicroservice().getName());
+        guestRoleDTO = testDataFactory.getuAGGuestRoleDTO();
+        guestRoleDTO.setId(2L);
+        guestRoleDTO.setNameOfMicroservice(guestRole.getMicroservice().getName());
+
         pageable = PageRequest.of(0, 10);
     }
 
     @Test
-    public void testGetById() {
-        given(roleService.getRoleById(anyLong())).willReturn(r1);
-        RoleDTO roleDTO = roleFacade.getRoleById(1L);
-
-        assertRoleAndRoleDTO(r1, roleDTO);
+    public void testGetRoleById() {
+        given(roleService.getRoleById(adminRole.getId())).willReturn(adminRole);
+        RoleDTO roleDTO = roleFacade.getRoleById(adminRole.getId());
+        assertEquals(adminRoleDTO, roleDTO);
     }
 
-    @Test
+    @Test(expected = UserAndGroupFacadeException.class)
     public void testGetByIdWithServiceException() {
-        given(roleService.getRoleById(anyLong())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
-        thrown.expect(UserAndGroupFacadeException.class);
+        given(roleService.getRoleById(anyLong())).willThrow(UserAndGroupServiceException.class);
         roleFacade.getRoleById(1L);
     }
 
     @Test
     public void testGetByRoleType() {
-        given(roleService.getByRoleType(anyString())).willReturn(r1);
+        given(roleService.getByRoleType(anyString())).willReturn(adminRole);
         RoleDTO roleDTO = roleFacade.getByRoleType(RoleTypeDTO.ADMINISTRATOR.toString());
 
-        assertRoleAndRoleDTO(r1, roleDTO);
+        assertEquals(adminRoleDTO, roleDTO);
     }
 
-    @Test
+    @Test(expected = UserAndGroupFacadeException.class)
     public void testGetByRoleTypeWithServiceException() {
-        given(roleService.getByRoleType(anyString())).willThrow(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND));
-        thrown.expect(UserAndGroupFacadeException.class);
+        given(roleService.getByRoleType(anyString())).willThrow(UserAndGroupServiceException.class);
         roleFacade.getByRoleType(RoleTypeDTO.ADMINISTRATOR.toString());
     }
 
     @Test
     public void testGetAllRoles() {
-        r1.setId(1L);
-        r2.setId(2L);
-
-        RoleDTO roleDTO1 = new RoleDTO();
-        roleDTO1.setId(r1.getId());
-        roleDTO1.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        roleDTO1.setNameOfMicroservice(r1.getMicroservice().getName());
-
-        RoleDTO roleDTO2 = new RoleDTO();
-        roleDTO2.setId(r2.getId());
-        roleDTO2.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
-        roleDTO2.setNameOfMicroservice(r2.getMicroservice().getName());
-
-        given(roleService.getAllRoles(predicate, pageable)).willReturn(new PageImpl<>(Arrays.asList(r1, r2)));
+        given(roleService.getAllRoles(predicate, pageable)).willReturn(new PageImpl<>(Arrays.asList(adminRole, guestRole)));
         PageResultResource<RoleDTO> pageResultResource = roleFacade.getAllRoles(predicate, pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
-        assertTrue(pageResultResource.getContent().contains(roleDTO1));
-        assertTrue(pageResultResource.getContent().contains(roleDTO2));
-    }
-
-    private void assertRoleAndRoleDTO(Role role, RoleDTO roleDTO) {
-        assertEquals(role.getId(), roleDTO.getId());
-        assertEquals(role.getMicroservice().getId(), roleDTO.getIdOfMicroservice());
-        assertEquals(role.getMicroservice().getName(), roleDTO.getNameOfMicroservice());
-        assertEquals(role.getRoleType(), roleDTO.getRoleType());
+        assertTrue(pageResultResource.getContent().contains(adminRoleDTO));
+        assertTrue(pageResultResource.getContent().contains(guestRoleDTO));
     }
 }

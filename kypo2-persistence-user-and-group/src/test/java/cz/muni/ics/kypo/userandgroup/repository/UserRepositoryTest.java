@@ -1,8 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.model.*;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,13 +14,13 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,9 +39,9 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    private Role adminRole, guestRole;
-    private IDMGroup group1, group2;
-    private User user;
+    private Role adminRole, guestRole, userRole;
+    private IDMGroup group1, group2, group3;
+    private User user1, user2, user3, user4;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -59,12 +60,26 @@ public class UserRepositoryTest {
         guestRole.setMicroservice(microservice);
         this.entityManager.persistAndFlush(guestRole);
 
+        userRole = testDataFactory.getUAGUserRole();
+        userRole.setMicroservice(microservice);
+        this.entityManager.persistAndFlush(userRole);
+
         group1 = testDataFactory.getUAGDefaultGroup();
         group1.setRoles(Set.of(guestRole));
         group2 = testDataFactory.getTrainingAdminGroup();
         group2.setRoles(Set.of(adminRole));
+        group3 = testDataFactory.getUAGUserGroup();
+        group3.setRoles(Set.of(userRole));
 
-        user = testDataFactory.getUser1();
+        user1 = testDataFactory.getUser1();
+        user2 = testDataFactory.getUser2();
+        user3 = testDataFactory.getUser3();
+        user4 = testDataFactory.getUser4();
+
+        entityManager.persistAndFlush(user1);
+        entityManager.persistAndFlush(user2);
+        entityManager.persistAndFlush(user3);
+        entityManager.persistAndFlush(user4);
     }
 
     @Test
@@ -78,7 +93,7 @@ public class UserRepositoryTest {
 
     @Test
     public void getLoginUserNotFound() {
-        assertFalse(this.userRepository.getLogin(10L).isPresent());
+        assertFalse(this.userRepository.getLogin(100000000L).isPresent());
     }
 
     @Test
@@ -86,94 +101,142 @@ public class UserRepositoryTest {
         entityManager.persistAndFlush(adminRole);
         entityManager.persistAndFlush(guestRole);
 
-        User u = entityManager.persistAndFlush(user);
-
-        group1.addUser(u);
+        group1.addUser(user1);
         group1.setRoles(Stream.of(adminRole).collect(Collectors.toSet()));
-        IDMGroup g = entityManager.persistAndFlush(group1);
+        entityManager.persistAndFlush(group1);
 
-
-        Set<Role> userRoles = userRepository.getRolesOfUser(u.getId());
+        Set<Role> userRoles = userRepository.getRolesOfUser(user1.getId());
         assertEquals(1, userRoles.size());
         assertTrue(userRoles.contains(adminRole));
         assertFalse(userRoles.contains(guestRole));
     }
 
     @Test
+    public void getUserByLoginWithGroups() {
+        group1.addUser(user1);
+        group2.addUser(user1);
+        entityManager.persistAndFlush(group1);
+        entityManager.persistAndFlush(group2);
+        entityManager.persistAndFlush(group3);
+
+        Optional<User> userWithGroups = userRepository.getUserByLoginWithGroups(user1.getLogin(), user1.getIss());
+        assertTrue(userWithGroups.isPresent());
+        assertTrue(userWithGroups.get().getGroups().contains(group1));
+        assertTrue(userWithGroups.get().getGroups().contains(group2));
+        assertFalse(userWithGroups.get().getGroups().contains(group3));
+    }
+
+    @Test
     public void usersNotInGivenGroup() {
-        entityManager.persistAndFlush(user);
-        group1.addUser(user);
-        IDMGroup g = entityManager.persistAndFlush(group1);
+        group1.addUser(user1);
+        group1.addUser(user3);
+        entityManager.persistAndFlush(group1);
 
-        for(int i=0;i<3;i++) {
-            User user2 = new User(UUID.randomUUID().toString(), "https://oidc.muni.cz/oidc/");
-            user2.setFullName("User two");
-            user2.setMail("user.two@mail.com");
-            user2.setStatus(UserAndGroupStatus.VALID);
-            entityManager.persistAndFlush(user2);
-
-            User user3 = new User(UUID.randomUUID().toString(), "https://oidc.muni.cz/oidc/");
-            user3.setFullName("User three");
-            user3.setMail("user.three@mail.com");
-            user3.setStatus(UserAndGroupStatus.VALID);
-            entityManager.persistAndFlush(user3);
-        }
         List<User> usersNotInGroup = userRepository.usersNotInGivenGroup(group1.getId(), null, PageRequest.of(0, 10)).getContent();
-        assertFalse(usersNotInGroup.contains(user));
-
+        assertFalse(usersNotInGroup.containsAll(Set.of(user1, user3)));
+        assertTrue(usersNotInGroup.containsAll(Set.of(user2, user4)));
     }
 
     @Test
     public void usersInGivenGroups() {
-        entityManager.persistAndFlush(user);
-        group1.addUser(user);
-        IDMGroup g1 = entityManager.persistAndFlush(group1);
-        IDMGroup g2 = entityManager.persistAndFlush(group2);
+        group1.setUsers(Set.of(user1, user2));
+        entityManager.persistAndFlush(group1);
+        group2.setUsers(Set.of(user2, user4));
+        entityManager.persistAndFlush(group2);
 
-        User user2 = testDataFactory.getUser2();
-        entityManager.persistAndFlush(user2);
-        User user3 = testDataFactory.getUser3();
-        entityManager.persistAndFlush(user3);
-        g2.addUser(user2);
-
-        List<User> usersInGroups = userRepository.usersInGivenGroups(Set.of(g1.getId(), g2.getId()), null, PageRequest.of(0, 10)).getContent();
-        usersInGroups.forEach(System.out::println);
-        assertEquals(2, usersInGroups.size());
-        assertTrue(usersInGroups.contains(user));
-        assertTrue(usersInGroups.contains(user2));
+        List<User> usersInGroups = userRepository.usersInGivenGroups(Set.of(group1.getId(), group2.getId()), null, PageRequest.of(0, 10)).getContent();
+        assertEquals(3, usersInGroups.size());
+        assertTrue(usersInGroups.containsAll(Set.of(user1, user2, user4)));
         assertFalse(usersInGroups.contains(user3));
     }
 
     @Test
     public void findAllByRoleId() {
-        this.entityManager.persistAndFlush(user);
         this.entityManager.persistAndFlush(adminRole);
         this.entityManager.persistAndFlush(guestRole);
-        group1.addUser(user);
-        group1.setRoles(Set.of(adminRole));
+        group1.setUsers(Set.of(user2, user3));
+        group1.setRoles(Set.of(adminRole, guestRole));
         this.entityManager.persistAndFlush(group1);
-        group2.addUser(user);
+        group2.setUsers(Set.of(user1, user3));
         group2.setRoles(Set.of(guestRole));
         this.entityManager.persistAndFlush(group2);
 
-        Set<Role> roles = userRepository.getRolesOfUser(user.getId());
-        assertEquals(2, roles.size());
-        assertTrue(roles.contains(adminRole));
-        assertTrue(roles.contains(guestRole));
+        Page<User> usersWithGuestRole = userRepository.findAllByRoleId(guestRole.getId(), null, PageRequest.of(0,10));
+        assertEquals(3, usersWithGuestRole.getContent().size());
+        assertTrue(usersWithGuestRole.getContent().containsAll(Set.of(user1, user2, user3)));
+        assertFalse(usersWithGuestRole.getContent().contains(user4));
+
+        Page<User> usersWithAdminRoleRole = userRepository.findAllByRoleId(adminRole.getId(), null, PageRequest.of(0,10));
+        assertEquals(2, usersWithAdminRoleRole.getContent().size());
+        assertTrue(usersWithAdminRoleRole.getContent().containsAll(Set.of(user2, user3)));
+        assertFalse(usersWithAdminRoleRole.getContent().containsAll(Set.of(user1, user4)));
     }
 
     @Test
-    public void getUserWithGroups() {
-        entityManager.persistAndFlush(user);
-        group1.addUser(user);
-        group2.addUser(user);
-        entityManager.persistAndFlush(group2);
-        entityManager.persistAndFlush(group1);
+    public void findAllByRoleType() {
+        this.entityManager.persistAndFlush(adminRole);
+        this.entityManager.persistAndFlush(guestRole);
+        group1.setUsers(Set.of(user2, user3));
+        group1.setRoles(Set.of(adminRole, guestRole));
+        this.entityManager.persistAndFlush(group1);
+        group2.setUsers(Set.of(user1, user3));
+        group2.setRoles(Set.of(guestRole));
+        this.entityManager.persistAndFlush(group2);
 
-        Optional<User> userWithGroups = userRepository.getUserByIdWithGroups(user.getId());
+        Page<User> usersWithGuestRole = userRepository.findAllByRoleType(guestRole.getRoleType(), null, PageRequest.of(0,10));
+        assertEquals(3, usersWithGuestRole.getContent().size());
+        assertTrue(usersWithGuestRole.getContent().containsAll(Set.of(user1, user2, user3)));
+        assertFalse(usersWithGuestRole.getContent().contains(user4));
+
+        Page<User> usersWithAdminRoleRole = userRepository.findAllByRoleType(adminRole.getRoleType(), null, PageRequest.of(0,10));
+        assertEquals(2, usersWithAdminRoleRole.getContent().size());
+        assertTrue(usersWithAdminRoleRole.getContent().containsAll(Set.of(user2, user3)));
+        assertFalse(usersWithAdminRoleRole.getContent().containsAll(Set.of(user1, user4)));
+    }
+
+    @Test
+    public void findAllByRoleAndNotWithIds() {
+        this.entityManager.persistAndFlush(adminRole);
+        this.entityManager.persistAndFlush(guestRole);
+        group1.setUsers(Set.of(user2, user3));
+        group1.setRoles(Set.of(adminRole, guestRole));
+        this.entityManager.persistAndFlush(group1);
+        group2.setUsers(Set.of(user1, user3));
+        group2.setRoles(Set.of(guestRole));
+        this.entityManager.persistAndFlush(group2);
+
+        Page<User> usersWithGuestRole = userRepository.findAllByRoleAndNotWithIds(null, PageRequest.of(0,10), guestRole.getRoleType(), Set.of(user3.getId(), user4.getId()));
+        assertEquals(2, usersWithGuestRole.getContent().size());
+        assertTrue(usersWithGuestRole.getContent().containsAll(Set.of(user1, user2)));
+        assertFalse(usersWithGuestRole.getContent().contains(user4));
+
+        Page<User> usersWithAdminRoleRole = userRepository.findAllByRoleAndNotWithIds(null, PageRequest.of(0,10), adminRole.getRoleType(), Set.of(user3.getId(), user2.getId()));
+        assertEquals(0, usersWithAdminRoleRole.getContent().size());
+        assertFalse(usersWithAdminRoleRole.getContent().containsAll(Set.of(user1, user4, user2, user3)));
+    }
+
+    @Test
+    public void findAllWithGivenIds() {
+        Page<User> usersPage = userRepository.findAllWithGivenIds(Set.of(user1.getId(), user4.getId()), PageRequest.of(0,5));
+        assertEquals(2, usersPage.getContent().size());
+        assertTrue(usersPage.getContent().contains(user1));
+        assertTrue(usersPage.getContent().contains(user4));
+    }
+
+    @Test
+    public void getUserByIdWithGroups() {
+        group1.addUser(user1);
+        group2.addUser(user1);
+        entityManager.persistAndFlush(group1);
+        entityManager.persistAndFlush(group2);
+        entityManager.persistAndFlush(group3);
+
+        Optional<User> userWithGroups = userRepository.getUserByIdWithGroups(user1.getId());
+        assertTrue(userWithGroups.isPresent());
         assertEquals(2, userWithGroups.get().getGroups().size());
         assertTrue(userWithGroups.get().getGroups().contains(group1));
         assertTrue(userWithGroups.get().getGroups().contains(group2));
+        assertFalse(userWithGroups.get().getGroups().contains(group3));
     }
 
     @Test

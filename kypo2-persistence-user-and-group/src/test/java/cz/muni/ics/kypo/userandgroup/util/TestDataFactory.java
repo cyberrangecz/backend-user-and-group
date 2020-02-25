@@ -16,6 +16,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -104,6 +105,9 @@ public class TestDataFactory {
             = generateUserForGroupsDTO("632145@muni.cz", "Marcel", "Watchman", "632145@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
     private UserForGroupsDTO userForGroupsDTO3
             = generateUserForGroupsDTO("794254@muni.cz", "Garret", "Cull", "794254@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
+
+    private UserUpdateDTO userUpdateDTO
+            = generateUserUpdateDTO("852374@muni.cz", "Garfield", "Pokorny", "852374@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
 
     private IDMGroup trainingTraineeGroup = generateGroup("trainingTraineeGroup", new HashSet<Role>(List.of(trainingTraineeRole)), 9);
     private IDMGroup trainingOrganizerGroup = generateGroup("trainingOrganizerGroup", new HashSet<Role>(List.of(trainingOrganizerRole)), 23);
@@ -223,6 +227,10 @@ public class TestDataFactory {
     }
     public UserForGroupsDTO getUserForGroupsDTO3(){
         return clone(userForGroupsDTO3, UserForGroupsDTO.class);
+    }
+
+    public UserUpdateDTO getUserUpdateDTO(){
+        return clone(userUpdateDTO, UserUpdateDTO.class);
     }
 
     public IDMGroup getTrainingTraineeGroup() {
@@ -367,6 +375,18 @@ public class TestDataFactory {
 
     private UserForGroupsDTO generateUserForGroupsDTO(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
         UserForGroupsDTO user = new UserForGroupsDTO();
+        user.setLogin(login);
+        user.setFullName(givenName + " " + familyName);
+        user.setGivenName(givenName);
+        user.setFamilyName(familyName);
+        user.setMail(mail);
+        user.setIss(iss);
+        user.setPicture(picture);
+        return user;
+    }
+
+    private UserUpdateDTO generateUserUpdateDTO(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
+        UserUpdateDTO user = new UserUpdateDTO();
         user.setLogin(login);
         user.setFullName(givenName + " " + familyName);
         user.setGivenName(givenName);

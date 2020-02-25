@@ -209,7 +209,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     public GroupWithRolesDTO getIDMGroupWithRolesByName(String groupName) {
         Assert.hasLength(groupName, "In method getIDMGroupWithRolesByName(groupName) the input groupName must not be null.");
-        return groupMapper.mapTOWithRolesDto(groupService.getIDMGroupWithRolesByName(groupName));
+        return groupMapper.mapToWithRolesDto(groupService.getIDMGroupWithRolesByName(groupName));
     }
 
     @Override

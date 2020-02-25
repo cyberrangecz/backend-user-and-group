@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
@@ -34,7 +35,7 @@ public class RoleRepositoryTest {
     @Autowired
     private TestDataFactory testDataFactory;
     private Microservice kypoTraining, kypoUserAndGroup;
-    private Role adminRole, designerRole, traineeRole;
+    private Role adminRole, guestRole, designerRole, traineeRole;
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -52,6 +53,10 @@ public class RoleRepositoryTest {
         adminRole.setMicroservice(kypoUserAndGroup);
         this.entityManager.persistAndFlush(adminRole);
 
+        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole.setMicroservice(kypoUserAndGroup);
+        this.entityManager.persistAndFlush(guestRole);
+
         designerRole = testDataFactory.getTrainingDesignerRole();
         designerRole.setMicroservice(kypoTraining);
         this.entityManager.persistAndFlush(designerRole);
@@ -64,7 +69,7 @@ public class RoleRepositoryTest {
     @Test
     public void findByRoleType() throws Exception {
         Optional<Role> optionalRole = this.roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString());
-        Role r = optionalRole.orElseThrow(() -> new Exception("Role shoul be found"));
+        Role r = optionalRole.orElseThrow(() -> new Exception("Role should be found"));
         assertEquals(adminRole, r);
         assertEquals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString(), r.getRoleType());
     }
@@ -87,5 +92,19 @@ public class RoleRepositoryTest {
         assertTrue(roles.contains(designerRole));
         assertTrue(roles.contains(traineeRole));
         assertFalse(roles.contains(adminRole));
+    }
+
+    @Test
+    public void finDefaultRoleOfMicroservice() throws Exception{
+        IDMGroup defaultGroup = testDataFactory.getUAGDefaultGroup();
+        defaultGroup.setRoles(Set.of(guestRole, traineeRole));
+        this.entityManager.persistAndFlush(defaultGroup);
+
+        Role defaultUAGRole = roleRepository.findDefaultRoleOfMicroservice(kypoUserAndGroup.getName())
+                .orElseThrow(() -> new Exception("Role should be found"));
+        assertEquals(defaultUAGRole, guestRole);
+        Role defaultTrainingRole = roleRepository.findDefaultRoleOfMicroservice(kypoTraining.getName())
+                .orElseThrow(() -> new Exception("Role should be found"));
+        assertEquals(defaultTrainingRole, traineeRole);
     }
 }

@@ -24,7 +24,7 @@ public interface IDMGroupMapper extends ParentMapper {
 
     GroupDTO mapToDTO(IDMGroup entity);
 
-    GroupWithRolesDTO mapTOWithRolesDto(IDMGroup entity);
+    GroupWithRolesDTO mapToWithRolesDto(IDMGroup entity);
 
     IDMGroup mapCreateToEntity(NewGroupDTO dto);
 
