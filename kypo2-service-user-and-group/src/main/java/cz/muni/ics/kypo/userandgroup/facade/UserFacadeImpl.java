@@ -13,11 +13,10 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.enums.AbstractCacheNames;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapper;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -85,11 +84,7 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public UserDTO getUserById(Long id) {
         Assert.notNull(id, "In method getUserById(id) the input id must not be null.");
-        try {
-            return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+        return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
     }
 
     @Override
@@ -100,8 +95,7 @@ public class UserFacadeImpl implements UserFacade {
         Assert.hasLength(iss, "In method getUserInfo(sub, iss) the input iss must not be empty.");
         User user = userService.getUserByLoginAndIss(sub, iss)
                 .orElseThrow(() ->
-                        new UserAndGroupFacadeException(
-                        new UserAndGroupServiceException("User with sub: " + sub + " and iss: + " + iss + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
+                        new EntityNotFoundException(new EntityErrorDetail(User.class, "login", sub.getClass(), sub, "User not found.")));
         return userMapper.mapToUserDTOWithRoles(user);
     }
 
@@ -164,12 +158,8 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalWO
     public void deleteUser(Long id) {
         Assert.notNull(id, "In method deleteUser(id) the input id must not be null.");
-        try {
-            User user = userService.getUserById(id);
-            userService.deleteUser(user);
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+        User user = userService.getUserById(id);
+        userService.deleteUser(user);
     }
 
     @Override
@@ -215,14 +205,10 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public Set<RoleDTO> getRolesOfUser(Long id) {
         Assert.notNull(id, "In method getRolesOfUser(id) the input id must not be null.");
-        try {
-            Set<Role> roles = userService.getRolesOfUser(id);
-            return roles.stream()
-                    .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
-                    .collect(Collectors.toCollection(HashSet::new));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+        Set<Role> roles = userService.getRolesOfUser(id);
+        return roles.stream()
+                .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
@@ -230,11 +216,7 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
         Assert.notNull(roleId, "In method getUsersWithGivenRole(roleId) the input roleId must not be null.");
-        try {
-            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, predicate, pageable));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, predicate, pageable));
     }
 
     @Override
@@ -242,22 +224,14 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         Assert.hasLength(roleType, "In method getUsersWithGivenRoleType(roleType) the input roleType must not be null.");
-        try {
-            return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+       return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
 
     @Override
     @IsGuest
     public PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
         Assert.notEmpty(ids, "In method getUsersWithGivenIds(ids) the input ids must not be null.");
-        try {
-            return userMapper.mapToPageResultResource(userService.getUsersWithGivenIds(ids, pageable, predicate));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+        return userMapper.mapToPageResultResource(userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
 
 }

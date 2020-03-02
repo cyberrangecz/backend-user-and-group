@@ -5,17 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
-import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.RolesRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -36,7 +40,8 @@ import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
@@ -46,7 +51,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.*;
 import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
@@ -218,12 +225,13 @@ public class RolesIntegrationTests {
 
     @Test
     public void getRoleNotFound() throws Exception {
-        Exception exception = mvc.perform(get("/roles/{id}", 100L)
+        MockHttpServletResponse response = mvc.perform(get("/roles/{id}", 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("Role with id 100 could not be found", getInitialExceptionMessage(exception));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", 100, "Role not found.");
     }
 
     @Test
@@ -263,12 +271,13 @@ public class RolesIntegrationTests {
 
     @Test
     public void getUsersWithGivenRoleNotFoundRole() throws Exception {
-        Exception exception = mvc.perform(get("/roles/{roleId}/users", 100L)
+        MockHttpServletResponse response = mvc.perform(get("/roles/{roleId}/users", 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("Role with id: 100 could not be found.", getInitialExceptionMessage(exception));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleId", 100, "Role not found.");
     }
 
     @Test
@@ -383,6 +392,13 @@ public class RolesIntegrationTests {
         assertFalse(users.getContent().contains(convertToUserDTO(user3, group2.getRoles())));
         assertEquals(2, users.getPagination().getTotalElements());
         assertEquals(20, users.getPagination().getSize());
+    }
+
+    private void assertEntityDetailError(EntityErrorDetail entityErrorDetail, Class<?> entity, String identifier, Object value, String reason) {
+        assertEquals(entity.getSimpleName(), entityErrorDetail.getEntity());
+        assertEquals(identifier, entityErrorDetail.getIdentifier());
+        assertEquals(value, entityErrorDetail.getIdentifierValue());
+        assertEquals(reason, entityErrorDetail.getReason());
     }
 
 }

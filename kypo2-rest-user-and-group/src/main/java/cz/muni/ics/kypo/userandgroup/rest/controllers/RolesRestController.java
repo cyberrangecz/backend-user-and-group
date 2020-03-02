@@ -8,15 +8,12 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,11 +99,7 @@ public class RolesRestController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleDTO> getRole(@ApiParam(value = "Id of role to be returned", required = true)
                                            @PathVariable("id") final Long id) {
-        try {
-            return ResponseEntity.ok(roleFacade.getRoleById(id));
-        } catch (UserAndGroupFacadeException ex) {
-            throw ExceptionSorter.throwException(ex);
-        }
+        return ResponseEntity.ok(roleFacade.getRoleById(id));
     }
 
     /**
@@ -137,13 +130,9 @@ public class RolesRestController {
                                                         @RequestParam(value = "fields", required = false) String fields,
                                                         @ApiParam(value = "Type of role to getGroupById users for.", required = true)
                                                         @PathVariable("roleId") Long roleId) {
-        try {
-            PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleId, predicate, pageable);
-            Squiggly.init(objectMapper, fields);
-            return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleId, predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
 
     /**
@@ -174,13 +163,9 @@ public class RolesRestController {
                                                             @RequestParam(value = "fields", required = false) String fields,
                                                             @ApiParam(value = "Type of role to getGroupById users for.", required = true)
                                                             @RequestParam("roleType") String roleType) {
-        try {
-            PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
-            Squiggly.init(objectMapper, fields);
-            return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
 
 

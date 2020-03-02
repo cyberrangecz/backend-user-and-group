@@ -18,4 +18,12 @@ public interface MicroserviceRepository extends JpaRepository<Microservice, Long
      * @return the {@link Microservice} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     Optional<Microservice> findByName(String name);
+
+    /**
+     * Check if microservice exist.
+     *
+     * @param name the name of the looking Microservice
+     * @return true if microservice with given name exists in DB, false otherwise.
+     */
+    boolean existsByName(String name);
 }

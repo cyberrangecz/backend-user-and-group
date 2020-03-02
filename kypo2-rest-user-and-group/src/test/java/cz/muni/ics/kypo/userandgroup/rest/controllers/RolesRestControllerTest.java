@@ -6,13 +6,11 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +25,7 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -40,8 +39,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
-import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.getInitialExceptionMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.BDDMockito.*;
@@ -137,13 +136,14 @@ public class RolesRestControllerTest {
 
     @Test
     public void getRoleNotFoundShouldThrowException() throws Exception {
-        given(roleFacade.getRoleById(adminRoleDTO.getId())).willThrow(new UserAndGroupFacadeException(
-                new UserAndGroupServiceException("Role with given id " + adminRoleDTO.getId() + " could not be found", ErrorCode.RESOURCE_NOT_FOUND)));
-        Exception ex = mockMvc.perform(
+        given(roleFacade.getRoleById(adminRoleDTO.getId())).willThrow(new EntityNotFoundException());
+        MockHttpServletResponse response = mockMvc.perform(
                 get("/roles" + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("Role with given id " + adminRoleDTO.getId() + " could not be found", getInitialExceptionMessage(ex));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
         then(roleFacade).should().getRoleById(adminRoleDTO.getId());
     }
 
@@ -161,14 +161,58 @@ public class RolesRestControllerTest {
     }
 
     @Test
-    public void getUsersWithGivenRoleWithUserAndGroupException() throws Exception {
-        given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class))).willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND)));
+    public void getUsersWithGivenRoleWithException() throws Exception {
+        given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class))).willThrow(new EntityNotFoundException());
 
-        Exception exception = mockMvc.perform(
+        MockHttpServletResponse response = mockMvc.perform(
                 get("/roles" + "/{id}/users", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
     }
 
+    @Test
+    public void getUsersWithGivenRoleType() throws Exception {
+        String valueTr = convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+        given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
+        given(userFacade.getUsersWithGivenRoleType(any(String.class), any(), any(Pageable.class)))
+                .willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+        MockHttpServletResponse result = mockMvc.perform(
+                get("/roles/users")
+                        .param("roleType", adminRoleDTO.getRoleType()))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(valueTr), result.getContentAsString());
+    }
+
+    @Test
+    public void getUsersWithGivenRoleTypeWithException() throws Exception {
+        given(userFacade.getUsersWithGivenRoleType(anyString(), any(), any())).willThrow(new EntityNotFoundException());
+
+        MockHttpServletResponse response = mockMvc.perform(
+                get("/roles/users").param("roleType", adminRoleDTO.getRoleType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
+    }
+
+    @Test
+    public void getUsersWithGivenRoleTypeAndNotWithGivenIds() throws Exception {
+        String valueTr = convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+        given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
+        given(userFacade.getUsers(any(), any(Pageable.class), anyString(), anySet()))
+                .willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+
+        MockHttpServletResponse response = mockMvc.perform(get("/roles/users-not-with-ids")
+                .param("roleType", adminRoleDTO.getRoleType())
+                .param("ids", userDTO1.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(valueTr), response.getContentAsString());
+    }
 }

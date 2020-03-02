@@ -7,12 +7,9 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
-import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,12 +95,8 @@ public class MicroservicesRestController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> registerNewMicroservice(@ApiParam(value = "Microservice to be created with roles.", required = true)
                                                         @Valid @RequestBody NewMicroserviceDTO microserviceDTO) {
-        try {
-            microserviceFacade.registerMicroservice(microserviceDTO);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        microserviceFacade.registerMicroservice(microserviceDTO);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @ApiModel(value = "MicroserviceRestResource",

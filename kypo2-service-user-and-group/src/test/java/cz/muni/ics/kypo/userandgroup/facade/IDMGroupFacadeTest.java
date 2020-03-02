@@ -5,9 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.IDMGroupMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -30,7 +28,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -118,13 +119,6 @@ public class IDMGroupFacadeTest {
         assertTrue(groupDTO.getUsers().contains(userForGroupsDTO));
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testCreateGroupAlreadyExists() {
-        group1.setUsers(Set.of(user1));
-        willThrow(UserAndGroupServiceException.class).given(groupService).createIDMGroup(any(IDMGroup.class), anyList());
-        groupFacade.createGroup(new NewGroupDTO());
-    }
-
     @Test
     public void testUpdateGroup() {
         IDMGroup groupToUpdate = new IDMGroup();
@@ -133,12 +127,6 @@ public class IDMGroupFacadeTest {
         groupToUpdate.setDescription(updateGroupDTO.getDescription());
         groupFacade.updateGroup(updateGroupDTO);
         then(groupService).should().updateIDMGroup(groupToUpdate);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testUpdateGroupNotFound() {
-        willThrow(UserAndGroupServiceException.class).given(groupService).updateIDMGroup(any(IDMGroup.class));
-        groupFacade.updateGroup(updateGroupDTO);
     }
 
     @Test
@@ -151,17 +139,6 @@ public class IDMGroupFacadeTest {
         then(groupService).should().removeUserFromGroup(group1, user1);
         then(groupService).should().removeUserFromGroup(group1, user3);
         then(groupService).should().updateIDMGroup(group1);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void removeUsersGroupNotFound() {
-        List<Long> userIds = new ArrayList<>(List.of(user1.getId(), user3.getId()));
-        willThrow(UserAndGroupServiceException.class).given(groupService).getGroupById(group1.getId());
-
-        groupFacade.removeUsers(group1.getId(), userIds);
-        then(groupService).should(never()).removeUserFromGroup(group1, user1);
-        then(groupService).should(never()).removeUserFromGroup(group1, user3);
-        then(groupService).should(never()).updateIDMGroup(group1);
     }
 
     @Test
@@ -177,30 +154,6 @@ public class IDMGroupFacadeTest {
         then(groupService).should().updateIDMGroup(group1);
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void removeUsersUserCouldNotBeRemoved() {
-        List<Long> userIds = new ArrayList<>(List.of(user1.getId(), user3.getId()));
-        given(groupService.getGroupById(group1.getId())).willReturn(group1);
-        given(userService.getUsersByIds(userIds)).willReturn(List.of(user1, user3));
-        willThrow(UserAndGroupServiceException.class).given(groupService).removeUserFromGroup(eq(group1), eq(user3));
-
-        groupFacade.removeUsers(group1.getId(), userIds);
-        then(groupService).should().removeUserFromGroup(group1, user1);
-        then(groupService).should(never()).updateIDMGroup(group1);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void removeUsersGroupCouldNotBeUpdated() {
-        List<Long> userIds = new ArrayList<>(List.of(user1.getId(), user3.getId()));
-        given(groupService.getGroupById(group1.getId())).willReturn(group1);
-        given(userService.getUsersByIds(userIds)).willReturn(List.of(user1, user3));
-        willThrow(UserAndGroupServiceException.class).given(groupService).updateIDMGroup(group1);
-
-        groupFacade.removeUsers(group1.getId(), userIds);
-        then(groupService).should().removeUserFromGroup(group1, user1);
-        then(groupService).should().removeUserFromGroup(group1, user3);
-    }
-
     @Test
     public void addUser() {
         given(groupService.getGroupById(group2.getId())).willReturn(group2);
@@ -208,24 +161,6 @@ public class IDMGroupFacadeTest {
 
         groupFacade.addUser(group2.getId(), user1.getId());
         then(groupService).should().addUserToGroup(group2, user1);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void addUserGroupNotFound() {
-        willThrow(UserAndGroupServiceException.class).given(groupService).getGroupById(group2.getId());
-        given(userService.getUserById(user1.getId())).willReturn(user1);
-
-        groupFacade.addUser(group2.getId(), user1.getId());
-        then(groupService).should(never()).addUserToGroup(group2, user1);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void addUserNotInDB() {
-        given(groupService.getGroupById(group2.getId())).willReturn(group2);
-        willThrow(UserAndGroupServiceException.class).given(userService).getUserById(user1.getId());
-
-        groupFacade.addUser(group2.getId(), user1.getId());
-        then(groupService).should(never()).addUserToGroup(group2, user1);
     }
 
     @Test
@@ -240,22 +175,6 @@ public class IDMGroupFacadeTest {
 
         groupFacade.addUsersToGroup(group2.getId(), addUsersToGroupDTO);
         then(groupService).should().updateIDMGroup(group2);
-        then(groupService).should().evictUserFromCache(user2);
-        then(groupService).should().evictUserFromCache(user3);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void addUsersToGroupThatCannotBeUpdated() {
-        AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
-        addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), user3.getId()));
-        addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(group1.getId()));
-
-        given(groupService.getGroupById(group2.getId())).willReturn(group2);
-        given(userService.getUsersByIds(List.of(user2.getId(), user3.getId()))).willReturn(List.of(user2, user3));
-        given(groupService.getGroupsByIds(List.of(group1.getId()))).willReturn(List.of(group1));
-        willThrow(UserAndGroupServiceException.class).given(groupService).updateIDMGroup(group2);
-
-        groupFacade.addUsersToGroup(group2.getId(), addUsersToGroupDTO);
         then(groupService).should().evictUserFromCache(user2);
         then(groupService).should().evictUserFromCache(user3);
     }
@@ -295,32 +214,12 @@ public class IDMGroupFacadeTest {
         then(groupService).should().deleteIDMGroup(group1);
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testDeleteGroupNotInDB() {
-        willThrow(UserAndGroupServiceException.class).given(groupService).getGroupById(group1.getId());
-        groupFacade.deleteGroup(group1.getId());
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testDeleteGroupWithUsersThrowsException() {
-        given(groupService.getGroupById(group1.getId())).willReturn(group1);
-        willThrow(UserAndGroupServiceException.class).given(groupService).deleteIDMGroup(group1);
-        groupFacade.deleteGroup(group1.getId());
-    }
-
     @Test
     public void testDeleteGroups() {
         given(groupService.getGroupsByIds(anyList())).willReturn(List.of(group1, group2));
         groupFacade.deleteGroups(List.of(group1.getId(), group2.getId()));
         then(groupService).should().deleteIDMGroup(group1);
         then(groupService).should().deleteIDMGroup(group2);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testDeleteGroupsWithPersonsThrows() {
-        given(groupService.getGroupsByIds(anyList())).willReturn(List.of(group1));
-        willThrow(UserAndGroupServiceException.class).given(groupService).deleteIDMGroup(group1);
-        groupFacade.deleteGroups(Collections.singletonList(group1.getId()));
     }
 
     @Test
@@ -345,12 +244,6 @@ public class IDMGroupFacadeTest {
         then(groupService).should(times(1)).getGroupById(group1.getId());
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testGetGroupNotFound() {
-        given(groupService.getGroupById(anyLong())).willThrow(UserAndGroupServiceException.class);
-        groupFacade.getGroupById(1000L);
-    }
-
     @Test
     public void testGetGroupWithRoles() {
         group1.addRole(userRole);
@@ -373,12 +266,6 @@ public class IDMGroupFacadeTest {
         assertTrue(rolesDTO.stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())));
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testGetRolesOfGroupWithServiceThrowsException() {
-        given(groupService.getRolesOfGroup(anyLong())).willThrow(UserAndGroupServiceException.class);
-        groupFacade.getRolesOfGroup(10000L);
-    }
-
     @Test
     public void assignRoleToGroup() {
         given(groupService.assignRole(group1.getId(), userRole.getId())).willReturn(group1);
@@ -386,16 +273,6 @@ public class IDMGroupFacadeTest {
         groupFacade.assignRole(group1.getId(), userRole.getId());
         group1.getUsers().forEach(user -> {
             then(groupService).should().evictUserFromCache(user);
-        });
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void assignRoleToGroupWithServiceLayerException() {
-        willThrow(UserAndGroupServiceException.class).given(groupService).assignRole(group1.getId(), userRole.getId());
-
-        groupFacade.assignRole(group1.getId(), userRole.getId());
-        group1.getUsers().forEach(user -> {
-            then(groupService).should(never()).evictUserFromCache(user);
         });
     }
 
@@ -409,14 +286,4 @@ public class IDMGroupFacadeTest {
         });
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void removeRoleFromGroupWithServiceLayerException() {
-        willThrow(UserAndGroupServiceException.class).given(groupService).removeRoleFromGroup(group1.getId(), adminRole.getId());
-
-        groupFacade.removeRoleFromGroup(group1.getId(), adminRole.getId());
-        group1.getUsers().forEach(user -> {
-            then(groupService).should(never()).evictUserFromCache(user);
-
-        });
-    }
 }

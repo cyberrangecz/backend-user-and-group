@@ -1,13 +1,10 @@
 package cz.muni.ics.kypo.userandgroup.api.facade;
 
+import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
-
-import com.querydsl.core.types.Predicate;
 
 import java.util.List;
 import java.util.Set;
@@ -22,7 +19,6 @@ public interface IDMGroupFacade {
      *
      * @param groupId the ID of the IDMGroup to be loaded.
      * @return the IDMGroup with the given ID.
-     * @throws UserAndGroupFacadeException if group was not found
      */
     GroupDTO getGroupById(Long groupId);
 
@@ -77,7 +73,6 @@ public interface IDMGroupFacade {
      *
      * @param groupId the ID of the IDMGroup.
      * @return set of {@link RoleDTO} of IDMGroup with the given ID.
-     * @throws UserAndGroupFacadeException if the IDMGroup was not found.
      */
     Set<RoleDTO> getRolesOfGroup(Long groupId);
 
@@ -86,7 +81,6 @@ public interface IDMGroupFacade {
      *
      * @param groupId the ID of the IDMGroup which will get role with given role ID.
      * @param roleId  the ID of the role to be assigned to IDMGroup.
-     * @throws UserAndGroupFacadeException if the IDMGroup or the role with the given ID could not be found.
      */
     void assignRole(Long groupId, Long roleId);
 
@@ -97,8 +91,6 @@ public interface IDMGroupFacade {
      * @param groupId the ID of the IDMGroup from which role with role ID is removed.
      * @param roleId  the ID of the role.
      * @throws UserAndGroupFacadeException         if the IDMGroup or role could not be found.
-     * @throws RoleCannotBeRemovedToGroupException if role GUEST, USER, ADMINISTRATOR is removed from IDMGroup with name  DEFAULT-GROUP,
-     *                                             USER-AND-GROUP_USER, USER-AND-GROUP_ADMINISTRATOR.
      */
     void removeRoleFromGroup(Long groupId, Long roleId);
 
@@ -107,17 +99,14 @@ public interface IDMGroupFacade {
      *
      * @param groupId the ID of the IDMGroup.
      * @param userIds a list of IDs of users to be removed from given IDMGroup.
-     * @throws UserAndGroupFacadeException if the IDMGroup or the user could not be found, IDMGroup is DEFAULT-GROUP,
-     *                                     the administrator is trying to remove himself from USER-AND-GROUP_ADMINISTRATOR group.
      */
     void removeUsers(Long groupId, List<Long> userIds);
 
     /**
-     * Adds user to patricular group.
+     * Adds user to particular group.
      *
      * @param groupId the ID of the group to add users.
      * @param userId  the ID of the user.
-     * @throws UserAndGroupFacadeException if user could not be added to the group.
      */
     void addUser(Long groupId, Long userId);
 
@@ -126,7 +115,6 @@ public interface IDMGroupFacade {
      *
      * @param groupId  the ID of the group to add users.
      * @param addUsers DTO containing a list of IDs of users and a list of IDs of groups.
-     * @throws UserAndGroupFacadeException if the IDMGroup or some user could not be found.
      */
     void addUsersToGroup(Long groupId, AddUsersToGroupDTO addUsers);
 

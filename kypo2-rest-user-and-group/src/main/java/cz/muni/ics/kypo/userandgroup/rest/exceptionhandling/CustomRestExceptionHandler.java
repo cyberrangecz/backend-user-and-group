@@ -1,10 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.rest.exceptionhandling;
 
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.*;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotModifiedException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.BadRequestException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UnprocessableEntityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -136,16 +135,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    @ExceptionHandler(MethodNotAllowedException.class)
-    public ResponseEntity<Object> handleMethodNotAllowedException(final MethodNotAllowedException ex, final WebRequest request, HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
-                MethodNotAllowedException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
-                getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Object> handleBadRequestException(final BadRequestException ex, final WebRequest request, HttpServletRequest req) {
         final ApiError apiError = ApiError.of(
@@ -156,24 +145,14 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-
-    @ExceptionHandler({UnauthorizedException.class})
-    public ResponseEntity<Object> handleUnauthorizedException(final UnauthorizedException ex, final WebRequest request, HttpServletRequest req) {
+    @ExceptionHandler({EntityNotFoundException.class})
+    public ResponseEntity<Object> handleEntityNotFoundException(final EntityNotFoundException ex, final WebRequest request, HttpServletRequest req) {
         final ApiError apiError = ApiError.of(
-                UnauthorizedException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
+                EntityNotFoundException.class.getAnnotation(ResponseStatus.class).value(),
+                EntityNotFoundException.class.getAnnotation(ResponseStatus.class).reason(),
                 getFullStackTrace(ex),
                 URL_PATH_HELPER.getRequestUri(req));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({UnsupportedMediaTypeException.class})
-    public ResponseEntity<Object> handleUnsupportedMediaTypeException(final UnsupportedMediaTypeException ex, final WebRequest request, HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
-                UnsupportedMediaTypeException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
-                getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
+        apiError.setEntityErrorDetail(ex.getEntityErrorDetail());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
@@ -210,55 +189,27 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     // thrown from REST controllers
 
-    @ExceptionHandler(ResourceAlreadyExistingException.class)
-    public ResponseEntity<Object> handleResourceAlreadyExistingException(final ResourceAlreadyExistingException ex, final WebRequest request,
-                                                                         HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
-                ResourceAlreadyExistingException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
-                getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({ResourceNotCreatedException.class})
-    public ResponseEntity<Object> handleResourceNotCreatedException(final ResourceNotCreatedException ex, final WebRequest request, HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
-                ResourceNotCreatedException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
-                getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Object> handleResourceNotFoundException(final ResourceNotFoundException ex, final WebRequest request, HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
-                ResourceNotFoundException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
-                getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({ResourceNotModifiedException.class})
-    public ResponseEntity<Object> handleResourceNotModifiedException(final ResourceNotModifiedException ex, final WebRequest request, HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
-                ResourceNotModifiedException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
-                getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({ConflictException.class})
-    public ResponseEntity<Object> handleConflictException(final ConflictException ex, final WebRequest request,
+    @ExceptionHandler({EntityConflictException.class})
+    public ResponseEntity<Object> handleEntityConflictException(final EntityConflictException ex, final WebRequest request,
                                                           HttpServletRequest req) {
         final ApiError apiError = ApiError.of(
-                ConflictException.class.getAnnotation(ResponseStatus.class).value(),
-                getInitialException(ex).getLocalizedMessage(),
+                EntityConflictException.class.getAnnotation(ResponseStatus.class).value(),
+                EntityConflictException.class.getAnnotation(ResponseStatus.class).reason(),
                 getFullStackTrace(ex),
                 URL_PATH_HELPER.getRequestUri(req));
+        apiError.setEntityErrorDetail(ex.getEntityErrorDetail());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({UnprocessableEntityException.class})
+    public ResponseEntity<Object> handleUnprocessableEntityException(final UnprocessableEntityException ex, final WebRequest request,
+                                                                HttpServletRequest req) {
+        final ApiError apiError = ApiError.of(
+                UnprocessableEntityException.class.getAnnotation(ResponseStatus.class).value(),
+                UnprocessableEntityException.class.getAnnotation(ResponseStatus.class).reason(),
+                getFullStackTrace(ex),
+                URL_PATH_HELPER.getRequestUri(req));
+        apiError.setEntityErrorDetail(ex.getEntityErrorDetail());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
@@ -291,4 +242,5 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         }
         return "It was not possible to get the stack trace for that exception.";
     }
+
 }

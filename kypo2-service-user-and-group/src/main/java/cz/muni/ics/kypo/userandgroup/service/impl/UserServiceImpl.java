@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.QUser;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -44,7 +44,8 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Long id) {
         Assert.notNull(id, "In method getUserById(id) the input must not be null.");
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
+                        "User not found.")));
     }
 
     @Override
@@ -91,10 +92,10 @@ public class UserServiceImpl implements UserService {
     public void changeAdminRole(Long id) {
         Assert.notNull(id, "In method changeAdminRole(id) the input must not be null.");
         User user = this.getUserById(id);
-        //TODO create new private method to get administrator group
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
         IDMGroup administratorGroup = optionalAdministratorGroup
-                .orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", String.class,
+                        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), "Administrator group not found")));
         if (user.getGroups().contains(administratorGroup)) {
             administratorGroup.removeUser(user);
         } else {
@@ -109,7 +110,8 @@ public class UserServiceImpl implements UserService {
         User user = getUserById(id);
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
         IDMGroup administratorGroup = optionalAdministratorGroup
-                .orElseThrow(() -> new UserAndGroupServiceException("Administrator group could not be found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", String.class,
+                        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), "Administrator group not found")));
         return user.getGroups().contains(administratorGroup);
     }
 
@@ -136,7 +138,8 @@ public class UserServiceImpl implements UserService {
     public User getUserWithGroups(Long id) {
         Assert.notNull(id, "In method getUserWithGroups(id) the input must not be null.");
         return userRepository.getUserByIdWithGroups(id)
-                .orElseThrow(() -> new UserAndGroupServiceException("User with id " + id + " not found", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
+                        "User not found.")));
     }
 
     @Override
@@ -144,14 +147,16 @@ public class UserServiceImpl implements UserService {
         Assert.hasLength(login, "In method getUserWithGroups(login, iss) the input login must not be empty.");
         Assert.hasLength(iss, "In method getUserWithGroups(login, iss) the input iss must not be empty.");
         return userRepository.getUserByLoginWithGroups(login, iss)
-                .orElseThrow(() -> new UserAndGroupServiceException("User with login " + login + " not found", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "login", login.getClass(),
+                        login, "User not found.")));
     }
 
     @Override
     public Set<Role> getRolesOfUser(Long id) {
         Assert.notNull(id, "In method getRolesOfUser(id) the input must not be null.");
         if (!userRepository.existsById(id)) {
-            throw new UserAndGroupServiceException("User with id " + id + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND);
+            throw new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
+                    "User not found."));
         }
         return userRepository.getRolesOfUser(id);
     }
@@ -160,7 +165,7 @@ public class UserServiceImpl implements UserService {
     public Page<User> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
         Assert.notNull(roleId, "In method getUsersWithGivenRole(roleId, predicate, pageable) the input ids must not be null.");
         if (!roleRepository.existsById(roleId)) {
-            throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND);
+            throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleId", roleId.getClass(), roleId, "Role not found."));
         }
         return userRepository.findAllByRoleId(roleId, predicate, pageable);
     }
@@ -169,7 +174,7 @@ public class UserServiceImpl implements UserService {
     public Page<User> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         Assert.notNull(roleType, "In method getUsersWithGivenRoleType(roleType, predicate, pageable) the input role type must not be null.");
         if (!roleRepository.existsByRoleType(roleType)) {
-            throw new UserAndGroupServiceException("Role with type: " + roleType + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND);
+            throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType, "Role not found."));
         }
         return userRepository.findAllByRoleType(roleType, predicate, pageable);
     }

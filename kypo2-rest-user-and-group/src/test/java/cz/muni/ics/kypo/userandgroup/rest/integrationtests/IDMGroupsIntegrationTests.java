@@ -2,9 +2,6 @@ package cz.muni.ics.kypo.userandgroup.rest.integrationtests;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
@@ -12,18 +9,24 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
-import cz.muni.ics.kypo.userandgroup.model.*;
+import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.GroupsRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
+import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +42,7 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -49,7 +53,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.*;
 import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
@@ -280,17 +287,18 @@ public class IDMGroupsIntegrationTests {
         updateGroupDTO.setDescription(userGroup.getDescription());
         String groupNameBefore = userGroup.getName();
 
-        Exception exception = mvc.perform(put("/groups")
+        MockHttpServletResponse response = mvc.perform(put("/groups")
                 .content(convertObjectToJsonBytes(updateGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
-        assert exception != null;
+                .andReturn().getResponse();
         Optional<IDMGroup> updatedGroup = groupRepository.findById(userGroup.getId());
         assertTrue(updatedGroup.isPresent());
         assertEquals(groupNameBefore, updatedGroup.get().getName());
-        assertEquals(ConflictException.class, exception.getClass());
-        assertEquals("Cannot change name of main group " + userGroup.getName() + " to " + updateGroupDTO.getName() + ".", getInitialExceptionMessage(exception));
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", userGroup.getId().toString(),
+                "Name of main group cannot be changed");
     }
 
     @Test
@@ -384,14 +392,15 @@ public class IDMGroupsIntegrationTests {
     @Test
     public void removeUserFromGroupWithGroupNotFound() throws Exception {
         Long groupId = 500L;
-        Exception exception = mvc.perform(delete("/groups/{id}/users", groupId)
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{id}/users", groupId)
                 .content(convertObjectToJsonBytes(List.of(user1.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("IDMGroup with id " + groupId + " not found."));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", groupId.toString(),
+                "Group not found.");
     }
 
     @Test
@@ -496,14 +505,15 @@ public class IDMGroupsIntegrationTests {
         AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfGroupsOfImportedUsers(List.of(defaultGroup.getId()));
 
-        Exception exception = mvc.perform(put("/groups/{id}/users", groupId)
+        MockHttpServletResponse response = mvc.perform(put("/groups/{id}/users", groupId)
                 .content(convertObjectToJsonBytes(addUsersToGroupDTO))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals("IDMGroup with id " + groupId + " not found.", getInitialExceptionMessage(exception));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", groupId.toString(),
+                "Group not found.");
     }
 
     @Test
@@ -544,42 +554,42 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void deleteGroupNotFoundInDB() throws Exception {
-        Exception exception = mvc.perform(delete("/groups/{id}", 100)
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{id}", 100)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertEquals( "IDMGroup with id " + 100 + " not found.", getInitialExceptionMessage(exception));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
+                "Group not found.");
     }
 
     @Test
     public void deleteMainGroup() throws Exception {
         userGroup.setUsers(new HashSet<>());
         groupRepository.save(userGroup);
-        Exception exception = mvc.perform(delete("/groups/{id}", userGroup.getId())
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{id}", userGroup.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ConflictException.class, exception.getClass());
-        assertEquals("It is not possible to delete group with id: " + userGroup.getId() +
-                ". This group is User and Group default group that could not be deleted.", getInitialExceptionMessage(exception));
-        assertTrue(groupRepository.existsById(userGroup.getId()));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", userGroup.getName(),
+                "This group is User and Group default group that cannot be deleted.");
     }
 
     @Test
     public void deleteGroupWithUsers() throws Exception {
         organizerGroup.addUser(user1);
         groupRepository.save(organizerGroup);
-        Exception exception = mvc.perform(delete("/groups/{id}", organizerGroup.getId())
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{id}", organizerGroup.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ConflictException.class, exception.getClass());
-        assertEquals("It is not possible to delete group with id: " + organizerGroup.getId() + ". The group must be empty (without users)", getInitialExceptionMessage(exception));
-        assertTrue(groupRepository.existsById(organizerGroup.getId()));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", organizerGroup.getId().toString(),
+                "The group must be empty (without users) before it is deleted.");
     }
 
     @Test
@@ -627,17 +637,17 @@ public class IDMGroupsIntegrationTests {
         Long organizerGroupId = organizerGroup.getId();
         userGroup.setUsers(new HashSet<>());
         groupRepository.save(userGroup);
-        Exception exception = mvc.perform(delete("/groups")
+        MockHttpServletResponse response = mvc.perform(delete("/groups")
                 .content(convertObjectToJsonBytes(List.of(organizerGroup.getId(), userGroup.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
+                .andReturn().getResponse();
         assertTrue(groupRepository.existsById(userGroup.getId()));
         assertTrue(groupRepository.existsById(organizerGroupId));
-        assert exception != null;
-        assertEquals(ConflictException.class, exception.getClass());
-        assertEquals("It is not possible to delete group with id: " + userGroup.getId() + ". " +
-                "This group is User and Group default group that could not be deleted.", getInitialExceptionMessage(exception));
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", userGroup.getName(),
+                "This group is User and Group default group that cannot be deleted.");
 
     }
 
@@ -645,16 +655,16 @@ public class IDMGroupsIntegrationTests {
     public void deleteGroupsWithUsers() throws Exception {
         organizerGroup.addUser(user1);
         groupRepository.save(organizerGroup);
-        Exception exception = mvc.perform(delete("/groups")
+        MockHttpServletResponse response = mvc.perform(delete("/groups")
                 .content(convertObjectToJsonBytes(List.of(organizerGroup.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
+                .andReturn().getResponse();
         assertTrue(groupRepository.existsById(userGroup.getId()));
-
-        assert exception != null;
-        assertEquals(ConflictException.class, exception.getClass());
-        assertEquals("It is not possible to delete group with id: " + organizerGroup.getId() + ". The group must be empty (without users)", getInitialExceptionMessage(exception));
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", organizerGroup.getId().toString(),
+                "The group must be empty (without users) before it is deleted.");
     }
 
     @Test
@@ -736,13 +746,14 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void getGroupNotFound() throws Exception {
-        Exception exception = mvc.perform(get("/groups/{id}", 100L)
+        MockHttpServletResponse response = mvc.perform(get("/groups/{id}", 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("IDMGroup with id " + 100 + " not found"));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
+                "Group not found.");
     }
 
     @Test
@@ -783,13 +794,14 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void getRolesOfGroupGroupNotFound() throws Exception {
-        Exception exception = mvc.perform(get("/groups/{id}/roles", 100L)
+        MockHttpServletResponse response = mvc.perform(get("/groups/{id}/roles", 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Group with id " + 100 + " not found."));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
+                "Group not found.");;
     }
 
     @Test
@@ -840,24 +852,26 @@ public class IDMGroupsIntegrationTests {
 
     @Test
     public void assignRoleToGroupRoleNotFound() throws Exception {
-        Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), 100L)
+        MockHttpServletResponse response = mvc.perform(put("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Role with id: " + 100 + " could not be found."));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", "100",
+                "Role not found. Start up of the project or registering of microservice probably went wrong, please contact support.");
     }
 
     @Test
     public void assignRoleToGroupGroupNotFound() throws Exception {
-        Exception exception = mvc.perform(put("/groups/{groupId}/roles/{roleId}", 100L, designerRole.getId())
+        MockHttpServletResponse response = mvc.perform(put("/groups/{groupId}/roles/{roleId}", 100L, designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Group with id " + 100 + " not found."));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
+                "Group not found.");
     }
 
     @Test
@@ -900,50 +914,60 @@ public class IDMGroupsIntegrationTests {
     public void removeRoleFromGroupNotAssignedToGroup() throws Exception {
         assertFalse(organizerGroup.getRoles().contains(designerRole));
         int numberOfRolesBefore = organizerGroup.getRoles().size();
-        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
+                .andReturn().getResponse();
 
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Role with id: " + designerRole.getId() + " could not be found in given group."));
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", designerRole.getId().toString(),
+                "Role was not found in group.");
         assertFalse(organizerGroup.getRoles().contains(designerRole));
         assertEquals(numberOfRolesBefore, organizerGroup.getRoles().size());
     }
 
     @Test
     public void removeRoleFromGroupRoleNotFound() throws Exception {
-        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), 100L)
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", organizerGroup.getId(), 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Role with id: " + 100 + " could not be found in given group."));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", "100",
+                "Role was not found in group.");
     }
 
     @Test
     public void removeRoleFromGroupGroupNotFound() throws Exception {
-        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", 100L, designerRole.getId())
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", 100L, designerRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Group with id " + 100 + " not found."));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
+                "Group not found.");
     }
 
     @Test
     public void removeMainRoleFromMainGroup() throws Exception {
-        Exception exception = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", userGroup.getId(), userRole.getId())
+        MockHttpServletResponse response = mvc.perform(delete("/groups/{groupId}/roles/{roleId}", userGroup.getId(), userRole.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ConflictException.class, exception.getClass());
-        assertTrue(exception.getMessage().contains("Role " + userRole.getRoleType() + " cannot be removed from group. This role is main role of the group"));
-        assertTrue(userGroup.getRoles().contains(userRole));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleType", userRole.getRoleType(),
+                "Main role of the group cannot be removed.");
+    }
+
+    private void assertEntityDetailError(EntityErrorDetail entityErrorDetail, Class<?> entity, String identifier, Object value, String reason) {
+        assertEquals(entity.getSimpleName(), entityErrorDetail.getEntity());
+        assertEquals(identifier, entityErrorDetail.getIdentifier());
+        assertEquals(value, entityErrorDetail.getIdentifierValue().toString());
+        assertEquals(reason, entityErrorDetail.getReason());
     }
 
 }

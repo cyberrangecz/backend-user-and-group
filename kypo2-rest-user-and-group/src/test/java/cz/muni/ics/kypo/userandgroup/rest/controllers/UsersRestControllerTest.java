@@ -10,16 +10,14 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +33,7 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -53,8 +52,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
-import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.getInitialExceptionMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -159,14 +158,14 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetUserWithUserNotFound() throws Exception {
-        given(userFacade.getUserById(userDTO1.getId())).willThrow(
-                new UserAndGroupFacadeException(
-                new UserAndGroupServiceException("User with id " + userDTO1.getId() + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
-        Exception ex = mockMvc.perform(
+        given(userFacade.getUserById(userDTO1.getId())).willThrow(new EntityNotFoundException());
+        MockHttpServletResponse response = mockMvc.perform(
                 get("/users" + "/{id}", userDTO1.getId()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
     }
 
     @Test
@@ -195,13 +194,15 @@ public class UsersRestControllerTest {
 
     @Test
     public void testDeleteUserNotFound() throws Exception {
-        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("Cannot be found", ErrorCode.RESOURCE_NOT_FOUND))).given(userFacade).deleteUser(userDTO1.getId());
-        Exception ex = mockMvc.perform(
+        willThrow(new EntityNotFoundException()).given(userFacade).deleteUser(userDTO1.getId());
+        MockHttpServletResponse response = mockMvc.perform(
                 delete("/users" + "/{id}", userDTO1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, ex.getClass());
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
         then(userFacade).should().deleteUser(userDTO1.getId());
     }
 
@@ -240,13 +241,14 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetRolesOfUserWithExceptionFromFacade() throws Exception {
-        given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(new UserAndGroupFacadeException(
-                new UserAndGroupServiceException("User with id " + userDTO1.getId() + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
-        Exception ex = mockMvc.perform(
+        given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(new EntityNotFoundException());
+        MockHttpServletResponse response = mockMvc.perform(
                 get("/users" + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("User with id " + userDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
     }
 
     private RoleDTO getAdminRoleDTO() {

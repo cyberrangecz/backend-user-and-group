@@ -5,9 +5,10 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UnprocessableEntityException;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.MicroserviceMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -36,8 +37,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
@@ -117,7 +117,7 @@ public class MicroserviceFacadeTest {
 
     @Test
     public void registerMicroserviceCreate() {
-        given(microserviceService.createMicroservice(any(Microservice.class))).willReturn(true);
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(false);
         given(groupService.getGroupForDefaultRoles()).willReturn(defaultGroup);
 
         microserviceFacade.registerMicroservice(newMicroserviceDTO);
@@ -127,10 +127,27 @@ public class MicroserviceFacadeTest {
         then(groupService).should(times(1)).getGroupForDefaultRoles();
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
+    @Test(expected = EntityConflictException.class)
+    public void registerMicroserviceCreateRoleAlreadyInDB() {
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(false);
+        willThrow(EntityConflictException.class).given(roleService).createRole(any());
+        given(groupService.getGroupForDefaultRoles()).willReturn(defaultGroup);
+
+        microserviceFacade.registerMicroservice(newMicroserviceDTO);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void registerMicroserviceCreateNoDefaultGroup() {
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(false);
+        willThrow(EntityNotFoundException.class).given(groupService).getGroupForDefaultRoles();
+
+        microserviceFacade.registerMicroservice(newMicroserviceDTO);
+    }
+
+    @Test(expected = UnprocessableEntityException.class)
     public void registerMicroserviceCreateWithMultipleDefaultRoles() {
         newDesignerRoleDTO.setDefault(true);
-        given(microserviceService.createMicroservice(any(Microservice.class))).willReturn(true);
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(false);
         given(groupService.getGroupForDefaultRoles()).willReturn(defaultGroup);
 
         microserviceFacade.registerMicroservice(newMicroserviceDTO);
@@ -141,8 +158,9 @@ public class MicroserviceFacadeTest {
 
     @Test
     public void registerMicroserviceUpdateWithSameRoles() {
-        given(microserviceService.createMicroservice(any(Microservice.class))).willReturn(false);
-        given(roleService.getAllRolesOfMicroservice(newMicroserviceDTO.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
+        given(roleService.getAllRolesOfMicroservice(trainingMicroservice.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
 
         microserviceFacade.registerMicroservice(newMicroserviceDTO);
         then(roleService).should(never()).createRole(mapToRole(newAdminRoleDTO));
@@ -155,8 +173,9 @@ public class MicroserviceFacadeTest {
     @Test
     public void registerMicroserviceUpdateWithNewRole() {
         newMicroserviceDTO.setRoles(Set.of(newAdminRoleDTO, newDesignerRoleDTO, newOrganizerRoleDTO, newTraineeRoleDTO));
-        given(microserviceService.createMicroservice(any(Microservice.class))).willReturn(false);
-        given(roleService.getAllRolesOfMicroservice(newMicroserviceDTO.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
+        given(roleService.getAllRolesOfMicroservice(trainingMicroservice.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
 
         microserviceFacade.registerMicroservice(newMicroserviceDTO);
         then(roleService).should().createRole(mapToRole(newOrganizerRoleDTO));
@@ -167,11 +186,50 @@ public class MicroserviceFacadeTest {
         then(roleService).should(never()).getDefaultRoleOfMicroservice(newMicroserviceDTO.getName());
     }
 
-    @Test(expected = UserAndGroupServiceException.class)
+    @Test(expected = EntityConflictException.class)
+    public void registerMicroserviceUpdateRoleAlreadyInDB() {
+        newMicroserviceDTO.setRoles(Set.of(newAdminRoleDTO, newDesignerRoleDTO, newOrganizerRoleDTO, newTraineeRoleDTO));
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
+        given(roleService.getAllRolesOfMicroservice(trainingMicroservice.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
+        willThrow(EntityConflictException.class).given(roleService).createRole(any());
+
+        microserviceFacade.registerMicroservice(newMicroserviceDTO);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void registerMicroserviceUpdateNoDefaultGroup() {
+        newTraineeRoleDTO.setDefault(false);
+        newOrganizerRoleDTO.setDefault(true);
+        newMicroserviceDTO.setRoles(Set.of(newAdminRoleDTO, newDesignerRoleDTO, newOrganizerRoleDTO, newTraineeRoleDTO));
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
+        given(roleService.getAllRolesOfMicroservice(trainingMicroservice.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
+        willThrow(EntityNotFoundException.class).given(groupService).getGroupForDefaultRoles();
+
+        microserviceFacade.registerMicroservice(newMicroserviceDTO);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void registerMicroserviceUpdateNoDefaultRoleOfMicroservice() {
+        newTraineeRoleDTO.setDefault(false);
+        newOrganizerRoleDTO.setDefault(true);
+        newMicroserviceDTO.setRoles(Set.of(newAdminRoleDTO, newDesignerRoleDTO, newOrganizerRoleDTO, newTraineeRoleDTO));
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
+        given(roleService.getAllRolesOfMicroservice(trainingMicroservice.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
+        given(groupService.getGroupForDefaultRoles()).willReturn(defaultGroup);
+        willThrow(EntityNotFoundException.class).given(roleService).getDefaultRoleOfMicroservice(trainingMicroservice.getName());
+
+        microserviceFacade.registerMicroservice(newMicroserviceDTO);
+    }
+
+    @Test(expected = UnprocessableEntityException.class)
     public void registerMicroserviceUpdateWithMultipleDefaultRoles() {
         newOrganizerRoleDTO.setDefault(true);
         newMicroserviceDTO.setRoles(Set.of(newAdminRoleDTO, newDesignerRoleDTO, newOrganizerRoleDTO, newTraineeRoleDTO));
-        given(microserviceService.createMicroservice(any(Microservice.class))).willReturn(false);
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
 
         microserviceFacade.registerMicroservice(newMicroserviceDTO);
         then(roleService).should(never()).createRole(mapToRole(newOrganizerRoleDTO));
@@ -186,10 +244,11 @@ public class MicroserviceFacadeTest {
         newOrganizerRoleDTO.setDefault(true);
         defaultGroup.addRole(traineeRole);
         newMicroserviceDTO.setRoles(new HashSet<>(Set.of(newAdminRoleDTO, newDesignerRoleDTO, newOrganizerRoleDTO, newTraineeRoleDTO)));
-        given(microserviceService.createMicroservice(any(Microservice.class))).willReturn(false);
-        given(roleService.getAllRolesOfMicroservice(newMicroserviceDTO.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
+        given(microserviceService.existsByName(newMicroserviceDTO.getName())).willReturn(true);
+        given(microserviceService.getMicroserviceByName(newMicroserviceDTO.getName())).willReturn(trainingMicroservice);
+        given(roleService.getAllRolesOfMicroservice(trainingMicroservice.getName())).willReturn(new HashSet<>(Set.of(adminRole, designerRole, traineeRole)));
         given(groupService.getGroupForDefaultRoles()).willReturn(defaultGroup);
-        given(roleService.getDefaultRoleOfMicroservice(newMicroserviceDTO.getName())).willReturn(traineeRole);
+        given(roleService.getDefaultRoleOfMicroservice(trainingMicroservice.getName())).willReturn(traineeRole);
 
         microserviceFacade.registerMicroservice(newMicroserviceDTO);
         then(roleService).should().createRole(mapToRole(newOrganizerRoleDTO));

@@ -7,7 +7,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -23,7 +23,6 @@ public interface UserFacade {
      *
      * @param userId the ID of the user to be loaded.
      * @return the user encapsulated in {@link UserDTO}.
-     * @throws UserAndGroupFacadeException if user was not found.
      */
     UserDTO getUserById(Long userId);
 
@@ -33,7 +32,7 @@ public interface UserFacade {
      * @param sub user idenfitication (usually his login).
      * @param iss OIDC provider identification (e.g., MUNI OIDC).
      * @return encapsulated info about logged in user in {@link UserDTO}.
-     * @throws UserAndGroupFacadeException if logged in user could not be found in database.
+     * @throws EntityNotFoundException if logged in user could not be found in database.
      */
     UserDTO getUserInfo(String sub, String iss);
 
@@ -51,7 +50,6 @@ public interface UserFacade {
      * Deletes user with given ID from database.
      *
      * @param userId the ID of user to be deleted.
-     * @throws UserAndGroupFacadeException if an error occurs during deleting user.
      */
     void deleteUser(Long userId);
 
@@ -106,7 +104,6 @@ public interface UserFacade {
      * @param predicate represents a predicate (boolean-valued function) of one argument.
      * @param pageable  pageable parameter with information about pagination.
      * @return a list of the {@link UserDTO}s specified by given and pageable.
-     * @throws UserAndGroupFacadeException if the role could not be found in DB.
      */
     PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable);
 
@@ -117,7 +114,6 @@ public interface UserFacade {
      * @param predicate represents a predicate (boolean-valued function) of one argument.
      * @param pageable  pageable parameter with information about pagination.
      * @return a list of the {@link UserDTO}s specified by given predicate and pageable.
-     * @throws UserAndGroupFacadeException if the role could not be found in DB.
      */
     PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable);
 
@@ -126,7 +122,6 @@ public interface UserFacade {
      *
      * @param userId the ID of the user.
      * @return set of the {@link RoleDTO}s of the user with the given ID.
-     * @throws UserAndGroupFacadeException if the user was not found.
      */
     Set<RoleDTO> getRolesOfUser(Long userId);
 

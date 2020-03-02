@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.MicroserviceServiceImpl;
@@ -64,14 +64,46 @@ public class MicroserviceServiceTest {
         then(microserviceRepository).should().findById(uAGMicroservice.getId());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getMicroserviceByIdNotFound(){
         Long id = 100L;
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Microservice with id " + id + " not found");
         given(microserviceRepository.findById(id)).willReturn(Optional.empty());
         microserviceService.getMicroserviceById(id);
     }
+
+
+    @Test
+    public void getMicroserviceByName(){
+        given(microserviceRepository.findByName(uAGMicroservice.getName())).willReturn(Optional.of(uAGMicroservice));
+        Microservice microservice = microserviceService.getMicroserviceByName(uAGMicroservice.getName());
+
+        assertEquals(uAGMicroservice.getId(), microservice.getId());
+        assertEquals(uAGMicroservice.getEndpoint(), microservice.getEndpoint());
+        assertEquals(uAGMicroservice.getName(), microservice.getName());
+        then(microserviceRepository).should().findByName(uAGMicroservice.getName());
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void getMicroserviceByNameNotFound(){
+        String name = "kypo-microservice";
+        given(microserviceRepository.findByName(name)).willReturn(Optional.empty());
+        microserviceService.getMicroserviceByName(name);
+    }
+
+    public void existsByName(){
+        String name = "kypo-microservice";
+        given(microserviceRepository.existsByName(name)).willReturn(true);
+        boolean exists = microserviceService.existsByName(name);
+        assertTrue(exists);
+    }
+
+    public void doesNotExistsByName(){
+        String name = "kypo-microservice";
+        given(microserviceRepository.existsByName(name)).willReturn(false);
+        boolean exists = microserviceService.existsByName(name);
+        assertFalse(exists);
+    }
+
 
     @Test
     public void getMicroservices(){
@@ -87,15 +119,7 @@ public class MicroserviceServiceTest {
 
     @Test
     public void createMicroservice(){
-        given(microserviceRepository.findByName(trainingMicroservice.getName())).willReturn(Optional.empty());
-        boolean response = microserviceService.createMicroservice(trainingMicroservice);
-        assertTrue(response);
-    }
-
-    @Test
-    public void createMicroserviceWithExistingMicroservice(){
-        given(microserviceRepository.findByName(uAGMicroservice.getName())).willReturn(Optional.of(uAGMicroservice));
-        boolean response = microserviceService.createMicroservice(uAGMicroservice);
-        assertFalse(response);
+        microserviceService.createMicroservice(trainingMicroservice);
+        then(microserviceRepository).should().save(trainingMicroservice);
     }
 }

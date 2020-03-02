@@ -7,12 +7,10 @@ import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalWO;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.UnprocessableEntityException;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.MicroserviceMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -25,10 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class MicroserviceFacadeImpl implements MicroserviceFacade {
@@ -60,32 +55,30 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
     @TransactionalWO
     public void registerMicroservice(NewMicroserviceDTO newMicroserviceDTO) {
         Microservice microservice = microserviceMapper.mapCreateToEntity(newMicroserviceDTO);
-        if(microserviceService.createMicroservice(microservice)) {
-            // microservice does not exist
-            createNewRolesOfMicroservice(newMicroserviceDTO.getRoles(), microservice);
-        } else {
+        if(microserviceService.existsByName(newMicroserviceDTO.getName())) {
             // microservice already exists, update roles of microservice
+            microservice = microserviceService.getMicroserviceByName(newMicroserviceDTO.getName());
             microservice.setEndpoint(newMicroserviceDTO.getEndpoint());
             updateRolesOfMicroservice(newMicroserviceDTO.getRoles(), microservice);
+        } else {
+            // microservice does not exist
+            microserviceService.createMicroservice(microservice);
+            createNewRolesOfMicroservice(newMicroserviceDTO.getRoles(), microservice);
         }
     }
 
     private void createNewRolesOfMicroservice(Set<RoleForNewMicroserviceDTO> newRolesDTO, Microservice microservice) {
-        try {
-            checkDefaultRole(newRolesDTO);
-            newRolesDTO.forEach(newRole -> {
-                Role role = roleMapper.mapToEntity(newRole);
-                role.setMicroservice(microservice);
-
-                roleService.createRole(role);
-                if (newRole.isDefault()) {
-                    IDMGroup defaultGroup = groupService.getGroupForDefaultRoles();
-                    defaultGroup.addRole(role);
-                }
-            });
-        } catch (UserAndGroupServiceException e) {
-            throw new UserAndGroupFacadeException(e);
-        }
+        checkDefaultRole(newRolesDTO);
+        newRolesDTO.forEach(newRole -> {
+            Role role = roleMapper.mapToEntity(newRole);
+            role.setMicroservice(microservice);
+            // maybe remove try-catch and let conflict exception bubble up
+            roleService.createRole(role);
+            if (newRole.isDefault()) {
+                IDMGroup defaultGroup = groupService.getGroupForDefaultRoles();
+                defaultGroup.addRole(role);
+            }
+        });
     }
 
     private void updateRolesOfMicroservice(Set<RoleForNewMicroserviceDTO> newRolesDTO, Microservice microservice) {
@@ -96,17 +89,14 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
             role.setMicroservice(microservice);
             // if role is already in microservice it returns false, otherwise it returns true and the newly created role will be added
             if(rolesInDB.add(role)) {
-                try {
                     roleService.createRole(role);
                     if (newRole.isDefault()) {
                         IDMGroup defaultGroup = groupService.getGroupForDefaultRoles();
-                        defaultGroup.addRole(role);
                         // since it is not possible to have two default roles for particular microservice the old one is removed from the default group
+                        // repair since microservice do not have to default role
                         defaultGroup.removeRole(roleService.getDefaultRoleOfMicroservice(microservice.getName()));
+                        defaultGroup.addRole(role);
                     }
-                } catch (UserAndGroupServiceException e) {
-                    throw new UserAndGroupFacadeException(e.getLocalizedMessage());
-                }
             }
         });
     }
@@ -115,7 +105,7 @@ public class MicroserviceFacadeImpl implements MicroserviceFacade {
         if (rolesToCheck.stream()
                 .filter(RoleForNewMicroserviceDTO::isDefault)
                 .count() > 1 ) {
-            throw new UserAndGroupServiceException("Microservice which you are trying to register cannot have more than 1 default role.", ErrorCode.RESOURCE_CONFLICT);
+            throw new UnprocessableEntityException(new EntityErrorDetail(Microservice.class, "Microservice which you are trying to register cannot have more than 1 default role."));
         }
     }
 }
