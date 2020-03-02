@@ -368,7 +368,6 @@ public class IDMGroupsIntegrationTests {
     @Test
     public void removeAllUsersFromGroup() throws Exception {
         assertEquals(2, userGroup.getUsers().size());
-        System.out.println(mvc);
 
         mvc.perform(delete("/groups/{id}/users", userGroup.getId())
                 .content(convertObjectToJsonBytes(List.of(user1.getId(), user2.getId())))

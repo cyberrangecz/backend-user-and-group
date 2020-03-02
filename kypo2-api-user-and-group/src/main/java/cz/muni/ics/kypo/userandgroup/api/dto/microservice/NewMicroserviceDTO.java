@@ -25,7 +25,7 @@ public class NewMicroserviceDTO {
     @ApiModelProperty(value = "Roles which are used by the microservice.", required = true)
     @Valid
     @NotNull(message = "{newMicroserviceDto.roles.NotNull.message}")
-    private Set<RoleForNewMicroserviceDTO> roles;
+    private Set<@NotNull RoleForNewMicroserviceDTO> roles;
 
     /**
      * Gets the name of the microservice.

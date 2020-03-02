@@ -321,13 +321,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getUsersWithGivenRoleTypeWithNullRoleId() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("In method getUsersWithGivenRoleType(roleType, predicate, pageable) the input role type must not be null.");
-        userService.getUsersWithGivenRoleType(null, predicate, pageable);
-    }
-
-    @Test
     public void getUsersWithGivenIds(){
         given(userRepository.findAll(any(Predicate.class), any(Pageable.class))).willReturn(new PageImpl<>(List.of(user1, user2)));
         List<User> users = userService.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, predicate).getContent();

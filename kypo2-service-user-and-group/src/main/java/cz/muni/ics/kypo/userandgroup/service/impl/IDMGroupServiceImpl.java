@@ -38,14 +38,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     public IDMGroup getGroupById(Long id) {
-        Assert.notNull(id, "In method getGroupById(id) the input must not be null.");
         return groupRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "id", id.getClass(), id,"Group not found.")));
     }
 
     @Override
     public List<IDMGroup> getGroupsByIds(List<Long> groupIds) {
-        Assert.notNull(groupIds, "In method getGroupsByIds(groupIds) the input must not be null.");
         return groupRepository.findByIdIn(groupIds);
     }
 
@@ -57,8 +55,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     public IDMGroup createIDMGroup(IDMGroup group, List<Long> groupIdsOfImportedMembers) {
-        Assert.notNull(group, "In method createIDMGroup(id) the input must not be null.");
-        Assert.notNull(groupIdsOfImportedMembers, "In method createIDMGroup(id) the input must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
         if (groupRepository.existsByName(group.getName())) {
             throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, group.getName(), "Group with this name already exists."));
@@ -75,7 +71,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     public IDMGroup updateIDMGroup(IDMGroup group) {
-        Assert.notNull(group, "In method updateIDMGroup(id) the input must not be null.");
         IDMGroup groupInDatabase = getGroupById(group.getId());
         if (getImplicitGroupNames().contains(groupInDatabase.getName()) && !groupInDatabase.getName().equals(group.getName())) {
             throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "id", group.getId().getClass(), group.getId(), "Name of main group cannot be changed"));
@@ -88,7 +83,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     public void deleteIDMGroup(IDMGroup group) {
-        Assert.notNull(group, "In method updateIDMGroup(id) the input must not be null.");
         if (getImplicitGroupNames().contains(group.getName())) {
             throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, group.getName(),
                     "This group is User and Group default group that cannot be deleted."));
@@ -106,29 +100,24 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     public IDMGroup getIDMGroupByName(String name) {
-        Assert.hasLength(name, "Input name of group must not be empty");
         return groupRepository.findByName(name)
                 .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name, "Group not found.")));
     }
 
     @Override
     public IDMGroup getIDMGroupWithRolesByName(String name) {
-        Assert.hasLength(name, "Input name of group must not be empty");
         return groupRepository.findByNameWithRoles(name)
                 .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name, "Group not found.")));
     }
 
     @Override
     public Set<Role> getRolesOfGroup(Long groupId) {
-        Assert.notNull(groupId, "In method getRolesOfGroup(id) the input must not be null.");
         IDMGroup group = this.getGroupById(groupId);
         return group.getRoles();
     }
 
     @Override
     public IDMGroup assignRole(Long groupId, Long roleId) {
-        Assert.notNull(groupId, "In method assignRole(groupId, roleId) the input groupId must not be null.");
-        Assert.notNull(roleId, "In method assignRole(groupId, roleId) the input roleId must not be null.");
         IDMGroup group = this.getGroupById(groupId);
         Role role = roleRepository.findById(roleId).orElseThrow(() ->
                 new EntityNotFoundException(new EntityErrorDetail(Role.class, "id", roleId.getClass(), roleId,
@@ -139,9 +128,6 @@ public class IDMGroupServiceImpl implements IDMGroupService {
 
     @Override
     public IDMGroup removeRoleFromGroup(Long groupId, Long roleId) {
-        Assert.notNull(groupId, "In method assignRole(groupId, roleId) the input groupId must not be null.");
-        Assert.notNull(roleId, "In method assignRole(groupId, roleId) the input roleId must not be null.");
-
         IDMGroup group = this.getGroupById(groupId);
 
         for (Role role : group.getRoles()) {

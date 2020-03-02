@@ -237,7 +237,6 @@ public class MicroservicesIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
         ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
-        System.out.println(error);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", "DEFAULT-GROUP", null);

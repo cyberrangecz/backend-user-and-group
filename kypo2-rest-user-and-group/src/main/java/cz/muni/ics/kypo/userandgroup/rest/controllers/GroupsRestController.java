@@ -24,9 +24,11 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +38,7 @@ import java.util.Set;
 @Api(value = "Endpoint for Groups", tags = "groups")
 @RestController
 @RequestMapping(path = "/groups")
+@Validated
 public class GroupsRestController {
 
     private static Logger LOG = LoggerFactory.getLogger(GroupsRestController.class);
@@ -127,7 +130,7 @@ public class GroupsRestController {
     public ResponseEntity<Void> removeUsers(@ApiParam(value = "Id of group to remove users.", required = true)
                                             @PathVariable("id") final Long id,
                                             @ApiParam(value = "Ids of members to be removed from group.", required = true)
-                                            @RequestBody List<Long> userIds) {
+                                            @RequestBody List<@NotNull Long> userIds) {
         groupFacade.removeUsers(id, userIds);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -203,7 +206,7 @@ public class GroupsRestController {
     })
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
-                                             @RequestBody List<Long> ids) {
+                                             @RequestBody List<@NotNull Long> ids) {
         LOG.debug("deleteGroups({})", ids);
         groupFacade.deleteGroups(ids);
         return new ResponseEntity<>(HttpStatus.OK);
