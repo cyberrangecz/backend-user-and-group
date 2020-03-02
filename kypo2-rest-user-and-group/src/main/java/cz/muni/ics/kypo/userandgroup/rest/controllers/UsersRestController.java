@@ -11,13 +11,10 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.BadRequestException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -32,7 +29,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Executable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -141,11 +137,7 @@ public class UsersRestController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.", required = true)
                                            @PathVariable("id") final Long id) {
-        try {
-            return ResponseEntity.ok(userFacade.getUserById(id));
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        return ResponseEntity.ok(userFacade.getUserById(id));
     }
 
 
@@ -201,12 +193,8 @@ public class UsersRestController {
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUser(@ApiParam(value = "Screen name of user to be deleted.", required = true)
                                                               @PathVariable("id") final Long id) {
-        try {
-            userFacade.deleteUser(id);
-            return new ResponseEntity(HttpStatus.OK);
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        userFacade.deleteUser(id);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
@@ -252,11 +240,7 @@ public class UsersRestController {
     @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfUser(@ApiParam(value = "id", required = true)
                                                        @PathVariable("id") final Long id) {
-        try {
-            return ResponseEntity.ok(userFacade.getRolesOfUser(id));
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        return ResponseEntity.ok(userFacade.getRolesOfUser(id));
     }
 
     /**
@@ -277,15 +261,11 @@ public class UsersRestController {
     })
     @GetMapping(path = "/info")
     public ResponseEntity<UserDTO> getUserInfo() {
-        try {
-            OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
-            JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-            String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
-            String iss = credentials.get(AuthenticatedUserOIDCItems.ISS.getName()).getAsString();
-            return ResponseEntity.ok(userFacade.getUserInfo(sub, iss));
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
+        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
+        String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
+        String iss = credentials.get(AuthenticatedUserOIDCItems.ISS.getName()).getAsString();
+        return ResponseEntity.ok(userFacade.getUserInfo(sub, iss));
     }
 
     /**

@@ -4,9 +4,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
@@ -28,7 +26,8 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.*;
+import static org.mockito.BDDMockito.anyString;
+import static org.mockito.BDDMockito.given;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RoleMapperImpl.class})
@@ -76,24 +75,12 @@ public class RoleFacadeTest {
         assertEquals(adminRoleDTO, roleDTO);
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testGetByIdWithServiceException() {
-        given(roleService.getRoleById(anyLong())).willThrow(UserAndGroupServiceException.class);
-        roleFacade.getRoleById(1L);
-    }
-
     @Test
     public void testGetByRoleType() {
         given(roleService.getByRoleType(anyString())).willReturn(adminRole);
         RoleDTO roleDTO = roleFacade.getByRoleType(RoleTypeDTO.ADMINISTRATOR.toString());
 
         assertEquals(adminRoleDTO, roleDTO);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testGetByRoleTypeWithServiceException() {
-        given(roleService.getByRoleType(anyString())).willThrow(UserAndGroupServiceException.class);
-        roleFacade.getByRoleType(RoleTypeDTO.ADMINISTRATOR.toString());
     }
 
     @Test

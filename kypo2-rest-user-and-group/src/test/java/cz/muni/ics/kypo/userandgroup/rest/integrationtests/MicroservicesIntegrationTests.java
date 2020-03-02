@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
@@ -13,9 +14,8 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotCreatedException;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.RestConfigTest;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -33,10 +33,10 @@ import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -47,7 +47,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.*;
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertJsonBytesToObject;
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
 import static cz.muni.ics.kypo.userandgroup.rest.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -193,15 +194,53 @@ public class MicroservicesIntegrationTests {
 
         newMicroserviceDTO.setName("kypo2-topology");
         newMicroserviceDTO.setEndpoint("kypot2-topology/api/v1");
-        Exception exception = mvc.perform(post("/microservices")
+        MockHttpServletResponse response = mvc.perform(post("/microservices")
                 .content(convertObjectToJsonBytes(newMicroserviceDTO))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotAcceptable())
-                .andReturn().getResolvedException();
+                .andExpect(status().isConflict())
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleType", roleTraineeDTO.getRoleType(),
+                "Role already exist. Please name the role with different role type.");
+    }
 
-        assert exception != null;
-        assertEquals("Role with given role type: " + roleTraineeDTO.getRoleType() + " already exist. Please name the role with different role type.", getInitialExceptionMessage(exception));
-        assertEquals(ResourceNotCreatedException.class, exception.getClass());
+    @Test
+    public void registerNewMicroservicesWithDefaultRoleNotFound() throws Exception {
+        newMicroserviceDTO.setRoles(Set.of(roleAdminDTO, roleDesignerDTO, roleTraineeDTO));
+        roleTraineeDTO.setDefault(false);
+        mvc.perform(post("/microservices")
+                .content(convertObjectToJsonBytes(newMicroserviceDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+        assertTrue(microserviceRepository.findByName("kypo2-training").isPresent());
+
+        roleOrganizerDTO.setDefault(true);
+        newMicroserviceDTO.setRoles(Set.of(roleAdminDTO, roleDesignerDTO, roleOrganizerDTO, roleTraineeDTO));
+        MockHttpServletResponse response = mvc.perform(post("/microservices")
+                .content(convertObjectToJsonBytes(newMicroserviceDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "microserviceName", newMicroserviceDTO.getName(), "Default role of microservice could not be found");
+    }
+
+    @Test
+    public void registerNewMicroservicesWithDefaultGroupNotFound() throws Exception {
+        groupRepository.deleteById(defaultGroup.getId());
+        MockHttpServletResponse response = mvc.perform(post("/microservices")
+                .content(convertObjectToJsonBytes(newMicroserviceDTO))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        System.out.println(error);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", "DEFAULT-GROUP", null);
     }
 
     @Test
@@ -225,14 +264,15 @@ public class MicroservicesIntegrationTests {
     @Test
     public void registerNewMicroserviceWithMultipleDefaultRoles() throws Exception {
         roleDesignerDTO.setDefault(true);
-        Exception exception = mvc.perform(post("/microservices")
+        MockHttpServletResponse response = mvc.perform(post("/microservices")
                 .content(convertObjectToJsonBytes(newMicroserviceDTO))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(ConflictException.class, exception.getClass());
-        assertEquals("Microservice which you are trying to register cannot have more than 1 default role.", getInitialExceptionMessage(exception));
+                .andExpect(status().isUnprocessableEntity())
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), Microservice.class, null, null,
+                "Microservice which you are trying to register cannot have more than 1 default role.");
     }
 
 
@@ -253,25 +293,32 @@ public class MicroservicesIntegrationTests {
     @Test
     public void getMicroservicesWithUserRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
-        Exception exception = mvc.perform(get("/microservices")
+        MockHttpServletResponse response = mvc.perform(get("/microservices")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(AccessDeniedException.class, exception.getClass());
-        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.FORBIDDEN, error.getStatus());
+        assertEquals("Access is denied", error.getMessage());
     }
 
     @Test
     public void getMicroservicesWithGuestRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
-        Exception exception = mvc.perform(get("/microservices")
+        MockHttpServletResponse response = mvc.perform(get("/microservices")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
-                .andReturn().getResolvedException();
-        assert exception != null;
-        assertEquals(AccessDeniedException.class, exception.getClass());
-        assertEquals("Access is denied", getInitialExceptionMessage(exception));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.FORBIDDEN, error.getStatus());
+        assertEquals("Access is denied", error.getMessage());
+    }
+
+    private void assertEntityDetailError(EntityErrorDetail entityErrorDetail, Class<?> entity, String identifier, String value, String reason) {
+        assertEquals(entity.getSimpleName(), entityErrorDetail.getEntity());
+        assertEquals(identifier, entityErrorDetail.getIdentifier());
+        assertEquals(value, (String) entityErrorDetail.getIdentifierValue());
+        assertEquals(reason, entityErrorDetail.getReason());
     }
 
 }

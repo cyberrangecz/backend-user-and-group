@@ -10,14 +10,12 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +30,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -47,8 +46,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
-import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.getInitialExceptionMessage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
@@ -176,15 +175,17 @@ public class GroupsRestControllerTest {
     }
 
     @Test
-    public void testRemoveUsersWithUserAndGroupFacadeException() throws Exception {
-        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("No users with given ids were found", ErrorCode.RESOURCE_NOT_FOUND))).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
-        Exception ex = mockMvc.perform(
+    public void testRemoveUsersWithException() throws Exception {
+        willThrow(new EntityNotFoundException()).given(groupFacade).removeUsers(100L, Collections.singletonList(1L));
+        MockHttpServletResponse response = mockMvc.perform(
                 delete("/groups" + "/{id}" + "/users", 100L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("No users with given ids were found", getInitialExceptionMessage(ex));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
         then(groupFacade).should().removeUsers(100L, Collections.singletonList(1L));
     }
 
@@ -217,15 +218,18 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testAddUsersWithNotFoundError() throws Exception {
-        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("Given group or users could not be found", ErrorCode.RESOURCE_NOT_FOUND)))
+        willThrow(new EntityNotFoundException())
                 .given(groupFacade).addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
-        Exception ex = mockMvc.perform(
+        MockHttpServletResponse response = mockMvc.perform(
                 put("/groups" + "/{id}/users", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(getAddUsersToGroupDTO())))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("Given group or users could not be found", getInitialExceptionMessage(ex));
+                .andReturn().getResponse();
+
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
         then(groupFacade).should().addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
     }
 
@@ -296,12 +300,14 @@ public class GroupsRestControllerTest {
     @Test
     public void testGetGroupWithGroupNotFound() throws Exception {
         given(groupFacade.getGroupById(groupDTO1.getId())).willThrow(
-                new UserAndGroupFacadeException(new UserAndGroupServiceException("Group with id " + groupDTO1.getId() + " could not be found.", ErrorCode.RESOURCE_NOT_FOUND)));
-        Exception ex = mockMvc.perform(
+                new EntityNotFoundException());
+        MockHttpServletResponse response = mockMvc.perform(
                 get("/groups" + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals("Group with id " + groupDTO1.getId() + " could not be found.", getInitialExceptionMessage(ex));
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
     }
 
     @Test
@@ -325,13 +331,15 @@ public class GroupsRestControllerTest {
     }
 
     @Test
-    public void assignRoleToGroupWithUserAndGroupException() throws Exception {
-        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND))).given(groupFacade).assignRole(1L, 2L);
-        Exception exception = mockMvc.perform(
+    public void assignRoleToGroupWithException() throws Exception {
+        willThrow(new EntityNotFoundException()).given(groupFacade).assignRole(1L, 2L);
+        MockHttpServletResponse response = mockMvc.perform(
                 put("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
     }
 
     @Test
@@ -344,23 +352,26 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testRemoveRoleWithUserAndGroupException() throws Exception {
-        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException(ErrorCode.RESOURCE_NOT_FOUND))).given(groupFacade).removeRoleFromGroup(1L, 2L);
-        Exception exception = mockMvc.perform(
+        willThrow(new EntityNotFoundException()).given(groupFacade).removeRoleFromGroup(1L, 2L);
+        MockHttpServletResponse response = mockMvc.perform(
                 delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException();
-        assertEquals(ResourceNotFoundException.class, exception.getClass());
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEquals("The requested entity could not be found", error.getMessage());
     }
 
     @Test
     public void testRemoveRoleFromGroupWithRoleCannotBeRemovedException() throws Exception {
-        willThrow(new UserAndGroupFacadeException(new UserAndGroupServiceException("Cannot be removed.", ErrorCode.RESOURCE_CONFLICT))).given(groupFacade).removeRoleFromGroup(1L, 2L);
-        Exception exception = mockMvc.perform(
+        willThrow(new EntityConflictException()).given(groupFacade).removeRoleFromGroup(1L, 2L);
+        MockHttpServletResponse response = mockMvc.perform(
                 delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException();
-        assertEquals(ConflictException.class, exception.getClass());
-
+                .andReturn().getResponse();
+        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        assertEquals(HttpStatus.CONFLICT, error.getStatus());
+        assertEquals("The request could not be completed due to a conflict with the current state of the target resource.", error.getMessage());
     }
 
     private AddUsersToGroupDTO getAddUsersToGroupDTO() {

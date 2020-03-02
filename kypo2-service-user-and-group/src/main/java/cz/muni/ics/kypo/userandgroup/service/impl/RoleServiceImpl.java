@@ -1,8 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
@@ -28,21 +29,24 @@ public class RoleServiceImpl implements RoleService {
     public Role getRoleById(Long id) {
         Assert.notNull(id, "In method getRoleById(id) the input must not be null.");
         return roleRepository.findById(id)
-                .orElseThrow(() -> new UserAndGroupServiceException("Role with id " + id + " could not be found", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Role.class, "id", id.getClass(), id,
+                        "Role not found.")));
     }
 
     @Override
     public Role getByRoleType(String roleType) {
         Assert.notNull(roleType, "In method getByRoleType(roleType) the input must not be null.");
         return roleRepository.findByRoleType(roleType)
-                .orElseThrow(() -> new UserAndGroupServiceException("Role with roleType " + roleType + " could not be found", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType,
+                        "Role not found.")));
     }
 
     @Override
     public Role getDefaultRoleOfMicroservice(String microserviceName) {
         Assert.notNull(microserviceName, "In method getDefaultRoleOfMicroservice(microserviceName) the input must not be null.");
         return roleRepository.findDefaultRoleOfMicroservice(microserviceName)
-                .orElseThrow(() -> new UserAndGroupServiceException("Default role of microservice with name " + microserviceName + " could not be found", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Role.class, "microserviceName", microserviceName.getClass(),
+                        microserviceName, "Default role of microservice could not be found")));
     }
 
     @Override
@@ -54,8 +58,8 @@ public class RoleServiceImpl implements RoleService {
     public void createRole(Role role) {
         Assert.notNull(role, "In method createRole(roleType) the input must not be null.");
         if (roleRepository.existsByRoleType(role.getRoleType())) {
-            throw new UserAndGroupServiceException("Role with given role type: " + role.getRoleType() + " already exist. " +
-                    "Please name the role with different role type.", ErrorCode.RESOURCE_NOT_CREATED);
+            throw new EntityConflictException(new EntityErrorDetail(Role.class, "roleType", role.getRoleType().getClass(), role.getRoleType(), "Role already exist. " +
+                    "Please name the role with different role type."));
         }
         roleRepository.save(role);
     }

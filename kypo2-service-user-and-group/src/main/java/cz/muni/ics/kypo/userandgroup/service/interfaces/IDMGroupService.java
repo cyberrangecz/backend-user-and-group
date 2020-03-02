@@ -1,11 +1,11 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -21,9 +21,9 @@ public interface IDMGroupService {
      *
      * @param id The ID of the IDMGroup to be loaded.
      * @return the {@link IDMGroup} with the given ID.
-     * @throws UserAndGroupServiceException if a group was not found.
+     * @throws EntityNotFoundException if a group was not found.
      */
-    IDMGroup getGroupById(Long id);
+    IDMGroup getGroupById(Long id) throws EntityNotFoundException;
 
     /**
      * Gets list of IDMGroups based on the given groupIds
@@ -39,18 +39,18 @@ public interface IDMGroupService {
      * @param group                     IDMGroup to be created.
      * @param groupIdsOfImportedMembers all {@link cz.muni.ics.kypo.userandgroup.model.User}s from groups with given IDs will be imported to new group.
      * @return created {@link IDMGroup}.
-     * @throws UserAndGroupServiceException if some of the groups with given IDs could not be found.
+     * @throws EntityNotFoundException if some of the groups with given IDs could not be found.
      */
-    IDMGroup createIDMGroup(IDMGroup group, List<Long> groupIdsOfImportedMembers);
+    IDMGroup createIDMGroup(IDMGroup group, List<Long> groupIdsOfImportedMembers) throws EntityNotFoundException;
 
     /**
      * Update given IDMGroup.
      *
      * @param group IDMGroup to be updated.
      * @return the {@link IDMGroup} with  updated fields.
-     * @throws UserAndGroupServiceException if the group with the given ID is main and its name is trying to be changed.
+     * @throws EntityConflictException if the group with the given ID is main and its name is trying to be changed.
      */
-    IDMGroup updateIDMGroup(IDMGroup group);
+    IDMGroup updateIDMGroup(IDMGroup group) throws EntityConflictException;
 
     /**
      * Delete given IDMGroup from the database and return status of the deletion.
@@ -73,7 +73,7 @@ public interface IDMGroupService {
      *
      * @param name the name of the IDMGroup to be loaded.
      * @return the {@link IDMGroup} with the given name
-     * @throws UserAndGroupServiceException if the group was not found.
+     * @throws EntityNotFoundException if the group was not found.
      */
     IDMGroup getIDMGroupByName(String name);
 
@@ -82,18 +82,18 @@ public interface IDMGroupService {
      *
      * @param name the name of the IDMGroup to be loaded.
      * @return the {@link IDMGroup} with the given name
-     * @throws UserAndGroupServiceException if the group was not found.
+     * @throws EntityNotFoundException if the group was not found.
      */
-    IDMGroup getIDMGroupWithRolesByName(String name);
+    IDMGroup getIDMGroupWithRolesByName(String name) throws EntityNotFoundException;
 
     /**
      * Returns all roles of IDMGroup with given ID.
      *
      * @param id ID of the IDMGroup.
      * @return all roles of {@link IDMGroup} with the given ID.
-     * @throws UserAndGroupServiceException if the group was not found.
+     * @throws EntityNotFoundException if the group was not found.
      */
-    Set<Role> getRolesOfGroup(Long id);
+    Set<Role> getRolesOfGroup(Long id) throws EntityNotFoundException;
 
     /**
      * Assigns the role to the IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.model.User}s in the group
@@ -102,9 +102,9 @@ public interface IDMGroupService {
      * @param groupId the ID of the IDMGroup which will getGroupById the role with the given role ID.
      * @param roleId  the ID of the role to be assigned to the IDMGroup.
      * @return the {@link IDMGroup} with the assigned role with the given role ID.
-     * @throws UserAndGroupServiceException if the IDMGroup or role with a given ID could not be found.
+     * @throws EntityNotFoundException if the IDMGroup or role with a given ID could not be found.
      */
-    IDMGroup assignRole(Long groupId, Long roleId);
+    IDMGroup assignRole(Long groupId, Long roleId) throws EntityNotFoundException;
 
     /**
      * Removes role from IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.model.User}s in the group
@@ -113,8 +113,8 @@ public interface IDMGroupService {
      * @param groupId the ID of the IDMGroup from which role with role ID is removed.
      * @param roleId  the ID of the role.
      * @return the {@link IDMGroup} with the removed role.
-     * @throws UserAndGroupServiceException        if the IDMGroup or the role could not be found.
-     * @throws RoleCannotBeRemovedToGroupException if the role <i>GUEST, USER, ADMINISTRATOR<i/> is removed from the IDMGroup with name  <i>DEFAULT-GROUP,
+     * @throws EntityNotFoundException        if the IDMGroup or the role could not be found.
+     * @throws EntityConflictException if the role <i>GUEST, USER, ADMINISTRATOR<i/> is removed from the IDMGroup with name  <i>DEFAULT-GROUP,
      *                                             USER-AND-GROUP_USER, USER-AND-GROUP_ADMINISTRATOR<i/>.
      */
     IDMGroup removeRoleFromGroup(Long groupId, Long roleId);
@@ -125,7 +125,7 @@ public interface IDMGroupService {
      *
      * @param groupToUpdate group to be updated
      * @param user          user to be removed from a group
-     * @throws UserAndGroupServiceException if administrator wants to remove himself from a group.
+     * @throws EntityConflictException if administrator wants to remove himself from a group.
      */
     void removeUserFromGroup(IDMGroup groupToUpdate, User user);
 
@@ -142,7 +142,7 @@ public interface IDMGroupService {
      * Gets IDMGroup for default roles from the database.
      *
      * @return {@link IDMGroup} for default roles - <i>DEFAULT-GROUP<i/>.
-     * @throws UserAndGroupServiceException if the IDMGroup was not found.
+     * @throws EntityNotFoundException if the IDMGroup was not found.
      */
     IDMGroup getGroupForDefaultRoles();
 

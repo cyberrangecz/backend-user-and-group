@@ -5,11 +5,8 @@ import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalRO;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapper;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +42,7 @@ public class RoleFacadeImpl implements RoleFacade {
     @TransactionalRO
     public RoleDTO getRoleById(Long id) {
         Assert.notNull(id, "In method getRoleById(id) the input id must not be null.");
-        try {
-            return roleMapper.mapToRoleDTOWithMicroservice(roleService.getRoleById(id));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException(ex);
-        }
+        return roleMapper.mapToRoleDTOWithMicroservice(roleService.getRoleById(id));
     }
 
     @Override
@@ -57,11 +50,7 @@ public class RoleFacadeImpl implements RoleFacade {
     @TransactionalRO
     public RoleDTO getByRoleType(String roleType) {
         Assert.hasLength(roleType, "In method getByRoleType(roleType) the input roleType must not be empty.");
-        try {
-            return roleMapper.mapToRoleDTOWithMicroservice(roleService.getByRoleType(roleType.toUpperCase()));
-        } catch (UserAndGroupServiceException ex) {
-            throw new UserAndGroupFacadeException("Role with role type: " + roleType + " could not be found.", ex);
-        }
+        return roleMapper.mapToRoleDTOWithMicroservice(roleService.getByRoleType(roleType.toUpperCase()));
     }
 
     @Override

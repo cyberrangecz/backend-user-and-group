@@ -6,16 +6,14 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.rest.ExceptionSorter;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ConflictException;
-import cz.muni.ics.kypo.userandgroup.rest.exceptions.ResourceNotFoundException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -29,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Set;
 
@@ -78,12 +75,8 @@ public class GroupsRestController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true)
                                                    @Valid @RequestBody NewGroupDTO newGroupDTO) {
-        try {
-            return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
+        return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
 
-        } catch (UserAndGroupFacadeException ex) {
-            throw ExceptionSorter.throwException(ex);
-        }
     }
 
     /**
@@ -107,12 +100,8 @@ public class GroupsRestController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateGroup(@ApiParam(value = "Group to be updated.", required = true)
                                             @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
-        try {
-            groupFacade.updateGroup(updateGroupDTO);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        groupFacade.updateGroup(updateGroupDTO);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
@@ -139,12 +128,8 @@ public class GroupsRestController {
                                             @PathVariable("id") final Long id,
                                             @ApiParam(value = "Ids of members to be removed from group.", required = true)
                                             @RequestBody List<Long> userIds) {
-        try {
-            groupFacade.removeUsers(id, userIds);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        groupFacade.removeUsers(id, userIds);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
@@ -170,12 +155,8 @@ public class GroupsRestController {
                                          @PathVariable("id") final Long groupId,
                                          @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
                                          @Valid @RequestBody AddUsersToGroupDTO addUsers) {
-        try {
-            groupFacade.addUsersToGroup(groupId, addUsers);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        groupFacade.addUsersToGroup(groupId, addUsers);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
@@ -199,12 +180,8 @@ public class GroupsRestController {
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
                                             @PathVariable("id") final Long id) {
-        try {
-            groupFacade.deleteGroup(id);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (UserAndGroupFacadeException ex) {
-            throw ExceptionSorter.throwException(ex);
-        }
+        groupFacade.deleteGroup(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -228,12 +205,8 @@ public class GroupsRestController {
     public ResponseEntity<Void> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
                                              @RequestBody List<Long> ids) {
         LOG.debug("deleteGroups({})", ids);
-        try {
-            groupFacade.deleteGroups(ids);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (UserAndGroupFacadeException ex) {
-            throw ExceptionSorter.throwException(ex);
-        }
+        groupFacade.deleteGroups(ids);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -285,11 +258,7 @@ public class GroupsRestController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
                                              @PathVariable("id") Long id) {
-        try {
-            return ResponseEntity.ok(groupFacade.getGroupById(id));
-        } catch (UserAndGroupFacadeException ex) {
-            throw ExceptionSorter.throwException(ex);
-        }
+        return ResponseEntity.ok(groupFacade.getGroupById(id));
     }
 
     /**
@@ -311,11 +280,7 @@ public class GroupsRestController {
     @GetMapping(path = "/{id}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
                                                         @PathVariable("id") final Long id) {
-        try {
-            return ResponseEntity.ok(groupFacade.getRolesOfGroup(id));
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        return ResponseEntity.ok(groupFacade.getRolesOfGroup(id));
     }
 
     /**
@@ -339,12 +304,8 @@ public class GroupsRestController {
                                                   @PathVariable("groupId") Long groupId,
                                                   @ApiParam(value = "roleId", required = true)
                                                   @PathVariable("roleId") Long roleId) {
-        try {
-            groupFacade.assignRole(groupId, roleId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw new ResourceNotFoundException(e.getLocalizedMessage());
-        }
+        groupFacade.assignRole(groupId, roleId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
@@ -370,12 +331,8 @@ public class GroupsRestController {
                                                     @PathVariable("groupId") Long groupId,
                                                     @ApiParam(value = "roleId", required = true)
                                                     @PathVariable("roleId") Long roleId) {
-        try {
-            groupFacade.removeRoleFromGroup(groupId, roleId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserAndGroupFacadeException e) {
-            throw ExceptionSorter.throwException(e);
-        }
+        groupFacade.removeRoleFromGroup(groupId, roleId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @ApiModel(value = "GroupRestResource",

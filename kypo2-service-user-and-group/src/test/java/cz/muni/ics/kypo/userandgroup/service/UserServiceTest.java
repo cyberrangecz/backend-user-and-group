@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -85,10 +85,8 @@ public class UserServiceTest {
         assertUser(user1, u);
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getUserByIdNotFoundShouldThrowException() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + user1.getId() + " could not be found");
         given(userRepository.findById(user1.getId())).willReturn(Optional.empty());
         userService.getUserById(user1.getId());
     }
@@ -175,9 +173,8 @@ public class UserServiceTest {
         then(userRepository).should().save(user2);
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void changeAdminRoleWithAdminGroupNotFound() {
-        thrown.expect(UserAndGroupServiceException.class);
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(groupRepository.findAdministratorGroup()).willReturn(Optional.empty());
         userService.changeAdminRole(user1.getId());
@@ -198,14 +195,10 @@ public class UserServiceTest {
         then(groupRepository).should(times(2)).findAdministratorGroup();
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void isUserAdminWithAdminGroupNotFound(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Administrator group could not be found.");
-
         given(userRepository.findById(user1.getId())).willReturn(Optional.of(user1));
         given(groupRepository.findAdministratorGroup()).willReturn(Optional.empty());
-
         userService.isUserAdmin(user1.getId());
     }
 
@@ -254,10 +247,8 @@ public class UserServiceTest {
         then(userRepository).should().getUserByIdWithGroups(user1.getId());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getUserWithGroupsByIdNotFound(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + 100L + " not found");
         given(userRepository.getUserByIdWithGroups(100L)).willReturn(Optional.empty());
         userService.getUserWithGroups(100L);
     }
@@ -271,10 +262,8 @@ public class UserServiceTest {
         then(userRepository).should().getUserByLoginWithGroups(user1.getLogin(), user1.getIss());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getUserWithGroupsByLoginNotFound(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with login " + user1.getLogin() + " not found");
         given(userRepository.getUserByLoginWithGroups(user1.getLogin(), user1.getIss())).willReturn(Optional.empty());
         userService.getUserWithGroups(user1.getLogin(), user1.getIss());
     }
@@ -291,11 +280,9 @@ public class UserServiceTest {
         then(userRepository).should().getRolesOfUser(user1.getId());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getRolesOfUserWithUserNotFoundShouldThrowException() {
         given(userRepository.existsById(user1.getId())).willReturn(false);
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("User with id " + user1.getId() + " could not be found.");
         userService.getRolesOfUser(user1.getId());
     }
 
@@ -310,10 +297,8 @@ public class UserServiceTest {
         then(userRepository).should().findAllByRoleId(adminRole.getId(), null, pageable);
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getUsersWithGivenRoleWithRoleNotFound() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Role with id: " + adminRole.getId() + " could not be found.");
         given(roleRepository.existsById(adminRole.getId())).willReturn(false);
         userService.getUsersWithGivenRole(adminRole.getId(), null, pageable);
     }
@@ -329,12 +314,9 @@ public class UserServiceTest {
         then(userRepository).should().findAllByRoleType(adminRole.getRoleType(), null, pageable);
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getUsersWithGivenRoleTypeWithRoleNotFound() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Role with type: " + adminRole.getRoleType() + " could not be found.");
         given(roleRepository.existsByRoleType(adminRole.getRoleType())).willReturn(false);
-
         userService.getUsersWithGivenRoleType(adminRole.getRoleType(), null, pageable);
     }
 

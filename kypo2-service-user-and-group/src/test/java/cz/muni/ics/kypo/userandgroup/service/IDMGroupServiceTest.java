@@ -2,7 +2,8 @@ package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -96,11 +97,9 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().findById(defaultGroup.getId());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getGroupNotFoundShouldThrowException() {
         Long id = 3L;
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("IDMGroup with id " + id + " not found");
         given(groupRepository.findById(id)).willReturn(Optional.empty());
         groupService.getGroupById(id);
     }
@@ -123,11 +122,9 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().findByName(ImplicitGroupNames.DEFAULT_GROUP.getName());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getGroupForDefaultRolesGroupNotFound() {
         given(groupRepository.findByName(ImplicitGroupNames.DEFAULT_GROUP.getName())).willReturn(Optional.empty());
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("IDM group for default roles not found.");
         groupService.getGroupForDefaultRoles();
     }
 
@@ -138,16 +135,13 @@ public class IDMGroupServiceTest {
         given(groupRepository.findUsersOfGivenGroups(List.of(defaultGroup.getId()))).willReturn(Set.of(user2));
 
         IDMGroup g = groupService.createIDMGroup(designerGroup, List.of(defaultGroup.getId()));
-        System.out.println(g);
         deepEquals(designerGroup, g);
         assertTrue(g.getUsers().containsAll(Set.of(user1, user2)));
         then(groupRepository).should().save(designerGroup);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void createGroupThatAlreadyExists(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Group with name " + defaultGroup.getName() + " already exists in database.");
         given(groupRepository.existsByName(defaultGroup.getName())).willReturn(true);
         groupService.createIDMGroup(defaultGroup, new ArrayList<>());
     }
@@ -162,10 +156,8 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().save(defaultGroup);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void updateGroupWithMainGroup(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Cannot change name of main group " + adminGroup.getName() + " to " + defaultGroup.getName() + ".");
         given(groupRepository.findById(defaultGroup.getId())).willReturn(Optional.of(adminGroup));
         groupService.updateIDMGroup(defaultGroup);
 
@@ -177,21 +169,16 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().delete(designerGroup);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void testDeleteGroupErrorMainGroup() {
         given(roleRepository.findAll()).willReturn(Collections.singletonList(adminRole));
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("It is not possible to delete group with id: " + adminGroup.getId() + ". " +
-        "This group is User and Group default group that could not be deleted.");
         groupService.deleteIDMGroup(adminGroup);
         then(groupRepository).should(never()).delete(adminGroup);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void deleteGroupWithUsers() {
         designerGroup.setUsers(Set.of(user1));
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("It is not possible to delete group with id: " + designerGroup.getId() + ". The group must be empty (without users)");
         groupService.deleteIDMGroup(designerGroup);
     }
 
@@ -215,10 +202,8 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().findByName(defaultGroup.getName());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getIDMGroupByNameNotFoundShouldThrowException() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("IDM Group with name " + defaultGroup.getName() + " not found");
         given(groupRepository.findByName(defaultGroup.getName())).willReturn(Optional.empty());
         groupService.getIDMGroupByName(defaultGroup.getName());
     }
@@ -240,10 +225,8 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().findByNameWithRoles(defaultGroup.getName());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getIDMGroupByNameWithRolesNotFound() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("IDM Group with name " + defaultGroup.getName() + " not found");
         given(groupRepository.findByNameWithRoles(defaultGroup.getName())).willReturn(Optional.empty());
         groupService.getIDMGroupWithRolesByName(defaultGroup.getName());
     }
@@ -272,10 +255,8 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().save(defaultGroup);
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void assignRoleWithGroupNotFoundShouldThrowException() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("IDMGroup with id "+ defaultGroup.getId() + " not found.");
         given(groupRepository.findById(defaultGroup.getId())).willReturn(Optional.empty());
         groupService.assignRole(defaultGroup.getId(), 1L);
     }
@@ -295,20 +276,15 @@ public class IDMGroupServiceTest {
         then(groupRepository).should().findById(designerGroup.getId());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void removeRoleFromGroupWithRoleNotFound(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Role with id: " + 100L + " could not be found in given group.");
         defaultGroup.setRoles(new HashSet<>());
-
         given(groupRepository.findById(defaultGroup.getId())).willReturn(Optional.of(defaultGroup));
         groupService.removeRoleFromGroup(defaultGroup.getId(), 100L);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void removeRoleFromGroupWithMainRole() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Role " + adminRole.getRoleType() + " cannot be removed from group. This role is main role of the group.");
         defaultGroup.setName(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName());
         defaultGroup.setRoles(new HashSet<>(Set.of(adminRole)));
 
@@ -327,20 +303,14 @@ public class IDMGroupServiceTest {
         assertFalse(defaultGroup.getUsers().contains(user1));
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void removeUserFromDefaultGroup() {
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Cannot remove user(s) from default group.");
-
         defaultGroup.setUsers(new HashSet<>(Set.of(user1)));
         groupService.removeUserFromGroup(defaultGroup, user1);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void removeUserFromGroupWithAdminRemovingThemselves(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("An administrator could not remove himself from the administrator group.");
-
         adminGroup.setUsers(new HashSet<>(Set.of(user1)));
         given(securityService.hasLoggedInUserSameLogin(user1.getLogin())).willReturn(true);
         groupService.removeUserFromGroup(adminGroup, user1);

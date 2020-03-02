@@ -1,8 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.Microservice;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
@@ -11,8 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
-import java.util.Optional;
 
 @Service
 public class MicroserviceServiceImpl implements MicroserviceService {
@@ -28,7 +26,13 @@ public class MicroserviceServiceImpl implements MicroserviceService {
     public Microservice getMicroserviceById(Long id) {
         Assert.notNull(id, "In method getMicroserviceById(id) the input must not be null.");
         return microserviceRepository.findById(id)
-                .orElseThrow(() -> new UserAndGroupServiceException("Microservice with id " + id + " not found", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "id", id.getClass(), id, "Microservice not found")));
+    }
+
+    @Override
+    public Microservice getMicroserviceByName(String microserviceName) {
+        return microserviceRepository.findByName(microserviceName)
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "microserviceName", microserviceName.getClass(), microserviceName, "Microservice not found")));
     }
 
     @Override
@@ -37,14 +41,13 @@ public class MicroserviceServiceImpl implements MicroserviceService {
     }
 
     @Override
-    public boolean createMicroservice(Microservice microserviceToCreate) {
+    public Microservice createMicroservice(Microservice microserviceToCreate) {
         Assert.notNull(microserviceToCreate, "In method createMicroservice(microserviceToCreate) the input must not be null.");
-        Optional<Microservice> microserviceOpt = microserviceRepository.findByName(microserviceToCreate.getName());
-        if (microserviceOpt.isPresent()) {
-            return false;
-        } else {
-            microserviceRepository.save(microserviceToCreate);
-            return true;
-        }
+        return microserviceRepository.save(microserviceToCreate);
+    }
+
+    @Override
+    public boolean existsByName(String microserviceName) {
+        return microserviceRepository.existsByName(microserviceName);
     }
 }

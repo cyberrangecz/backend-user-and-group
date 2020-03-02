@@ -1,7 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.RoleServiceImpl;
@@ -9,9 +10,7 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -34,8 +33,6 @@ import static org.mockito.BDDMockito.*;
 @ContextConfiguration(classes = TestDataFactory.class)
 public class RoleServiceTest {
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
     private RoleService roleService;
     @MockBean
     private RoleRepository roleRepository;
@@ -72,11 +69,9 @@ public class RoleServiceTest {
         then(roleRepository).should().findById(adminRole.getId());
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void getByIdNotFoundShouldThrowException() {
         Long id = 100L;
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Role with id " + id + " could not be found");
         given(roleRepository.findById(id)).willReturn(Optional.empty());
         roleService.getRoleById(id);
     }
@@ -89,6 +84,12 @@ public class RoleServiceTest {
         assertEquals(adminRole.getId(), r.getId());
         assertEquals(adminRole.getRoleType(), r.getRoleType());
         then(roleRepository).should().findByRoleType(adminRole.getRoleType());
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void getByRoleTypeRoleFound(){
+        given(roleRepository.findByRoleType(adminRole.getRoleType())).willReturn(Optional.empty());
+        roleService.getByRoleType(adminRole.getRoleType());
     }
 
     @Test
@@ -110,9 +111,8 @@ public class RoleServiceTest {
         assertTrue(roles.containsAll(Set.of(adminRole, userRole)));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void getAllRolesOfMicroserviceWithNullName() {
-        thrown.expect(IllegalArgumentException.class);
         given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
         roleService.getAllRolesOfMicroservice(null);
     }
@@ -124,11 +124,8 @@ public class RoleServiceTest {
         then(roleRepository).should().save(userRole);
     }
 
-    @Test
+    @Test(expected = EntityConflictException.class)
     public void createExistingRole(){
-        thrown.expect(UserAndGroupServiceException.class);
-        thrown.expectMessage("Role with given role type: " + adminRole.getRoleType() + " already exist. " +
-                "Please name the role with different role type.");
         given(roleRepository.existsByRoleType(adminRole.getRoleType())).willReturn(true);
         roleService.createRole(adminRole);
     }

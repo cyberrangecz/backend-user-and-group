@@ -3,7 +3,6 @@ package cz.muni.ics.kypo.userandgroup.api.facade;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -16,7 +15,6 @@ public interface RoleFacade {
      *
      * @param roleId the ID of the role to be loaded.
      * @return the role encapsulated in {@link RoleDTO}.
-     * @throws UserAndGroupFacadeException if the role with the given ID could not be found.
      */
     RoleDTO getRoleById(Long roleId);
 
@@ -25,7 +23,6 @@ public interface RoleFacade {
      *
      * @param roleType role type of the role to be loaded.
      * @return the role encapsulated in {@link RoleDTO}.
-     * @throws UserAndGroupFacadeException if the role with given role type could not be found.
      */
     RoleDTO getByRoleType(String roleType);
 

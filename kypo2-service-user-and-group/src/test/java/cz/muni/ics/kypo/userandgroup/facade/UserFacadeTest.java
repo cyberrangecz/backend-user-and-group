@@ -9,9 +9,8 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
@@ -156,12 +155,9 @@ public class UserFacadeTest {
         }
     }
 
-    @Test
+    @Test(expected = EntityNotFoundException.class)
     public void testGetUserInfoWithEmptyUserOptional(){
         given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.empty());
-        thrown.expect(UserAndGroupFacadeException.class);
-        thrown.expectMessage("User with sub: " + user1.getLogin() + " and iss: + " + user1.getIss() +
-                " could not be found.");
         userFacade.getUserInfo(user1.getLogin(), user1.getIss());
     }
 
@@ -171,12 +167,6 @@ public class UserFacadeTest {
         UserDTO userDTO = userFacade.getUserById(user1.getId());
 
         assertEquals(userDTO1, userDTO);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testGetUserByIdWithServiceException() {
-        given(userService.getUserById(anyLong())).willThrow(UserAndGroupServiceException.class);
-        userFacade.getUserById(1L);
     }
 
     @Test
@@ -213,12 +203,6 @@ public class UserFacadeTest {
         given(userService.getUserById(anyLong())).willReturn(user1);
         userFacade.deleteUser(user1.getId());
         then(userService).should().deleteUser(user1);
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testDeleteUserNotFound() {
-        given(userService.getUserById(anyLong())).willThrow(UserAndGroupServiceException.class);
-        userFacade.deleteUser(1L);
     }
 
     @Test
@@ -270,12 +254,6 @@ public class UserFacadeTest {
         assertTrue(responseRolesDTO.contains(guestRoleDTO));
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void testGetRolesOfUserNotInDB() {
-        willThrow(UserAndGroupServiceException.class).given(userService).getRolesOfUser(anyLong());
-        userFacade.getRolesOfUser(100L);
-    }
-
     @Test
     public void getUsersWithGivenRole() {
         given(userService.getUsersWithGivenRole(1L, null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
@@ -286,12 +264,6 @@ public class UserFacadeTest {
         assertTrue(usersDTO.getContent().contains(userDTO2));
     }
 
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void getUsersWithGivenRoleNotInDB() {
-        willThrow(UserAndGroupServiceException.class).given(userService).getUsersWithGivenRole(1L, null, pageable);
-        userFacade.getUsersWithGivenRole(1L, null, pageable);
-    }
-
     @Test
     public void getUsersWithGivenRoleType() {
         given(userService.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
@@ -299,12 +271,6 @@ public class UserFacadeTest {
 
         assertEquals(2, usersDTO.getContent().size());
         assertTrue(usersDTO.getContent().containsAll(Set.of(userDTO1, userDTO2)));
-    }
-
-    @Test(expected = UserAndGroupFacadeException.class)
-    public void getUsersWithGivenRoleTypeNotInDB() {
-        willThrow(UserAndGroupServiceException.class).given(userService).getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable);
-        userFacade.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable);
     }
 
     @Test

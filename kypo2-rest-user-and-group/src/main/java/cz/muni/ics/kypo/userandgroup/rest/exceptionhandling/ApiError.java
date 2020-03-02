@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.rest.exceptionhandling;
 
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.http.HttpStatus;
 
@@ -25,6 +26,8 @@ public class ApiError {
     protected List<String> errors;
     @ApiModelProperty(value = "The requested URI path which caused error.", example = "/kypo2-rest-user-and-group/api/v1/groups/1000 (different for each type of exception).")
     protected String path;
+    @ApiModelProperty(value = "Entity detail related to the error.")
+    private EntityErrorDetail entityErrorDetail;
 
     private ApiError() {
     }
@@ -113,6 +116,14 @@ public class ApiError {
         this.path = path;
     }
 
+    public EntityErrorDetail getEntityErrorDetail() {
+        return entityErrorDetail;
+    }
+
+    public void setEntityErrorDetail(EntityErrorDetail entityErrorDetail) {
+        this.entityErrorDetail = entityErrorDetail;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -136,6 +147,7 @@ public class ApiError {
                 "timestamp=" + timestamp +
                 ", status=" + status +
                 ", message='" + message + '\'' +
+                ", entityErrorDetail=" + entityErrorDetail +
                 ", errors=" + errors +
                 ", path='" + path + '\'' +
                 '}';

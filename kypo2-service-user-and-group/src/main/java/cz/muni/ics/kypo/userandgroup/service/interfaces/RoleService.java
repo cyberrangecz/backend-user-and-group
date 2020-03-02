@@ -1,7 +1,8 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,27 +19,27 @@ public interface RoleService {
      *
      * @param id the ID of the role.
      * @return the {@link Role} with the given ID.
-     * @throws UserAndGroupServiceException if the role could not be found.
+     * @throws EntityNotFoundException if the role could not be found.
      */
-    Role getRoleById(Long id) throws UserAndGroupServiceException;
+    Role getRoleById(Long id) throws EntityNotFoundException;
 
     /**
      * Returns the role by its role type.
      *
      * @param roleType the name of the role.
      * @return the {@link Role} with the given role type.
-     * @throws UserAndGroupServiceException when the role with given role type could not be found.
+     * @throws EntityNotFoundException when the role with given role type could not be found.
      */
-    Role getByRoleType(String roleType) throws UserAndGroupServiceException;
+    Role getByRoleType(String roleType) throws EntityNotFoundException;
 
     /**
      * Returns the default role of microservice.
      *
      * @param microserviceName the name of the microservice.
      * @return the {@link Role} with the given role type.
-     * @throws UserAndGroupServiceException when the default role of the microservice could not be found.
+     * @throws EntityNotFoundException when the default role of the microservice could not be found.
      */
-    Role getDefaultRoleOfMicroservice(String microserviceName) throws UserAndGroupServiceException;
+    Role getDefaultRoleOfMicroservice(String microserviceName) throws EntityNotFoundException;
 
     /**
      * Returns list of all roles.
@@ -53,9 +54,9 @@ public interface RoleService {
      * Creates the given role in the database.
      *
      * @param role role to be created.
-     * @throws UserAndGroupServiceException if given role already exists.
+     * @throws EntityConflictException if given role already exists.
      */
-    void createRole(Role role);
+    void createRole(Role role) throws EntityConflictException;
 
     /**
      * Returns all roles of given {@link cz.muni.ics.kypo.userandgroup.model.Microservice}

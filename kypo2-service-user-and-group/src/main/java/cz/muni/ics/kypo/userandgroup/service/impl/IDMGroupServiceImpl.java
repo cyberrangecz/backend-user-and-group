@@ -2,10 +2,9 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.RoleCannotBeRemovedToGroupException;
-import cz.muni.ics.kypo.userandgroup.api.exceptions.UserAndGroupFacadeException;
-import cz.muni.ics.kypo.userandgroup.exceptions.ErrorCode;
-import cz.muni.ics.kypo.userandgroup.exceptions.UserAndGroupServiceException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
+import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.model.Role;
 import cz.muni.ics.kypo.userandgroup.model.User;
@@ -14,7 +13,6 @@ import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +40,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public IDMGroup getGroupById(Long id) {
         Assert.notNull(id, "In method getGroupById(id) the input must not be null.");
         return groupRepository.findById(id)
-                .orElseThrow(() -> new UserAndGroupServiceException("IDMGroup with id " + id + " not found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "id", id.getClass(), id,"Group not found.")));
     }
 
     @Override
@@ -54,7 +52,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     public IDMGroup getGroupForDefaultRoles() {
         return groupRepository.findByName(ImplicitGroupNames.DEFAULT_GROUP.getName())
-                .orElseThrow(() -> new UserAndGroupServiceException("IDM group for default roles not found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", String.class, ImplicitGroupNames.DEFAULT_GROUP.getName())));
     }
 
     @Override
@@ -63,7 +61,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(groupIdsOfImportedMembers, "In method createIDMGroup(id) the input must not be null.");
         group.setStatus(UserAndGroupStatus.VALID);
         if (groupRepository.existsByName(group.getName())) {
-            throw new UserAndGroupServiceException("Group with name " + group.getName() + " already exists in database.", ErrorCode.RESOURCE_NOT_CREATED);
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, group.getName(), "Group with this name already exists."));
         }
 
         if (!groupIdsOfImportedMembers.isEmpty()) {
@@ -80,7 +78,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(group, "In method updateIDMGroup(id) the input must not be null.");
         IDMGroup groupInDatabase = getGroupById(group.getId());
         if (getImplicitGroupNames().contains(groupInDatabase.getName()) && !groupInDatabase.getName().equals(group.getName())) {
-            throw new UserAndGroupServiceException("Cannot change name of main group " + groupInDatabase.getName() + " to " + group.getName() + ".", ErrorCode.RESOURCE_CONFLICT);
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "id", group.getId().getClass(), group.getId(), "Name of main group cannot be changed"));
         }
         groupInDatabase.setDescription(group.getDescription());
         groupInDatabase.setName(group.getName());
@@ -92,11 +90,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public void deleteIDMGroup(IDMGroup group) {
         Assert.notNull(group, "In method updateIDMGroup(id) the input must not be null.");
         if (getImplicitGroupNames().contains(group.getName())) {
-            throw new UserAndGroupServiceException("It is not possible to delete group with id: " + group.getId() + ". " +
-                    "This group is User and Group default group that could not be deleted.", ErrorCode.RESOURCE_CONFLICT);
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, group.getName(),
+                    "This group is User and Group default group that cannot be deleted."));
         }
         if (group.getUsers() == null || !group.getUsers().isEmpty())
-        throw new UserAndGroupServiceException("It is not possible to delete group with id: " + group.getId() + ". The group must be empty (without users)", ErrorCode.RESOURCE_CONFLICT);
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "id", Long.class, group.getId(),
+                    "The group must be empty (without users) before it is deleted."));
         groupRepository.delete(group);
     }
 
@@ -109,14 +108,14 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     public IDMGroup getIDMGroupByName(String name) {
         Assert.hasLength(name, "Input name of group must not be empty");
         return groupRepository.findByName(name)
-                .orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name, "Group not found.")));
     }
 
     @Override
     public IDMGroup getIDMGroupWithRolesByName(String name) {
         Assert.hasLength(name, "Input name of group must not be empty");
         return groupRepository.findByNameWithRoles(name)
-                .orElseThrow(() -> new UserAndGroupServiceException("IDM Group with name " + name + " not found.", ErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name, "Group not found.")));
     }
 
     @Override
@@ -132,8 +131,8 @@ public class IDMGroupServiceImpl implements IDMGroupService {
         Assert.notNull(roleId, "In method assignRole(groupId, roleId) the input roleId must not be null.");
         IDMGroup group = this.getGroupById(groupId);
         Role role = roleRepository.findById(roleId).orElseThrow(() ->
-                        new UserAndGroupServiceException("Role with id: " + roleId + " could not be found. Start up of the" +
-                                " project or registering of microservice probably went wrong, please contact support.", ErrorCode.RESOURCE_NOT_FOUND));
+                new EntityNotFoundException(new EntityErrorDetail(Role.class, "id", roleId.getClass(), roleId,
+                        "Role not found. Start up of the project or registering of microservice probably went wrong, please contact support.")));
         group.addRole(role);
         return groupRepository.save(group);
     }
@@ -152,14 +151,15 @@ public class IDMGroupServiceImpl implements IDMGroupService {
                 return groupRepository.save(group);
             }
         }
-        throw new UserAndGroupServiceException("Role with id: " + roleId + " could not be found in given group.", ErrorCode.RESOURCE_NOT_FOUND);
+        throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "id", roleId.getClass(), roleId, "Role was not found in group."));
     }
 
     private void checkIfCanBeRemoved(String groupName, String roleType) {
         if (groupName.equals(ImplicitGroupNames.DEFAULT_GROUP.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
                 groupName.equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
                 groupName.equals(ImplicitGroupNames.USER_AND_GROUP_USER.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
-            throw new UserAndGroupServiceException("Role " + roleType + " cannot be removed from group. This role is main role of the group.", ErrorCode.RESOURCE_CONFLICT);
+            throw new EntityConflictException(new EntityErrorDetail(Role.class, "roleType", String.class, roleType,
+                    "Main role of the group cannot be removed."));
         }
     }
 
@@ -167,10 +167,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     public void removeUserFromGroup(IDMGroup groupToUpdate, User user) {
         if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && securityService.hasLoggedInUserSameLogin(user.getLogin())) {
-            throw new UserAndGroupServiceException("An administrator could not remove himself from the administrator group.", ErrorCode.RESOURCE_CONFLICT);
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, groupToUpdate.getName(),
+                    "An administrator cannot remove himself from the administrator group."));
         }
         if (groupToUpdate.getName().equals(ImplicitGroupNames.DEFAULT_GROUP.getName())) {
-            throw new UserAndGroupServiceException("Cannot remove user(s) from default group.", ErrorCode.RESOURCE_CONFLICT);
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, groupToUpdate.getName(),
+                    "Cannot remove user(s) from default group."));
         }
         groupToUpdate.removeUser(user);
     }
