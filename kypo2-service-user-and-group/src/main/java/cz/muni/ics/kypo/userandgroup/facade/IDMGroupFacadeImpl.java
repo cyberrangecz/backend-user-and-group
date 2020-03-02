@@ -52,7 +52,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public GroupDTO createGroup(NewGroupDTO newGroupDTO) {
-        Assert.notNull(newGroupDTO, "In method createGroup(newGroupDTO) the input newGroupDTO must not be null.");
         IDMGroup group = groupMapper.mapCreateToEntity(newGroupDTO);
         IDMGroup createdGroup = groupService.createIDMGroup(group, newGroupDTO.getGroupIdsOfImportedUsers());
         return groupMapper.mapToDTO(createdGroup);
@@ -63,7 +62,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public void updateGroup(UpdateGroupDTO updateGroupDTO) {
-        Assert.notNull(updateGroupDTO, "In method updateGroup(updateGroupDTO) the input id must not be null.");
         groupService.updateIDMGroup(groupMapper.mapUpdateToEntity(updateGroupDTO));
 
     }
@@ -72,8 +70,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public void removeUsers(Long groupId, List<Long> userIds) {
-        Assert.notNull(groupId, "In method removeUsers(id, userIds) the input groupId must not be null.");
-        Assert.notNull(groupId, "In method removeUsers(id, userIds) the input userIds must not be null.");
         IDMGroup groupToUpdate = groupService.getGroupById(groupId);
         List<User> users = userService.getUsersByIds(userIds);
         for (User user : users) {
@@ -84,8 +80,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
     @Override
     public void addUser(Long groupId, Long userId) {
-        Assert.notNull(groupId, "In method addUser(groupId, userId) the input groupId must not be null.");
-        Assert.notNull(userId, "In method addUser(groupId, userId) the input userId must not be null.");
         IDMGroup groupToUpdate = groupService.getGroupById(groupId);
         User userToBeAdded = userService.getUserById(userId);
         groupService.addUserToGroup(groupToUpdate, userToBeAdded);
@@ -95,7 +89,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public void addUsersToGroup(Long groupId, AddUsersToGroupDTO addUsers) {
-        Assert.notNull(groupId, "In method addUsersToGroup(id) the input id must not be null.");
         IDMGroup groupToUpdate = groupService.getGroupById(groupId);
         addUsersWithIdsToGroup(groupToUpdate, addUsers.getIdsOfUsersToBeAdd());
         importUsersFromGroupsToGroup(groupToUpdate, addUsers.getIdsOfGroupsOfImportedUsers());
@@ -129,7 +122,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public void deleteGroup(Long id) {
-        Assert.notNull(id, "In method deleteGroup(id) the input id must not be null.");
         IDMGroup group = groupService.getGroupById(id);
         groupService.deleteIDMGroup(group);
     }
@@ -165,7 +157,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalRO
     public GroupDTO getGroupById(Long id) {
-        Assert.notNull(id, "In method getGroupById(id) the input id must not be null.");
         GroupDTO groupDTO = groupMapper.mapToDTO(groupService.getGroupById(id));
         if (getListOfAllGroupsInUserAndGroupMicroservice().contains(groupDTO.getName())) {
             groupDTO.setCanBeDeleted(false);
@@ -175,7 +166,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
 
     @Override
     public GroupWithRolesDTO getIDMGroupWithRolesByName(String groupName) {
-        Assert.hasLength(groupName, "In method getIDMGroupWithRolesByName(groupName) the input groupName must not be null.");
         return groupMapper.mapToWithRolesDto(groupService.getIDMGroupWithRolesByName(groupName));
     }
 
@@ -183,7 +173,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalRO
     public Set<RoleDTO> getRolesOfGroup(Long id) {
-        Assert.notNull(id, "In method getRolesOfGroup(id) the input id must not be null.");
         return groupService.getRolesOfGroup(id).stream()
                 .map(this::convertToRoleDTO)
                 .collect(Collectors.toCollection(HashSet::new));
@@ -193,8 +182,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public void assignRole(Long groupId, Long roleId) {
-        Assert.notNull(groupId, "In method assignRole(groupId, roleId) the input groupId must not be null.");
-        Assert.notNull(roleId, "In method assignRole(groupId, roleId) the input roleId must not be null.");
         IDMGroup idmGroup = groupService.assignRole(groupId, roleId);
         idmGroup.getUsers().forEach(user -> groupService.evictUserFromCache(user));
     }
@@ -203,8 +190,6 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @IsAdmin
     @TransactionalWO
     public void removeRoleFromGroup(Long groupId, Long roleId) {
-        Assert.notNull(groupId, "Input removeRoleFromGroup(groupId, roleId) the input groupId must not be null");
-        Assert.notNull(roleId, "Input removeRoleFromGroup(groupId, roleId) the input roleId must not be null");
         IDMGroup idmGroup = groupService.removeRoleFromGroup(groupId, roleId);
         idmGroup.getUsers().forEach(user -> groupService.evictUserFromCache(user));
     }

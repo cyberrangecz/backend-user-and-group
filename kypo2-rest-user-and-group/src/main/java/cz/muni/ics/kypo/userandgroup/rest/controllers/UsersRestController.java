@@ -27,8 +27,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +41,7 @@ import java.util.Set;
 @Api(value = "Endpoint for Users", tags = "users")
 @RestController
 @RequestMapping(path = "/users")
+@Validated
 public class UsersRestController {
 
     private static Logger LOG = LoggerFactory.getLogger(UsersRestController.class);
@@ -217,7 +220,7 @@ public class UsersRestController {
     })
     @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
-                                            @RequestBody List<Long> ids) {
+                                            @RequestBody List<@NotNull Long> ids) {
         userFacade.deleteUsers(ids);
         return new ResponseEntity<>(HttpStatus.OK);
     }

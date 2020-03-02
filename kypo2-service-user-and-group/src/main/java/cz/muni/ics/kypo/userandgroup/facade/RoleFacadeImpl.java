@@ -41,7 +41,6 @@ public class RoleFacadeImpl implements RoleFacade {
     @IsAdmin
     @TransactionalRO
     public RoleDTO getRoleById(Long id) {
-        Assert.notNull(id, "In method getRoleById(id) the input id must not be null.");
         return roleMapper.mapToRoleDTOWithMicroservice(roleService.getRoleById(id));
     }
 
@@ -49,7 +48,6 @@ public class RoleFacadeImpl implements RoleFacade {
     @IsAdmin
     @TransactionalRO
     public RoleDTO getByRoleType(String roleType) {
-        Assert.hasLength(roleType, "In method getByRoleType(roleType) the input roleType must not be empty.");
         return roleMapper.mapToRoleDTOWithMicroservice(roleService.getByRoleType(roleType.toUpperCase()));
     }
 

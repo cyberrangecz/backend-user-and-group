@@ -83,7 +83,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsGuest
     @TransactionalRO
     public UserDTO getUserById(Long id) {
-        Assert.notNull(id, "In method getUserById(id) the input id must not be null.");
         return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
     }
 
@@ -157,7 +156,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsAdmin
     @TransactionalWO
     public void deleteUser(Long id) {
-        Assert.notNull(id, "In method deleteUser(id) the input id must not be null.");
         User user = userService.getUserById(id);
         userService.deleteUser(user);
     }
@@ -166,7 +164,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsAdmin
     @TransactionalRO
     public PageResultResource<UserDTO> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
-        Assert.notNull(groupId, "In method getAllUsersNotInGivenGroup(groupId) the input id must not be null.");
         PageResultResource<UserDTO> users = userMapper.mapToPageResultResource(userService.getAllUsersNotInGivenGroup(groupId, predicate, pageable));
         List<UserDTO> usersWithRoles = users.getContent().stream()
                 .map(userDTO -> {
@@ -182,7 +179,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsAdmin
     @TransactionalRO
     public PageResultResource<UserForGroupsDTO> getUsersInGroups(Set<Long> groupsIds, Predicate predicate, Pageable pageable) {
-        Assert.notEmpty(groupsIds, "In method getUsersInGroups(groupsIds) the input groupsIds must not be empty.");
         return userMapper.mapToPageResultResourceForGroups(userService.getUsersInGroups(groupsIds, predicate, pageable));
     }
 
@@ -190,7 +186,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsAdmin
     @TransactionalWO
     public void deleteUsers(List<Long> userIds) {
-        Assert.notEmpty(userIds, "In method deleteUsers(ids) the input ids must not be empty.");
         List<User> usersToBeDeleted = userService.getUsersByIds(userIds);
         usersToBeDeleted.forEach(user -> userService.deleteUser(user));
     }
@@ -204,7 +199,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsGuest
     @TransactionalRO
     public Set<RoleDTO> getRolesOfUser(Long id) {
-        Assert.notNull(id, "In method getRolesOfUser(id) the input id must not be null.");
         Set<Role> roles = userService.getRolesOfUser(id);
         return roles.stream()
                 .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
@@ -215,7 +209,6 @@ public class UserFacadeImpl implements UserFacade {
     @IsAdmin
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
-        Assert.notNull(roleId, "In method getUsersWithGivenRole(roleId) the input roleId must not be null.");
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, predicate, pageable));
     }
 
@@ -223,14 +216,12 @@ public class UserFacadeImpl implements UserFacade {
     @IsGuest
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
-        Assert.hasLength(roleType, "In method getUsersWithGivenRoleType(roleType) the input roleType must not be null.");
        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
 
     @Override
     @IsGuest
     public PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
-        Assert.notEmpty(ids, "In method getUsersWithGivenIds(ids) the input ids must not be null.");
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
 

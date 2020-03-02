@@ -111,12 +111,6 @@ public class RoleServiceTest {
         assertTrue(roles.containsAll(Set.of(adminRole, userRole)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getAllRolesOfMicroserviceWithNullName() {
-        given(roleRepository.getAllRolesByMicroserviceName("kypo2-training")).willReturn(Set.of(adminRole, userRole));
-        roleService.getAllRolesOfMicroservice(null);
-    }
-
     @Test
     public void createRole(){
         given(roleRepository.existsByRoleType(userRole.getRoleType())).willReturn(false);

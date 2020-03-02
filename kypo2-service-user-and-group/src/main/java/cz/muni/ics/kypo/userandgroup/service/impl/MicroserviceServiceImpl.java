@@ -24,7 +24,6 @@ public class MicroserviceServiceImpl implements MicroserviceService {
 
     @Override
     public Microservice getMicroserviceById(Long id) {
-        Assert.notNull(id, "In method getMicroserviceById(id) the input must not be null.");
         return microserviceRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "id", id.getClass(), id, "Microservice not found")));
     }
@@ -42,7 +41,6 @@ public class MicroserviceServiceImpl implements MicroserviceService {
 
     @Override
     public Microservice createMicroservice(Microservice microserviceToCreate) {
-        Assert.notNull(microserviceToCreate, "In method createMicroservice(microserviceToCreate) the input must not be null.");
         return microserviceRepository.save(microserviceToCreate);
     }
 

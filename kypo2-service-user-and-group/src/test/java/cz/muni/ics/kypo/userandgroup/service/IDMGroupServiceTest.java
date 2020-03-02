@@ -209,13 +209,6 @@ public class IDMGroupServiceTest {
     }
 
     @Test
-    public void getGroupByNameWithEmptyNameShouldThrowException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Input name of group must not be empty");
-        groupService.getIDMGroupByName("");
-    }
-
-    @Test
     public void getIDMGroupByNameWithRoles() {
         given(groupRepository.findByNameWithRoles(defaultGroup.getName())).willReturn(Optional.of(defaultGroup));
 
