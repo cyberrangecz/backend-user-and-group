@@ -36,7 +36,8 @@ createTag:
   - export TAG_MESSAGE=$(cut -d '\s' -f2- $DEPLOYMENT_INFO_VERSION_FILE)
   # update project versions in multi-module maven project
   - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
-  - git commit -am $GIT_COMMIT_MESSAGE
+  - git add .
+  - git commit -m $GIT_COMMIT_MESSAGE
   - git push
   # update change log
   - CURRENT_TAG=$(git tag | sort -r | head -1)
