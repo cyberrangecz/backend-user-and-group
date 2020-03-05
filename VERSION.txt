@@ -1,1 +1,1 @@
-1.1.14  User and Group project refactored Test 2
+1.1.15  User and Group project Gitlab CI set.
