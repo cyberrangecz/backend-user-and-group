@@ -31,8 +31,8 @@ createTag:
   - git fetch
   - git checkout master
   script:
-  - export VERSION=$(cut -d '\s' -f1 $DEPLOYMENT_INFO_VERSION_FILE)
-  - export TAG_MESSAGE=$(cut -d '\s' -f2- $DEPLOYMENT_INFO_VERSION_FILE)
+  - export VERSION=$(cut -d ' ' -f1 $DEPLOYMENT_INFO_VERSION_FILE)
+  - export TAG_MESSAGE=$(cut -d ' ' -f2- $DEPLOYMENT_INFO_VERSION_FILE)
   # update project versions in multi-module maven project
   - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
   - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
@@ -84,7 +84,7 @@ tests:
 deploy:
   stage: deploy
   script:
-  - export VERSION=$(cut -d '\s' -f1 $DEPLOYMENT_INFO_VERSION_FILE)  
+  - export VERSION=$(cut -d ' ' -f1 $DEPLOYMENT_INFO_VERSION_FILE)  
   - >
     curl -X PUT -v -u
     ${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_USERNAME}:${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_PASSWORD}
