@@ -1,143 +1,99 @@
-image: openjdk11
+image: 'maven:3.6.3-jdk-11-slim'
 
 variables:
-    PYTHON_TAG: py3
-    ABI_TAG: none
-    PLATFORM_TAG: any
-    PACKAGE_EXTENSION: whl
-    DEBIAN_PACKAGE_EXTENSION: deb
-    LANG: C.UTF-8
-    LC_ALL: C.UTF-8
-
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  PROJECT_GROUP_ID: cz/muni/ics/kypo
+  PROJECT_ARTIFACT_ID: kypo2-rest-user-and-group
+  GIT_COMMIT_MESSAGE: "[skip ci] Update pom.xml version based on GitLab tag. Done by CI."
+  DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
+  
 stages:
-    - unitTests
-    - installJava
-    - editVersion
-    - deployJava
-    - buildDebian
-    - deployDebian
-
-before_script:
-    # Get version.
-    #     Variable CI_COMMIT_TAG is set only when tag was pushed.
-    - export VERSION=$(if [[ "$CI_COMMIT_TAG" == "" ]]; then echo $(dpkg-parsechangelog --show-field version); else echo $CI_COMMIT_TAG | cut -c 2-; fi)
-    - echo VERSION
-    # Get machine distribution
-    - export DEBIAN_DISTRIBUTION=$(cat /etc/os-release | grep VERSION | grep -Po "(?<=\().*(?=\))")
-    - echo $DEBIAN_DISTRIBUTION
-    # Get debian package filename
-    - export DEBIAN_PACKAGE=$(dpkg-parsechangelog --show-field source)_${VERSION}_$(dpkg --print-architecture).$DEBIAN_PACKAGE_EXTENSION
-    - echo $DEBIAN_PACKAGE
-    # Set additional Apt repository
-    - echo "$APT_SOURCE_LIST" > /etc/apt/sources.list.d/kypo.list
-
-
-unitTests:
-    stage: unitTests
-    script:
-        - mvn test
-    only:
-        - triggers
-        - branches
-        - tags
-
-installJava:
-    stage: installJava
-    script:
-        - mvn clean install
-    only:
-        - triggers
-        - branches
-        - tags
-
-editVersion:
-    stage: editVersion
-    script:
-        - export GIT_SSH_COMMAND='ssh -i ~/.ssh/kyposervicekey'
-        - ssh -o "StrictHostKeyChecking no" git@gitlab.ics.muni.cz && sleep 1
-        - git clone git@gitlab.ics.muni.cz:kypo2/services-and-portlets/kypo2-user-and-group.git
-        - cd $CI_PROJECT_NAME
-        - git config --global user.name "KYPO CI" && git config --global user.email "kyposervice@ics.muni.cz"
-        - grep -Rl '</version>' . --exclude-dir=.git --exclude=README.md --exclude=.gitlab-ci.yml | xargs sed -i "0,/<version>/{s:<version>.*:<version>$VERSION</version>:g}"
-        - DEPSDIRS=$(sed '1,/<modules>/d;/modules/,$d' pom.xml | grep -o -P '(?<=>).*(?=<)')
-        - for dir in $DEPSDIRS; do echo "Reading $dir/pom.xml" && for location in $DEPSDIRS; do LINENUMBER=$(grep -n "{$\|<artifactId>$location\|};$" $dir/pom.xml | cut -f1 -d:) && if [ -z "$LINENUMBER" ]; then continue; fi && LOWLIMIT=$(($LINENUMBER - 2 )) && HIGHLIMIT=$(($LINENUMBER + 2)) && echo "Editing dependency version of $location in $dir/pom.xml to $VERSION" && sed -i "$LOWLIMIT,$HIGHLIMIT{s:<version>.*:<version>$VERSION</version>:g}" $dir/pom.xml; done; done          
-        - git commit -am "Update pom.xml version based on GitLab tag. Done by CI" && sleep 1
-        - git push
-    only:
-        - tags
-
-deployJava:
-    image: javadeploy
-    stage: deployJava
-    script:
-        - git checkout master && git pull
-        - mvn clean deploy -Dmaven.test.skip=true
-    only:
-        - tags
-
-buildDebian:
-    stage: buildDebian
-    script: 
-        - git checkout master && git pull
-        - mvn clean install -DskipTests
-        # --distribution $DEBIAN_DISTRIBUTION
-        - >
-            gbp dch
-            --debian-tag="v%(version)s"
-            --new-version $VERSION
-            --distribution stable
-            --force-distribution
-            --release
-            --spawn-editor none
-            --id-length 8
-            --ignore-branch
-            --git-log="--merges --grep=into[[:space:]]'master'"
-        # -uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
-        # -i -I exclude .git directory (see dpkg-source)
-        - > 
-            gbp buildpackage
-            --git-ignore-new
-            --git-ignore-branch
-            --git-builder=debuild -rfakeroot -us -uc -i -I
-        - cp ../$DEBIAN_PACKAGE .
-    only:
-        - triggers
-        - branches
-        - tags
-    #artifacts:
-    #    paths:
-    #        - ./*.$DEBIAN_PACKAGE_EXTENSION
-    #    expire_in: 1 hour
-
-deployDebian:
-    stage: deployDebian
-    script:
-        # Need to create the Deb package again since it's not avalaiable from
-        # the previous job. Gonna be fixed with smaller packages.
-        - git checkout master && git pull
-        - mvn clean package -Dmaven.test.skip=true
-        # --distribution $DEBIAN_DISTRIBUTION
-        - >
-            gbp dch
-            --debian-tag="v%(version)s"
-            --new-version $VERSION
-            --distribution stable
-            --force-distribution
-            --release
-            --spawn-editor none
-            --id-length 8
-            --ignore-branch
-            --git-log="--merges --grep=into[[:space:]]'master'"
-        #-uc do not sign .changes file, -us do not sign source package (see dpkg-buildpackage)
-        # -i -I exclude .git directory (see dpkg-source)
-        - > 
-            gbp buildpackage
-            --git-ignore-new
-            --git-ignore-branch
-            --git-builder=debuild -rfakeroot -us -uc -i -I
-        - cp ../$DEBIAN_PACKAGE .
-        - 'curl -u $APT_USER:$APT_PASSWORD -X POST -H "Content-Type: multipart/form-data" --data-binary "@$DEBIAN_PACKAGE" "$APT_UPLOAD_URL"'
-        - '$TRIGGER_PIPELINE'
-    only:
-        - tags
-
+  - createTag
+  - build
+  - tests
+  - deploy
+  
+createTag:
+  stage: createTag
+  before_script:
+  # ssh config
+  - which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh -o 'StrictHostKeyChecking no' "$SSH_HOST_CHECKING_DOMAIN"
+  # git config
+  - apt-get install git -y
+  - git config --global user.email "$GIT_USER_EMAIL"
+  - git config --global user.name "$GIT_USER_NAME"
+  - git remote set-url origin "$GIT_CLONE_URL"
+  - git fetch
+  - git checkout master
+  script:
+  - export VERSION=$(cut -d '\s' -f1 $DEPLOYMENT_INFO_VERSION_FILE)
+  - export TAG_MESSAGE=$(cut -d '\s' -f2- $DEPLOYMENT_INFO_VERSION_FILE)
+  # update project versions in multi-module maven project
+  - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+  - git commit -am $GIT_COMMIT_MESSAGE
+  - git push
+  # update change log
+  - CURRENT_TAG=$(git tag | sort -r | head -1)
+  - PREVIOUS_TAG=$(git tag | sort -r | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
+  - git log  --pretty=format:' * %s' $CURRENT_TAG..$PREVIOUS_TAG
+  # create new tag
+  - git tag -a $VERSION -m $TAG_MESSAGE
+  - git push origin $VERSION
+  after_script:
+  only:
+    refs:
+    - master
+    changes:
+    - $DEPLOYMENT_INFO_VERSION_FILE
+  artifacts:
+    when: on_success
+    paths:
+    - ./pom.xml
+    - ./*/pom.xml
+    expire_in: 1 hour
+    
+build:
+  stage: build
+  script:
+  - mvn clean install -DskipTests
+  only:
+    refs:
+    - branches
+  artifacts:
+    when: on_success
+    paths:
+    - $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar
+    expire_in: 1 hour
+    
+tests:
+  stage: tests
+  script:
+  - mvn test
+  only:
+  - branches
+  except:
+    refs:
+    - master
+    changes:
+    - $DEPLOYMENT_INFO_VERSION_FILE
+    
+deploy:
+  stage: deploy
+  script:
+  - export VERSION=$(cut -d '\s' -f1 $DEPLOYMENT_INFO_VERSION_FILE)  
+  - >
+    curl -X PUT -v -u
+    ${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_USERNAME}:${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_PASSWORD}
+    --upload-file $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-$VERSION.jar
+    ${CSIRT_MU_NEXUS_URL}/$PROJECT_GROUP_ID/$PROJECT_ARTIFACT_ID/$VERSION/$PROJECT_ARTIFACT_ID-$VERSION.jar
+  only:
+    refs:
+    - master
+    changes:
+    - $DEPLOYMENT_INFO_VERSION_FILE
