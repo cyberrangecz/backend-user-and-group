@@ -46,8 +46,8 @@ createTag:
   - git tag -a $VERSION -m $TAG_MESSAGE
   - git push origin $VERSION
   only:
-    #refs:
-    #- master
+    refs:
+    - master
     changes:
     - $DEPLOYMENT_INFO_VERSION_FILE
   artifacts:
