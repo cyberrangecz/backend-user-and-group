@@ -45,7 +45,6 @@ createTag:
   # create new tag
   - git tag -a $VERSION -m $TAG_MESSAGE
   - git push origin $VERSION
-  after_script:
   only:
     refs:
     - master
