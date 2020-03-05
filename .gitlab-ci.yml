@@ -40,7 +40,7 @@ createTag:
   # update change log
   - CURRENT_TAG=$(git tag | head -1)
   - PREVIOUS_TAG=$(git tag | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
-  - git log  --pretty=format:' * %s' $CURRENT_TAG..$PREVIOUS_TAG
+  - git log  --pretty=format:' * %s' $CURRENT_TAG..$PREVIOUS_TAG > CHANGELOG.md
   # create new tag
   - git tag -a $VERSION -m $TAG_MESSAGE
   - git push origin $VERSION
