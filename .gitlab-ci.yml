@@ -61,7 +61,7 @@ createTag:
 build:
   stage: build
   script:
-  - mvn clean install -DskipTests
+  - mvn clean install -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   only:
     refs:
     - branches
@@ -74,7 +74,7 @@ build:
 tests:
   stage: tests
   script:
-  - mvn test
+  - mvn test -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   only:
   - branches
   except:
