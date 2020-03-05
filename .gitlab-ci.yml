@@ -5,7 +5,6 @@ variables:
   LC_ALL: C.UTF-8
   PROJECT_GROUP_ID: cz/muni/ics/kypo
   PROJECT_ARTIFACT_ID: kypo2-rest-user-and-group
-  GIT_COMMIT_MESSAGE: "Update pom.xml version based on GitLab tag. Done by CI."
   DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
   
 stages:
@@ -36,8 +35,7 @@ createTag:
   - export TAG_MESSAGE=$(cut -d '\s' -f2- $DEPLOYMENT_INFO_VERSION_FILE)
   # update project versions in multi-module maven project
   - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
-  - git add .
-  - git commit -m $GIT_COMMIT_MESSAGE
+  - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
   - git push -o ci.skip
   # update change log
   - CURRENT_TAG=$(git tag | sort -r | head -1)
