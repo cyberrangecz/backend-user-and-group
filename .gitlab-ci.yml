@@ -38,8 +38,8 @@ createTag:
   - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
   - git push -o ci.skip
   # update change log
-  - CURRENT_TAG=$(git tag | sort -r | head -1)
-  - PREVIOUS_TAG=$(git tag | sort -r | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
+  - CURRENT_TAG=$(git tag | head -1)
+  - PREVIOUS_TAG=$(git tag | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
   - git log  --pretty=format:' * %s' $CURRENT_TAG..$PREVIOUS_TAG
   # create new tag
   - git tag -a $VERSION -m $TAG_MESSAGE
