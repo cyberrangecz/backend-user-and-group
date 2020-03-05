@@ -49,7 +49,7 @@ createTag:
     refs:
     - master
     changes:
-    - $DEPLOYMENT_INFO_VERSION_FILE
+    - VERSION.txt
   artifacts:
     when: on_success
     paths:
@@ -80,7 +80,7 @@ tests:
     refs:
     - master
     changes:
-    - $DEPLOYMENT_INFO_VERSION_FILE
+    - VERSION.txt
     
 deploy:
   stage: deploy
@@ -95,4 +95,4 @@ deploy:
     refs:
     - master
     changes:
-    - $DEPLOYMENT_INFO_VERSION_FILE
+    - VERSION.txt
