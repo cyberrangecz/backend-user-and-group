@@ -5,7 +5,7 @@ variables:
   LC_ALL: C.UTF-8
   PROJECT_GROUP_ID: cz/muni/ics/kypo
   PROJECT_ARTIFACT_ID: kypo2-rest-user-and-group
-  GIT_COMMIT_MESSAGE: "[skip ci] Update pom.xml version based on GitLab tag. Done by CI."
+  GIT_COMMIT_MESSAGE: "Update pom.xml version based on GitLab tag. Done by CI."
   DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
   
 stages:
@@ -38,7 +38,7 @@ createTag:
   - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
   - git add .
   - git commit -m $GIT_COMMIT_MESSAGE
-  - git push
+  - git push -o ci.skip
   # update change log
   - CURRENT_TAG=$(git tag | sort -r | head -1)
   - PREVIOUS_TAG=$(git tag | sort -r | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
