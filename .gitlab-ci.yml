@@ -48,7 +48,6 @@ createTag:
   - if: '$CI_COMMIT_BRANCH == "master"'
   - changes:
     - VERSION.txt
-  - when: on_success
   artifacts:
     paths:
     - ./pom.xml
