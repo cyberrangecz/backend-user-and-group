@@ -44,43 +44,33 @@ createTag:
   # create new tag
   - git tag -a $VERSION -m $TAG_MESSAGE
   - git push origin $VERSION
-  only:
-    refs:
-    - master
-    changes:
+  rules:
+  - if: '$CI_COMMIT_REF_NAME == master'
+  - changes:
     - VERSION.txt
+  - when: on_success
   artifacts:
-    when: on_success
     paths:
     - ./pom.xml
     - ./*/pom.xml
     expire_in: 1 hour
+    when: on_success
     
 build:
   stage: build
   script:
   - mvn clean install -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
-  only:
-    refs:
-    - branches
   artifacts:
-    when: on_success
     paths:
     - $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar
     expire_in: 1 hour
+    when: on_success
     
 tests:
   stage: tests
   script:
   - mvn test -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
-  only:
-  - branches
-  except:
-    refs:
-    - master
-    changes:
-    - VERSION.txt
-    
+
 deploy:
   stage: deploy
   script:
@@ -90,8 +80,8 @@ deploy:
     ${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_USERNAME}:${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_PASSWORD}
     --upload-file $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-$VERSION.jar
     ${CSIRT_MU_NEXUS_URL}/$PROJECT_GROUP_ID/$PROJECT_ARTIFACT_ID/$VERSION/$PROJECT_ARTIFACT_ID-$VERSION.jar
-  only:
-    refs:
-    - master
-    changes:
+  rules:
+  - if: '$CI_COMMIT_REF_NAME == master'
+  - changes:
     - VERSION.txt
+  - when: on_success
