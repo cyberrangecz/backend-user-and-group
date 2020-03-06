@@ -75,7 +75,7 @@ tests:
   - if: '$CI_COMMIT_BRANCH == "master"'
     changes:
       - VERSION.txt
-      when: never
+    when: never
   - if: '$CI_COMMIT_BRANCH'
   
 deploy:
