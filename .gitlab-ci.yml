@@ -43,11 +43,11 @@ createTag:
   - git log  --pretty=format:' * %s' $CURRENT_TAG..$PREVIOUS_TAG > CHANGELOG.md
   # create new tag
   - git tag -a $VERSION -m $TAG_MESSAGE
-  - git push origin $VERSION
+  - git push origin $VERSION -o ci.skip
   rules:
   - if: '$CI_COMMIT_BRANCH == "master"'
-  - changes:
-    - VERSION.txt
+    changes:
+      - VERSION.txt
   artifacts:
     paths:
     - ./pom.xml
@@ -64,12 +64,16 @@ build:
     - $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar
     expire_in: 1 hour
     when: on_success
+  rules:
+  - if: '$CI_COMMIT_BRANCH'
     
 tests:
   stage: tests
   script:
   - mvn test -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
-
+  rules:
+  - if: '$CI_COMMIT_BRANCH'
+  
 deploy:
   stage: deploy
   script:
@@ -81,6 +85,5 @@ deploy:
     ${CSIRT_MU_NEXUS_URL}/$PROJECT_GROUP_ID/$PROJECT_ARTIFACT_ID/$VERSION/$PROJECT_ARTIFACT_ID-$VERSION.jar
   rules:
   - if: '$CI_COMMIT_BRANCH == "master"'
-  - changes:
-    - VERSION.txt
-  - when: on_success
+    changes:
+      - VERSION.txt
