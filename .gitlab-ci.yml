@@ -59,13 +59,13 @@ build:
   stage: build
   script:
   - mvn clean install -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+  rules:
+  - if: '$CI_COMMIT_BRANCH'
   artifacts:
     paths:
     - $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar
     expire_in: 1 hour
     when: on_success
-  rules:
-  - if: '$CI_COMMIT_BRANCH'
     
 tests:
   stage: tests
