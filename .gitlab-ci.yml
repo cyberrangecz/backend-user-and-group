@@ -73,6 +73,10 @@ tests:
   - mvn test -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   rules:
   - if: '$CI_COMMIT_BRANCH'
+  - if: '$CI_COMMIT_BRANCH == "master"'
+    changes:
+      - VERSION.txt
+      when: never
   
 deploy:
   stage: deploy
