@@ -45,7 +45,7 @@ createTag:
   - git tag -a $VERSION -m $TAG_MESSAGE
   - git push origin $VERSION
   rules:
-  - if: '$CI_COMMIT_REF_NAME == master'
+  - if: '$CI_COMMIT_BRANCH == "master"'
   - changes:
     - VERSION.txt
   - when: on_success
@@ -81,7 +81,7 @@ deploy:
     --upload-file $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-$VERSION.jar
     ${CSIRT_MU_NEXUS_URL}/$PROJECT_GROUP_ID/$PROJECT_ARTIFACT_ID/$VERSION/$PROJECT_ARTIFACT_ID-$VERSION.jar
   rules:
-  - if: '$CI_COMMIT_REF_NAME == master'
+  - if: '$CI_COMMIT_BRANCH == "master"'
   - changes:
     - VERSION.txt
   - when: on_success
