@@ -1,1 +1,1 @@
-1.1.25  UaGChangeLogCreated
+1.1.26  Gitlab CI Configured Using Grep VERSION.txt File
