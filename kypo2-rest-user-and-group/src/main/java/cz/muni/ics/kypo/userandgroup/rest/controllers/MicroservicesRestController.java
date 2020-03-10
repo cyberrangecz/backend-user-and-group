@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Rest controller for the Microservice resource.
  */
-@Api(value = "Endpoint for Microservices", hidden = true)
+@Api(value = "Endpoint for Microservices", hidden = true, tags = "microservices")
 @RestController
 @RequestMapping(path = "/microservices")
 public class MicroservicesRestController {
