@@ -31,18 +31,16 @@ createTag:
   - git fetch
   - git checkout master
   script:
-  - export VERSION=$(grep -oP '^([^\s])' $DEPLOYMENT_INFO_VERSION_FILE)
-  - export TAG_MESSAGE=$(grep -oP '(?<=\s)[^\s].' $DEPLOYMENT_INFO_VERSION_FILE)
+  - export VERSION=$(grep -oP '^([^\s]*)' $DEPLOYMENT_INFO_VERSION_FILE)
+  - export TAG_MESSAGE=$(grep -oP '(?<=\s)[^\s].*' $DEPLOYMENT_INFO_VERSION_FILE)
   # update project versions in multi-module maven project
   - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
   - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
-  - git push -o ci.skip
   # update change log
   - CURRENT_TAG=$(git tag | head -1)
   - PREVIOUS_TAG=$(git tag | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
   - git log  --pretty=format:' * %s' $CURRENT_TAG..$PREVIOUS_TAG > CHANGELOG.md
   - git commit -am "CHANGELOG.md file updated with commits between the current and previous tag. Done by CI."
-  - git push -o ci.skip
   # create new tag
   - git tag -a $VERSION -m $TAG_MESSAGE
   - git push origin $VERSION -o ci.skip
@@ -83,7 +81,7 @@ tests:
 deploy:
   stage: deploy
   script:
-  - export VERSION=$(grep -oP '^([^\s])' $DEPLOYMENT_INFO_VERSION_FILE)
+  - export VERSION=$(grep -oP '^([^\s]*)' $DEPLOYMENT_INFO_VERSION_FILE)
   - >
     curl -X PUT -v -u
     ${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_USERNAME}:${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_PASSWORD}
