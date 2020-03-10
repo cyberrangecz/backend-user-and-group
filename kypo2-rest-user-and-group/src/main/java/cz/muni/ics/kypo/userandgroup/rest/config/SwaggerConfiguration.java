@@ -3,6 +3,7 @@ package cz.muni.ics.kypo.userandgroup.rest.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Pageable;
 import springfox.documentation.builders.*;
 import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
@@ -42,9 +43,10 @@ public class SwaggerConfiguration {
                 .groupName("user-and-group-api")
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(RequestHandlerSelectors.basePackage("cz.muni.ics.kypo.userandgroup.rest.controllers"))
                 .paths(PathSelectors.any())
                 .build()
+                .directModelSubstitute(Pageable.class, SwaggerPageable.class)
                 .securitySchemes(List.of(securityScheme()))
                 .securityContexts(List.of(securityContext()));
     }
@@ -94,6 +96,12 @@ public class SwaggerConfiguration {
                         List.of(new SecurityReference(NAME_OF_SECURITY_SCHEME, scopes())))
                 .forPaths(PathSelectors.any())
                 .build();
+    }
+
+    private class SwaggerPageable {
+        private Integer size;
+        private Integer page;
+        private String sort;
     }
 
 }
