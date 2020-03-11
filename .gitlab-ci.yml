@@ -36,7 +36,7 @@ createTag:
   - export TAG_MESSAGE=$(grep -oP '(?<=\s)[^\s].*' $DEPLOYMENT_INFO_VERSION_FILE)
   - echo "Parsed tag_message is (createTag phase) " $TAG_MESSAGE
   # update project versions in multi-module maven project
-  - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+  - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
   - git push -o ci.skip
   # update change log
