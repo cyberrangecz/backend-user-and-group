@@ -39,10 +39,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -126,7 +123,7 @@ public class GroupsRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(newGroupDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().string(convertObjectToJsonBytes(groupDTO1)));
         then(groupFacade).should().createGroup(any(NewGroupDTO.class));
     }
@@ -135,7 +132,7 @@ public class GroupsRestControllerTest {
     public void testCreateGroupWithNullRequestBody() throws Exception {
         mockMvc.perform(
                 post("/groups" + "/")
-                        .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(convertObjectToJsonBytes(null)))
                 .andExpect(status().isBadRequest());
         then(groupFacade).should(never()).updateGroup(any(UpdateGroupDTO.class));
@@ -376,8 +373,8 @@ public class GroupsRestControllerTest {
 
     private AddUsersToGroupDTO getAddUsersToGroupDTO() {
         AddUsersToGroupDTO groupDTO = new AddUsersToGroupDTO();
-        groupDTO.setIdsOfGroupsOfImportedUsers(Arrays.asList(2L));
-        groupDTO.setIdsOfUsersToBeAdd(Arrays.asList(3L));
+        groupDTO.setIdsOfGroupsOfImportedUsers(List.of(2L));
+        groupDTO.setIdsOfUsersToBeAdd(List.of(3L));
 
         return groupDTO;
     }
@@ -386,7 +383,7 @@ public class GroupsRestControllerTest {
         NewGroupDTO newGroupDTO = new NewGroupDTO();
         newGroupDTO.setName("GroupOne");
         newGroupDTO.setDescription("Group One");
-        newGroupDTO.setGroupIdsOfImportedUsers(Arrays.asList(1L));
+        newGroupDTO.setGroupIdsOfImportedUsers(List.of(1L));
         newGroupDTO.setUsers(Set.of(getUserForGroupsDTO()));
 
         return newGroupDTO;
