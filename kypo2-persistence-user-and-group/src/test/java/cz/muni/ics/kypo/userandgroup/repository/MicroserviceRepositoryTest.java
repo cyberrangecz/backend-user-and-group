@@ -1,6 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.entities.Microservice;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import static org.junit.Assert.assertFalse;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.entities"})
 public class MicroserviceRepositoryTest {
 
     @Autowired

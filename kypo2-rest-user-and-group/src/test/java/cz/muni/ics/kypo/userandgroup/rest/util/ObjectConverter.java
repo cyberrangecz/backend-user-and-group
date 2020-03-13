@@ -12,9 +12,9 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMapping;
 import cz.muni.ics.kypo.userandgroup.mapping.modelmapper.BeanMappingImpl;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import org.modelmapper.ModelMapper;
 
 import java.io.IOException;

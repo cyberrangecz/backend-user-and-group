@@ -31,7 +31,7 @@
         <mitre.oidc.version>1.3.3</mitre.oidc.version>
         <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
 
-        <!-- model mappers -->
+        <!-- entities mappers -->
         <modelmapper.version>2.3.4</modelmapper.version>
         <!-- mapstruct version -->
         <org.mapstruct.version>1.3.0.Final</org.mapstruct.version>

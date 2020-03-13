@@ -1,6 +1,6 @@
-package cz.muni.ics.kypo.userandgroup.model;
+package cz.muni.ics.kypo.userandgroup.entities;
 
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.entities.enums.UserAndGroupStatus;
 import org.springframework.util.Assert;
 
 import javax.persistence.*;
@@ -10,6 +10,18 @@ import java.util.*;
 /**
  * Represents a group of users who can have some roles.
  */
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+        name = "IDMGroup.usersRolesMicroservice",
+        attributeNodes = {
+            @NamedAttributeNode(value = "users"),
+            @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")
+        },
+        subgraphs = {
+            @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
+        }
+    )
+})
 @Entity
 @Table(name = "idm_group")
 public class IDMGroup extends AbstractEntity<Long> {

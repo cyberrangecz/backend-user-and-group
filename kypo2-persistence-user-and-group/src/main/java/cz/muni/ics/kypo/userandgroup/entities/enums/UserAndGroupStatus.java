@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.model.enums;
+package cz.muni.ics.kypo.userandgroup.entities.enums;
 
 /**
  * Enumeration of User and group status.

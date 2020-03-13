@@ -6,7 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
-import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;

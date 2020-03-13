@@ -2,8 +2,8 @@ package cz.muni.ics.kypo.userandgroup.rest.util;
 
 import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
-import cz.muni.ics.kypo.userandgroup.model.User;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.entities.User;
+import cz.muni.ics.kypo.userandgroup.entities.enums.RoleType;
 import org.mockito.Mockito;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

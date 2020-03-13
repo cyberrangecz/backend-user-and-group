@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.service.interfaces;
 
 import com.querydsl.core.types.Predicate;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
 import org.springframework.data.domain.Page;
@@ -37,7 +37,7 @@ public interface IDMGroupService {
      * Creates new IDMGroup.
      *
      * @param group                     IDMGroup to be created.
-     * @param groupIdsOfImportedMembers all {@link cz.muni.ics.kypo.userandgroup.model.User}s from groups with given IDs will be imported to new group.
+     * @param groupIdsOfImportedMembers all {@link cz.muni.ics.kypo.userandgroup.entities.User}s from groups with given IDs will be imported to new group.
      * @return created {@link IDMGroup}.
      * @throws EntityNotFoundException if some of the groups with given IDs could not be found.
      */
@@ -96,7 +96,7 @@ public interface IDMGroupService {
     Set<Role> getRolesOfGroup(Long id) throws EntityNotFoundException;
 
     /**
-     * Assigns the role to the IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.model.User}s in the group
+     * Assigns the role to the IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.entities.User}s in the group
      * will obtain an assigned role.
      *
      * @param groupId the ID of the IDMGroup which will getGroupById the role with the given role ID.
@@ -107,7 +107,7 @@ public interface IDMGroupService {
     IDMGroup assignRole(Long groupId, Long roleId) throws EntityNotFoundException;
 
     /**
-     * Removes role from IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.model.User}s in the group
+     * Removes role from IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.entities.User}s in the group
      * will lose this role if they do not take on this role from another group.
      *
      * @param groupId the ID of the IDMGroup from which role with role ID is removed.

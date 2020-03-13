@@ -1,6 +1,6 @@
-package cz.muni.ics.kypo.userandgroup.model;
+package cz.muni.ics.kypo.userandgroup.entities;
 
-import cz.muni.ics.kypo.userandgroup.model.enums.UserAndGroupStatus;
+import cz.muni.ics.kypo.userandgroup.entities.enums.UserAndGroupStatus;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -10,6 +10,16 @@ import java.util.Set;
 /**
  * Represents a user in the system.
  */
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+        name = "User.groupsRolesMicroservice",
+        attributeNodes = @NamedAttributeNode(value = "groups", subgraph = "groups.roles"),
+        subgraphs = {
+            @NamedSubgraph(name = "groups.roles", attributeNodes = @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")),
+            @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
+        }
+    )
+})
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
 public class User extends AbstractEntity<Long> {

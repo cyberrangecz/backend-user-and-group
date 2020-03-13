@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.model;
+package cz.muni.ics.kypo.userandgroup.entities;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

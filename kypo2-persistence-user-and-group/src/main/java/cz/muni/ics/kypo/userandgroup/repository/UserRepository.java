@@ -3,9 +3,9 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
-import cz.muni.ics.kypo.userandgroup.model.QUser;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.QUser;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import io.micrometer.core.lang.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +53,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param iss   the URI of the oidc provider
      * @return the {@link User} instance with a given login if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
+    @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Optional<User> findByLoginAndIss(String login, String iss);
 
     /**
@@ -62,7 +62,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param id unique identifier of the user.
      * @return the {@link User} instance with a given ID if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
+    @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Optional<User> findById(@NonNull Long id);
 
     /**
@@ -71,7 +71,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param userIds the ID of users.
      * @return the list of {@link User} instance based on the given IDs.
      */
-    @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
+    @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     List<User> findByIdIn(List<Long> userIds);
 
     /**
@@ -79,7 +79,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      *
      * @return list of {@link User}s wrapped up in {@link Page}.
      */
-    @EntityGraph(attributePaths = {"groups", "groups.roles", "groups.roles.microservice"})
+    @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Page<User> findAll(Predicate predicate, Pageable pageable);
 
     /**

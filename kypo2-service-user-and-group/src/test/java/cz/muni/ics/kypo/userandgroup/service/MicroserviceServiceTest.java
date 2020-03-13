@@ -2,7 +2,7 @@ package cz.muni.ics.kypo.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
+import cz.muni.ics.kypo.userandgroup.entities.Microservice;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.service.impl.MicroserviceServiceImpl;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;

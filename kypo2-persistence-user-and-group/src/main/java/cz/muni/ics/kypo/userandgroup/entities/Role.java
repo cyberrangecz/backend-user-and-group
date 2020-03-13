@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.model;
+package cz.muni.ics.kypo.userandgroup.entities;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -6,6 +6,12 @@ import java.util.Objects;
 /**
  * Represents the role of users. Each role gives different rights to users.
  */
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+        name = "Role.microservice",
+        attributeNodes = {@NamedAttributeNode(value = "microservice")}
+    )
+})
 @Entity
 @Table(name = "role")
 public class Role extends AbstractEntity<Long> {

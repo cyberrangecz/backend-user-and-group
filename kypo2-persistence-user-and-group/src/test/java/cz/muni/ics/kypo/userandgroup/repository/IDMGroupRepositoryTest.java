@@ -1,9 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.Microservice;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
-@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.model"})
+@EntityScan(basePackages = {"cz.muni.ics.kypo.userandgroup.entities"})
 @ComponentScan(basePackages = "cz.muni.ics.kypo.userandgroup.util")
 public class IDMGroupRepositoryTest {
 

@@ -12,6 +12,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.model.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
+@PreAuthorize("hasAuthority(T(cz.muni.ics.kypo.userandgroup.entities.enums.RoleType).ROLE_USER_AND_GROUP_GUEST)")
 public @interface IsGuest {
 }

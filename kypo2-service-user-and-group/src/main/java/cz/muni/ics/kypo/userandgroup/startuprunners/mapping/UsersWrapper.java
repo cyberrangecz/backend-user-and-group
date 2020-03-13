@@ -1,14 +1,14 @@
 package cz.muni.ics.kypo.userandgroup.startuprunners.mapping;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import cz.muni.ics.kypo.userandgroup.model.enums.RoleType;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class is used for loading and wrapping {@link User} with his {@link cz.muni.ics.kypo.userandgroup.model.Role}s from the configuration file.
+ * This class is used for loading and wrapping {@link User} with his {@link cz.muni.ics.kypo.userandgroup.entities.Role}s from the configuration file.
  */
 public class UsersWrapper {
 
@@ -44,7 +44,7 @@ public class UsersWrapper {
     }
 
     /**
-     * Sets {@link cz.muni.ics.kypo.userandgroup.model.Role}s to the {@link User}.
+     * Sets {@link cz.muni.ics.kypo.userandgroup.entities.Role}s to the {@link User}.
      *
      * @param roles roles to be set for the {@link User}
      */
