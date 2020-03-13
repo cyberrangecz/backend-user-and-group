@@ -2,8 +2,8 @@ package cz.muni.ics.kypo.userandgroup.service.impl;
 
 import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

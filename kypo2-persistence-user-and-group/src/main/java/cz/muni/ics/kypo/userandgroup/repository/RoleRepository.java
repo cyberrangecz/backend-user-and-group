@@ -3,8 +3,8 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
-import cz.muni.ics.kypo.userandgroup.model.QRole;
-import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.entities.QRole;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -47,7 +47,7 @@ public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredi
      * @param roleType the name of the role.
      * @return {@link Role} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @EntityGraph(attributePaths = {"microservice"})
+    @EntityGraph(value = "Role.microservice", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Role> findByRoleType(String roleType);
 
     /**
@@ -55,7 +55,7 @@ public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredi
      *
      * @return list of {@link Role}s wrapped by {@link Page}.
      */
-    @EntityGraph(attributePaths = {"microservice"})
+    @EntityGraph(value = "Role.microservice", type = EntityGraph.EntityGraphType.FETCH)
     Page<Role> findAll(Predicate predicate, Pageable pageable);
 
     /**
@@ -78,7 +78,7 @@ public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredi
     /**
      * Gets all roles by microservice name.
      *
-     * @param microserviceName the name of {@link cz.muni.ics.kypo.userandgroup.model.Microservice}
+     * @param microserviceName the name of {@link cz.muni.ics.kypo.userandgroup.entities.Microservice}
      * @return the set of {@link Role}s
      */
     @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName")

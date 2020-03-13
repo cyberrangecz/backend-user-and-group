@@ -11,9 +11,9 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UnprocessableEntityException
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.MicroserviceMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.Microservice;
-import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.Microservice;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.MicroserviceService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;

@@ -3,8 +3,8 @@ package cz.muni.ics.kypo.userandgroup.service.interfaces;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
-import cz.muni.ics.kypo.userandgroup.model.Role;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -99,7 +99,7 @@ public interface UserService {
      * @param groupId   the ID of the IDMGroup.
      * @param predicate represents a predicate (boolean-valued function) of one argument.
      * @param pageable  pageable parameter with information about pagination.
-     * @return list of users who are not in the {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup} with the given group ID and wrapped up in {@link Page}.
+     * @return list of users who are not in the {@link cz.muni.ics.kypo.userandgroup.entities.IDMGroup} with the given group ID and wrapped up in {@link Page}.
      */
     Page<User> getAllUsersNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable);
 
@@ -117,7 +117,7 @@ public interface UserService {
      * Gets users with IDMGroups from the database.
      *
      * @param id the ID of the user to be loaded.
-     * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s from the database.
+     * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.entities.IDMGroup}s from the database.
      * @throws EntityNotFoundException if user could not be found.
      */
     User getUserWithGroups(Long id);
@@ -149,7 +149,7 @@ public interface UserService {
      *
      * @param login the login of the user to be loaded.
      * @param iss   issuer - URI of the oidc provider
-     * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.model.IDMGroup}s from the database.
+     * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.entities.IDMGroup}s from the database.
      * @throws EntityNotFoundException if user could not be found.
      */
     User getUserWithGroups(String login, String iss);

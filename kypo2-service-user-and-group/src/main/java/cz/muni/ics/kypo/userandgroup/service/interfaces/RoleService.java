@@ -3,7 +3,7 @@ package cz.muni.ics.kypo.userandgroup.service.interfaces;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
-import cz.muni.ics.kypo.userandgroup.model.Role;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -59,7 +59,7 @@ public interface RoleService {
     void createRole(Role role) throws EntityConflictException;
 
     /**
-     * Returns all roles of given {@link cz.muni.ics.kypo.userandgroup.model.Microservice}
+     * Returns all roles of given {@link cz.muni.ics.kypo.userandgroup.entities.Microservice}
      *
      * @param nameOfMicroservice unique name of microservice for which getGroupById roles.
      * @return set of {@link Role}s of microservice with the given name.

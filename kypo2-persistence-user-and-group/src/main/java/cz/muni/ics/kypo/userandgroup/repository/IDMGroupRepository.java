@@ -3,9 +3,9 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
-import cz.muni.ics.kypo.userandgroup.model.IDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.QIDMGroup;
-import cz.muni.ics.kypo.userandgroup.model.User;
+import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.QIDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -50,7 +50,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param name the name of the looking IDMGroup.
      * @return {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
+    @EntityGraph(value = "IDMGroup.usersRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Optional<IDMGroup> findByName(String name);
 
     /**
@@ -68,7 +68,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param id ID of looking IDMGroup
      * @return the {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
+    @EntityGraph(value = "IDMGroup.usersRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Optional<IDMGroup> findById(Long id);
 
     /**
@@ -77,7 +77,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param groupIds the IDs of groups.
      * @return the list of {@link IDMGroup} instance based on the given IDs.
      */
-    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
+    @EntityGraph(value = "IDMGroup.usersRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     List<IDMGroup> findByIdIn(List<Long> groupIds);
 
     /**
@@ -85,7 +85,7 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      *
      * @return list of {@link IDMGroup}s wrapped up in  {@link Page}.
      */
-    @EntityGraph(attributePaths = {"roles", "roles.microservice", "users"})
+    @EntityGraph(value = "IDMGroup.usersRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Page<IDMGroup> findAll(Predicate predicate, Pageable pageable);
 
     /**
