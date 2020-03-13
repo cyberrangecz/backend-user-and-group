@@ -36,6 +36,7 @@ createTag:
   # update project versions in multi-module maven project
   - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
+  - git push -o ci.skip
   # update change log
   #- CURRENT_TAG=$(git tag | head -1)
   #- PREVIOUS_TAG=$(git tag | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}')
