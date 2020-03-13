@@ -1,15 +1,15 @@
 - user:
-    sub: 441048@muni.cz
+    login: 441048@muni.cz
     iss: https://oidc.muni.cz/oidc/
   roles:
     - ROLE_USER_AND_GROUP_ADMINISTRATOR
 - user:
-    sub: 374100@muni.cz
+    login: 374100@muni.cz
     iss: https://oidc.muni.cz/oidc/
   roles:
     - ROLE_USER_AND_GROUP_ADMINISTRATOR
 - user:
-    sub: 445537@muni.cz
+    login: 445537@muni.cz
     iss: https://oidc.muni.cz/oidc/
   roles:
     - ROLE_USER_AND_GROUP_ADMINISTRATOR
