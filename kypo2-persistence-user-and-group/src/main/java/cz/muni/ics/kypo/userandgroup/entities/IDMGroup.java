@@ -10,20 +10,46 @@ import java.util.*;
 /**
  * Represents a group of users who can have some roles.
  */
-@NamedEntityGraphs({
-    @NamedEntityGraph(
-        name = "IDMGroup.usersRolesMicroservice",
-        attributeNodes = {
-            @NamedAttributeNode(value = "users"),
-            @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")
-        },
-        subgraphs = {
-            @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
-        }
-    )
-})
 @Entity
 @Table(name = "idm_group")
+@NamedEntityGraphs({
+        @NamedEntityGraph(
+                name = "IDMGroup.usersRolesMicroservice",
+                attributeNodes = {
+                        @NamedAttributeNode(value = "users"),
+                        @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")
+                },
+                subgraphs = {
+                        @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
+                }
+        )
+})
+@NamedQueries({
+        @NamedQuery(
+                name = "IDMGroup.findByNameWithRoles",
+                query = "SELECT g FROM IDMGroup g JOIN FETCH g.roles WHERE g.name = :name"
+        ),
+        @NamedQuery(
+                name = "IDMGroup.findAllByRoleType",
+                query = "SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType"
+        ),
+        @NamedQuery(
+                name = "IDMGroup.findAdministratorGroup",
+                query = "SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = 'ROLE_USER_AND_GROUP_ADMINISTRATOR'"
+        ),
+        @NamedQuery(
+                name = "IDMGroup.getIDMGroupByNameWithUsers",
+                query = "SELECT g FROM IDMGroup g LEFT JOIN FETCH g.users WHERE g.name = :name"
+        ),
+        @NamedQuery(
+                name = "IDMGroup.deleteExpiredIDMGroups",
+                query = "DELETE FROM IDMGroup g WHERE g.expirationDate <= CURRENT_TIMESTAMP"
+        ),
+        @NamedQuery(
+                name = "IDMGroup.findUsersOfGivenGroups",
+                query = "SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds"
+        )
+})
 public class IDMGroup extends AbstractEntity<Long> {
 
     @Column(name = "name", nullable = false, unique = true)

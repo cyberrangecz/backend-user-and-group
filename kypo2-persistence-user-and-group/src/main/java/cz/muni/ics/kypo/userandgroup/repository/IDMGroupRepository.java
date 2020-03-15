@@ -59,7 +59,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param name the name of the looking IDMGroup.
      * @return {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT g FROM IDMGroup g JOIN FETCH g.roles WHERE  g.name = :name")
     Optional<IDMGroup> findByNameWithRoles(@Param("name") String name);
 
     /**
@@ -94,7 +93,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param roleType the role type of the groups.
      * @return the list of {@link IDMGroup}s.
      */
-    @Query("SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType")
     List<IDMGroup> findAllByRoleType(@Param("roleType") String roleType);
 
     /**
@@ -102,7 +100,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      *
      * @return the {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = 'ROLE_USER_AND_GROUP_ADMINISTRATOR'")
     Optional<IDMGroup> findAdministratorGroup();
 
     /**
@@ -111,14 +108,12 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param name name of the looking IDMGroup.
      * @return the {@link IDMGroup} if the group is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT g FROM IDMGroup g LEFT JOIN FETCH g.users WHERE g.name = :name")
     Optional<IDMGroup> getIDMGroupByNameWithUsers(@Param("name") String name);
 
     /**
      * Delete expired {@link IDMGroup}.
      */
     @Modifying
-    @Query("DELETE FROM IDMGroup g WHERE g.expirationDate <= CURRENT_TIMESTAMP")
     void deleteExpiredIDMGroups();
 
     /**
@@ -127,7 +122,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      * @param groupIds IDs of groups.
      * @return the set of {@link User}s.
      */
-    @Query("SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds")
     Set<User> findUsersOfGivenGroups(@Param("groupsIds") List<Long> groupIds);
 
     boolean existsByName(String groupName);
