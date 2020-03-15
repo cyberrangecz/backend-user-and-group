@@ -24,7 +24,7 @@ RUN /etc/init.d/postgresql start &&\
     mvn flyway:migrate -Djdbc.url="jdbc:postgresql://localhost:5432/$POSTGRES_DB" -Djdbc.username="$USERNAME" -Djdbc.password="$PASSWORD" &&\
     mkdir -p /var/log/supervisor &&\
     cp /app/supervisord.conf /etc/supervisor/supervisord.conf &&\
-    cp /app/$PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar /app/$PROJECT_ARTIFACT_ID.jar
+    cp /app/$PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar /app/kypo-rest-user-and-group.jar
 
 WORKDIR /app
 EXPOSE 8084
