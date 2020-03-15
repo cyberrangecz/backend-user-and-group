@@ -88,7 +88,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param id the unique identifier of the user.
      * @return the login of the {@link User} with a given ID if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT u.login FROM User u WHERE u.id = :userId")
     Optional<String> getLogin(@Param("userId") Long id);
 
     /**
@@ -97,7 +96,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param userId the unique identifier of the user.
      * @return the {@link Role}s of the user with the given ID.
      */
-    @Query("SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId")
     Set<Role> getRolesOfUser(@Param("userId") Long userId);
 
     /**
@@ -107,7 +105,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param iss   the iss
      * @return the {@link User} instance with groups if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login AND u.iss = :iss")
     Optional<User> getUserByLoginWithGroups(@Param("login") String login, @Param("iss") String iss);
 
     /**
@@ -116,7 +113,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param userId unique identifier of the user.
      * @return the {@link User} instance with groups if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId")
     Optional<User> getUserByIdWithGroups(@Param("userId") Long userId);
 
     /**
@@ -125,7 +121,5 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param ids set of ids of users who we are looking for.
      * @return returns set of all {@link User}s whose ids are in a given set of ids.
      */
-    @Query(value = "SELECT u FROM User u WHERE u.id IN :ids",
-            countQuery = "SELECT COUNT(u) FROM User u WHERE u.id IN :ids")
     Page<User> findAllWithGivenIds(@Param("ids") Set<Long> ids, Pageable pageable);
 }

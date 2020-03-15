@@ -64,7 +64,6 @@ public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredi
      * @param id the ID of the looking Role.
      * @return the {@link Role} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice WHERE r.id= :id")
     Optional<Role> findById(@Param("id") Long id);
 
     /**
@@ -81,7 +80,6 @@ public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredi
      * @param microserviceName the name of {@link cz.muni.ics.kypo.userandgroup.entities.Microservice}
      * @return the set of {@link Role}s
      */
-    @Query(value = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName")
     Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
 
     /**
@@ -90,7 +88,6 @@ public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredi
      * @param microserviceName the name of the microservice.
      * @return {@link Role} if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    @Query(value = "SELECT r FROM Role r INNER JOIN r.microservice m WHERE m.name = :microserviceName AND r IN (SELECT r FROM IDMGroup g INNER JOIN g.roles r WHERE g.name = 'DEFAULT-GROUP') ")
     Optional<Role> findDefaultRoleOfMicroservice(@Param("microserviceName") String microserviceName);
 
 }

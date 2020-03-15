@@ -6,14 +6,28 @@ import java.util.Objects;
 /**
  * Represents the role of users. Each role gives different rights to users.
  */
-@NamedEntityGraphs({
-    @NamedEntityGraph(
-        name = "Role.microservice",
-        attributeNodes = {@NamedAttributeNode(value = "microservice")}
-    )
-})
 @Entity
 @Table(name = "role")
+@NamedEntityGraphs({
+        @NamedEntityGraph(
+                name = "Role.microservice",
+                attributeNodes = {@NamedAttributeNode(value = "microservice")}
+        )
+})
+@NamedQueries({
+        @NamedQuery(
+                name = "Role.findById",
+                query = "SELECT r FROM Role r JOIN FETCH r.microservice WHERE r.id= :id"
+        ),
+        @NamedQuery(
+                name = "Role.getAllRolesByMicroserviceName",
+                query = "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName"
+        ),
+        @NamedQuery(
+                name = "Role.findDefaultRoleOfMicroservice",
+                query = "SELECT r FROM Role r INNER JOIN r.microservice m WHERE m.name = :microserviceName AND r IN (SELECT r FROM IDMGroup g INNER JOIN g.roles r WHERE g.name = 'DEFAULT-GROUP')"
+        )
+})
 public class Role extends AbstractEntity<Long> {
 
     @Column(name = "role_type", unique = true, nullable = false)
@@ -97,7 +111,7 @@ public class Role extends AbstractEntity<Long> {
 
     @Override
     public boolean equals(Object object) {
-        if(!(object instanceof Role)) {
+        if (!(object instanceof Role)) {
             return false;
         }
         Role other = (Role) object;

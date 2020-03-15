@@ -10,18 +10,40 @@ import java.util.Set;
 /**
  * Represents a user in the system.
  */
-@NamedEntityGraphs({
-    @NamedEntityGraph(
-        name = "User.groupsRolesMicroservice",
-        attributeNodes = @NamedAttributeNode(value = "groups", subgraph = "groups.roles"),
-        subgraphs = {
-            @NamedSubgraph(name = "groups.roles", attributeNodes = @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")),
-            @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
-        }
-    )
-})
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
+@NamedEntityGraphs({
+        @NamedEntityGraph(
+                name = "User.groupsRolesMicroservice",
+                attributeNodes = @NamedAttributeNode(value = "groups", subgraph = "groups.roles"),
+                subgraphs = {
+                        @NamedSubgraph(name = "groups.roles", attributeNodes = @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")),
+                        @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
+                }
+        )
+})
+@NamedQueries({
+        @NamedQuery(
+                name = "User.getLogin",
+                query = "SELECT u.login FROM User u WHERE u.id = :userId"
+        ),
+        @NamedQuery(
+                name = "User.getRolesOfUser",
+                query = "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId"
+        ),
+        @NamedQuery(
+                name = "User.getUserByLoginWithGroups",
+                query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login AND u.iss = :iss"
+        ),
+        @NamedQuery(
+                name = "User.getUserByIdWithGroups",
+                query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId"
+        ),
+        @NamedQuery(
+                name = "User.findAllWithGivenIds",
+                query = "SELECT u FROM User u WHERE u.id IN :ids"
+        )
+})
 public class User extends AbstractEntity<Long> {
 
     @Column(name = "login", nullable = false)
