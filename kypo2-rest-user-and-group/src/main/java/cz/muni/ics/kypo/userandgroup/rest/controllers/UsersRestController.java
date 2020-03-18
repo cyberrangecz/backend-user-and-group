@@ -109,7 +109,7 @@ public class UsersRestController {
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @ApiPageableSwagger
-    @GetMapping(value = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersInGroups(@ApiParam(value = "Filtering on User entity attributes", required = false)
                                                    @QuerydslPredicate(root = User.class) Predicate predicate,
                                                    Pageable pageable,
@@ -137,9 +137,9 @@ public class UsersRestController {
             @ApiResponse(code = 404, message = "User not found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.", required = true)
-                                           @PathVariable("id") final Long id) {
+                                           @PathVariable("userId") final Long id) {
         return ResponseEntity.ok(userFacade.getUserById(id));
     }
 
@@ -193,9 +193,9 @@ public class UsersRestController {
             @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUser(@ApiParam(value = "Screen name of user to be deleted.", required = true)
-                                                              @PathVariable("id") final Long id) {
+                                                              @PathVariable("userId") final Long id) {
         userFacade.deleteUser(id);
         return new ResponseEntity(HttpStatus.OK);
     }
@@ -240,9 +240,9 @@ public class UsersRestController {
             @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{id}/roles")
+    @GetMapping(path = "/{userId}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfUser(@ApiParam(value = "id", required = true)
-                                                       @PathVariable("id") final Long id) {
+                                                       @PathVariable("userId") final Long id) {
         return ResponseEntity.ok(userFacade.getRolesOfUser(id));
     }
 
@@ -290,7 +290,7 @@ public class UsersRestController {
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
     @ApiPageableSwagger
-    @GetMapping(value = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getUsersWithGivenIds(
             @ApiParam(value = "Filtering on User entity attributes", required = false)
             @QuerydslPredicate(root = User.class) Predicate predicate,

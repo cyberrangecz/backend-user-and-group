@@ -97,9 +97,9 @@ public class RolesRestController {
             @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{roleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleDTO> getRole(@ApiParam(value = "Id of role to be returned", required = true)
-                                           @PathVariable("id") final Long id) {
+                                           @PathVariable("roleId") final Long id) {
         return ResponseEntity.ok(roleFacade.getRoleById(id));
     }
 

@@ -126,9 +126,9 @@ public class GroupsRestController {
             @ApiResponse(code = 409, message = "Users cannot be removed from default group or administrator cannot remove himself.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @DeleteMapping(path = "/{id}/users")
+    @DeleteMapping(path = "/{groupId}/users")
     public ResponseEntity<Void> removeUsers(@ApiParam(value = "Id of group to remove users.", required = true)
-                                            @PathVariable("id") final Long id,
+                                            @PathVariable("groupId") final Long id,
                                             @ApiParam(value = "Ids of members to be removed from group.", required = true)
                                             @RequestBody List<@NotNull Long> userIds) {
         groupFacade.removeUsers(id, userIds);
@@ -153,9 +153,9 @@ public class GroupsRestController {
             @ApiResponse(code = 404, message = "Group or some user cannot be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @PutMapping(path = "/{id}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{groupId}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
-                                         @PathVariable("id") final Long groupId,
+                                         @PathVariable("groupId") final Long groupId,
                                          @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
                                          @Valid @RequestBody AddUsersToGroupDTO addUsers) {
         groupFacade.addUsersToGroup(groupId, addUsers);
@@ -180,9 +180,9 @@ public class GroupsRestController {
             @ApiResponse(code = 405, message = "Group cannot be deleted because it is a main group.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
-                                            @PathVariable("id") final Long id) {
+                                            @PathVariable("groupId") final Long id) {
         groupFacade.deleteGroup(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -258,9 +258,9 @@ public class GroupsRestController {
             @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
-                                             @PathVariable("id") Long id) {
+                                             @PathVariable("groupId") Long id) {
         return ResponseEntity.ok(groupFacade.getGroupById(id));
     }
 
@@ -280,9 +280,9 @@ public class GroupsRestController {
             @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{id}/roles")
+    @GetMapping(path = "/{groupId}/roles")
     public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
-                                                        @PathVariable("id") final Long id) {
+                                                        @PathVariable("groupId") final Long id) {
         return ResponseEntity.ok(groupFacade.getRolesOfGroup(id));
     }
 
