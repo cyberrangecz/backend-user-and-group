@@ -114,15 +114,15 @@ public class UserFacadeImpl implements UserFacade {
         }
     }
 
-    private UserDTO createNewUserWithDefaultGroupRoles(String login, String issuer, JsonObject introspectionResponse) {
+    private UserDTO createNewUserWithDefaultGroupRoles(String sub, String issuer, JsonObject introspectionResponse) {
         User userToCreate = new User();
-        userToCreate.setLogin(login);
+        userToCreate.setLogin(sub);
         userToCreate.setIss(issuer);
         userToCreate.setFullName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.NAME));
         userToCreate.setMail(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.EMAIL));
         userToCreate.setGivenName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.GIVEN_NAME));
         userToCreate.setFamilyName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.FAMILY_NAME));
-        userToCreate.setPicture(identiconService.generateIdenticons(login + issuer, ICON_WIDTH, ICON_HEIGHT));
+        userToCreate.setPicture(identiconService.generateIdenticons(sub + issuer, ICON_WIDTH, ICON_HEIGHT));
 
         User newlyCreatedUser = userService.createUser(userToCreate);
         idmGroupService.getIDMGroupWithRolesByName(ImplicitGroupNames.DEFAULT_GROUP.getName()).addUser(newlyCreatedUser);
@@ -216,7 +216,7 @@ public class UserFacadeImpl implements UserFacade {
     @IsGuest
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
-       return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
+        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
 
     @Override
