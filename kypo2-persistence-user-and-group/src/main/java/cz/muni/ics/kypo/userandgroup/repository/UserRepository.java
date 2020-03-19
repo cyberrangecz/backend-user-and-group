@@ -56,7 +56,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @return the {@link User} instance with a given login if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
-    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<User> findByLoginAndIss(String login, String iss);
 
     /**
