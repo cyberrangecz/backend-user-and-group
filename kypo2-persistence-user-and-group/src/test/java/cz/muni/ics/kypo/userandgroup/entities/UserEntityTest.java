@@ -24,7 +24,7 @@ public class UserEntityTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private String login = "login";
+    private String sub = "sub";
 
     @SpringBootApplication
     static class TestConfiguration {
@@ -38,7 +38,7 @@ public class UserEntityTest {
 
     @Test
     public void saveShouldPersistData() {
-        User u = this.entityManager.persistFlushFind(new User(login, "https://oidc.muni.cz/oidc/"));
-        assertEquals(login, u.getLogin());
+        User u = this.entityManager.persistFlushFind(new User(sub, "https://oidc.muni.cz/oidc/"));
+        assertEquals(sub, u.getSub());
     }
 }

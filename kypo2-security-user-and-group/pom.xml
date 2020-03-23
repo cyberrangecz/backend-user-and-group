@@ -52,7 +52,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- library to generate sha256 from login and issuer-->
+        <!-- library to generate sha256 from sub and issuer-->
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>

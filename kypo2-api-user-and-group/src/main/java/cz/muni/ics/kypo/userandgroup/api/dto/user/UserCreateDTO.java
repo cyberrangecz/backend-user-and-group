@@ -10,8 +10,8 @@ import java.util.Objects;
  */
 @ApiModel(value = "UserCreateDto", description = "Information that are necessary to create a user.")
 public class UserCreateDTO {
-    @ApiModelProperty(name = "login", value = "User login.", example = "seda@ics.muni.cz")
-    private String login;
+    @ApiModelProperty(name = "sub", value = "User sub.", example = "seda@ics.muni.cz")
+    private String sub;
     @ApiModelProperty(name = "full_name", value = "User full name.", example = "Pavel Seda")
     private String fullName;
     @ApiModelProperty(name = "given_name", value = "User given name.", example = "Pavel")
@@ -30,12 +30,12 @@ public class UserCreateDTO {
     public UserCreateDTO() {
     }
 
-    public String getLogin() {
-        return login;
+    public String getSub() {
+        return sub;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setSub(String sub) {
+        this.sub = sub;
     }
 
     public String getFullName() {
@@ -99,19 +99,19 @@ public class UserCreateDTO {
         if (this == o) return true;
         if (!(o instanceof UserCreateDTO)) return false;
         UserCreateDTO that = (UserCreateDTO) o;
-        return getLogin().equals(that.getLogin()) &&
+        return getSub().equals(that.getSub()) &&
                 getIss().equals(that.getIss());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getLogin(), getIss());
+        return Objects.hash(getSub(), getIss());
     }
 
     @Override
     public String toString() {
         return "UserCreateDto{" +
-                "login='" + login + '\'' +
+                "sub='" + sub + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +

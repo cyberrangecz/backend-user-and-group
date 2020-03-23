@@ -140,8 +140,8 @@ public class UserFacadeTest {
         for (IDMGroup groupOfUser: user1.getGroups()) {
             expectedRoles.addAll(groupOfUser.getRoles());
         }
-        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
-        UserDTO userDTO = userFacade.getUserInfo(user1.getLogin(), user1.getIss());
+        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.of(user1));
+        UserDTO userDTO = userFacade.getUserInfo(user1.getSub(), user1.getIss());
 
         userDTO1.setId(user1.getId());
         assertEquals(userDTO1, userDTO);
@@ -157,8 +157,8 @@ public class UserFacadeTest {
 
     @Test(expected = EntityNotFoundException.class)
     public void testGetUserInfoWithEmptyUserOptional(){
-        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.empty());
-        userFacade.getUserInfo(user1.getLogin(), user1.getIss());
+        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.empty());
+        userFacade.getUserInfo(user1.getSub(), user1.getIss());
     }
 
     @Test
@@ -171,16 +171,16 @@ public class UserFacadeTest {
 
     @Test
     public void testCreateOrUpdateOrGetOIDCUserCreate() {
-        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.empty());
+        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.empty());
         given(userService.createUser(user1)).willReturn(user1);
         given(idmGroupService.getIDMGroupWithRolesByName(ImplicitGroupNames.DEFAULT_GROUP.getName())).willReturn(defaultGroup);
-        userFacade.createOrUpdateOrGetOIDCUser(user1.getLogin(), user1.getIss(), createSub(user1));
+        userFacade.createOrUpdateOrGetOIDCUser(user1.getSub(), user1.getIss(), createSub(user1));
     }
 
     @Test
     public void testCreateOrUpdateOrGetOIDCUserUpdate() {
-        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.ofNullable(user1));
-        userFacade.createOrUpdateOrGetOIDCUser(user1.getLogin(), user1.getIss(), createSub(user1));
+        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.ofNullable(user1));
+        userFacade.createOrUpdateOrGetOIDCUser(user1.getSub(), user1.getIss(), createSub(user1));
 
         then(userService).should().updateUser(user1);
     }
@@ -189,10 +189,10 @@ public class UserFacadeTest {
     public void testCreateOrUpdateOrGetOIDCUserUpdateUserWithNullAttributes() {
         User userToUpdate = new User();
         userToUpdate.setId(user1.getId());
-        userToUpdate.setLogin(user1.getLogin());
+        userToUpdate.setSub(user1.getSub());
         userToUpdate.setIss(user1.getIss());
-        given(userService.getUserByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.ofNullable(userToUpdate));
-        userFacade.createOrUpdateOrGetOIDCUser(user1.getLogin(), user1.getIss(), createSub(user1));
+        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.ofNullable(userToUpdate));
+        userFacade.createOrUpdateOrGetOIDCUser(user1.getSub(), user1.getIss(), createSub(user1));
 
         then(userService).should().updateUser(user1);
     }
@@ -284,7 +284,7 @@ public class UserFacadeTest {
 
     private static JsonObject createSub(User user){
         JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getLogin());
+        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getSub());
         sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user.getFullName());
         sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), user.getGivenName());
         sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), user.getFamilyName());

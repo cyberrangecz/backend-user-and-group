@@ -13,8 +13,8 @@ public class UserForGroupsDTO {
 
     @ApiModelProperty(value = "Main identifiers of the user.", example = "1", position = 1)
     private Long id;
-    @ApiModelProperty(value = "Login of the user.", example = "{\"login\":\"pavelseda\",  \"iss\": \"https://oidc.muni.cz/oidc/\"}")
-    private String login;
+    @ApiModelProperty(value = "Sub of the user.", example = "441048@mail.muni.cz")
+    private String sub;
     @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     private String iss;
     @ApiModelProperty(value = "Full name of the user including his titles.", example = "Pavel Seda.")
@@ -65,21 +65,21 @@ public class UserForGroupsDTO {
     }
 
     /**
-     * Gets the login of the user.
+     * Gets the sub of the user.
      *
-     * @return the login of the user.
+     * @return the sub of the user.
      */
-    public String getLogin() {
-        return login;
+    public String getSub() {
+        return sub;
     }
 
     /**
-     * Sets the login of the user.
+     * Sets the sub of the user.
      *
-     * @param login the login of the user.
+     * @param sub the sub of the user.
      */
-    public void setLogin(String login) {
-        this.login = login;
+    public void setSub(String sub) {
+        this.sub = sub;
     }
 
     /**
@@ -182,14 +182,14 @@ public class UserForGroupsDTO {
                 Objects.equals(getFullName(), that.getFullName()) &&
                 Objects.equals(getGivenName(), that.getGivenName()) &&
                 Objects.equals(getFamilyName(), that.getFamilyName()) &&
-                Objects.equals(getLogin(), that.getLogin()) &&
+                Objects.equals(getSub(), that.getSub()) &&
                 Objects.equals(getMail(), that.getMail()) &&
                 Objects.equals(getIss(), that.getIss());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getFullName(), getGivenName(), getFamilyName(), getLogin(), getMail(), getIss());
+        return Objects.hash(getId(), getFullName(), getGivenName(), getFamilyName(), getSub(), getMail(), getIss());
     }
 
     @Override
@@ -199,7 +199,7 @@ public class UserForGroupsDTO {
                 ", fullName='" + fullName + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +
-                ", login='" + login + '\'' +
+                ", sub='" + sub + '\'' +
                 ", mail='" + mail + '\'' +
                 ", iss='" + iss + '\'' +
                 '}';

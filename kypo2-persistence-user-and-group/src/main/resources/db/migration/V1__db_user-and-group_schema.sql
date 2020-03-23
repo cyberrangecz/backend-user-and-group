@@ -1,6 +1,6 @@
 CREATE TABLE users (
    id                 BIGSERIAL NOT NULL,
-   login              varchar(255) NOT NULL,
+   sub                varchar(255) NOT NULL,
    iss                varchar(255) NOT NULL,
    full_name          varchar(255),
    given_name         varchar(255),

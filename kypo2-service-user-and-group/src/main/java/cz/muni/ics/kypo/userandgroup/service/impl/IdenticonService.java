@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
- * Service class generate icon based on login and issuer.
+ * Service class generate icon based on sub and issuer.
  */
 @Service
 public class IdenticonService {

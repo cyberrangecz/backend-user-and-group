@@ -16,8 +16,8 @@ public class UserDTO {
 
     @ApiModelProperty(value = "Main identifier of the user.", example = "1", position = 1)
     private Long id;
-    @ApiModelProperty(value = "Login of the user.", example = "pavelseda")
-    private String login;
+    @ApiModelProperty(value = "Sub of the user.", example = "441048@mail.muni.cz")
+    private String sub;
     @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     private String iss;
     @ApiModelProperty(value = "Full name of the user.", example = "Pavel Seda")
@@ -41,34 +41,34 @@ public class UserDTO {
     }
 
     /**
-     * Instantiates a new UserDTO with attributes: id, fullName, login, mail, iss.
+     * Instantiates a new UserDTO with attributes: id, fullName, sub, mail, iss.
      *
      * @param id       the id
      * @param fullName the full name
-     * @param sub    the login
+     * @param sub      the sub
      * @param mail     the mail
      */
     public UserDTO(Long id, String fullName, String sub, String mail, String iss) {
         this.id = id;
         this.fullName = fullName;
-        this.login = login;
+        this.sub = sub;
         this.mail = mail;
         this.iss = iss;
     }
 
     /**
-     * Instantiates a new UserDTO with attributes: id, fullName, login, mail, roles, iss.
+     * Instantiates a new UserDTO with attributes: id, fullName, sub, mail, roles, iss.
      *
      * @param id       the id
      * @param fullName the full name
-     * @param sub    the login
+     * @param sub      the sub
      * @param mail     the mail
      * @param roles    the roles
      */
     public UserDTO(Long id, String fullName, String sub, String mail, Set<RoleDTO> roles, String iss) {
         this.id = id;
         this.fullName = fullName;
-        this.login = login;
+        this.sub = sub;
         this.mail = mail;
         this.roles = roles;
         this.iss = iss;
@@ -111,21 +111,21 @@ public class UserDTO {
     }
 
     /**
-     * Gets the login of the user.
+     * Gets the sub of the user.
      *
-     * @return the login of the user.
+     * @return the sub of the user.
      */
-    public String getLogin() {
-        return login;
+    public String getSub() {
+        return sub;
     }
 
     /**
-     * Sets the login of the user.
+     * Sets the sub of the user.
      *
-     * @param login the login of the user.
+     * @param sub the sub of the user.
      */
-    public void setLogin(String login) {
-        this.login = login;
+    public void setSub(String sub) {
+        this.sub = sub;
     }
 
     /**
@@ -251,7 +251,7 @@ public class UserDTO {
         UserDTO userDTO = (UserDTO) object;
         return Objects.equals(getId(), userDTO.getId()) &&
                 Objects.equals(getFullName(), userDTO.getFullName()) &&
-                Objects.equals(getLogin(), userDTO.getLogin()) &&
+                Objects.equals(getSub(), userDTO.getSub()) &&
                 Objects.equals(getMail(), userDTO.getMail()) &&
                 Objects.equals(getGivenName(), userDTO.getGivenName()) &&
                 Objects.equals(getFamilyName(), userDTO.getFamilyName()) &&
@@ -260,7 +260,7 @@ public class UserDTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getFullName(), getLogin(), getMail(), getGivenName(), getFamilyName(), getIss());
+        return Objects.hash(getId(), getFullName(), getSub(), getMail(), getGivenName(), getFamilyName(), getIss());
     }
 
     @Override
@@ -268,7 +268,7 @@ public class UserDTO {
         return "UserDTO{" +
                 "id=" + id +
                 ", fullName='" + fullName + '\'' +
-                ", login='" + login + '\'' +
+                ", sub='" + sub + '\'' +
                 ", mail='" + mail + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +

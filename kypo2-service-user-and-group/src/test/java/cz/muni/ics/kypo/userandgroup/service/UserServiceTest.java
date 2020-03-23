@@ -94,15 +94,15 @@ public class UserServiceTest {
     @Test
     public void getUserBySubAndIss() {
         userGroup.addUser(user1);
-        given(userRepository.findByLoginAndIss(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
+        given(userRepository.findBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.of(user1));
 
-        Optional<User> userOptional = userService.getUserByLoginAndIss(user1.getLogin(), "https://oidc.muni.cz/oidc/");
+        Optional<User> userOptional = userService.getUserBySubAndIss(user1.getSub(), "https://oidc.muni.cz/oidc/");
         assertTrue(userOptional.isPresent());
         assertUser(user1, userOptional.get());
         for (IDMGroup g : user1.getGroups()){
             assertTrue(userOptional.get().getGroups().contains(g));
         }
-        then(userRepository).should().findByLoginAndIss(user1.getLogin(), user1.getIss());
+        then(userRepository).should().findBySubAndIss(user1.getSub(), user1.getIss());
     }
 
     @Test
@@ -255,17 +255,17 @@ public class UserServiceTest {
 
     @Test
     public void getUserWithGroupsByLogin() {
-        given(userRepository.getUserByLoginWithGroups(user1.getLogin(), user1.getIss())).willReturn(Optional.of(user1));
-        User user = userService.getUserWithGroups(user1.getLogin(), user1.getIss());
+        given(userRepository.getUserBySubWithGroups(user1.getSub(), user1.getIss())).willReturn(Optional.of(user1));
+        User user = userService.getUserWithGroups(user1.getSub(), user1.getIss());
         assertUser(user1, user);
 
-        then(userRepository).should().getUserByLoginWithGroups(user1.getLogin(), user1.getIss());
+        then(userRepository).should().getUserBySubWithGroups(user1.getSub(), user1.getIss());
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void getUserWithGroupsByLoginNotFound(){
-        given(userRepository.getUserByLoginWithGroups(user1.getLogin(), user1.getIss())).willReturn(Optional.empty());
-        userService.getUserWithGroups(user1.getLogin(), user1.getIss());
+        given(userRepository.getUserBySubWithGroups(user1.getSub(), user1.getIss())).willReturn(Optional.empty());
+        userService.getUserWithGroups(user1.getSub(), user1.getIss());
     }
 
     @Test
@@ -331,7 +331,7 @@ public class UserServiceTest {
     public void assertUser(User expected, User actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getFullName(), actual.getFullName());
-        assertEquals(expected.getLogin(), actual.getLogin());
+        assertEquals(expected.getSub(), actual.getSub());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getFamilyName(),actual.getFamilyName());
         assertEquals(expected.getGivenName(),actual.getGivenName());

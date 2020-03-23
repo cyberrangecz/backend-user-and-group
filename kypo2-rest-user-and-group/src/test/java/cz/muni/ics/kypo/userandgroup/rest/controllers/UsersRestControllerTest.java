@@ -119,7 +119,7 @@ public class UsersRestControllerTest {
     @Test
     public void getUserInfo() throws Exception{
         mockSpringSecurityContextForGet();
-        given(userFacade.getUserInfo(userDTO1.getLogin(), userDTO1.getIss())).willReturn(userDTO1);
+        given(userFacade.getUserInfo(userDTO1.getSub(), userDTO1.getIss())).willReturn(userDTO1);
 
         MockHttpServletResponse result = mockMvc.perform(
                 get("/users/info"))
@@ -271,7 +271,7 @@ public class UsersRestControllerTest {
 
     private void mockSpringSecurityContextForGet() {
         JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), userDTO1.getLogin());
+        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), userDTO1.getSub());
         sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), userDTO1.getFullName());
         sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), userDTO1.getIss());
         Authentication authentication = Mockito.mock(Authentication.class);

@@ -53,7 +53,7 @@ public class TestAuthorityGranter{
 
     private static JsonObject createSub(User user){
         JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getLogin());
+        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getSub());
         sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user.getFullName());
         sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), user.getGivenName());
         sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), user.getFamilyName());

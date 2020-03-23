@@ -29,7 +29,7 @@ public interface UserFacade {
     /**
      * Returns info about currently logged in user.
      *
-     * @param sub user idenfitication (usually his login).
+     * @param sub user idenfitication (usually his sub).
      * @param iss OIDC provider identification (e.g., MUNI OIDC).
      * @return encapsulated info about logged in user in {@link UserDTO}.
      * @throws EntityNotFoundException if logged in user could not be found in database.

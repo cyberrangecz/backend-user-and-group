@@ -49,14 +49,14 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
     }
 
     /**
-     * Find the user by his login and oidc provider used to authenticate user.
+     * Find the user by his sub and oidc provider used to authenticate user.
      *
-     * @param login unique login of the user.
+     * @param sub unique sub of the user.
      * @param iss   the URI of the oidc provider
-     * @return the {@link User} instance with a given login if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     * @return the {@link User} instance with a given sub if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
     @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
-    Optional<User> findByLoginAndIss(String login, String iss);
+    Optional<User> findBySubAndIss(String sub, String iss);
 
     /**
      * Find the user by his ID.
@@ -85,12 +85,12 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
     Page<User> findAll(Predicate predicate, Pageable pageable);
 
     /**
-     * Gets the login of the user by the given ID of the user.
+     * Gets the sub of the user by the given ID of the user.
      *
      * @param id the unique identifier of the user.
-     * @return the login of the {@link User} with a given ID if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
+     * @return the sub of the {@link User} with a given ID if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    Optional<String> getLogin(@Param("userId") Long id);
+    Optional<String> getSub(@Param("userId") Long id);
 
     /**
      * Gets roles of the user.
@@ -101,13 +101,13 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
     Set<Role> getRolesOfUser(@Param("userId") Long userId);
 
     /**
-     * Find the user by his login also with groups in which he is.
+     * Find the user by his sub also with groups in which he is.
      *
-     * @param login unique login of the user.
+     * @param sub unique sub of the user.
      * @param iss   the iss
      * @return the {@link User} instance with groups if it is found or null if it is not found. In both cases, the result is wrapped up in {@link Optional}.
      */
-    Optional<User> getUserByLoginWithGroups(@Param("login") String login, @Param("iss") String iss);
+    Optional<User> getUserBySubWithGroups(@Param("sub") String sub, @Param("iss") String iss);
 
     /**
      * Find users by his ID also with groups in which he is.
