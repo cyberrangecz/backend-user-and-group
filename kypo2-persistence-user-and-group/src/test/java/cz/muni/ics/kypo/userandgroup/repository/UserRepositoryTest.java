@@ -86,14 +86,14 @@ public class UserRepositoryTest {
     public void getLogin() throws Exception {
         String expectedLogin = "user1";
         User u = this.entityManager.persistAndFlush(new User(expectedLogin, "https://oidc.muni.cz/oidc/"));
-        Optional<String> optionalLogin = this.userRepository.getLogin(u.getId());
-        String login = optionalLogin.orElseThrow(() -> new Exception("User's login should be found"));
-        assertEquals(expectedLogin, login);
+        Optional<String> optionalLogin = this.userRepository.getSub(u.getId());
+        String sub = optionalLogin.orElseThrow(() -> new Exception("User's sub should be found"));
+        assertEquals(expectedLogin, sub);
     }
 
     @Test
     public void getLoginUserNotFound() {
-        assertFalse(this.userRepository.getLogin(100000000L).isPresent());
+        assertFalse(this.userRepository.getSub(100000000L).isPresent());
     }
 
     @Test
@@ -119,7 +119,7 @@ public class UserRepositoryTest {
         entityManager.persistAndFlush(group2);
         entityManager.persistAndFlush(group3);
 
-        Optional<User> userWithGroups = userRepository.getUserByLoginWithGroups(user1.getLogin(), user1.getIss());
+        Optional<User> userWithGroups = userRepository.getUserBySubWithGroups(user1.getSub(), user1.getIss());
         assertTrue(userWithGroups.isPresent());
         assertTrue(userWithGroups.get().getGroups().contains(group1));
         assertTrue(userWithGroups.get().getGroups().contains(group2));
@@ -243,9 +243,9 @@ public class UserRepositoryTest {
     public void findBySubAndIss() {
         String expectedSub = "user1";
         this.entityManager.persist(new User(expectedSub, "https://oidc.muni.cz/oidc/"));
-        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedSub, "https://oidc.muni.cz/oidc/");
+        Optional<User> optionalUser = this.userRepository.findBySubAndIss(expectedSub, "https://oidc.muni.cz/oidc/");
         assertTrue(optionalUser.isPresent());
-        assertEquals(expectedSub, optionalUser.get().getLogin());
+        assertEquals(expectedSub, optionalUser.get().getSub());
         assertEquals("https://oidc.muni.cz/oidc/", optionalUser.get().getIss());
 
     }
@@ -254,7 +254,7 @@ public class UserRepositoryTest {
     public void findBySubAndDifferentIss() {
         String expectedSub = "user1";
         this.entityManager.persist(new User(expectedSub, "https://oidc.muni.cz/oidc/"));
-        Optional<User> optionalUser = this.userRepository.findByLoginAndIss(expectedSub, "https://kypo.muni.cz/oidc/");
+        Optional<User> optionalUser = this.userRepository.findBySubAndIss(expectedSub, "https://kypo.muni.cz/oidc/");
         assertFalse(optionalUser.isPresent());
 
     }

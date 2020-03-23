@@ -305,7 +305,7 @@ public class IDMGroupServiceTest {
     @Test(expected = EntityConflictException.class)
     public void removeUserFromGroupWithAdminRemovingThemselves(){
         adminGroup.setUsers(new HashSet<>(Set.of(user1)));
-        given(securityService.hasLoggedInUserSameLogin(user1.getLogin())).willReturn(true);
+        given(securityService.hasLoggedInUserSameLogin(user1.getSub())).willReturn(true);
         groupService.removeUserFromGroup(adminGroup, user1);
     }
 

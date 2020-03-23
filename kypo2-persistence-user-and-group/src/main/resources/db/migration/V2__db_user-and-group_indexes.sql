@@ -7,8 +7,8 @@ ON microservice (name);
 CREATE UNIQUE INDEX role_role_type_index
 ON role (role_type);
 
-CREATE INDEX user_login_and_iss_index
-ON users (login, iss);
+CREATE INDEX user_sub_and_iss_index
+ON users (sub, iss);
 
 CREATE INDEX user_family_name_index
 ON users (family_name);

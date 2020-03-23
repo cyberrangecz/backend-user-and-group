@@ -345,9 +345,9 @@ public class TestDataFactory {
         return role;
     }
 
-    private User generateUser(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
+    private User generateUser(String sub, String givenName, String familyName, String mail, String iss, byte[] picture){
         User user = new User();
-        user.setLogin(login);
+        user.setSub(sub);
         user.setFullName(givenName + " " + familyName);
         user.setGivenName(givenName);
         user.setFamilyName(familyName);
@@ -358,9 +358,9 @@ public class TestDataFactory {
         return user;
     }
 
-    private UserDTO generateUserDTO(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
+    private UserDTO generateUserDTO(String sub, String givenName, String familyName, String mail, String iss, byte[] picture){
         UserDTO user = new UserDTO();
-        user.setLogin(login);
+        user.setSub(sub);
         user.setFullName(givenName + " " + familyName);
         user.setGivenName(givenName);
         user.setFamilyName(familyName);
@@ -370,9 +370,9 @@ public class TestDataFactory {
         return user;
     }
 
-    private UserForGroupsDTO generateUserForGroupsDTO(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
+    private UserForGroupsDTO generateUserForGroupsDTO(String sub, String givenName, String familyName, String mail, String iss, byte[] picture){
         UserForGroupsDTO user = new UserForGroupsDTO();
-        user.setLogin(login);
+        user.setSub(sub);
         user.setFullName(givenName + " " + familyName);
         user.setGivenName(givenName);
         user.setFamilyName(familyName);
@@ -382,9 +382,9 @@ public class TestDataFactory {
         return user;
     }
 
-    private UserUpdateDTO generateUserUpdateDTO(String login, String givenName, String familyName, String mail, String iss, byte[] picture){
+    private UserUpdateDTO generateUserUpdateDTO(String sub, String givenName, String familyName, String mail, String iss, byte[] picture){
         UserUpdateDTO user = new UserUpdateDTO();
-        user.setLogin(login);
+        user.setSub(sub);
         user.setFullName(givenName + " " + familyName);
         user.setGivenName(givenName);
         user.setFamilyName(familyName);
@@ -437,7 +437,7 @@ public class TestDataFactory {
         List<User> generatedUsers = new ArrayList<>();
         for (int i = 0; i<count; i++){
             User user = new User();
-            user.setLogin("Generated User Login " + i);
+            user.setSub("Generated User sub " + i);
             user.setFullName("Generated Full Name " + i);
             user.setGivenName("Generated Given Name " + i);
             user.setFamilyName("Generated Family Name " + i);

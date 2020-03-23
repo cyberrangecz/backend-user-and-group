@@ -92,9 +92,9 @@ public class UserFacadeImpl implements UserFacade {
     public UserDTO getUserInfo(String sub, String iss) {
         Assert.hasLength(sub, "In method getUserInfo(sub, iss) the input sub must not be empty.");
         Assert.hasLength(iss, "In method getUserInfo(sub, iss) the input iss must not be empty.");
-        User user = userService.getUserByLoginAndIss(sub, iss)
+        User user = userService.getUserBySubAndIss(sub, iss)
                 .orElseThrow(() ->
-                        new EntityNotFoundException(new EntityErrorDetail(User.class, "login", sub.getClass(), sub, "User not found.")));
+                        new EntityNotFoundException(new EntityErrorDetail(User.class, "sub", sub.getClass(), sub, "User not found.")));
         return userMapper.mapToUserDTOWithRoles(user);
     }
 
@@ -104,7 +104,7 @@ public class UserFacadeImpl implements UserFacade {
         Assert.hasLength(sub, "In method createOrUpdateOrGetOIDCUser(sub, iss) the input sub must not be empty.");
         Assert.hasLength(iss, "In method createOrUpdateOrGetOIDCUser(sub, iss) the input iss must not be empty.");
 
-        Optional<User> user = userService.getUserByLoginAndIss(sub, iss);
+        Optional<User> user = userService.getUserBySubAndIss(sub, iss);
         if (user.isPresent()) {
             return this.updateExistingUserInfo(user.get(), introspectionResponse);
         } else {
@@ -116,7 +116,7 @@ public class UserFacadeImpl implements UserFacade {
 
     private UserDTO createNewUserWithDefaultGroupRoles(String sub, String issuer, JsonObject introspectionResponse) {
         User userToCreate = new User();
-        userToCreate.setLogin(sub);
+        userToCreate.setSub(sub);
         userToCreate.setIss(issuer);
         userToCreate.setFullName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.NAME));
         userToCreate.setMail(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.EMAIL));

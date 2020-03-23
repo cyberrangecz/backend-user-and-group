@@ -11,7 +11,7 @@ import java.util.Set;
  * Represents a user in the system.
  */
 @Entity
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"login", "iss"}))
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"sub", "iss"}))
 @NamedEntityGraphs({
         @NamedEntityGraph(
                 name = "User.groupsRolesMicroservice",
@@ -24,16 +24,16 @@ import java.util.Set;
 })
 @NamedQueries({
         @NamedQuery(
-                name = "User.getLogin",
-                query = "SELECT u.login FROM User u WHERE u.id = :userId"
+                name = "User.getSub",
+                query = "SELECT u.sub FROM User u WHERE u.id = :userId"
         ),
         @NamedQuery(
                 name = "User.getRolesOfUser",
                 query = "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId"
         ),
         @NamedQuery(
-                name = "User.getUserByLoginWithGroups",
-                query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.login = :login AND u.iss = :iss"
+                name = "User.getUserBySubWithGroups",
+                query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.sub = :sub AND u.iss = :iss"
         ),
         @NamedQuery(
                 name = "User.getUserByIdWithGroups",
@@ -46,8 +46,8 @@ import java.util.Set;
 })
 public class User extends AbstractEntity<Long> {
 
-    @Column(name = "login", nullable = false)
-    private String login;
+    @Column(name = "sub", nullable = false)
+    private String sub;
     @Column(name = "full_name")
     private String fullName;
     @Column(name = "given_name")
@@ -77,13 +77,13 @@ public class User extends AbstractEntity<Long> {
     }
 
     /**
-     * Instantiates a new User with login and his oidc provider . Login should not be empty.
+     * Instantiates a new User with sub and his oidc provider. Sub should not be empty.
      *
-     * @param login the login of type String. Login should be of type 13***5@muni.cz
+     * @param sub the sub of type String. Sub should be of type 13***5@muni.cz
      * @param iss   URI of provider which will be used to authenticate this user.
      */
-    public User(String login, String iss) {
-        this.login = login;
+    public User(String sub, String iss) {
+        this.sub = sub;
         this.status = UserAndGroupStatus.VALID;
         this.iss = iss;
     }
@@ -107,21 +107,21 @@ public class User extends AbstractEntity<Long> {
     }
 
     /**
-     * Gets the login of the user.
+     * Gets the sub of the user.
      *
-     * @return the login of the user.
+     * @return the sub of the user.
      */
-    public String getLogin() {
-        return login;
+    public String getSub() {
+        return sub;
     }
 
     /**
-     * Sets a new login of the user.
+     * Sets a new sub of the user.
      *
-     * @param login the login of the user.
+     * @param sub the sub of the user.
      */
-    public void setLogin(String login) {
-        this.login = login;
+    public void setSub(String sub) {
+        this.sub = sub;
     }
 
     /**
@@ -317,20 +317,20 @@ public class User extends AbstractEntity<Long> {
     public boolean equals(Object object) {
         if (!(object instanceof User)) return false;
         User user = (User) object;
-        return Objects.equals(getLogin(), user.getLogin()) &&
+        return Objects.equals(getSub(), user.getSub()) &&
                 Objects.equals(getIss(), user.getIss());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getLogin(), getIss());
+        return Objects.hash(getSub(), getIss());
     }
 
     @Override
     public String toString() {
         return "User{" +
                 "id=" + super.getId() +
-                ", login='" + login + '\'' +
+                ", sub='" + sub + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +

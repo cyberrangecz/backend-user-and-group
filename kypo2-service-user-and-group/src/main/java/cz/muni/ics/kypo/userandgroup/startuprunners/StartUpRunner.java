@@ -175,7 +175,7 @@ public class StartUpRunner implements ApplicationRunner {
         UsersWrapper[] usersWrapper = mapper.readValue(new File(pathToFileWithInitialUsers), UsersWrapper[].class);
 
         for (UsersWrapper userWrapper : usersWrapper) {
-            Optional<User> optionalUser = userRepository.findByLoginAndIss(userWrapper.getUser().getLogin(), userWrapper.getUser().getIss());
+            Optional<User> optionalUser = userRepository.findBySubAndIss(userWrapper.getUser().getSub(), userWrapper.getUser().getIss());
             if (optionalUser.isPresent()) {
                 updateUserBaseRoles(userWrapper, optionalUser.get());
             } else {
@@ -194,7 +194,7 @@ public class StartUpRunner implements ApplicationRunner {
         }
         defaultGroup.addUser(user);
         userRepository.save(user);
-        LOGGER.info("Roles of user with screen name {} were updated.", user.getLogin());
+        LOGGER.info("Roles of user with screen name {} were updated.", user.getSub());
     }
 
     private void createUserWithPredefinedRoles(UsersWrapper usersWrapper) {
@@ -202,7 +202,7 @@ public class StartUpRunner implements ApplicationRunner {
         fillNewUserData(newUser);
         fillUserGroups(newUser, usersWrapper);
         userRepository.save(newUser);
-        LOGGER.info("User with screen name {} was created.", newUser.getLogin());
+        LOGGER.info("User with screen name {} was created.", newUser.getSub());
     }
 
     private void fillNewUserData(User loadedUser) {
@@ -211,7 +211,7 @@ public class StartUpRunner implements ApplicationRunner {
         loadedUser.setFullName(loadedUser.getFullName() != null ? loadedUser.getFullName() : "");
         loadedUser.setStatus(UserAndGroupStatus.VALID);
         if(loadedUser.getPicture() == null) {
-            loadedUser.setPicture(identiconService.generateIdenticons(loadedUser.getLogin() + loadedUser.getIss(), ICON_WIDTH, ICON_HEIGHT));
+            loadedUser.setPicture(identiconService.generateIdenticons(loadedUser.getSub() + loadedUser.getIss(), ICON_WIDTH, ICON_HEIGHT));
         }
     }
 

@@ -200,7 +200,7 @@ public class GroupsRestControllerTest {
     public void testAddUsers() throws Exception {
         UserForGroupsDTO user = new UserForGroupsDTO();
         user.setId(1L);
-        user.setLogin("user");
+        user.setSub("user");
         user.setFullName("user one");
         user.setMail("user.one@mail.com");
         groupDTO1.setUsers(Set.of(user));
@@ -394,7 +394,7 @@ public class GroupsRestControllerTest {
         userDTO.setId(1L);
         userDTO.setMail("kypo@mail.cz");
         userDTO.setFullName("KYPO LOCAL ADMIN");
-        userDTO.setLogin("kypo");
+        userDTO.setSub("kypo");
         return userDTO;
     }
 

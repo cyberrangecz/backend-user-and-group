@@ -151,7 +151,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     //    @CacheEvict(value = AbstractCacheNames.USERS_CACHE_NAME, key = "{#user.sub+#user.iss}")
     @Override
     public void removeUserFromGroup(IDMGroup groupToUpdate, User user) {
-        if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && securityService.hasLoggedInUserSameLogin(user.getLogin())) {
+        if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && securityService.hasLoggedInUserSameLogin(user.getSub())) {
             throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, groupToUpdate.getName(),
                     "An administrator cannot remove himself from the administrator group."));
         }

@@ -47,8 +47,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserByLoginAndIss(String login, String iss) {
-        return userRepository.findByLoginAndIss(login, iss);
+    public Optional<User> getUserBySubAndIss(String sub, String iss) {
+        return userRepository.findBySubAndIss(sub, iss);
     }
 
     @Override
@@ -128,10 +128,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserWithGroups(String login, String iss) {
-        return userRepository.getUserByLoginWithGroups(login, iss)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "login", login.getClass(),
-                        login, "User not found.")));
+    public User getUserWithGroups(String sub, String iss) {
+        return userRepository.getUserBySubWithGroups(sub, iss)
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "sub", sub.getClass(),
+                        sub, "User not found.")));
     }
 
     @Override

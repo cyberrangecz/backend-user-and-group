@@ -3,8 +3,8 @@ package cz.muni.ics.kypo.userandgroup.api.dto.user;
 import io.swagger.annotations.ApiModelProperty;
 
 public class UserUpdateDTO {
-    @ApiModelProperty(name = "login", value = "User login.", example = "seda@ics.muni.cz")
-    private String login;
+    @ApiModelProperty(name = "sub", value = "User sub.", example = "seda@ics.muni.cz")
+    private String sub;
     @ApiModelProperty(name = "iss", value = "OIDC issuer for that user record.", example = "https://oidc.muni.cz/oidc")
     private String iss;
     @ApiModelProperty(name = "full_name", value = "User full name.", example = "Pavel Seda")
@@ -23,12 +23,12 @@ public class UserUpdateDTO {
     public UserUpdateDTO() {
     }
 
-    public String getLogin() {
-        return login;
+    public String getSub() {
+        return sub;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setSub(String sub) {
+        this.sub = sub;
     }
 
     public String getFullName() {
@@ -90,7 +90,7 @@ public class UserUpdateDTO {
     @Override
     public String toString() {
         return "UserUpdateDTO{" +
-                "login='" + login + '\'' +
+                "sub='" + sub + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", givenName='" + givenName + '\'' +
                 ", familyName='" + familyName + '\'' +

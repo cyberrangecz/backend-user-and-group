@@ -40,7 +40,7 @@ public class SecurityService {
     private User getLoggedInUser() {
         String sub = getSubOfLoggedInUser();
         String iss = getIssOfLoggedInUser();
-        Optional<User> optionalUser = userRepository.findByLoginAndIss(sub, iss);
+        Optional<User> optionalUser = userRepository.findBySubAndIss(sub, iss);
         return optionalUser.orElseThrow(() -> new SecurityException("Logged in user with sub " + sub + " could not be found in database."));
     }
 
@@ -57,13 +57,13 @@ public class SecurityService {
     }
 
     /**
-     * Check if logged in {@link User} has same login as given login.
+     * Check if logged in {@link User} has same sub as given sub.
      *
-     * @param login the login of the user
-     * @return true if login of logged in user is same as given login, false otherwise.w
+     * @param sub the sub of the user
+     * @return true if sub of logged in user is same as given sub, false otherwise.w
      */
-    public boolean hasLoggedInUserSameLogin(String login) {
-        return login.equals(getSubOfLoggedInUser());
+    public boolean hasLoggedInUserSameLogin(String sub) {
+        return sub.equals(getSubOfLoggedInUser());
     }
 
     /**

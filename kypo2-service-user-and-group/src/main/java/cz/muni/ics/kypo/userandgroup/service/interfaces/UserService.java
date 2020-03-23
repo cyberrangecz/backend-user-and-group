@@ -75,14 +75,14 @@ public interface UserService {
     boolean isUserAdmin(Long userId);
 
     /**
-     * Gets user with given user login from the database.
+     * Gets user with given user sub from the database.
      *
-     * @param login login of the user to be loaded.
-     * @param iss   issuer - URI of the oidc provider used to authenticate user.
-     * @return the {@link User} with given user login.
-     * @throws EntityNotFoundException if the user with the given login could not be found.
+     * @param sub sub of the user to be loaded.
+     * @param iss issuer - URI of the oidc provider used to authenticate user.
+     * @return the {@link User} with given user sub.
+     * @throws EntityNotFoundException if the user with the given sub could not be found.
      */
-    Optional<User> getUserByLoginAndIss(String login, String iss);
+    Optional<User> getUserBySubAndIss(String sub, String iss);
 
     /**
      * Gets all users from the database.
@@ -147,12 +147,12 @@ public interface UserService {
     /**
      * Gets users with IDMGroups from the database.
      *
-     * @param login the login of the user to be loaded.
-     * @param iss   issuer - URI of the oidc provider
+     * @param sub the sub of the user to be loaded.
+     * @param iss issuer - URI of the oidc provider
      * @return the user with loaded {@link cz.muni.ics.kypo.userandgroup.entities.IDMGroup}s from the database.
      * @throws EntityNotFoundException if user could not be found.
      */
-    User getUserWithGroups(String login, String iss);
+    User getUserWithGroups(String sub, String iss);
 
     /**
      * Gets all {@link Role}s of users with the given ID.
