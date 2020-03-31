@@ -126,6 +126,15 @@ public interface UserFacade {
     Set<RoleDTO> getRolesOfUser(Long userId);
 
     /**
+     * Returns page result resource of roles from all registered microservices of the user with the given ID.
+     *
+     * @param userId the ID of the user.
+     * @return set of the {@link RoleDTO}s of the user with the given ID.
+     */
+    PageResultResource<RoleDTO> getRolesOfUserWithPagination(Long userId, Pageable pageable, Predicate predicate);
+
+
+    /**
      * Gets users with given ids.
      *
      * @param ids ids of users.

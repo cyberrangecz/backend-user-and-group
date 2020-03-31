@@ -23,6 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -226,12 +227,11 @@ public class IDMGroupServiceTest {
 
     @Test
     public void getRolesOfGroup() {
-        given(groupRepository.findById(defaultGroup.getId()))
-                .willReturn(Optional.ofNullable(defaultGroup));
-        Set<Role> roles = groupService.getRolesOfGroup(defaultGroup.getId());
-        assertEquals(2, roles.size());
-        assertTrue(roles.containsAll(Set.of(adminRole, userRole)));
-        then(groupRepository).should().findById(defaultGroup.getId());
+        given(roleRepository.findAllOfGroup(eq(defaultGroup.getId()), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(new ArrayList<>(defaultGroup.getRoles())));
+        given(groupRepository.existsById(defaultGroup.getId())).willReturn(true);
+        Page<Role> roles = groupService.getRolesOfGroup(defaultGroup.getId(), pageable, predicate);
+        assertEquals(2, roles.getContent().size());
+        assertTrue(roles.getContent().containsAll(Set.of(adminRole, userRole)));
     }
 
     @Test

@@ -144,6 +144,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<Role> getRolesOfUserWithPagination(Long id, Pageable pageable, Predicate predicate) {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
+                    "User not found."));
+        }
+        return roleRepository.findAllOfUser(id, pageable, predicate);
+    }
+
+    @Override
     public Page<User> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
         if (!roleRepository.existsById(roleId)) {
             throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleId", roleId.getClass(), roleId, "Role not found."));

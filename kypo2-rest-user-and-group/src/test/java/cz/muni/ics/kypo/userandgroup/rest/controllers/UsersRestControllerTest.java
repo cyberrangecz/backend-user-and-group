@@ -47,6 +47,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -231,17 +232,18 @@ public class UsersRestControllerTest {
 
     @Test
     public void testGetRolesOfUser() throws Exception {
-        given(userFacade.getRolesOfUser(userDTO1.getId())).willReturn(getRolesDTO());
+        given(userFacade.getRolesOfUserWithPagination(eq(userDTO1.getId()), any(Pageable.class), any(Predicate.class)))
+                .willReturn(getPageResultResourceRolesDTO());
         mockMvc.perform(
                 get("/users" + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
+                .andExpect(content().string(convertObjectToJsonBytes(getPageResultResourceRolesDTO())));
     }
 
     @Test
     public void testGetRolesOfUserWithExceptionFromFacade() throws Exception {
-        given(userFacade.getRolesOfUser(userDTO1.getId())).willThrow(new EntityNotFoundException());
+        given(userFacade.getRolesOfUserWithPagination(eq(userDTO1.getId()), any(Pageable.class), any(Predicate.class))).willThrow(new EntityNotFoundException());
         MockHttpServletResponse response = mockMvc.perform(
                 get("/users" + "/{id}/roles", userDTO1.getId()))
                 .andExpect(status().isNotFound())
@@ -265,8 +267,8 @@ public class UsersRestControllerTest {
         return guestRole;
     }
 
-    private Set<RoleDTO> getRolesDTO() {
-        return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
+    private PageResultResource<RoleDTO> getPageResultResourceRolesDTO() {
+        return new PageResultResource<>(List.of(getAdminRoleDTO(), getGuestRoleDTO()));
     }
 
     private void mockSpringSecurityContextForGet() {

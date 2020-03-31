@@ -164,6 +164,15 @@ public interface UserService {
     Set<Role> getRolesOfUser(Long id);
 
     /**
+     * Gets paginated {@link Role}s of users with the given ID.
+     *
+     * @param id the ID of the user.
+     * @return page of roles of users with the given ID.
+     * @throws EntityNotFoundException if the user could not be found.
+     */
+    Page<Role> getRolesOfUserWithPagination(Long id, Pageable pageable, Predicate predicate);
+
+    /**
      * Gets users with a given set of ids.
      *
      * @param ids set of ids.

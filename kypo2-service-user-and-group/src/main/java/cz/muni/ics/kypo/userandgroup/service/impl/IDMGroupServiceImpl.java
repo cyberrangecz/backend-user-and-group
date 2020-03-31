@@ -110,9 +110,12 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     }
 
     @Override
-    public Set<Role> getRolesOfGroup(Long groupId) {
-        IDMGroup group = this.getGroupById(groupId);
-        return group.getRoles();
+    public Page<Role> getRolesOfGroup(Long groupId, Pageable pageable, Predicate predicate) {
+        if (!groupRepository.existsById(groupId)) {
+            throw new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "id", groupId.getClass(), groupId,
+                    "Group not found."));
+        }
+        return this.roleRepository.findAllOfGroup(groupId, pageable, predicate);
     }
 
     @Override

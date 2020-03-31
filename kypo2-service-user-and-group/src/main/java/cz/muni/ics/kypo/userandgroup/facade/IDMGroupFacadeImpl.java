@@ -18,10 +18,12 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -171,10 +173,9 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @IsAdmin
     @TransactionalRO
-    public Set<RoleDTO> getRolesOfGroup(Long id) {
-        return groupService.getRolesOfGroup(id).stream()
-                .map(this::convertToRoleDTO)
-                .collect(Collectors.toCollection(HashSet::new));
+    public PageResultResource<RoleDTO> getRolesOfGroup(Long id, Pageable pageable, Predicate predicate) {
+        Page<Role> rolePage = groupService.getRolesOfGroup(id, pageable, predicate);
+        return new PageResultResource<>(rolePage.map(role ->  roleMapper.mapToRoleDTOWithMicroservice(role)).getContent(), roleMapper.createPagination(rolePage));
     }
 
     @Override
@@ -191,12 +192,5 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     public void removeRoleFromGroup(Long groupId, Long roleId) {
         IDMGroup idmGroup = groupService.removeRoleFromGroup(groupId, roleId);
         idmGroup.getUsers().forEach(user -> groupService.evictUserFromCache(user));
-    }
-
-    private RoleDTO convertToRoleDTO(Role role) {
-        RoleDTO roleDTO = roleMapper.mapToDTO(role);
-        roleDTO.setIdOfMicroservice(role.getMicroservice().getId());
-        roleDTO.setNameOfMicroservice(role.getMicroservice().getName());
-        return roleDTO;
     }
 }

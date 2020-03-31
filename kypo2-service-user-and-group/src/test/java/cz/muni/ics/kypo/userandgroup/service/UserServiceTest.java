@@ -19,6 +19,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -284,6 +285,23 @@ public class UserServiceTest {
     public void getRolesOfUserWithUserNotFoundShouldThrowException() {
         given(userRepository.existsById(user1.getId())).willReturn(false);
         userService.getRolesOfUser(user1.getId());
+    }
+
+    @Test
+    public void getRolesOfUserWithPagination() {
+        given(userRepository.existsById(user1.getId())).willReturn(true);
+        given(roleRepository.findAllOfUser(eq(user1.getId()), eq(pageable), eq(predicate)))
+                .willReturn(new PageImpl<>(List.of(adminRole, guestRole)));
+        Page<Role> roles = userService.getRolesOfUserWithPagination(user1.getId(), pageable, predicate);
+        assertEquals(2, roles.getContent().size());
+        assertTrue(roles.getContent().contains(adminRole));
+        assertTrue(roles.getContent().contains(guestRole));
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void getRolesOfUserWithPaginationUserNotFound() {
+        given(userRepository.existsById(user1.getId())).willReturn(false);
+        userService.getRolesOfUserWithPagination(user1.getId(), pageable, predicate);
     }
 
     @Test

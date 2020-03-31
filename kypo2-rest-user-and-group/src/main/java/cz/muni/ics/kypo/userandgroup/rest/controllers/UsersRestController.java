@@ -12,6 +12,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
 import cz.muni.ics.kypo.userandgroup.entities.User;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.BadRequestException;
@@ -236,14 +237,18 @@ public class UsersRestController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Roles of the users.", response = RoleDTO[].class),
+            @ApiResponse(code = 200, message = "Roles of the users.", response = RolesRestController.RoleRestResource.class),
             @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{userId}/roles")
-    public ResponseEntity<Set<RoleDTO>> getRolesOfUser(@ApiParam(value = "id", required = true)
-                                                       @PathVariable("userId") final Long id) {
-        return ResponseEntity.ok(userFacade.getRolesOfUser(id));
+    @GetMapping(path = "/{id}/roles")
+    @ApiPageableSwagger
+    public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfUser(@ApiParam(value = "Filtering on User entity attributes", required = false)
+                                                       @QuerydslPredicate(root = Role.class) Predicate predicate,
+                                                       Pageable pageable,
+                                                       @ApiParam(value = "id", required = true)
+                                                       @PathVariable("id") final Long id) {
+        return ResponseEntity.ok(userFacade.getRolesOfUserWithPagination(id, pageable, predicate));
     }
 
     /**

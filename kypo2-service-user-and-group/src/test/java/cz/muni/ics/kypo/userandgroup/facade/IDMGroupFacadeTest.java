@@ -258,12 +258,12 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetRolesOfGroup() {
-        given(groupService.getRolesOfGroup(anyLong())).willReturn(Set.of(adminRole, userRole));
-        Set<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L);
+        given(groupService.getRolesOfGroup(anyLong(), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(List.of(adminRole, userRole)));
+        PageResultResource<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L, pageable, predicate);
 
-        assertEquals(2, rolesDTO.size());
-        assertTrue(rolesDTO.stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name())));
-        assertTrue(rolesDTO.stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())));
+        assertEquals(2, rolesDTO.getContent().size());
+        assertTrue(rolesDTO.getContent().stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name())));
+        assertTrue(rolesDTO.getContent().stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())));
     }
 
     @Test
