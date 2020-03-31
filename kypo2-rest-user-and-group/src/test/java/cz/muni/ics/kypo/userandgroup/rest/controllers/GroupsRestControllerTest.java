@@ -40,8 +40,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.muni.ics.kypo.userandgroup.rest.util.ObjectConverter.convertObjectToJsonBytes;
@@ -309,13 +307,12 @@ public class GroupsRestControllerTest {
 
     @Test
     public void testGetRolesOfGroup() throws Exception {
-        given(groupFacade.getRolesOfGroup(groupDTO1.getId())).willReturn(getRolesDTO());
+        given(groupFacade.getRolesOfGroup(eq(groupDTO1.getId()), any(Pageable.class), any(Predicate.class))).willReturn(getPageResultResourceRolesDTO());
         mockMvc.perform(
                 get("/groups" + "/{id}/roles", groupDTO1.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().string(convertObjectToJsonBytes(getRolesDTO())));
-        then(groupFacade).should().getRolesOfGroup(groupDTO1.getId());
+                .andExpect(content().string(convertObjectToJsonBytes(getPageResultResourceRolesDTO())));
     }
 
 
@@ -412,8 +409,8 @@ public class GroupsRestControllerTest {
         return guestRole;
     }
 
-    private Set<RoleDTO> getRolesDTO() {
-        return Stream.of(getAdminRoleDTO(), getGuestRoleDTO()).collect(Collectors.toSet());
+    private PageResultResource<RoleDTO> getPageResultResourceRolesDTO() {
+        return new PageResultResource(List.of(getAdminRoleDTO(), getGuestRoleDTO()));
     }
 
 }

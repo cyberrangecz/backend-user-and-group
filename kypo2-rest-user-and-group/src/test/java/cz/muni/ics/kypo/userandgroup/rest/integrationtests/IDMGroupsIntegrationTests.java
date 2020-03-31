@@ -785,10 +785,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        List<RoleDTO> responseRoles = convertJsonBytesToObject(response.getContentAsString(), new TypeReference<List<RoleDTO>>() {});
-        assertTrue(responseRoles.contains(convertToRoleDTO(traineeRole)));
-        assertTrue(responseRoles.contains(convertToRoleDTO(guestRole)));
-        assertEquals(groupRepository.findByNameWithRoles(defaultGroup.getName()).get().getRoles().size(), responseRoles.size());
+        PageResultResource<RoleDTO> responseRoles = convertJsonBytesToObject(response.getContentAsString(), new TypeReference<PageResultResource<RoleDTO>>() {});
+        assertTrue(responseRoles.getContent().contains(convertToRoleDTO(traineeRole)));
+        assertTrue(responseRoles.getContent().contains(convertToRoleDTO(guestRole)));
+        assertEquals(groupRepository.findByNameWithRoles(defaultGroup.getName()).get().getRoles().size(), responseRoles.getContent().size());
     }
 
     @Test

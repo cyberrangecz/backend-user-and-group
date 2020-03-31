@@ -10,9 +10,9 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
+import cz.muni.ics.kypo.userandgroup.entities.Role;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
 import io.swagger.annotations.*;
@@ -273,17 +273,22 @@ public class GroupsRestController {
     @ApiOperation(httpMethod = "GET",
             value = "Returns all roles of group",
             nickname = "getRolesOfGroup",
+            response = RolesRestController.RoleRestResource.class,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "All roles of group found.", response = RoleDTO[].class),
+            @ApiResponse(code = 200, message = "All roles of group found.", response = RolesRestController.RoleRestResource.class),
             @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
             @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
     })
-    @GetMapping(path = "/{groupId}/roles")
-    public ResponseEntity<Set<RoleDTO>> getRolesOfGroup(@ApiParam(value = "id", required = true)
-                                                        @PathVariable("groupId") final Long id) {
-        return ResponseEntity.ok(groupFacade.getRolesOfGroup(id));
+    @GetMapping(path = "/{id}/roles")
+    @ApiPageableSwagger
+    public ResponseEntity<Object> getRolesOfGroup(@ApiParam(value = "Filtering on IDMGroup entity attributes", required = false)
+                                                        @QuerydslPredicate(root = Role.class) Predicate predicate,
+                                                        Pageable pageable,
+                                                        @ApiParam(value = "id", required = true)
+                                                        @PathVariable("id") final Long id) {
+        return ResponseEntity.ok(groupFacade.getRolesOfGroup(id, pageable, predicate));
     }
 
     /**

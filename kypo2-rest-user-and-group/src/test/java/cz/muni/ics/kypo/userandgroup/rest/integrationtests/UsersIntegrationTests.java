@@ -526,9 +526,9 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        List<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
-                new TypeReference<List<RoleDTO>>() {});
-        assertTrue(responseUsersDTOs.containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
+        PageResultResource<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
+                new TypeReference<PageResultResource<RoleDTO>>() {});
+        assertTrue(responseUsersDTOs.getContent().containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
     }
 
     @Test
@@ -538,9 +538,9 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        List<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
-                new TypeReference<List<RoleDTO>>() {});
-        assertTrue(responseUsersDTOs.containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
+        PageResultResource<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
+                new TypeReference<PageResultResource<RoleDTO>>() {});
+        assertTrue(responseUsersDTOs.getContent().containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
     }
 
     @Test
@@ -550,9 +550,9 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        List<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
-                new TypeReference<List<RoleDTO>>() {});
-        assertTrue(responseUsersDTOs.containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
+        PageResultResource<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
+                new TypeReference<PageResultResource<RoleDTO>>() {});
+        assertTrue(responseUsersDTOs.getContent().containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
     }
 
     @Test

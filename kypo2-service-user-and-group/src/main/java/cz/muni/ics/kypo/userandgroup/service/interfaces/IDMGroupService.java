@@ -93,7 +93,7 @@ public interface IDMGroupService {
      * @return all roles of {@link IDMGroup} with the given ID.
      * @throws EntityNotFoundException if the group was not found.
      */
-    Set<Role> getRolesOfGroup(Long id) throws EntityNotFoundException;
+    Page<Role> getRolesOfGroup(Long id, Pageable pageable, Predicate predicate) throws EntityNotFoundException;
 
     /**
      * Assigns the role to the IDMGroup with the given ID. All {@link cz.muni.ics.kypo.userandgroup.entities.User}s in the group

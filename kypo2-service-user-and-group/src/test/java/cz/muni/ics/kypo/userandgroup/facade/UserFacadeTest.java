@@ -255,6 +255,18 @@ public class UserFacadeTest {
     }
 
     @Test
+    public void testGetRolesOfUserWithPagination() {
+        userRoleDTO.setNameOfMicroservice(microservice.getName());
+        guestRoleDTO.setNameOfMicroservice(microservice.getName());
+        given(userService.getRolesOfUserWithPagination(eq(user1.getId()), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(List.of(guestRole, userRole)));
+        PageResultResource<RoleDTO> responseRolesDTO = userFacade.getRolesOfUserWithPagination(user1.getId(), pageable, predicate);
+
+        assertEquals(2, responseRolesDTO.getContent().size());
+        assertTrue(responseRolesDTO.getContent().contains(userRoleDTO));
+        assertTrue(responseRolesDTO.getContent().contains(guestRoleDTO));
+    }
+
+    @Test
     public void getUsersWithGivenRole() {
         given(userService.getUsersWithGivenRole(1L, null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRole(1L, null, pageable);

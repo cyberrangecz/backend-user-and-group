@@ -24,7 +24,7 @@ import java.util.Set;
  * The JPA repository interface to manage {@link Role} instances.
  */
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredicateExecutor<Role>, QuerydslBinderCustomizer<QRole> {
+public interface RoleRepository extends JpaRepository<Role, Long>, RoleRepositoryCustom, QuerydslPredicateExecutor<Role>, QuerydslBinderCustomizer<QRole> {
 
     /**
      * That method is used to make the query dsl string values case insensitive

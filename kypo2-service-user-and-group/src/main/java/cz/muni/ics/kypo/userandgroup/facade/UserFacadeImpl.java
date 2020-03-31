@@ -28,6 +28,7 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -203,6 +204,14 @@ public class UserFacadeImpl implements UserFacade {
         return roles.stream()
                 .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
                 .collect(Collectors.toCollection(HashSet::new));
+    }
+
+    @Override
+    @IsGuest
+    @TransactionalRO
+    public PageResultResource<RoleDTO> getRolesOfUserWithPagination(Long id, Pageable pageable, Predicate predicate) {
+        Page<Role> rolePage = userService.getRolesOfUserWithPagination(id, pageable, predicate);
+        return new PageResultResource<>(rolePage.map(role ->  roleMapper.mapToRoleDTOWithMicroservice(role)).getContent(), roleMapper.createPagination(rolePage));
     }
 
     @Override

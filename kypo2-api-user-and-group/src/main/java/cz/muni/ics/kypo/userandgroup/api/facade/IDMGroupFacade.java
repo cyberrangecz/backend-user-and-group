@@ -74,7 +74,7 @@ public interface IDMGroupFacade {
      * @param groupId the ID of the IDMGroup.
      * @return set of {@link RoleDTO} of IDMGroup with the given ID.
      */
-    Set<RoleDTO> getRolesOfGroup(Long groupId);
+    PageResultResource<RoleDTO> getRolesOfGroup(Long groupId, Pageable pageable, Predicate predicate);
 
     /**
      * Assigns the role to the IDMGroup with the given ID. All users in group will obtain an assigned role.
@@ -90,7 +90,6 @@ public interface IDMGroupFacade {
      *
      * @param groupId the ID of the IDMGroup from which role with role ID is removed.
      * @param roleId  the ID of the role.
-     * @throws UserAndGroupFacadeException         if the IDMGroup or role could not be found.
      */
     void removeRoleFromGroup(Long groupId, Long roleId);
 
