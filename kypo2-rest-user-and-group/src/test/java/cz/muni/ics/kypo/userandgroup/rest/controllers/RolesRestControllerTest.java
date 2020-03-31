@@ -9,6 +9,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -141,7 +142,7 @@ public class RolesRestControllerTest {
                 get("/roles" + "/{id}", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
         then(roleFacade).should().getRoleById(adminRoleDTO.getId());
@@ -168,7 +169,7 @@ public class RolesRestControllerTest {
                 get("/roles" + "/{id}/users", adminRoleDTO.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
     }
@@ -195,7 +196,7 @@ public class RolesRestControllerTest {
                 get("/roles/users").param("roleType", adminRoleDTO.getRoleType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
     }

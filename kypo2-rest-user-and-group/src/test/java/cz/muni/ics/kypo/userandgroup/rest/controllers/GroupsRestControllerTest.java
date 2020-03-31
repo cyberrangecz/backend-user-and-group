@@ -14,6 +14,7 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.entities.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -178,7 +179,7 @@ public class GroupsRestControllerTest {
                         .content(convertObjectToJsonBytes(Arrays.asList(1L))))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
         then(groupFacade).should().removeUsers(100L, Collections.singletonList(1L));
@@ -222,7 +223,7 @@ public class GroupsRestControllerTest {
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
 
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
         then(groupFacade).should().addUsersToGroup(anyLong(), any(AddUsersToGroupDTO.class));
@@ -300,7 +301,7 @@ public class GroupsRestControllerTest {
                 get("/groups" + "/{id}", groupDTO1.getId()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
     }
@@ -331,7 +332,7 @@ public class GroupsRestControllerTest {
                 put("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
     }
@@ -351,7 +352,7 @@ public class GroupsRestControllerTest {
                 delete("/groups/{groupId}/roles/{roleId}", 1L, 2L))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEquals("The requested entity could not be found", error.getMessage());
     }

@@ -21,4 +21,18 @@ public class EntityConflictException extends ExceptionWithEntity {
     public EntityConflictException(Throwable cause) {
         super(cause);
     }
+
+    protected String createDefaultReason(EntityErrorDetail entityErrorDetail) {
+        StringBuilder reason = new StringBuilder("Conflict with the current state of the target entity ")
+                .append(entityErrorDetail.getEntity());
+        if (entityErrorDetail.getIdentifier() != null && entityErrorDetail.getIdentifierValue() != null) {
+            reason.append(" (")
+                  .append(entityErrorDetail.getIdentifier())
+                  .append(": ")
+                  .append(entityErrorDetail.getIdentifierValue())
+                  .append(")");
+        }
+        reason.append(".");
+        return reason.toString();
+    }
 }

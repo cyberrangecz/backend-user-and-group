@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.UsersRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
@@ -395,9 +396,9 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "User not found.");
+        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "Entity User (id: 100) not found.");
 
     }
     @Test
@@ -475,9 +476,9 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "User not found.");
+        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "Entity User (id: 100) not found.");
     }
 
     @Test
@@ -561,9 +562,9 @@ public class UsersIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "User not found.");
+        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "Entity User (id: 100) not found.");
 
     }
 

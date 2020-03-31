@@ -147,12 +147,12 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({EntityNotFoundException.class})
     public ResponseEntity<Object> handleEntityNotFoundException(final EntityNotFoundException ex, final WebRequest request, HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
+        final ApiError apiError = ApiEntityError.of(
                 EntityNotFoundException.class.getAnnotation(ResponseStatus.class).value(),
                 EntityNotFoundException.class.getAnnotation(ResponseStatus.class).reason(),
                 getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        apiError.setEntityErrorDetail(ex.getEntityErrorDetail());
+                URL_PATH_HELPER.getRequestUri(req),
+                ex.getEntityErrorDetail());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
@@ -192,24 +192,24 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({EntityConflictException.class})
     public ResponseEntity<Object> handleEntityConflictException(final EntityConflictException ex, final WebRequest request,
                                                           HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
+        final ApiEntityError apiError = ApiEntityError.of(
                 EntityConflictException.class.getAnnotation(ResponseStatus.class).value(),
                 EntityConflictException.class.getAnnotation(ResponseStatus.class).reason(),
                 getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        apiError.setEntityErrorDetail(ex.getEntityErrorDetail());
+                URL_PATH_HELPER.getRequestUri(req),
+                ex.getEntityErrorDetail());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
     @ExceptionHandler({UnprocessableEntityException.class})
     public ResponseEntity<Object> handleUnprocessableEntityException(final UnprocessableEntityException ex, final WebRequest request,
                                                                 HttpServletRequest req) {
-        final ApiError apiError = ApiError.of(
+        final ApiEntityError apiError = ApiEntityError.of(
                 UnprocessableEntityException.class.getAnnotation(ResponseStatus.class).value(),
                 UnprocessableEntityException.class.getAnnotation(ResponseStatus.class).reason(),
                 getFullStackTrace(ex),
-                URL_PATH_HELPER.getRequestUri(req));
-        apiError.setEntityErrorDetail(ex.getEntityErrorDetail());
+                URL_PATH_HELPER.getRequestUri(req),
+                ex.getEntityErrorDetail());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 

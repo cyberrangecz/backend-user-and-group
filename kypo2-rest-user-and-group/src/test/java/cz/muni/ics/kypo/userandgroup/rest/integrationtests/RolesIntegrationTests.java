@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.RolesRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
@@ -229,9 +230,9 @@ public class RolesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", 100, "Role not found.");
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", 100, "Entity Role (id: 100) not found.");
     }
 
     @Test
@@ -275,9 +276,9 @@ public class RolesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleId", 100, "Role not found.");
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleId", 100, "Entity Role (roleId: 100) not found.");
     }
 
     @Test

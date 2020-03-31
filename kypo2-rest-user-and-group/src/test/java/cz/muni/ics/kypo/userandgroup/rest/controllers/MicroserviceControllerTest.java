@@ -4,6 +4,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.UnprocessableEntityException;
 import cz.muni.ics.kypo.userandgroup.api.facade.MicroserviceFacade;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -99,7 +100,7 @@ public class MicroserviceControllerTest {
                 .content(convertObjectToJsonBytes(newMicroserviceDTO)))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.getStatus());
         assertEquals("The requested data cannot be processed.", error.getMessage());
     }

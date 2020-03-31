@@ -38,7 +38,7 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     public IDMGroup getGroupById(Long id) {
         return groupRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "id", id.getClass(), id,"Group not found.")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "id", id.getClass(), id)));
     }
 
     @Override
@@ -100,13 +100,13 @@ public class IDMGroupServiceImpl implements IDMGroupService {
     @Override
     public IDMGroup getIDMGroupByName(String name) {
         return groupRepository.findByName(name)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name, "Group not found.")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name)));
     }
 
     @Override
     public IDMGroup getIDMGroupWithRolesByName(String name) {
         return groupRepository.findByNameWithRoles(name)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name, "Group not found.")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", name.getClass(), name)));
     }
 
     @Override

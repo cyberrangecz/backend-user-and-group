@@ -22,6 +22,7 @@ import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.GroupsRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
@@ -295,7 +296,7 @@ public class IDMGroupsIntegrationTests {
         Optional<IDMGroup> updatedGroup = groupRepository.findById(userGroup.getId());
         assertTrue(updatedGroup.isPresent());
         assertEquals(groupNameBefore, updatedGroup.get().getName());
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", userGroup.getId().toString(),
                 "Name of main group cannot be changed");
@@ -396,10 +397,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", groupId.toString(),
-                "Group not found.");
+                "Entity IDMGroup (id: 500) not found.");
     }
 
     @Test
@@ -509,10 +510,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", groupId.toString(),
-                "Group not found.");
+                "Entity IDMGroup (id: 600) not found.");
     }
 
     @Test
@@ -557,10 +558,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
-                "Group not found.");
+                "Entity IDMGroup (id: 100) not found.");
     }
 
     @Test
@@ -571,7 +572,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", userGroup.getName(),
                 "This group is User and Group default group that cannot be deleted.");
@@ -585,7 +586,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", organizerGroup.getId().toString(),
                 "The group must be empty (without users) before it is deleted.");
@@ -643,7 +644,7 @@ public class IDMGroupsIntegrationTests {
                 .andReturn().getResponse();
         assertTrue(groupRepository.existsById(userGroup.getId()));
         assertTrue(groupRepository.existsById(organizerGroupId));
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", userGroup.getName(),
                 "This group is User and Group default group that cannot be deleted.");
@@ -660,7 +661,7 @@ public class IDMGroupsIntegrationTests {
                 .andExpect(status().isConflict())
                 .andReturn().getResponse();
         assertTrue(groupRepository.existsById(userGroup.getId()));
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", organizerGroup.getId().toString(),
                 "The group must be empty (without users) before it is deleted.");
@@ -749,10 +750,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
-                "Group not found.");
+                "Entity IDMGroup (id: 100) not found.");
     }
 
     @Test
@@ -797,7 +798,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
                 "Group not found.");;
@@ -855,7 +856,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", "100",
                 "Role not found. Start up of the project or registering of microservice probably went wrong, please contact support.");
@@ -867,10 +868,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
-                "Group not found.");
+                "Entity IDMGroup (id: 100) not found.");
     }
 
     @Test
@@ -918,7 +919,7 @@ public class IDMGroupsIntegrationTests {
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
 
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", designerRole.getId().toString(),
                 "Role was not found in group.");
@@ -932,7 +933,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", "100",
                 "Role was not found in group.");
@@ -944,10 +945,10 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "id", "100",
-                "Group not found.");
+                "Entity IDMGroup (id: 100) not found.");
     }
 
     @Test
@@ -956,7 +957,7 @@ public class IDMGroupsIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleType", userRole.getRoleType(),
                 "Main role of the group cannot be removed.");
