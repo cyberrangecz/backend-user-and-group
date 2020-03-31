@@ -3,6 +3,8 @@ package cz.muni.ics.kypo.userandgroup.api.exceptions;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -19,22 +21,30 @@ public class EntityErrorDetail {
     public EntityErrorDetail() {
     }
 
-    public EntityErrorDetail(String reason) {
+    public EntityErrorDetail(@NotBlank String reason) {
         this.reason = reason;
     }
 
-    public EntityErrorDetail(Class<?> entityClass, String reason) {
+    public EntityErrorDetail(@NotNull Class<?> entityClass,
+                             @NotBlank String reason) {
         this(reason);
         this.entity = entityClass.getSimpleName();
     }
 
-    public EntityErrorDetail(Class<?> entityClass, String identifier, Class<?> identifierClass, Object identifierValue, String reason) {
+    public EntityErrorDetail(@NotNull Class<?> entityClass,
+                             @NotNull String identifier,
+                             @NotNull Class<?> identifierClass,
+                             @NotNull Object identifierValue,
+                             @NotBlank String reason) {
         this(entityClass, reason);
         this.identifier = identifier;
         this.identifierValue = identifierClass.cast(identifierValue);
     }
 
-    public EntityErrorDetail(Class<?> entityClass, String identifier, Class<?> identifierClass, Object identifierValue) {
+    public EntityErrorDetail(@NotNull Class<?> entityClass,
+                             @NotNull String identifier,
+                             @NotNull Class<?> identifierClass,
+                             @NotNull Object identifierValue) {
         this.entity = entityClass.getSimpleName();
         this.identifier = identifier;
         this.identifierValue = identifierClass.cast(identifierValue);
@@ -44,7 +54,7 @@ public class EntityErrorDetail {
         return entity;
     }
 
-    public void setEntity(String entity) {
+    public void setEntity(@NotBlank String entity) {
         this.entity = entity;
     }
 
@@ -52,7 +62,7 @@ public class EntityErrorDetail {
         return identifier;
     }
 
-    public void setIdentifier(String identifier) {
+    public void setIdentifier(@NotBlank String identifier) {
         this.identifier = identifier;
     }
 
@@ -60,7 +70,7 @@ public class EntityErrorDetail {
         return identifierValue;
     }
 
-    public void setIdentifierValue(Object identifierValue) {
+    public void setIdentifierValue(@NotNull Object identifierValue) {
         this.identifierValue = identifierValue;
     }
 
@@ -68,7 +78,7 @@ public class EntityErrorDetail {
         return reason;
     }
 
-    public void setReason(String reason) {
+    public void setReason(@NotBlank String reason) {
         this.reason = reason;
     }
 

@@ -20,4 +20,18 @@ public class EntityNotFoundException extends ExceptionWithEntity {
     public EntityNotFoundException(Throwable cause) {
         super(cause);
     }
+
+    protected String createDefaultReason(EntityErrorDetail entityErrorDetail) {
+        StringBuilder reason = new StringBuilder("Entity ")
+                .append(entityErrorDetail.getEntity());
+        if (entityErrorDetail.getIdentifier() != null && entityErrorDetail.getIdentifierValue() != null) {
+            reason.append(" (")
+                    .append(entityErrorDetail.getIdentifier())
+                    .append(": ")
+                    .append(entityErrorDetail.getIdentifierValue())
+                    .append(")");
+        }
+        reason.append(" not found.");
+        return reason.toString();
+    }
 }

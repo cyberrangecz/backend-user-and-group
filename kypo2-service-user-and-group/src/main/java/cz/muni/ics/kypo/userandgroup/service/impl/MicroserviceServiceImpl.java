@@ -24,13 +24,13 @@ public class MicroserviceServiceImpl implements MicroserviceService {
     @Override
     public Microservice getMicroserviceById(Long id) {
         return microserviceRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "id", id.getClass(), id, "Microservice not found")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "id", id.getClass(), id)));
     }
 
     @Override
     public Microservice getMicroserviceByName(String microserviceName) {
         return microserviceRepository.findByName(microserviceName)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "microserviceName", microserviceName.getClass(), microserviceName, "Microservice not found")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(Microservice.class, "microserviceName", microserviceName.getClass(), microserviceName)));
     }
 
     @Override

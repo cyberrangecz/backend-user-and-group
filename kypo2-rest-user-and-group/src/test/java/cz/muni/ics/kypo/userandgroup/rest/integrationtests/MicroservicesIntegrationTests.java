@@ -14,6 +14,7 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.rest.controllers.MicroservicesRestController;
+import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
 import cz.muni.ics.kypo.userandgroup.rest.integrationtests.config.DBTestUtil;
@@ -199,7 +200,7 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.CONFLICT, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "roleType", roleTraineeDTO.getRoleType(),
                 "Role already exist. Please name the role with different role type.");
@@ -222,9 +223,9 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEquals("The requested entity could not be found", error.getMessage());
+        assertEquals("Default role of microservice could not be found", error.getMessage());
         assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "microserviceName", newMicroserviceDTO.getName(), "Default role of microservice could not be found");
     }
 
@@ -236,10 +237,10 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEquals("The requested entity could not be found", error.getMessage());
-        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", "DEFAULT-GROUP", null);
+        assertEquals("Entity IDMGroup (name: DEFAULT-GROUP) not found.", error.getMessage());
+        assertEntityDetailError(error.getEntityErrorDetail(), IDMGroup.class, "name", "DEFAULT-GROUP", "Entity IDMGroup (name: DEFAULT-GROUP) not found.");
     }
 
     @Test
@@ -268,7 +269,7 @@ public class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn().getResponse();
-        ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, error.getStatus());
         assertEntityDetailError(error.getEntityErrorDetail(), Microservice.class, null, null,
                 "Microservice which you are trying to register cannot have more than 1 default role.");

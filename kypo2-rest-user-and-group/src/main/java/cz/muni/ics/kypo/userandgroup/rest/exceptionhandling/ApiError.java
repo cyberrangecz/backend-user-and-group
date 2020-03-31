@@ -26,10 +26,8 @@ public class ApiError {
     protected List<String> errors;
     @ApiModelProperty(value = "The requested URI path which caused error.", example = "/kypo2-rest-user-and-group/api/v1/groups/1000 (different for each type of exception).")
     protected String path;
-    @ApiModelProperty(value = "Entity detail related to the error.")
-    private EntityErrorDetail entityErrorDetail;
 
-    private ApiError() {
+    protected ApiError() {
     }
 
     public static ApiError of(HttpStatus httpStatus, String message, List<String> errors, String path) {
@@ -116,14 +114,6 @@ public class ApiError {
         this.path = path;
     }
 
-    public EntityErrorDetail getEntityErrorDetail() {
-        return entityErrorDetail;
-    }
-
-    public void setEntityErrorDetail(EntityErrorDetail entityErrorDetail) {
-        this.entityErrorDetail = entityErrorDetail;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -147,7 +137,6 @@ public class ApiError {
                 "timestamp=" + timestamp +
                 ", status=" + status +
                 ", message='" + message + '\'' +
-                ", entityErrorDetail=" + entityErrorDetail +
                 ", errors=" + errors +
                 ", path='" + path + '\'' +
                 '}';

@@ -42,8 +42,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
-                        "User not found.")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id)));
     }
 
     @Override
@@ -86,7 +85,7 @@ public class UserServiceImpl implements UserService {
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
         IDMGroup administratorGroup = optionalAdministratorGroup
                 .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", String.class,
-                        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), "Administrator group not found")));
+                        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName())));
         if (user.getGroups().contains(administratorGroup)) {
             administratorGroup.removeUser(user);
         } else {
@@ -101,7 +100,7 @@ public class UserServiceImpl implements UserService {
         Optional<IDMGroup> optionalAdministratorGroup = groupRepository.findAdministratorGroup();
         IDMGroup administratorGroup = optionalAdministratorGroup
                 .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(IDMGroup.class, "name", String.class,
-                        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), "Administrator group not found")));
+                        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName())));
         return user.getGroups().contains(administratorGroup);
     }
 
@@ -123,22 +122,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserWithGroups(Long id) {
         return userRepository.getUserByIdWithGroups(id)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
-                        "User not found.")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id)));
     }
 
     @Override
     public User getUserWithGroups(String sub, String iss) {
         return userRepository.getUserBySubWithGroups(sub, iss)
-                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "sub", sub.getClass(),
-                        sub, "User not found.")));
+                .orElseThrow(() -> new EntityNotFoundException(new EntityErrorDetail(User.class, "sub", sub.getClass(), sub)));
     }
 
     @Override
     public Set<Role> getRolesOfUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
-                    "User not found."));
+            throw new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id));
         }
         return userRepository.getRolesOfUser(id);
     }
@@ -146,8 +142,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<Role> getRolesOfUserWithPagination(Long id, Pageable pageable, Predicate predicate) {
         if (!userRepository.existsById(id)) {
-            throw new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id,
-                    "User not found."));
+            throw new EntityNotFoundException(new EntityErrorDetail(User.class, "id", id.getClass(), id));
         }
         return roleRepository.findAllOfUser(id, pageable, predicate);
     }
@@ -155,7 +150,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<User> getUsersWithGivenRole(Long roleId, Predicate predicate, Pageable pageable) {
         if (!roleRepository.existsById(roleId)) {
-            throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleId", roleId.getClass(), roleId, "Role not found."));
+            throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleId", roleId.getClass(), roleId));
         }
         return userRepository.findAllByRoleId(roleId, predicate, pageable);
     }
@@ -163,7 +158,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<User> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         if (!roleRepository.existsByRoleType(roleType)) {
-            throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType, "Role not found."));
+            throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType));
         }
         return userRepository.findAllByRoleType(roleType, predicate, pageable);
     }

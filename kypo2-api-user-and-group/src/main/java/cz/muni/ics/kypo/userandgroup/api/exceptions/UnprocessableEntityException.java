@@ -21,4 +21,18 @@ public class UnprocessableEntityException extends ExceptionWithEntity {
     public UnprocessableEntityException(Throwable cause) {
         super(cause);
     }
+    protected String createDefaultReason(EntityErrorDetail entityErrorDetail) {
+        StringBuilder reason = new StringBuilder("Unable to be process entity ")
+                .append(entityErrorDetail.getEntity());
+        if (entityErrorDetail.getIdentifier() != null && entityErrorDetail.getIdentifierValue() != null) {
+            reason.append(" (")
+                    .append(entityErrorDetail.getIdentifier())
+                    .append(": ")
+                    .append(entityErrorDetail.getIdentifierValue())
+                    .append(")");
+        }
+        reason.append(" not found.");
+        return reason.toString();
+    }
+
 }
