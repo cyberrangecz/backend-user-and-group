@@ -8,7 +8,7 @@ ARG POSTGRES_DB=user-and-group
 ARG PROJECT_ARTIFACT_ID=kypo2-rest-user-and-group
 
 ## default link to proprietary repository, e.g., Nexus repository
-ARG PROPRIETARY_REPO_URL=https://YOUR-PATH-TO-PROPRIETARY_REPO/repository/maven-public/
+ARG PROPRIETARY_REPO_URL=YOUR-PATH-TO-PROPRIETARY_REPO
 
 COPY ./ /app
 WORKDIR /app
