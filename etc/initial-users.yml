@@ -13,3 +13,8 @@
     iss: https://oidc.muni.cz/oidc/
   roles:
     - ROLE_USER_AND_GROUP_ADMINISTRATOR
+- user:
+    sub: admin@oidc.csirt.muni.cz
+    iss: http://localhost:8080/csirtmu-dummy-issuer-server/
+  roles:
+    - ROLE_USER_AND_GROUP_ADMINISTRATOR
