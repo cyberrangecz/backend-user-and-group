@@ -7,6 +7,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration
 @ComponentScan(basePackages = {"cz.muni.ics.kypo.userandgroup.entities", "cz.muni.ics.kypo.userandgroup.repository"})
 @EntityScan(basePackages = "cz.muni.ics.kypo.userandgroup.entities")
-@PropertySource("file:${path.to.config.file}")
 @EnableJpaRepositories(basePackages = "cz.muni.ics.kypo.userandgroup.repository")
 public class PersistenceConfig { }
