@@ -15,6 +15,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -32,6 +33,7 @@ import java.nio.charset.Charset;
 @EnableJpaRepositories(basePackages = {"cz.muni.ics.kypo.userandgroup.repository"})
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
+@EnableRetry
 public class RestConfigTest extends WebSecurityConfigurerAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(RestConfigTest.class);
     @Autowired

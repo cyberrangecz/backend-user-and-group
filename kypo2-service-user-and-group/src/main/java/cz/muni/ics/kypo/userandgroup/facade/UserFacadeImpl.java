@@ -28,12 +28,15 @@ import cz.muni.ics.kypo.userandgroup.service.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.validation.ConstraintViolationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,6 +104,8 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     //    @Cacheable(key = "{#sub+#iss}", sync = true)
+    // if creation of user fail because of DataIntegrityViolationException, method is repeated one more time which cause that user is updated not created
+    @Retryable(value = { DataIntegrityViolationException.class }, maxAttempts = 2)
     public UserDTO createOrUpdateOrGetOIDCUser(String sub, String iss, JsonObject introspectionResponse) {
         Assert.hasLength(sub, "In method createOrUpdateOrGetOIDCUser(sub, iss) the input sub must not be empty.");
         Assert.hasLength(iss, "In method createOrUpdateOrGetOIDCUser(sub, iss) the input iss must not be empty.");
