@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -18,6 +17,8 @@
     <logger name="org.springframework.boot" level="WARN" additivity="false">
         <appender-ref ref="CONSOLE"/>
     </logger>
+
+
     <logger name="cz.muni.ics" level="WARN" additivity="false">
         <appender-ref ref="CONSOLE"/>
     </logger>
