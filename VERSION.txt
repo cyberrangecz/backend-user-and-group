@@ -1,1 +1,1 @@
-1.1.32  Gitlab CI Configured Using Grep VERSION.txt File With New Version
+1.1.33  The key to set konfiguration file changed
