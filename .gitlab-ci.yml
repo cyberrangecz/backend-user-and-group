@@ -41,7 +41,7 @@ createTag:
   - git log  --pretty=format:'%h -- %s' $LAST_TAG..HEAD --graph > CHANGELOG.md
   - git commit -am "CHANGELOG.md file updated with commits between the current and previous tag. Done by CI."
   # create new tag
-  - git tag -a $VERSION -m "$TAG_MESSAGE"
+  - git tag -a v$VERSION -m "$TAG_MESSAGE"
   - git config --global push.followTags true
   - git push -o ci.skip
   rules:
