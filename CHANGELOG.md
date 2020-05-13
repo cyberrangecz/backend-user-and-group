@@ -1,12 +1,26 @@
-* e8b6b75 -- Update pom.xml version based on GitLab tag. Done by CI.
-* 771a17c -- Update VERSION.txt
-*   c16b0c7 -- 	Merge branch 'master' of gitlab.ics.muni.cz:kypo-crp/backend-java/kypo2-user-and-group
+* e02a399 -- Update pom.xml version based on GitLab tag. Done by CI.
+* 077c85e -- Update VERSION.txt
+*   d2e0061 -- Merge branch '148-use-v-prefix-for-tags' into 'master'
 |\  
-| * 963cc56 -- Update supervisord.conf
-* | a5c7004 -- add logback-spring.xml as an example logback configuration
+| * f68a386 -- Resolve "Use 'v' prefix for tags"
 |/  
-*   feb695d -- Merge branch '146-allow-change-debug-level-in-property-file' into 'master'
+*   c4548ae -- Merge branch '147-method-to-create-user-in-customauthoritygranter-creates-multiple-users' into 'master'
 |\  
+| * fe3c994 -- Added @Repeatable annotation above createOrUpdateOrGetUser, created concurrent test to create user
+* | b7f3e52 -- Update kypo2-user-and-group-prod.properties
+* | e06f868 -- Update kypo2-user-and-group-dev.properties
+* | 4de689e -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
+* | e8b6b75 -- Update pom.xml version based on GitLab tag. Done by CI.
+* | 771a17c -- Update VERSION.txt
+* |   c16b0c7 -- 	Merge branch 'master' of gitlab.ics.muni.cz:kypo-crp/backend-java/kypo2-user-and-group
+|\ \  
+| * | 963cc56 -- Update supervisord.conf
+* | | a5c7004 -- add logback-spring.xml as an example logback configuration
+|/ /  
+* |   feb695d -- Merge branch '146-allow-change-debug-level-in-property-file' into 'master'
+|\ \  
+| |/  
+|/|   
 | * 1ebfb3b -- Resolve "Allow change debug level in property file"
 |/  
 *   834d6bb -- Merge branch '145-update-flyway-migration-files-based-on-the-current-jpa-entity-definitions' into 'master'
