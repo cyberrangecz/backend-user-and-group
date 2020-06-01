@@ -1,1 +1,1 @@
-1.1.64  Dockerfile copy only essential files
+1.1.65  Exception handling improved
