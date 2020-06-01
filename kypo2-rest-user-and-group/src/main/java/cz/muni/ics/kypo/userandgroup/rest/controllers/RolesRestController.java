@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.ws.rs.Encoded;
 import java.util.List;
 import java.util.Set;
 
@@ -163,7 +164,7 @@ public class RolesRestController {
                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                                             @RequestParam(value = "fields", required = false) String fields,
                                                             @ApiParam(value = "Type of role to getGroupById users for.", required = true)
-                                                            @NotBlank @RequestParam("roleType") String roleType) {
+                                                            @NotBlank @RequestParam("roleType") @Encoded String roleType) {
         PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
         Squiggly.init(objectMapper, fields);
         return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));

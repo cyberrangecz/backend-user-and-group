@@ -1,6 +1,5 @@
 package cz.muni.ics.kypo.userandgroup.security.config;
 
-import cz.muni.ics.kypo.userandgroup.api.dto.enums.SpringProfiles;
 import cz.muni.ics.kypo.userandgroup.config.FacadeConfig;
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService;
@@ -75,16 +74,6 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER);
-        addX509CertificateForDevConfig(http);
-    }
-
-    private void addX509CertificateForDevConfig(HttpSecurity http) throws Exception {
-        String[] profiles = this.environment.getActiveProfiles();
-        for (String profile : profiles) {
-            if (profile.equals(SpringProfiles.PROD.getName())) {
-                http.x509();
-            }
-        }
     }
 
     @Bean
