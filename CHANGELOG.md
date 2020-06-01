@@ -1,3 +1,10 @@
+* 45fc0da -- Update pom.xml version based on GitLab tag. Done by CI.
+* 6e7896a -- Update VERSION.txt
+*   d4774ef -- Merge branch '150-check-the-code-and-remove-dev-profile-if-not-necessary' into 'master'
+|\  
+| * 05c9993 -- Removed DEV and PROD profiles
+|/  
+* 84a1672 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * 7ff859a -- Update pom.xml version based on GitLab tag. Done by CI.
 * b33eefd -- Update VERSION.txt
 *   bb03058 -- Merge branch '149-edit-dockerfiles-so-only-essential-files-are-copied' into 'master'
