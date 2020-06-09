@@ -1,1 +1,1 @@
-1.1.65  Exception handling improved
+1.1.66  Migration to the new Nexus repository
