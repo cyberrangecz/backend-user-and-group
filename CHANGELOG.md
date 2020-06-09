@@ -1,3 +1,8 @@
+* 6375340 -- Update pom.xml version based on GitLab tag. Done by CI.
+* 4ae61ff -- Update VERSION.txt
+* 2174951 -- Update .gitlab-ci.yml
+* 3fd1ec2 -- Update .gitlab-ci.yml
+* c19eddd -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * 45fc0da -- Update pom.xml version based on GitLab tag. Done by CI.
 * 6e7896a -- Update VERSION.txt
 *   d4774ef -- Merge branch '150-check-the-code-and-remove-dev-profile-if-not-necessary' into 'master'
