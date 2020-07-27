@@ -121,6 +121,46 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>com.github.kongchen</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>${github.kongchen.version}</version>
+                <configuration>
+                    <skipSwaggerGeneration>${swagger.skip}</skipSwaggerGeneration>
+                    <apiSources>
+                        <apiSource>
+                            <springmvc>true</springmvc>
+                            <locations>
+                                <location>cz.muni.ics.kypo.userandgroup</location>
+                            </locations>
+                            <schemes>http,https</schemes>
+                            <host>localhost:8080</host>
+                            <basePath>/kypo2-rest-user-and-group/api/v1</basePath>
+                            <info>
+                                <title>KYPO2 User and Group - API Reference</title>
+                                <version>Version: ${version}</version>
+                            </info>
+                            <securityDefinitions>
+                                <securityDefinition>
+                                    <!-- This is configuration of security for Open API generated based on swagger, file in resources package.-->
+                                    <json>/securityDefinition.json</json>
+                                </securityDefinition>
+                            </securityDefinitions>
+                            <swaggerDirectory>${swagger.directory}</swaggerDirectory>
+                            <swaggerFileName>kypo-user-and-group-open-api</swaggerFileName>
+                            <outputFormats>yaml</outputFormats>
+                        </apiSource>
+                    </apiSources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
