@@ -27,6 +27,8 @@
         <!--swagger versions -->
         <swagger.version>2.9.2</swagger.version>
         <swagger.annotations>1.5.22</swagger.annotations>
+        <swagger.directory>${basedir}/../doc-files</swagger.directory>
+        <swagger.skip>true</swagger.skip>
 
         <mitre.oidc.version>1.3.3</mitre.oidc.version>
         <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>

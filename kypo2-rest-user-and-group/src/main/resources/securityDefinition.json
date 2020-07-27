@@ -1,0 +1,13 @@
+{
+  "KYPO": {
+    "type": "oauth2",
+    "name": "KYPO",
+    "flow": "implicit",
+    "authorizationUrl": "https://oidc.muni.cz/oidc/authorize",
+    "scopes": {
+      "openid": "",
+      "email": "",
+      "profile": ""
+    }
+  }
+}
