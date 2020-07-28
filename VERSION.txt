@@ -1,1 +1,1 @@
-1.1.66  Migration to the new Nexus repository
+1.1.67  Changelog generation updated.
