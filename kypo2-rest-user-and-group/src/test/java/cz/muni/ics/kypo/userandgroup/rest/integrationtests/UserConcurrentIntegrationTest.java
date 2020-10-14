@@ -65,7 +65,7 @@ public class UserConcurrentIntegrationTest {
         userDTO.setFullName("Ing. Michael Johnson");
         userDTO.setFamilyName("Johnson");
         userDTO.setGivenName("Michael");
-        userDTO.setSub("556978@muni.cz");
+        userDTO.setSub("mail@muni.cz");
         userDTO.setIss("oidc.ics.muni.cz");
 
         Microservice userAndGroupMicroservice = testDataFactory.getKypoUaGMicroservice();
@@ -83,7 +83,7 @@ public class UserConcurrentIntegrationTest {
     @Test
     @ThreadCount(50)
     public void createOrUpdateUser() throws Exception {
-        UserDTO createdUserDTO = userFacade.createOrUpdateOrGetOIDCUser("556978@muni.cz", "oidc.ics.muni.cz", getIntrospectionResponse());
+        UserDTO createdUserDTO = userFacade.createOrUpdateOrGetOIDCUser("mail@muni.cz", "oidc.ics.muni.cz", getIntrospectionResponse());
         assertEquals(userDTO.getFullName(), createdUserDTO.getFullName());
         assertEquals(userDTO.getSub(), createdUserDTO.getSub());
         assertEquals(userDTO.getIss(), createdUserDTO.getIss());
@@ -98,7 +98,7 @@ public class UserConcurrentIntegrationTest {
 
     private JsonObject getIntrospectionResponse() {
         JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), "556978@muni.cz");
+        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), "mail@muni.cz");
         sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), "Ing. Michael Johnson");
         sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), "Michael");
         sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), "Johnson");

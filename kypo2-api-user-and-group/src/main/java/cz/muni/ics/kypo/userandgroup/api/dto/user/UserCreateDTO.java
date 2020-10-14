@@ -10,17 +10,17 @@ import java.util.Objects;
  */
 @ApiModel(value = "UserCreateDto", description = "Information that are necessary to create a user.")
 public class UserCreateDTO {
-    @ApiModelProperty(name = "sub", value = "User sub.", example = "seda@ics.muni.cz")
+    @ApiModelProperty(name = "sub", value = "User sub.", example = "johndoe@ics.muni.cz")
     private String sub;
-    @ApiModelProperty(name = "full_name", value = "User full name.", example = "Pavel Seda")
+    @ApiModelProperty(name = "full_name", value = "User full name.", example = "John Doe")
     private String fullName;
-    @ApiModelProperty(name = "given_name", value = "User given name.", example = "Pavel")
+    @ApiModelProperty(name = "given_name", value = "User given name.", example = "John")
     private String givenName;
-    @ApiModelProperty(name = "family_name", value = "User family name.", example = "Seda")
+    @ApiModelProperty(name = "family_name", value = "User family name.", example = "Doe")
     private String familyName;
     @ApiModelProperty(name = "external_id", value = "User external id.", example = "1")
     private Long externalId;
-    @ApiModelProperty(name = "mail", value = "User external id.", example = "seda@ics.muni.cz")
+    @ApiModelProperty(name = "mail", value = "User external id.", example = "johndoe@ics.muni.cz")
     private String mail;
     @ApiModelProperty(name = "iss", value = "OIDC issuer for that user record.", example = "https://oidc.muni.cz/oidc")
     private String iss;

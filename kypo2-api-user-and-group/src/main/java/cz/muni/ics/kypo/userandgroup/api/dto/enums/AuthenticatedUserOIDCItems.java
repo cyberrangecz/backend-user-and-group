@@ -6,7 +6,7 @@ public enum AuthenticatedUserOIDCItems {
     SCOPE("scope", "", "openid profile email"),
     EXPIRES_AT("expires_at", "", "2019-06-11T15:01:57+0000"),
     EXP("exp", "", "1560265317"),
-    SUB("sub", "", "441048@muni.cz"),
+    SUB("sub", "", "mail@muni.cz"),
     USER_ID("user_id", "", "152488"),
     /**
      * The example for client_id was obfuscated.
@@ -14,11 +14,11 @@ public enum AuthenticatedUserOIDCItems {
     CLIENT_ID("client_id", "", "b53f2660-8fa0-4d32-94e4-23a59d7e7888"),
     TOKEN_TYPE("token_type", "", "Bearer"),
     ISS("iss", "", "https://oidc.muni.cz/oidc/"),
-    NAME("name", "", "Mgr. Ing. Pavel Šeda"),
-    PREFERRED_USERNAME("preferred_username", "", "441048"),
-    GIVEN_NAME("given_name", "", "Pavel"),
-    FAMILY_NAME("family_name", "", "Šeda"),
-    EMAIL("email", "", "441048@mail.muni.cz"),
+    NAME("name", "", "Mgr. Ing. John Doe"),
+    PREFERRED_USERNAME("preferred_username", "", "999999"),
+    GIVEN_NAME("given_name", "", "John"),
+    FAMILY_NAME("family_name", "", "Doe"),
+    EMAIL("email", "", "mail@mail.muni.cz"),
     PICTURE("picture", "", "byte-stream");
 
     private String name;
