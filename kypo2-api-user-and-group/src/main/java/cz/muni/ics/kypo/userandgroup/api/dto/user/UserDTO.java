@@ -16,17 +16,17 @@ public class UserDTO {
 
     @ApiModelProperty(value = "Main identifier of the user.", example = "1", position = 1)
     private Long id;
-    @ApiModelProperty(value = "Sub of the user.", example = "441048@mail.muni.cz")
+    @ApiModelProperty(value = "Sub of the user.", example = "mail@mail.muni.cz")
     private String sub;
     @ApiModelProperty(value = "Issuer of a user.", example = "https://oidc.muni.cz")
     private String iss;
-    @ApiModelProperty(value = "Full name of the user.", example = "Pavel Seda")
+    @ApiModelProperty(value = "Full name of the user.", example = "John Doe")
     private String fullName;
-    @ApiModelProperty(value = "Email of the user.", example = "pavelseda@mail.muni.cz")
+    @ApiModelProperty(value = "Email of the user.", example = "johndoe@mail.muni.cz")
     private String mail;
-    @ApiModelProperty(value = "First name of a user.", example = "Pavel")
+    @ApiModelProperty(value = "First name of a user.", example = "John")
     private String givenName;
-    @ApiModelProperty(value = "Surname of a user.", example = "Seda")
+    @ApiModelProperty(value = "Surname of a user.", example = "Doe")
     private String familyName;
     @ApiModelProperty(value = "Roles of user assigned through the groups which user is in.")
     private Set<RoleDTO> roles = new HashSet<>();
