@@ -1,3 +1,17 @@
+* 8615229 -- Updated Swagger documentation generated.
+* 56b4d60 -- Update pom.xml version based on GitLab tag. Done by CI.
+* 2b1968d -- Update VERSION.txt -- Remove personal information of authors from the source code.
+* 31fb8c7 -- Update VERSION.txt -- Remove personal information of authors from the source code.
+*   dc5f97e -- Merge branch '154-remove-personal-data-from-project-source-code' into 'master'
+|\  
+| * bda4964 -- Resolve "Remove personal data from project source code"
+|/  
+* e4db884 -- Update .gitlab-ci.yml
+*   8710fe2 -- Merge branch '152-update-exapmle-properties-files' into 'master'
+|\  
+| * 7e0a2e1 -- example properties unified
+|/  
+* be861e3 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * bd05786 -- Updated Swagger documentation generated.
 * d8a456f -- Update pom.xml version based on GitLab tag. Done by CI.
 * c756f3c -- Update VERSION.txt
