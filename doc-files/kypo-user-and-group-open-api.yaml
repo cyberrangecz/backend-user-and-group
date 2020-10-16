@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "Version: 1.1.67"
+  version: "Version: 1.1.69"
   title: "KYPO2 User and Group - API Reference"
 host: "localhost:8080"
 basePath: "/kypo2-rest-user-and-group/api/v1"
@@ -1469,7 +1469,7 @@ definitions:
     properties:
       sub:
         type: "string"
-        example: "441048@mail.muni.cz"
+        example: "mail@mail.muni.cz"
         description: "Sub of the user."
       iss:
         type: "string"
@@ -1477,19 +1477,19 @@ definitions:
         description: "Issuer of a user."
       fullName:
         type: "string"
-        example: "Pavel Seda"
+        example: "John Doe"
         description: "Full name of the user."
       mail:
         type: "string"
-        example: "pavelseda@mail.muni.cz"
+        example: "johndoe@mail.muni.cz"
         description: "Email of the user."
       givenName:
         type: "string"
-        example: "Pavel"
+        example: "John"
         description: "First name of a user."
       familyName:
         type: "string"
-        example: "Seda"
+        example: "Doe"
         description: "Surname of a user."
       roles:
         type: "array"
@@ -1516,7 +1516,7 @@ definitions:
     properties:
       sub:
         type: "string"
-        example: "441048@mail.muni.cz"
+        example: "mail@mail.muni.cz"
         description: "Sub of the user."
       iss:
         type: "string"
@@ -1524,19 +1524,19 @@ definitions:
         description: "Issuer of a user."
       fullName:
         type: "string"
-        example: "Pavel Seda."
+        example: "John Doe"
         description: "Full name of the user including his titles."
       givenName:
         type: "string"
-        example: "Pavel"
+        example: "John"
         description: "First name of a user."
       familyName:
         type: "string"
-        example: "Seda"
+        example: "Doe"
         description: "Surname of a user."
       mail:
         type: "string"
-        example: "pavelseda@mail.muni.cz"
+        example: "johndoe@mail.muni.cz"
         description: "Email of the user."
       picture:
         type: "array"
