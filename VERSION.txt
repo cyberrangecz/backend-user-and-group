@@ -1,1 +1,1 @@
-1.1.67  Changelog generation updated.
+1.1.68  Remove personal information of authors from the source code.
