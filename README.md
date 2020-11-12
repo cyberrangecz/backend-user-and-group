@@ -1,15 +1,6 @@
 # KYPO User and Group
 This project represents back-end for managing users, groups and roles in KYPO platform.
 
-## Authors
-
-Name          | Email          
-------------- | ------------
-Pavel Šeda    |   441048@mail.muni.cz
-Dominik Pilár |   445537@mail.muni.cz
-Jan Duda      |   394179@mail.muni.cz
-Boris Jaduš   |   445343@mail.muni.cz
-
 ## Content
 
 1.  Requirements
