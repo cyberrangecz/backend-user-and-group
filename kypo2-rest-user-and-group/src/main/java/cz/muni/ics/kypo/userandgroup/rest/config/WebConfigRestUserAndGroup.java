@@ -7,7 +7,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @EnableSpringDataWebSupport
-@Import({ResourceServerSecurityConfig.class, FacadeConfig.class, SwaggerConfiguration.class})
+@Import({ResourceServerSecurityConfig.class, FacadeConfig.class})
 public class WebConfigRestUserAndGroup implements WebMvcConfigurer {
 
 }

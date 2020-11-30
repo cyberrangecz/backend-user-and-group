@@ -31,7 +31,9 @@ import java.util.Set;
 /**
  * Rest controller for the Role resource.
  */
-@Api(value = "Endpoint for Roles", tags = "roles")
+@Api(value = "Endpoint for Roles",
+     tags = "roles",
+     authorizations = @Authorization(value = "bearerAuth"))
 @RestController
 @RequestMapping(path = "/roles")
 public class RolesRestController {
