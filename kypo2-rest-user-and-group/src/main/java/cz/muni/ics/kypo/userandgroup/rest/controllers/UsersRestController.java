@@ -39,7 +39,9 @@ import java.util.Set;
 /**
  * Rest controller for the User resource.
  */
-@Api(value = "Endpoint for Users", tags = "users")
+@Api(value = "Endpoint for Users",
+     tags = "users",
+     authorizations = @Authorization(value = "bearerAuth"))
 @RestController
 @RequestMapping(path = "/users")
 @Validated

@@ -35,7 +35,9 @@ import java.util.Set;
 /**
  * Rest controller for the IDMGroup resource.
 */
-@Api(value = "Endpoint for Groups", tags = "groups")
+@Api(value = "Endpoint for Groups",
+     tags = "groups",
+     authorizations = @Authorization(value = "bearerAuth"))
 @RestController
 @RequestMapping(path = "/groups")
 @Validated

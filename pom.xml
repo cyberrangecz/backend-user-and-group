@@ -29,6 +29,7 @@
         <swagger.annotations>1.5.22</swagger.annotations>
         <swagger.directory>${basedir}/../doc-files</swagger.directory>
         <swagger.skip>true</swagger.skip>
+        <swagger.host>localhost:8084</swagger.host>
 
         <mitre.oidc.version>1.3.3</mitre.oidc.version>
         <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>

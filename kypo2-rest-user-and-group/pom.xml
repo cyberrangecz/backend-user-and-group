@@ -134,7 +134,7 @@
                                 <location>cz.muni.ics.kypo.userandgroup</location>
                             </locations>
                             <schemes>http,https</schemes>
-                            <host>localhost:8080</host>
+                            <host>${swagger.host}</host>
                             <basePath>/kypo2-rest-user-and-group/api/v1</basePath>
                             <info>
                                 <title>KYPO2 User and Group - API Reference</title>
@@ -142,7 +142,7 @@
                             </info>
                             <securityDefinitions>
                                 <securityDefinition>
-                                    <!-- This is configuration of security for Open API generated based on swagger, file in resources package.-->
+<!--                                This is configuration of security for Open API generated based on swagger, file in resources package.-->
                                     <json>/securityDefinition.json</json>
                                 </securityDefinition>
                             </securityDefinitions>
