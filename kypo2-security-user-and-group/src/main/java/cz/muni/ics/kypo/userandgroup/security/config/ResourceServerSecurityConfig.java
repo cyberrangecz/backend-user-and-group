@@ -35,8 +35,6 @@ public class ResourceServerSecurityConfig extends ResourceServerConfigurerAdapte
 
     @Value("#{'${kypo.idp.4oauth.issuers}'.split(',')}")
     private List<String> issuers;
-    @Value("#{'${kypo.idp.4oauth.introspectionURIs}'.split(',')}")
-    private List<String> introspectionURIs;
     @Value("#{'${kypo.idp.4oauth.resource.clientIds}'.split(',')}")
     private List<String> clientIdsOfResources;
     @Value("#{'${kypo.idp.4oauth.resource.clientSecrets}'.split(',')}")
