@@ -1,1 +1,1 @@
-1.1.69  Remove personal information of authors from the source code.
+1.1.70 Removed swagger UI configuration.
