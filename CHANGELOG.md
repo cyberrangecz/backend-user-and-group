@@ -1,3 +1,31 @@
+* 01a12d3 -- Updated Swagger documentation generated.
+* f17c4f7 -- Update pom.xml version based on GitLab tag. Done by CI.
+* 3136392 -- Update VERSION.txt
+*   d516847 -- Merge branch '164-remove-antmatchers-for-swagger-from-security-configuration' into 'master'
+|\  
+| * 2931938 -- AntMathers for swagger removed.
+|/  
+*   8303f43 -- Merge branch '162-remove-unused-attribute-introspectionuris-from-security-config' into 'master'
+|\  
+| * 86e2e2f -- Attribute introspection URIs removed from security configuration.
+|/  
+*   5e77524 -- Merge branch '161-update-description-in-securitydefinition-json-file' into 'master'
+|\  
+| * 0806659 -- Security definition for swagger updated.
+|/  
+*   a21d48d -- Merge branch '160-delete-swagger-configuration-and-update-config-files' into 'master'
+|\  
+| * cc41aa6 -- Resolve "Delete swagger configuration and update config files"
+|/  
+*   73f3535 -- Merge branch '156-update-readme-file' into 'master'
+|\  
+| * a357ba3 -- Resolve "Update README file"
+|/  
+*   8810404 -- Merge branch '155-remove-authors-from-the-readme-file' into 'master'
+|\  
+| * f6bb95f -- Update README.md
+|/  
+* 84b1dd0 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * 8615229 -- Updated Swagger documentation generated.
 * 56b4d60 -- Update pom.xml version based on GitLab tag. Done by CI.
 * 2b1968d -- Update VERSION.txt -- Remove personal information of authors from the source code.
