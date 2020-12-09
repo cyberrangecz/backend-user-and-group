@@ -1,1 +1,1 @@
-1.1.70 Removed swagger UI configuration.
+1.1.71 Setup CI to push docker containers on new tag.
