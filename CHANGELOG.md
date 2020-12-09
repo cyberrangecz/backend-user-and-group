@@ -1,3 +1,11 @@
+* 5e07d9e -- Updated Swagger documentation generated.
+* d969005 -- Update pom.xml version based on GitLab tag. Done by CI.
+* c497a2c -- Update VERSION.txt
+*   ee116b2 -- Merge branch '165-setup-ci-to-push-docker-containers-on-new-tag' into 'master'
+|\  
+| * f3d868d -- Setup CI to push docker container image to registry.
+|/  
+* bc9fa53 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * 01a12d3 -- Updated Swagger documentation generated.
 * f17c4f7 -- Update pom.xml version based on GitLab tag. Done by CI.
 * 3136392 -- Update VERSION.txt
