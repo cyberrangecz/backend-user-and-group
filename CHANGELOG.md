@@ -1,3 +1,11 @@
+* 5a4f44d -- Updated Swagger documentation generated.
+* f31c5bf -- Update pom.xml version based on GitLab tag. Done by CI.
+* 56451d9 -- Update VERSION.txt
+*   40f0725 -- Merge branch '166-update-gitlab-ci-yml-to-not-skip-ci-on-new-tag' into 'master'
+|\  
+| * bfdf208 -- Gitlab CI is not skipped on new tag.
+|/  
+* e52e7cb -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * 5e07d9e -- Updated Swagger documentation generated.
 * d969005 -- Update pom.xml version based on GitLab tag. Done by CI.
 * c497a2c -- Update VERSION.txt
