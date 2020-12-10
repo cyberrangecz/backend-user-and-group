@@ -1,1 +1,1 @@
-1.1.72 Setup CI to push docker containers on new tag.
+1.1.73 Push docker image on new tag to gitlab registry.
