@@ -3,19 +3,17 @@ image: 'maven:3.6.3-jdk-11-slim'
 variables:
   LANG: C.UTF-8
   LC_ALL: C.UTF-8
-  PROJECT_GROUP_ID: cz/muni/ics/kypo
   PROJECT_ARTIFACT_ID: kypo2-rest-user-and-group
   DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
   
 stages:
-  - createTag
+  - create_tag
   - build
   - tests
-  - deploy
-  - dockerImagePush
+  - docker_image_push
   
-createTag:
-  stage: createTag
+create_tag:
+  stage: create_tag
   before_script:
   # ssh config
   - which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )
@@ -84,28 +82,11 @@ tests:
     when: never
   - if: '$CI_COMMIT_BRANCH'
   
-deploy:
-  stage: deploy
-  script:
-  - export VERSION=$(grep -oP '^([^\s]*)' $DEPLOYMENT_INFO_VERSION_FILE)
-  - echo "Parsed version is (deploy phase) " $VERSION
-  - >
-    curl -X PUT -v -u
-    ${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_USERNAME}:${CSIRT_MU_NEXUS_URL_JAVA_DEPLOY_PASSWORD}
-    --upload-file $PROJECT_ARTIFACT_ID/pom.xml
-    ${CSIRT_MU_NEXUS_URL}/$PROJECT_GROUP_ID/$PROJECT_ARTIFACT_ID/$VERSION/$PROJECT_ARTIFACT_ID-$VERSION.pom
-    --upload-file $PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-$VERSION.jar
-    ${CSIRT_MU_NEXUS_URL}/$PROJECT_GROUP_ID/$PROJECT_ARTIFACT_ID/$VERSION/$PROJECT_ARTIFACT_ID-$VERSION.jar
-  rules:
-  - if: '$CI_COMMIT_BRANCH == "master"'
-    changes:
-      - VERSION.txt
-
-dockerImagePush:
+docker_image_push:
   before_script: [] #prevent global before_script from running
   variables:
     IMAGE_DESTINATION: munikypo/crp-demo-uag-service
-  stage: dockerImagePush
+  stage: docker_image_push
   image:
     name: gcr.io/kaniko-project/executor:v1.3.0-debug
     entrypoint: [ "" ]
