@@ -1,3 +1,15 @@
+* fc5cff9 -- Updated Swagger documentation generated.
+* 5099ab5 -- Update pom.xml version based on GitLab tag. Done by CI.
+* c2bb2d8 -- Update VERSION.txt
+*   e437ed3 -- Merge branch '168-setup-ci-to-push-docker-container-image-to-gitlab-registry' into 'master'
+|\  
+| * 9805728 -- Config CI to push docker container image to gitlab registry.
+|/  
+*   42cade6 -- Merge branch '167-remove-deploy-stage-from-ci' into 'master'
+|\  
+| * e544ac9 -- Removed deploy stage.
+|/  
+* 5cf53d3 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
 * 5a4f44d -- Updated Swagger documentation generated.
 * f31c5bf -- Update pom.xml version based on GitLab tag. Done by CI.
 * 56451d9 -- Update VERSION.txt
