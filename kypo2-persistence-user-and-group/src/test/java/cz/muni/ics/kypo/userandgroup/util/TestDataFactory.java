@@ -68,11 +68,11 @@ public class TestDataFactory {
             = generateRole(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), kypoUaGMicroservice, "UaG admin description");
 
     private RoleDTO uAGUserRoleDTO
-            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_USER.name(), "User description");
+            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_USER.name(), "User description", 1L, "userAndGroup");
     private RoleDTO uAGGuestRoleDTO
-            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_GUEST.name(), "Guest description");
+            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_GUEST.name(), "Guest description", 1L, "userAndGroup");
     private RoleDTO uAGAdminRoleDTO
-            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), "UaG admin description");
+            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), "UaG admin description", 1L, "userAndGroup");
 
     private RoleForNewMicroserviceDTO trainingAdminRoleForNewMicroserviceDTO
             = generateRoleForNewMicroserviceDTO("ROLE_TRAINING_ADMIN", "Training admin description");
@@ -330,10 +330,12 @@ public class TestDataFactory {
         return role;
     }
 
-    private RoleDTO generateRoleDTO(String roleType, String description){
+    private RoleDTO generateRoleDTO(String roleType, String description, Long idOfMicroservice, String nameOfMicroservice){
         RoleDTO role = new RoleDTO();
         role.setRoleType(roleType);
         role.setDescription(description);
+        role.setIdOfMicroservice(idOfMicroservice);
+        role.setNameOfMicroservice(nameOfMicroservice);
         return role;
     }
 
