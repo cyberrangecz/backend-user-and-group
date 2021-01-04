@@ -6,6 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
+import cz.muni.ics.kypo.userandgroup.entities.Microservice;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.IDMGroupMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
@@ -58,11 +59,12 @@ public class IDMGroupFacadeTest {
     private NewGroupDTO newGroupDTO;
     private UpdateGroupDTO updateGroupDTO;
     private User user1, user2, user3, user4;
+    private Microservice userAndGroupMicroservice;
+    private Predicate predicate;
     private UserForGroupsDTO userForGroupsDTO;
     private Role adminRole, userRole;
     private RoleDTO adminRoleDTO, userRoleDTO;
     private GroupDTO groupDTO1, groupDTO2;
-    private Predicate predicate;
     private Pageable pageable;
 
     @Before
@@ -79,8 +81,19 @@ public class IDMGroupFacadeTest {
         user4 = testDataFactory.getUser4();
         user4.setId(4L);
 
+        userAndGroupMicroservice = testDataFactory.getKypoUaGMicroservice();
+        userAndGroupMicroservice.setId(1L);
+
+        adminRole = testDataFactory.getUAGAdminRole();
+        adminRole.setId(1L);
+        adminRole.setMicroservice(userAndGroupMicroservice);
+        userRole = testDataFactory.getUAGUserRole();
+        userRole.setMicroservice(userAndGroupMicroservice);
+        userRole.setId(2L);
+
         group1 = testDataFactory.getUAGAdminGroup();
         group1.setUsers(new HashSet<>(Set.of(user1, user2, user3, user4)));
+        group1.setRoles(new HashSet<>(Set.of(userRole, adminRole)));
         group1.setId(1L);
         group2 = testDataFactory.getUAGUserGroup();
         group2.setId(2L);
@@ -95,11 +108,6 @@ public class IDMGroupFacadeTest {
         userForGroupsDTO = testDataFactory.getUserForGroupsDTO1();
         newGroupDTO.setUsers(Set.of(userForGroupsDTO));
 
-        adminRole = testDataFactory.getUAGAdminRole();
-        adminRole.setId(1L);
-        group1.setRoles(new HashSet<>(Set.of(adminRole)));
-        userRole = testDataFactory.getUAGUserRole();
-        userRole.setId(2L);
 
         userRoleDTO = testDataFactory.getUAGUserRoleDTO();
         userRoleDTO.setId(userRole.getId());

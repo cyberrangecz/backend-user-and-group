@@ -84,6 +84,7 @@ public class UserFacadeTest {
         userFacade = new UserFacadeImpl(userService, idmGroupService, identiconService, securityService, userMapper, roleMapper);
 
         microservice = testDataFactory.getKypoUaGMicroservice();
+        microservice.setId(1L);
 
         user1 = testDataFactory.getUser1();
         user1.setId(1L);
@@ -99,11 +100,13 @@ public class UserFacadeTest {
 
         guestRole = testDataFactory.getUAGGuestRole();
         guestRole.setId(1L);
+        guestRole.setMicroservice(microservice);
         guestRoleDTO = testDataFactory.getuAGGuestRoleDTO();
         guestRoleDTO.setId(guestRole.getId());
 
         userRole = testDataFactory.getUAGUserRole();
         userRole.setId(1L);
+        userRole.setMicroservice(microservice);
         userRoleDTO = testDataFactory.getUAGUserRoleDTO();
         userRoleDTO.setId(userRole.getId());
 

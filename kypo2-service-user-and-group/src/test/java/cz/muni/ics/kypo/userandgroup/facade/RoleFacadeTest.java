@@ -5,6 +5,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.RoleTypeDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
+import cz.muni.ics.kypo.userandgroup.entities.Microservice;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.entities.Role;
 import cz.muni.ics.kypo.userandgroup.service.interfaces.RoleService;
@@ -43,6 +44,7 @@ public class RoleFacadeTest {
     private RoleMapperImpl roleMapper;
 
     private Role adminRole, guestRole;
+    private Microservice microservice;
     private RoleDTO adminRoleDTO, guestRoleDTO;
     private Predicate predicate;
     private Pageable pageable;
@@ -53,10 +55,15 @@ public class RoleFacadeTest {
 
         roleFacade = new RoleFacadeImpl(roleService, roleMapper);
 
+        microservice = testDataFactory.getKypoUaGMicroservice();
+        microservice.setId(1L);
+
         adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setId(1L);
+        adminRole.setMicroservice(microservice);
         guestRole = testDataFactory.getUAGGuestRole();
         guestRole.setId(2L);
+        guestRole.setMicroservice(microservice);
 
         adminRoleDTO = testDataFactory.getuAGAdminRoleDTO();
         adminRoleDTO.setId(1L);
