@@ -14,10 +14,10 @@ import java.util.Objects;
 public class RoleForNewMicroserviceDTO {
 
     @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
-    @NotEmpty(message = "{roleForNewMicroserviceDto.roleType.NotEmpty.message}")
+    @NotEmpty(message = "{role.roleType.NotEmpty.message}")
     private String roleType;
     @ApiModelProperty(value = "Sign if role is default or not.", required = true, example = "true")
-    @NotNull(message = "{roleForNewMicroserviceDto.isDefault.NotNull.message}")
+    @NotNull(message = "{role.isDefault.NotNull.message}")
     private boolean isDefault;
     @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
     private String description;

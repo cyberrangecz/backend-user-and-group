@@ -17,14 +17,14 @@ import java.util.Set;
 public class NewMicroserviceDTO {
 
     @ApiModelProperty(value = "A name of the microservice.", required = true, example = "kypo2-training")
-    @NotEmpty(message = "{newMicroserviceDto.name.NotEmpty.message}")
+    @NotEmpty(message = "{microservice.name.NotEmpty.message}")
     private String name;
     @ApiModelProperty(value = "URI of the microservice.", required = true, example = "/kypo2-rest-training/api/v1")
-    @NotEmpty(message = "{newMicroserviceDto.endpoint.NotEmpty.message}")
+    @NotEmpty(message = "{microservice.endpoint.NotEmpty.message}")
     private String endpoint;
     @ApiModelProperty(value = "Roles which are used by the microservice.", required = true)
     @Valid
-    @NotNull(message = "{newMicroserviceDto.roles.NotNull.message}")
+    @NotNull(message = "{microservice.roles.NotNull.message}")
     private Set<@NotNull RoleForNewMicroserviceDTO> roles;
 
     /**
