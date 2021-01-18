@@ -17,13 +17,13 @@ import java.util.Objects;
 public class UpdateGroupDTO {
 
     @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1", position = 1)
-    @NotNull(message = "{updateGroupDto.id.NotNull.message}")
+    @NotNull(message = "{group.id.NotNull.message}")
     private Long id;
     @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group.")
-    @NotEmpty(message = "{updateGroupDto.name.NotEmpty.message}")
+    @NotEmpty(message = "{group.name.NotEmpty.message}")
     private String name;
     @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
-    @NotEmpty(message = "{updateGroupDto.description.NotEmpty.message}")
+    @NotEmpty(message = "{group.description.NotEmpty.message}")
     private String description;
     @ApiModelProperty(name="expiration_date", value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)

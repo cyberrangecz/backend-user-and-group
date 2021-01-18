@@ -17,10 +17,10 @@ import java.util.*;
 public class NewGroupDTO {
 
     @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")
-    @NotEmpty(message = "{newGroupDto.name.NotEmpty.message}")
+    @NotEmpty(message = "{group.name.NotEmpty.message}")
     private String name;
     @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
-    @NotEmpty(message = "{newGroupDto.description.NotEmpty.message}")
+    @NotEmpty(message = "{group.description.NotEmpty.message}")
     private String description;
     @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
     @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
