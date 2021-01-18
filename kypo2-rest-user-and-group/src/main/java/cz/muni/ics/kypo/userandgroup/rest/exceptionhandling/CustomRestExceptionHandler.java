@@ -7,14 +7,17 @@ import cz.muni.ics.kypo.userandgroup.api.exceptions.UnprocessableEntityException
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -118,6 +121,29 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
                 getInitialException(ex).getLocalizedMessage(),
                 supportedMediaTypes.toString(),
+                request.getContextPath());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers,
+                                                                  final HttpStatus status, final WebRequest request) {
+        final ApiError apiError = ApiError.of(
+                HttpStatus.BAD_REQUEST,
+                ex.getBindingResult().getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(java.util.stream.Collectors.joining(", ")),
+                getFullStackTrace(ex),
+                request.getContextPath());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(final HttpMessageNotReadableException ex, final HttpHeaders headers,
+                                                                  final HttpStatus status, final WebRequest request) {
+        final ApiError apiError = ApiError.of(
+                HttpStatus.BAD_REQUEST,
+                ex.getMostSpecificCause().getMessage(),
+                getFullStackTrace(ex),
                 request.getContextPath());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
