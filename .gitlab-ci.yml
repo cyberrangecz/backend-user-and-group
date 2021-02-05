@@ -1,8 +1,6 @@
 image: 'maven:3.6.3-jdk-11-slim'
 
 variables:
-  LANG: C.UTF-8
-  LC_ALL: C.UTF-8
   PROJECT_ARTIFACT_ID: kypo2-rest-user-and-group
   DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
   
