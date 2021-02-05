@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -149,6 +150,16 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // Handling of own exceptions
+
+    @ExceptionHandler({InsufficientAuthenticationException.class})
+    protected ResponseEntity<Object> handleAuthenticationException(final InsufficientAuthenticationException ex, final WebRequest request, HttpServletRequest req) {
+        final ApiError apiError = ApiError.of(
+                HttpStatus.UNAUTHORIZED,
+                ex.getMessage(),
+                getFullStackTrace(ex),
+                request.getContextPath());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
 
     @ExceptionHandler({ConstraintViolationException.class})
     public ResponseEntity<Object> handleConstraintViolation(final ConstraintViolationException ex,
