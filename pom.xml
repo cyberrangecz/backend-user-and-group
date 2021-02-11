@@ -160,7 +160,6 @@
                 <artifactId>concurrent-junit</artifactId>
                 <version>${concurrent-junit.version}</version>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 

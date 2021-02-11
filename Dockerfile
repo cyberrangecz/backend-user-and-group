@@ -36,11 +36,7 @@ COPY $PROJECT_ARTIFACT_ID /app/$PROJECT_ARTIFACT_ID
 # build uag
 RUN cd /app && \
     mvn clean install -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL && \
-    cp /app/$PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar /app/kypo-rest-user-and-group.jar && \
-    cd /app/kypo2-persistence-user-and-group && \
-    /etc/init.d/postgresql start && \
-    mvn flyway:migrate -Djdbc.url="jdbc:postgresql://localhost:5432/$POSTGRES_DB" -Djdbc.username="$USERNAME" -Djdbc.password="$PASSWORD" && \
-    /etc/init.d/postgresql stop
+    cp /app/$PROJECT_ARTIFACT_ID/target/$PROJECT_ARTIFACT_ID-*.jar /app/kypo-rest-user-and-group.jar
 
 WORKDIR /app
 EXPOSE 8084
