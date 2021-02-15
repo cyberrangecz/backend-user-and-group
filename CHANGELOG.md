@@ -1,48 +1,84 @@
-* fc5cff9 -- Updated Swagger documentation generated.
-* 5099ab5 -- Update pom.xml version based on GitLab tag. Done by CI.
-* c2bb2d8 -- Update VERSION.txt
-*   e437ed3 -- Merge branch '168-setup-ci-to-push-docker-container-image-to-gitlab-registry' into 'master'
+* d663238 -- Updated Swagger documentation generated.
+* bde3e3a -- Update pom.xml version based on GitLab tag. Done by CI.
+* 2f2a012 -- Update VERSION.txt
+*   4cde660 -- Merge branch '173-configure-flyway-to-update-database-schema-at-startup' into 'master'
 |\  
-| * 9805728 -- Config CI to push docker container image to gitlab registry.
+| * 94e9da2 -- Resolve "Configure Flyway to update database schema at startup"
+* |   395732e -- Merge branch '174-change-default-proprietery-repo-to-gitlab-maven' into 'master'
+|\ \  
+| |/  
+|/|   
+| * 0f99eaa -- Default proprietary repo changed to gitlab-maven.
 |/  
-*   42cade6 -- Merge branch '167-remove-deploy-stage-from-ci' into 'master'
+*   d068581 -- Merge branch '171-adjust-unauthorized-exception-to-the-custom-format' into 'master'
 |\  
-| * e544ac9 -- Removed deploy stage.
+| * 6a65e31 -- Added custom oauth2 authentication entry point to handle unauthorized exception.
+* | 42ac65e -- Update .gitlab-ci.yml
 |/  
-* 5cf53d3 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
-* 5a4f44d -- Updated Swagger documentation generated.
-* f31c5bf -- Update pom.xml version based on GitLab tag. Done by CI.
-* 56451d9 -- Update VERSION.txt
-*   40f0725 -- Merge branch '166-update-gitlab-ci-yml-to-not-skip-ci-on-new-tag' into 'master'
+*   b9c5b5b -- Merge branch '170-rename-validation-properties' into 'master'
 |\  
-| * bfdf208 -- Gitlab CI is not skipped on new tag.
+| * c8f8c66 -- Renamed validation properties.
 |/  
-* e52e7cb -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
-* 5e07d9e -- Updated Swagger documentation generated.
-* d969005 -- Update pom.xml version based on GitLab tag. Done by CI.
-* c497a2c -- Update VERSION.txt
-*   ee116b2 -- Merge branch '165-setup-ci-to-push-docker-containers-on-new-tag' into 'master'
+*   d8d0714 -- Merge branch '169-handle-rest-exceptions-argumentnotvalid-and-httpmessagenotreadable-in-rest-module' into 'master'
 |\  
-| * f3d868d -- Setup CI to push docker container image to registry.
+| * 7d6c6be -- Added methods to handle ArgumentNotValidException and HttpMessageNotReadableException.
 |/  
-* bc9fa53 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
-* 01a12d3 -- Updated Swagger documentation generated.
-* f17c4f7 -- Update pom.xml version based on GitLab tag. Done by CI.
-* 3136392 -- Update VERSION.txt
-*   d516847 -- Merge branch '164-remove-antmatchers-for-swagger-from-security-configuration' into 'master'
+*   2202911 -- Merge branch '158-groups-endpoints-do-not-return-id-and-name-of-microservices-in-their-roles' into 'master'
 |\  
-| * 2931938 -- AntMathers for swagger removed.
-|/  
-*   8303f43 -- Merge branch '162-remove-unused-attribute-introspectionuris-from-security-config' into 'master'
-|\  
-| * 86e2e2f -- Attribute introspection URIs removed from security configuration.
-|/  
-*   5e77524 -- Merge branch '161-update-description-in-securitydefinition-json-file' into 'master'
-|\  
-| * 0806659 -- Security definition for swagger updated.
-|/  
-*   a21d48d -- Merge branch '160-delete-swagger-configuration-and-update-config-files' into 'master'
-|\  
+| * d65e4b5 -- Resolve "Groups endpoints do not return id and name of microservices in their roles"
+* |   a46a9d2 -- Merge branch '157-support-filtering-microservices-by-name' into 'master'
+|\ \  
+| |/  
+|/|   
+| * 1993805 -- Added support of filtering microservices by name.
+* | d25b83f -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
+* | fc5cff9 -- Updated Swagger documentation generated.
+* | 5099ab5 -- Update pom.xml version based on GitLab tag. Done by CI.
+* | c2bb2d8 -- Update VERSION.txt
+* |   e437ed3 -- Merge branch '168-setup-ci-to-push-docker-container-image-to-gitlab-registry' into 'master'
+|\ \  
+| * | 9805728 -- Config CI to push docker container image to gitlab registry.
+|/ /  
+* |   42cade6 -- Merge branch '167-remove-deploy-stage-from-ci' into 'master'
+|\ \  
+| * | e544ac9 -- Removed deploy stage.
+|/ /  
+* | 5cf53d3 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
+* | 5a4f44d -- Updated Swagger documentation generated.
+* | f31c5bf -- Update pom.xml version based on GitLab tag. Done by CI.
+* | 56451d9 -- Update VERSION.txt
+* |   40f0725 -- Merge branch '166-update-gitlab-ci-yml-to-not-skip-ci-on-new-tag' into 'master'
+|\ \  
+| * | bfdf208 -- Gitlab CI is not skipped on new tag.
+|/ /  
+* | e52e7cb -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
+* | 5e07d9e -- Updated Swagger documentation generated.
+* | d969005 -- Update pom.xml version based on GitLab tag. Done by CI.
+* | c497a2c -- Update VERSION.txt
+* |   ee116b2 -- Merge branch '165-setup-ci-to-push-docker-containers-on-new-tag' into 'master'
+|\ \  
+| * | f3d868d -- Setup CI to push docker container image to registry.
+|/ /  
+* | bc9fa53 -- CHANGELOG.md file updated with commits between the current and previous tag. Done by CI.
+* | 01a12d3 -- Updated Swagger documentation generated.
+* | f17c4f7 -- Update pom.xml version based on GitLab tag. Done by CI.
+* | 3136392 -- Update VERSION.txt
+* |   d516847 -- Merge branch '164-remove-antmatchers-for-swagger-from-security-configuration' into 'master'
+|\ \  
+| * | 2931938 -- AntMathers for swagger removed.
+|/ /  
+* |   8303f43 -- Merge branch '162-remove-unused-attribute-introspectionuris-from-security-config' into 'master'
+|\ \  
+| * | 86e2e2f -- Attribute introspection URIs removed from security configuration.
+|/ /  
+* |   5e77524 -- Merge branch '161-update-description-in-securitydefinition-json-file' into 'master'
+|\ \  
+| * | 0806659 -- Security definition for swagger updated.
+|/ /  
+* |   a21d48d -- Merge branch '160-delete-swagger-configuration-and-update-config-files' into 'master'
+|\ \  
+| |/  
+|/|   
 | * cc41aa6 -- Resolve "Delete swagger configuration and update config files"
 |/  
 *   73f3535 -- Merge branch '156-update-readme-file' into 'master'
