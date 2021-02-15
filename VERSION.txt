@@ -1,1 +1,1 @@
-1.1.73 Push docker image on new tag to gitlab registry.
+1.1.74 Bug fixes and configuration of migration during startup.
