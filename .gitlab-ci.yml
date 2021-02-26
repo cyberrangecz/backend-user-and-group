@@ -24,6 +24,7 @@ create_tag:
   - apt-get install git -y
   - git config --global user.email "$GIT_USER_EMAIL"
   - git config --global user.name "$GIT_USER_NAME"
+  - git config --global push.followTags true
   - git remote set-url origin "$GIT_CLONE_URL"
   - git fetch
   - git checkout master
@@ -32,20 +33,14 @@ create_tag:
   - export VERSION=$(grep -oP '^([^\s]*)' $DEPLOYMENT_INFO_VERSION_FILE)
   - export TAG_MESSAGE=$(grep -oP '(?<=\s)[^\s].*' $DEPLOYMENT_INFO_VERSION_FILE)
   # update project versions in a multi-module Maven project
-  - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+  - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
   - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
   # generate swagger documentation
   - mvn clean compile -DskipTests -Dswagger.skip=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   - git add doc-files/kypo-user-and-group-open-api.yaml
   - git commit -m "Updated Swagger documentation generated."
-  # update change log
-  - LAST_TAG=$(git tag | head -1)
-  - git log  --pretty=format:'%h -- %s' $LAST_TAG..HEAD --graph > CHANGELOG.md
-  - git add CHANGELOG.md
-  - git commit -m "CHANGELOG.md file updated with commits between the current and previous tag. Done by CI."
   # create new tag
   - git tag -a v$VERSION -m "$TAG_MESSAGE"
-  - git config --global push.followTags true
   - git push
   rules:
   - if: '$CI_COMMIT_BRANCH == "master"'
