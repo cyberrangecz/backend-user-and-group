@@ -41,7 +41,7 @@ create_tag:
   - git commit -m "Updated Swagger documentation generated."
   # create new tag
   - git tag -a v$VERSION -m "$TAG_MESSAGE"
-  - git push
+  - git push -o ci.skip
   rules:
   - if: '$CI_COMMIT_BRANCH == "master"'
     changes:
