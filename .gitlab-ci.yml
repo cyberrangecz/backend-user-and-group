@@ -27,6 +27,7 @@ create_tag:
   - git remote set-url origin "$GIT_CLONE_URL"
   - git fetch
   - git checkout master
+  - git pull
   script:
   - export VERSION=$(grep -oP '^([^\s]*)' $DEPLOYMENT_INFO_VERSION_FILE)
   - export TAG_MESSAGE=$(grep -oP '(?<=\s)[^\s].*' $DEPLOYMENT_INFO_VERSION_FILE)
