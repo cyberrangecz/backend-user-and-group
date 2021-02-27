@@ -41,7 +41,7 @@ create_tag:
   - git commit -m "Updated Swagger documentation generated."
   # create new tag
   - git tag -a v$VERSION -m "$TAG_MESSAGE"
-  - git push -o ci.skip
+  - git push
   rules:
   - if: '$CI_COMMIT_BRANCH == "master"'
     changes:
@@ -89,6 +89,6 @@ docker_image_push:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_CUSTOM_REGISTRY_USER\",\"password\":\"$CI_CUSTOM_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_CUSTOM_REGISTRY_IMAGE:$CI_COMMIT_TAG --build-arg PROPRIETARY_REPO_URL=$PROPRIETARY_REPO_URL
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      changes:
-        - VERSION.txt
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH'
+      when: never
