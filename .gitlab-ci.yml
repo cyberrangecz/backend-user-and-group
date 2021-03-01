@@ -9,47 +9,31 @@ stages:
   - build
   - tests
   - docker_image_push
-  
+
 create_tag:
   stage: create_tag
-  before_script:
-  # ssh config
-  - which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - ssh -o 'StrictHostKeyChecking no' "$SSH_HOST_CHECKING_DOMAIN"
-  # git config
-  - apt-get install git -y
-  - git config --global user.email "$GIT_USER_EMAIL"
-  - git config --global user.name "$GIT_USER_NAME"
-  - git config --global push.followTags true
-  - git remote set-url origin "$GIT_CLONE_URL"
-  - git fetch
-  - git checkout master
-  - git pull
+  # https://gitlab.ics.muni.cz/csirt-mu-infra/devops-support/docker-images/csirtmu-docker-common-ci
+  image: 'nexus.csirt.muni.cz:5000/csirtmu/common-ci'
+  variables:
+    GIT_STRATEGY: clone
   script:
-  - export VERSION=$(grep -oP '^([^\s]*)' $DEPLOYMENT_INFO_VERSION_FILE)
-  - export TAG_MESSAGE=$(grep -oP '(?<=\s)[^\s].*' $DEPLOYMENT_INFO_VERSION_FILE)
-  # update project versions in a multi-module Maven project
-  - mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
-  - git commit -am "Update pom.xml version based on GitLab tag. Done by CI."
-  # generate swagger documentation
-  - mvn clean compile -DskipTests -Dswagger.skip=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
-  - git add doc-files/kypo-user-and-group-open-api.yaml
-  - git commit -m "Updated Swagger documentation generated."
-  # create new tag
-  - git tag -a v$VERSION -m "$TAG_MESSAGE"
-  - git push
+    - source /app/export-tag-vars.sh VERSION.txt
+    - echo $TAG_VERSION && echo $TAG_MESSAGE
+    - /app/import-ssh-key.sh
+    - /app/prepare-git.sh
+    - /app/set-version-java.sh
+    # generate swagger documentation
+    - mvn clean compile -DskipTests -Dswagger.skip=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+    - git add doc-files/kypo-user-and-group-open-api.yaml
+    - git commit -m "Updated Swagger documentation generated."
+    - /app/tag-and-push.sh
   rules:
-  - if: '$CI_COMMIT_BRANCH == "master"'
-    changes:
-      - VERSION.txt
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - VERSION.txt
   artifacts:
     paths:
     - ./pom.xml
-    - ./*/pom.xml
     expire_in: 1 hour
     when: on_success
     
