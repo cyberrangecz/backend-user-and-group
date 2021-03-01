@@ -57,13 +57,11 @@ To build and run the project in docker it is necessary to prepare several config
 
 #### 2. Build Docker Image
 The root folder of the project contains a Dockerfile with commands to assemble a docker image.  To build an image run the following command:
-```bash
-sudo docker build -t {image name} .
-```
-
-e.g.:
-```bash
-sudo docker build -t user-and-group-image .
+```shell
+$ sudo docker build \
+  --build-arg PROPRIETARY_REPO_URL=https://gitlab.ics.muni.cz/api/v4/projects/2358/packages/maven \
+  -t user-and-group-image \
+  .
 ```
 
 Dockefile contains several default arguments:
@@ -74,26 +72,25 @@ Dockefile contains several default arguments:
 * PROPRIETARY_REPO_URL=YOUR-PATH-TO-PROPRIETARY_REPO.
 
 Those arguments can be overwritten during the build of the image, by adding the following option for each argument: 
-```bash
+```shell
 --build-arg {name of argument}={value of argument} 
 ``` 
 
-e.g.:
-```bash
-sudo docker build --build-arg USERNAME=kypo -t user-and-group .
-```
-
 #### 3. Start the Project
 Before you run a docker container, make sure that your ***OIDC Provider*** is running. Instead of usage of the PostgreSQL database, you can use the in-memory database H2. It just depends on the provided configuration. To run a docker container, run the following command: 
+```shell
+$  sudo docker run \
+   --name user-and-group-container -it \
+   -p 8084:8084 \
+   user-and-group-image
 ```
-sudo docker run --name {container name} -it -p {port in host}:{port in container} {docker image}
-```
-e.g. with this command:
-```
-sudo docker run --name user-and-group-container -it -p 8084:8084 user-and-group-image
+
+Add the following option to use the custom property file:
+```shell
+-v {path to your config file}:/app/etc/user-and-group.properties
 ```
 
 To create a backup for your database add the following docker option:
-```
+```shell
 -v db_data_uag:/var/lib/postgresql/11/main/
 ```
