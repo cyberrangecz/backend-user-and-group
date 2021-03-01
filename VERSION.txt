@@ -1,1 +1,1 @@
-1.1.74 Bug fixes and configuration of migration during startup.
+1.1.75 Integration of CSIRT commons-ci
