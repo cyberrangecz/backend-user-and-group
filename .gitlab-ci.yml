@@ -22,7 +22,7 @@ create_tag:
   variables:
     GIT_STRATEGY: clone
   script:
-    - source /app/export-tag-vars.sh VERSION.txt
+    - source /app/export-tag-vars.sh $DEPLOYMENT_INFO_VERSION_FILE
     - echo $TAG_VERSION && echo $TAG_MESSAGE
     - /app/import-ssh-key.sh
     - /app/prepare-git.sh
@@ -35,7 +35,7 @@ create_tag:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       changes:
-        - VERSION.txt
+        - $DEPLOYMENT_INFO_VERSION_FILE
     
 build:
   stage: build
@@ -56,7 +56,7 @@ tests:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       changes:
-        - VERSION.txt
+        - $DEPLOYMENT_INFO_VERSION_FILE
       when: never
     - if: '$CI_COMMIT_TAG'
       changes:
