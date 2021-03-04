@@ -30,7 +30,7 @@ create_tag:
     # generate swagger documentation
     - mvn clean compile $MAVEN_CLI_OPTS -DskipTests -Dswagger.skip=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
     - git add doc-files/kypo-user-and-group-open-api.yaml
-    - git commit -m "Updated Swagger documentation generated."
+    - git commit -m "Updated Swagger documentation generated"
     - /app/tag-and-push.sh
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
@@ -40,20 +40,30 @@ create_tag:
 build:
   stage: build
   script:
-  - mvn clean install $MAVEN_CLI_OPTS -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+    - mvn clean install $MAVEN_CLI_OPTS -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   rules:
-  - if: '$CI_COMMIT_BRANCH'
-    
+    - if: '$CI_COMMIT_TAG'
+      changes:
+        - pom.xml
+      when: never
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_MESSAGE !~ /Updated Swagger documentation generated/'
+      when: always
+
 tests:
   stage: tests
   script:
-  - mvn test $MAVEN_CLI_OPTS -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+    - mvn test $MAVEN_CLI_OPTS -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   rules:
-  - if: '$CI_COMMIT_BRANCH == "master"'
-    changes:
-      - VERSION.txt
-    when: never
-  - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - VERSION.txt
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      changes:
+        - pom.xml
+      when: never
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_MESSAGE !~ /Updated Swagger documentation generated/'
+      when: always
   
 docker_image_push:
   before_script: [] #prevent global before_script from running
