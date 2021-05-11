@@ -147,7 +147,7 @@
                                 </securityDefinition>
                             </securityDefinitions>
                             <swaggerDirectory>${swagger.directory}</swaggerDirectory>
-                            <swaggerFileName>kypo-user-and-group-open-api</swaggerFileName>
+                            <swaggerFileName>kypo-user-and-group-swagger-open-api</swaggerFileName>
                             <outputFormats>yaml</outputFormats>
                         </apiSource>
                     </apiSources>
