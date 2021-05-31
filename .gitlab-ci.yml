@@ -18,7 +18,7 @@ stages:
 create_tag:
   stage: create_tag
   # https://gitlab.ics.muni.cz/csirt-mu-infra/devops-support/docker-images/csirtmu-docker-common-ci
-  image: 'nexus.csirt.muni.cz:5000/csirtmu/common-ci'
+  image: 'registry.gitlab.ics.muni.cz:443/csirt-mu-devel/csirt-mu-devel-artifact-repository/docker-common-ci:v0.1.6'
   variables:
     GIT_STRATEGY: clone
   script:
