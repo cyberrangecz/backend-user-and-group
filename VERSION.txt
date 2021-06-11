@@ -1,1 +1,1 @@
-1.1.76 Integration of CSIRT commons-ci
+1.1.77 Clean up gitlab CI file, renamed Swagger Open API doc file, pull docker-common-ci image from Gitlab repository instead of Nexus.
