@@ -55,10 +55,6 @@
             <artifactId>springfox-swagger2</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>
@@ -138,7 +134,7 @@
                             <basePath>/kypo2-rest-user-and-group/api/v1</basePath>
                             <info>
                                 <title>KYPO2 User and Group - API Reference</title>
-                                <version>Version: ${version}</version>
+                                <version>Version: ${project.version}</version>
                             </info>
                             <securityDefinitions>
                                 <securityDefinition>
