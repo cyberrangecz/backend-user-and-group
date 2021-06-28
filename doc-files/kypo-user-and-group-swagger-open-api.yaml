@@ -2,9 +2,9 @@
 swagger: "2.0"
 info:
   version: "Version: 1.1.77"
-  title: "KYPO2 User and Group - API Reference"
+  title: "KYPO User and Group - API Reference"
 host: "localhost:8084"
-basePath: "/kypo2-rest-user-and-group/api/v1"
+basePath: "/kypo-rest-user-and-group/api/v1"
 tags:
 - name: "groups"
 - name: "roles"
@@ -1270,7 +1270,7 @@ definitions:
           type: "string"
       path:
         type: "string"
-        example: "/kypo2-rest-user-and-group/api/v1/groups/1000 (different for each\
+        example: "/kypo-rest-user-and-group/api/v1/groups/1000 (different for each\
           \ type of exception)."
         description: "The requested URI path which caused error."
   GroupDTO:
@@ -1453,7 +1453,7 @@ definitions:
         description: "Id of microservice which use this role."
       nameOfMicroservice:
         type: "string"
-        example: "kypo2-training"
+        example: "kypo-training"
         description: "A name of microservice which use this role."
       description:
         type: "string"

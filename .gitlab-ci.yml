@@ -5,7 +5,7 @@ cache:
     - .m2/repository
 
 variables:
-  PROJECT_ARTIFACT_ID: kypo2-rest-user-and-group
+  PROJECT_ARTIFACT_ID: kypo-rest-user-and-group
   DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
   MAVEN_CLI_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   

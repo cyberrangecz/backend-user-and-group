@@ -8,25 +8,25 @@ This project represents back-end for managing users, groups and roles in KYPO pl
 
 ### 1. Project Modules
 This project is divided into several modules:
-* `kypo2-rest-user-and-group`
+* `kypo-rest-user-and-group`
   * Provides REST layer for communication with front-end.
   * Based on HTTP REST without HATEOAS.
   * Documented with Swagger.
-* `kypo2-service-user-and-group`
+* `kypo-service-user-and-group`
     * Provides business logic of the application:
       * Calls persistence layer for database queries and combining the results as necessary.
       * Calls another microservices.
       * Manages transactions and Aspect Oriented Programming (AOP) mechanisms.
-* `kypo2-security-user-and-group`
+* `kypo-security-user-and-group`
     * Provides security settings:
       * Behaves as Resource Server in OpenID Connect schema.
       * Set Cross-origin Resource Sharing (CORS) to be abble to communicate with clients (Angular).
       * Communicates with Authorization Server.
-* `kypo2-persistence-user-and-group`
+* `kypo-persistence-user-and-group`
   * Provides data layer of the application (database queries).
   * Uses Spring Data JPA (Spring wrapper layer over JPA implemented with Hibernate framework).
   * Uses QueryDSL for filtering the data.
-* `kypo2-api-user-and-group`
+* `kypo-api-user-and-group`
   * Contains API (DTO classes)
     * These are annotated with proprietary converters for DateTime processing.
     * Localized Bean validations are set (messages are localized).
@@ -34,7 +34,7 @@ This project is divided into several modules:
   * Map Entities to DTO classes and vice versa with MapStruct framework.
 
 And the main project (parent maven project with packaging pom):
-* `kypo2-user-and-group`
+* `kypo-user-and-group`
   * Contains configurations for all modules as dependency versions, dependency for spring boot parent project etc.
 
   
@@ -68,7 +68,7 @@ Dockefile contains several default arguments:
 * USERNAME=postgres - the name of the user to connect to the database. 
 * PASSWORD=postgres - user password.
 * POSRGRES_DB=user-and-group - the name of the created database.
-* PROJECT_ARTIFACT_ID=kypo2-rest-user-and-group - the name of the project artifact.
+* PROJECT_ARTIFACT_ID=kypo-rest-user-and-group - the name of the project artifact.
 * PROPRIETARY_REPO_URL=YOUR-PATH-TO-PROPRIETARY_REPO.
 
 Those arguments can be overwritten during the build of the image, by adding the following option for each argument: 
