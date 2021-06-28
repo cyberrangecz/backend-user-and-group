@@ -1,1 +1,1 @@
-1.1.77 Clean up gitlab CI file, renamed Swagger Open API doc file, pull docker-common-ci image from Gitlab repository instead of Nexus.
+1.1.78 KYPO2 renamed to KYPO.
