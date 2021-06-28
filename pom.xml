@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>kypo2-user-and-group</artifactId>
+    <artifactId>kypo-user-and-group</artifactId>
     <groupId>cz.muni.ics.kypo</groupId>
     <version>1.1.77</version>
     <packaging>pom</packaging>
 
-    <name>kypo2-user-and-group</name>
+    <name>kypo-user-and-group</name>
     <description>Project for managing users and groups of KYPO</description>
 
     <parent>
@@ -181,11 +181,11 @@
     </build>
 
     <modules>
-        <module>kypo2-persistence-user-and-group</module>
-        <module>kypo2-service-user-and-group</module>
-        <module>kypo2-security-user-and-group</module>
-        <module>kypo2-rest-user-and-group</module>
-        <module>kypo2-api-user-and-group</module>
+        <module>kypo-persistence-user-and-group</module>
+        <module>kypo-service-user-and-group</module>
+        <module>kypo-security-user-and-group</module>
+        <module>kypo-rest-user-and-group</module>
+        <module>kypo-api-user-and-group</module>
     </modules>
 
 </project>

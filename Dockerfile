@@ -5,7 +5,7 @@ FROM maven:3.6.2-jdk-11-slim AS build
 ARG USERNAME=postgres
 ARG PASSWORD=postgres
 ARG POSTGRES_DB=user-and-group
-ARG PROJECT_ARTIFACT_ID=kypo2-rest-user-and-group
+ARG PROJECT_ARTIFACT_ID=kypo-rest-user-and-group
 
 ## default link to proprietary repository, e.g., Nexus repository
 ARG PROPRIETARY_REPO_URL=YOUR-PATH-TO-PROPRIETARY_REPO
@@ -27,10 +27,10 @@ COPY ["/etc/user-and-group.properties", "/etc/initial-users.yml", "/app/etc/"]
 COPY supervisord.conf /app/supervisord.conf
 COPY entrypoint.sh /app/entrypoint.sh
 COPY pom.xml /app/pom.xml
-COPY kypo2-api-user-and-group /app/kypo2-api-user-and-group
-COPY kypo2-persistence-user-and-group /app/kypo2-persistence-user-and-group
-COPY kypo2-service-user-and-group /app/kypo2-service-user-and-group
-COPY kypo2-security-user-and-group /app/kypo2-security-user-and-group
+COPY kypo-api-user-and-group /app/kypo-api-user-and-group
+COPY kypo-persistence-user-and-group /app/kypo-persistence-user-and-group
+COPY kypo-service-user-and-group /app/kypo-service-user-and-group
+COPY kypo-security-user-and-group /app/kypo-security-user-and-group
 COPY $PROJECT_ARTIFACT_ID /app/$PROJECT_ARTIFACT_ID
 
 WORKDIR /app
