@@ -35,7 +35,7 @@ import java.util.*;
 @Transactional
 public class StartUpRunner implements ApplicationRunner {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StartUpRunner.class);
     private static final int ICON_WIDTH = 75;
     private static final int ICON_HEIGHT = 75;
 
@@ -45,11 +45,18 @@ public class StartUpRunner implements ApplicationRunner {
     @Value("${service.name}")
     private String nameOfUserAndGroupService;
 
-    private UserRepository userRepository;
-    private IDMGroupRepository groupRepository;
-    private RoleRepository roleRepository;
-    private MicroserviceRepository microserviceRepository;
-    private IdenticonService identiconService;
+    @Value("${server.servlet.context-path}")
+    private String contextPathOfUserAndGroupService;
+
+    @Value("${server.port}")
+    private String portOfUserAndGroupService;
+
+
+    private final UserRepository userRepository;
+    private final IDMGroupRepository groupRepository;
+    private final RoleRepository roleRepository;
+    private final MicroserviceRepository microserviceRepository;
+    private final IdenticonService identiconService;
 
     private Role adminRole, userRole, guestRole;
     private IDMGroup adminGroup, userGroup, defaultGroup;
@@ -78,12 +85,11 @@ public class StartUpRunner implements ApplicationRunner {
     private void loadOrCreateMainMicroservice() {
         mainMicroservice = microserviceRepository.findByName(nameOfUserAndGroupService)
                 .orElseGet(() -> {
-                    mainMicroservice = new Microservice();
-                    mainMicroservice.setEndpoint("/");
-                    mainMicroservice.setName(nameOfUserAndGroupService);
+                    mainMicroservice = new Microservice(nameOfUserAndGroupService, "/");
                     return microserviceRepository.save(mainMicroservice);
                 });
-        LOGGER.info("Main microservice for users and groups was registered.", mainMicroservice.getName());
+        mainMicroservice.setEndpoint("BASE_URL:" + portOfUserAndGroupService + contextPathOfUserAndGroupService);
+        LOGGER.info("The main microservice for users and groups was registered under the name '{}'.", mainMicroservice.getName());
     }
 
     private void loadOrCreateMainRoles() {
