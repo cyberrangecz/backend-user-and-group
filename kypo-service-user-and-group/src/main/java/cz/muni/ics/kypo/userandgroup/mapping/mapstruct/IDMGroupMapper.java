@@ -1,10 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupWithRolesDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
@@ -24,6 +21,8 @@ public interface IDMGroupMapper extends ParentMapper {
 
     GroupDTO mapToDTO(IDMGroup entity);
 
+    GroupViewDTO mapToViewDTO(IDMGroup entity);
+
     GroupWithRolesDTO mapToWithRolesDto(IDMGroup entity);
 
     IDMGroup mapCreateToEntity(NewGroupDTO dto);
@@ -32,7 +31,7 @@ public interface IDMGroupMapper extends ParentMapper {
 
     List<IDMGroup> mapToList(Collection<GroupDTO> dtos);
 
-    List<GroupDTO> mapToListDTO(Collection<IDMGroup> entities);
+    List<GroupViewDTO> mapToListDTO(Collection<IDMGroup> entities);
 
     Set<IDMGroup> mapToSet(Collection<GroupDTO> dtos);
 
@@ -46,19 +45,14 @@ public interface IDMGroupMapper extends ParentMapper {
         return Optional.ofNullable(mapToDTO(entity));
     }
 
-    default Page<GroupDTO> mapToPageDTO(Page<IDMGroup> objects) {
-        List<GroupDTO> mapped = mapToListDTO(objects.getContent());
+    default Page<GroupViewDTO> mapToPageDTO(Page<IDMGroup> objects) {
+        List<GroupViewDTO> mapped = mapToListDTO(objects.getContent());
         return new PageImpl<>(mapped, objects.getPageable(), mapped.size());
     }
 
-    default Page<IDMGroup> mapToPage(Page<GroupDTO> objects) {
-        List<IDMGroup> mapped = mapToList(objects.getContent());
-        return new PageImpl<>(mapped, objects.getPageable(), mapped.size());
-    }
-
-    default PageResultResource<GroupDTO> mapToPageResultResource(Page<IDMGroup> objects) {
-        List<GroupDTO> mapped = new ArrayList<>();
-        objects.forEach(object -> mapped.add(mapToDTO(object)));
+    default PageResultResource<GroupViewDTO> mapToPageResultResource(Page<IDMGroup> objects) {
+        List<GroupViewDTO> mapped = new ArrayList<>();
+        objects.forEach(object -> mapped.add(mapToViewDTO(object)));
         return new PageResultResource<>(mapped, createPagination(objects));
     }
 }

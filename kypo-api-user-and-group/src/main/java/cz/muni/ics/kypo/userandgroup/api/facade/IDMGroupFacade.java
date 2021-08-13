@@ -64,9 +64,9 @@ public interface IDMGroupFacade {
      *
      * @param predicate specifies query to database.
      * @param pageable  abstract interface for pagination information.
-     * @return a list of all {@link GroupDTO} from the database wrapped up in {@link PageResultResource}.
+     * @return a list of all {@link GroupViewDTO} from the database wrapped up in {@link PageResultResource}.
      */
-    PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable);
+    PageResultResource<GroupViewDTO> getAllGroups(Predicate predicate, Pageable pageable);
 
     /**
      * Returns all roles of the group with the given ID.

@@ -65,6 +65,7 @@ public class IDMGroupFacadeTest {
     private Role adminRole, userRole;
     private RoleDTO adminRoleDTO, userRoleDTO;
     private GroupDTO groupDTO1, groupDTO2;
+    private GroupViewDTO groupViewDTO1, groupViewDTO2;
     private Pageable pageable;
 
     @Before
@@ -100,6 +101,11 @@ public class IDMGroupFacadeTest {
 
         groupDTO1 = testDataFactory.getUAGUAdminGroupDTO();
         groupDTO2 = testDataFactory.getUAGUserGroupDTO();
+
+        groupViewDTO1 = testDataFactory.getAdminGroupViewDTO();
+        groupViewDTO1.setId(1L);
+        groupViewDTO2 = testDataFactory.getUserGroupViewDTO();
+        groupViewDTO2.setId(2L);
 
         updateGroupDTO = testDataFactory.getUpdateGroupDTO();
         updateGroupDTO.setId(10L);
@@ -236,10 +242,11 @@ public class IDMGroupFacadeTest {
         groupDTO1.setId(group1.getId());
         groupDTO2.setId(group2.getId());
         given(groupService.getAllIDMGroups(predicate, pageable)).willReturn(idmGroupPage);
-        PageResultResource<GroupDTO> responseDTOPageResultResource = groupFacade.getAllGroups(predicate, pageable);
+        PageResultResource<GroupViewDTO> responseDTOPageResultResource = groupFacade.getAllGroups(predicate, pageable);
 
         assertEquals(2, responseDTOPageResultResource.getContent().size());
-        assertTrue(responseDTOPageResultResource.getContent().containsAll(List.of(groupDTO1, groupDTO2)));
+
+        assertTrue(responseDTOPageResultResource.getContent().containsAll(List.of(groupViewDTO1, groupViewDTO2)));
         then(groupService).should().getAllIDMGroups(predicate, pageable);
     }
 

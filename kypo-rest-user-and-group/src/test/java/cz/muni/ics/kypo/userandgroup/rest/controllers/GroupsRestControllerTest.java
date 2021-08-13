@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityConflictException;
@@ -72,9 +69,10 @@ public class GroupsRestControllerTest {
     private MockMvc mockMvc;
 
     private GroupDTO groupDTO1, groupDTO2;
+    private GroupViewDTO groupViewDTO1, groupViewDTO2;
     private NewGroupDTO newGroupDTO;
     private UpdateGroupDTO updateGroupDTO;
-    private PageResultResource<GroupDTO> groupPageResultResource;
+    private PageResultResource<GroupViewDTO> groupPageResultResource;
 
     @Before
     public void setup() throws RuntimeException {
@@ -84,12 +82,18 @@ public class GroupsRestControllerTest {
         groupDTO2 = testDataFactory.getUAGUserGroupDTO();
         groupDTO2.setId(2L);
 
+        groupViewDTO1 = testDataFactory.getAdminGroupViewDTO();
+        groupViewDTO1.setId(1L);
+
+        groupViewDTO2 = testDataFactory.getUserGroupViewDTO();
+        groupViewDTO2.setId(2L);
+
         newGroupDTO = testDataFactory.getNewGroupDTO();
 
         updateGroupDTO = testDataFactory.getUpdateGroupDTO();
         updateGroupDTO.setId(1L);
 
-        groupPageResultResource = new PageResultResource<>(Arrays.asList(groupDTO1, groupDTO2));
+        groupPageResultResource = new PageResultResource<>(Arrays.asList(groupViewDTO1, groupViewDTO2));
 
         ObjectMapper obj = new ObjectMapper();
         obj.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);

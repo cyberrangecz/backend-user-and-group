@@ -6,10 +6,7 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.AddUsersToGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.NewGroupDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.group.UpdateGroupDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.group.*;
 import cz.muni.ics.kypo.userandgroup.api.facade.IDMGroupFacade;
 import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.entities.Role;
@@ -239,7 +236,7 @@ public class GroupsRestController {
                                             Pageable pageable,
                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                             @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<GroupDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
+        PageResultResource<GroupViewDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
         Squiggly.init(objectMapper, fields);
         return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, groupsDTOs));
     }
@@ -347,10 +344,10 @@ public class GroupsRestController {
 
     @ApiModel(value = "GroupRestResource",
             description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
-    private static class GroupRestResource extends PageResultResource<GroupDTO> {
+    private static class GroupRestResource extends PageResultResource<GroupViewDTO> {
         @JsonProperty(required = true)
         @ApiModelProperty(value = "Retrieved IDMGroups from databases.")
-        private List<GroupDTO> content;
+        private List<GroupViewDTO> content;
         @JsonProperty(required = true)
         @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
         private Pagination pagination;
