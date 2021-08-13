@@ -84,7 +84,6 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
      *
      * @return list of {@link IDMGroup}s wrapped up in  {@link Page}.
      */
-    @EntityGraph(value = "IDMGroup.usersRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Page<IDMGroup> findAll(Predicate predicate, Pageable pageable);
 
     /**

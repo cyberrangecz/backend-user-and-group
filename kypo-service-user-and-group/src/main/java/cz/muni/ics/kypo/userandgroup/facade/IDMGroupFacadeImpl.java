@@ -140,17 +140,17 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @Override
     @IsAdmin
     @TransactionalRO
-    public PageResultResource<GroupDTO> getAllGroups(Predicate predicate, Pageable pageable) {
-        PageResultResource<GroupDTO> groups = groupMapper.mapToPageResultResource(groupService.getAllIDMGroups(predicate, pageable));
-        groups.getContent().forEach(groupDTO -> {
-            if (getListOfAllGroupsInUserAndGroupMicroservice().contains(groupDTO.getName())) {
-                groupDTO.setCanBeDeleted(false);
+    public PageResultResource<GroupViewDTO> getAllGroups(Predicate predicate, Pageable pageable) {
+        PageResultResource<GroupViewDTO> groups = groupMapper.mapToPageResultResource(groupService.getAllIDMGroups(predicate, pageable));
+        groups.getContent().forEach(groupViewDTO -> {
+            if (getListOfImplicitGroups().contains(groupViewDTO.getName())) {
+                groupViewDTO.setCanBeDeleted(false);
             }
         });
         return groups;
     }
 
-    private List<String> getListOfAllGroupsInUserAndGroupMicroservice() {
+    private List<String> getListOfImplicitGroups() {
         return List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName());
     }
 
@@ -159,7 +159,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
     @TransactionalRO
     public GroupDTO getGroupById(Long id) {
         GroupDTO groupDTO = groupMapper.mapToDTO(groupService.getGroupById(id));
-        if (getListOfAllGroupsInUserAndGroupMicroservice().contains(groupDTO.getName())) {
+        if (getListOfImplicitGroups().contains(groupDTO.getName())) {
             groupDTO.setCanBeDeleted(false);
         }
         return groupDTO;
