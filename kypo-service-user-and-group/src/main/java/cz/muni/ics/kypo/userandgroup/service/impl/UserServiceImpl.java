@@ -56,6 +56,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+        Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
+        return userRepository.findAll(finalPredicate, pageable);
+    }
+
+    @Override
     public List<User> getUsersByIds(List<Long> userIds) {
         return userRepository.findByIdIn(userIds);
     }
@@ -161,12 +167,6 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType));
         }
         return userRepository.findAllByRoleType(roleType, predicate, pageable);
-    }
-
-    @Override
-    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
-        Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
-        return userRepository.findAll(finalPredicate, pageable);
     }
 
 }

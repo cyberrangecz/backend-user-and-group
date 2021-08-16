@@ -10,6 +10,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
@@ -71,15 +72,21 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @IsAdmin
     @TransactionalRO
-    public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable) {
-        return userMapper.mapToPageResultResource(userService.getAllUsers(predicate, pageable));
+    public PageResultResource<UserBasicViewDto> getUsers(Predicate predicate, Pageable pageable) {
+        return userMapper.mapToPageUserBasicViewDto(userService.getAllUsers(predicate, pageable));
     }
 
     @Override
     @IsGuest
     @TransactionalRO
-    public PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
-        return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable));
+    public PageResultResource<UserBasicViewDto> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
+        return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable));
+    }
+
+    @Override
+    @IsGuest
+    public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+        return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
 
     @Override
@@ -231,12 +238,6 @@ public class UserFacadeImpl implements UserFacade {
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
-    }
-
-    @Override
-    @IsGuest
-    public PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
-        return userMapper.mapToPageResultResource(userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
 
 }

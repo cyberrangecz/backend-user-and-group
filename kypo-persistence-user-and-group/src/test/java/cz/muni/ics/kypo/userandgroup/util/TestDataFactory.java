@@ -13,6 +13,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
@@ -97,6 +98,12 @@ public class TestDataFactory {
             = generateUserDTO("852374@muni.cz", "Garfield", "Pokorny", "852374@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
     private UserDTO user2DTO
             = generateUserDTO("632145@muni.cz", "Marcel", "Watchman", "632145@mail.muni.cz", "https://oidc.muni.cz/oidc/", "icon".getBytes());
+
+    private UserBasicViewDto userBasicViewDto1
+            = generateBasicUserViewDTO("852374@muni.cz", "Garfield", "Pokorny", "852374@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
+    private UserBasicViewDto userBasicViewDto2
+            = generateBasicUserViewDTO("632145@muni.cz", "Marcel", "Watchman", "632145@mail.muni.cz", "https://oidc.muni.cz/oidc/", "icon".getBytes());
+
     private UserForGroupsDTO userForGroupsDTO1
             = generateUserForGroupsDTO("852374@muni.cz", "Garfield", "Pokorny", "852374@mail.muni.cz", "https://oidc.muni.cz/oidc/", "pic".getBytes());
     private UserForGroupsDTO userForGroupsDTO2
@@ -217,6 +224,14 @@ public class TestDataFactory {
 
     public UserDTO getUser2DTO() {
         return clone(user2DTO, UserDTO.class);
+    }
+
+    public UserBasicViewDto getUserBasicViewDto1(){
+        return clone(userBasicViewDto1, UserBasicViewDto.class);
+    }
+
+    public UserBasicViewDto getUserBasicViewDto2(){
+        return clone(userBasicViewDto2, UserBasicViewDto.class);
     }
 
     public UserForGroupsDTO getUserForGroupsDTO1(){
@@ -381,6 +396,18 @@ public class TestDataFactory {
 
     private UserDTO generateUserDTO(String sub, String givenName, String familyName, String mail, String iss, byte[] picture){
         UserDTO user = new UserDTO();
+        user.setSub(sub);
+        user.setFullName(givenName + " " + familyName);
+        user.setGivenName(givenName);
+        user.setFamilyName(familyName);
+        user.setMail(mail);
+        user.setIss(iss);
+        user.setPicture(picture);
+        return user;
+    }
+
+    private UserBasicViewDto  generateBasicUserViewDTO(String sub, String givenName, String familyName, String mail, String iss, byte[] picture){
+        UserBasicViewDto user = new UserBasicViewDto();
         user.setSub(sub);
         user.setFullName(givenName + " " + familyName);
         user.setGivenName(givenName);

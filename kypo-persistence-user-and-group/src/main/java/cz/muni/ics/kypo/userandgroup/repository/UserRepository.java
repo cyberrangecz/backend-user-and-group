@@ -81,7 +81,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      *
      * @return list of {@link User}s wrapped up in {@link Page}.
      */
-    @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
     Page<User> findAll(Predicate predicate, Pageable pageable);
 
     /**
