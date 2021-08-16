@@ -110,11 +110,7 @@ public class IDMGroupFacadeImpl implements IDMGroupFacade {
         if (!idsOfGroups.isEmpty()) {
             List<IDMGroup> groups = groupService.getGroupsByIds(idsOfGroups);
             for (IDMGroup groupOfImportedMembers : groups) {
-                groupOfImportedMembers.getUsers().forEach(user -> {
-                    if (!group.getUsers().contains(user)) {
-                        group.addUser(user);
-                    }
-                });
+                groupOfImportedMembers.getUsers().forEach(group::addUser);
             }
         }
     }

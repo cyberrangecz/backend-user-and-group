@@ -71,12 +71,12 @@ public interface IDMGroupRepository extends JpaRepository<IDMGroup, Long>, Query
     Optional<IDMGroup> findById(Long id);
 
     /**
-     * Find the list of groups by its groupIds.
+     * Find the list of groups by its groupIds and fetch also users.
      *
      * @param groupIds the IDs of groups.
      * @return the list of {@link IDMGroup} instance based on the given IDs.
      */
-    @EntityGraph(value = "IDMGroup.usersRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph(value = "IDMGroup.users", type = EntityGraph.EntityGraphType.FETCH)
     List<IDMGroup> findByIdIn(List<Long> groupIds);
 
     /**
