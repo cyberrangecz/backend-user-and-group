@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.RoleFacade;
@@ -67,6 +68,7 @@ public class RolesRestControllerTest {
     private MockMvc mockMvc;
     private RoleDTO adminRoleDTO, userRoleDTO;
     private UserDTO userDTO1, userDTO2;
+    private UserBasicViewDto userBasicViewDto1, userBasicViewDto2;
     private PageResultResource<RoleDTO> rolePageResultResource;
 
     @Before
@@ -96,6 +98,12 @@ public class RolesRestControllerTest {
         userDTO2 = testDataFactory.getUser2DTO();
         userDTO2.setId(2L);
         userDTO2.setRoles(Set.of(userRoleDTO, adminRoleDTO));
+
+        userBasicViewDto1 = testDataFactory.getUserBasicViewDto1();
+        userBasicViewDto1.setId(1L);
+
+        userBasicViewDto2 = testDataFactory.getUserBasicViewDto2();
+        userBasicViewDto2.setId(2L);
 
         rolePageResultResource = new PageResultResource<>(Arrays.asList(adminRoleDTO, userRoleDTO));
 
@@ -206,7 +214,7 @@ public class RolesRestControllerTest {
         String valueTr = convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
         given(userFacade.getUsers(any(), any(Pageable.class), anyString(), anySet()))
-                .willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+                .willReturn(new PageResultResource<>(List.of(userBasicViewDto1, userBasicViewDto2)));
 
         MockHttpServletResponse response = mockMvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", adminRoleDTO.getRoleType())

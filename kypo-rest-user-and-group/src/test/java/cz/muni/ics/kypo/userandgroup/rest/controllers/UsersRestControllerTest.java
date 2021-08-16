@@ -8,6 +8,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.UserDeletionStatusDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDeletionResponseDTO;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
@@ -84,7 +85,9 @@ public class UsersRestControllerTest {
 
     private MockMvc mockMvc;
     private UserDTO userDTO1, userDTO2;
+    private UserBasicViewDto userBasicViewDto1, userBasicViewDto2;
     private PageResultResource<UserDTO> userPageResultResource;
+    private PageResultResource<UserBasicViewDto> userBasicViewDtoPageResultResource;
 
     @Before
     public void setup() throws RuntimeException {
@@ -106,7 +109,15 @@ public class UsersRestControllerTest {
         userDTO2 = testDataFactory.getUser2DTO();
         userDTO2.setId(2L);
 
+        userBasicViewDto1 = testDataFactory.getUserBasicViewDto1();
+        userBasicViewDto1.setId(1L);
+
+        userBasicViewDto2 = testDataFactory.getUserBasicViewDto2();
+        userBasicViewDto2.setId(2L);
+
+
         userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
+        userBasicViewDtoPageResultResource = new PageResultResource<>(List.of(userBasicViewDto1, userBasicViewDto2));
 
         ObjectMapper obj = new ObjectMapper();
         obj.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
@@ -119,7 +130,7 @@ public class UsersRestControllerTest {
     }
 
     @Test
-    public void getUserInfo() throws Exception{
+    public void getUserInfo() throws Exception {
         mockSpringSecurityContextForGet();
         given(userFacade.getUserInfo(userDTO1.getSub(), userDTO1.getIss())).willReturn(userDTO1);
 
@@ -136,7 +147,7 @@ public class UsersRestControllerTest {
     public void testGetUsers() throws Exception {
         String valueAs = convertObjectToJsonBytes(userPageResultResource);
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
-        given(userFacade.getUsers(any(Predicate.class), any(Pageable.class))).willReturn(userPageResultResource);
+        given(userFacade.getUsers(any(Predicate.class), any(Pageable.class))).willReturn(userBasicViewDtoPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
                 get("/users" + "/"))

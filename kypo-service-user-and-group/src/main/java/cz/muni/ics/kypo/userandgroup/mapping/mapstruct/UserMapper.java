@@ -2,10 +2,7 @@ package cz.muni.ics.kypo.userandgroup.mapping.mapstruct;
 
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserCreateDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.entities.Role;
 import cz.muni.ics.kypo.userandgroup.entities.User;
@@ -35,6 +32,8 @@ public interface UserMapper extends ParentMapper {
     RoleDTO mapRoleToDTO(Role entity);
 
     UserDTO mapToDTO(User entity);
+
+    UserBasicViewDto mapToBasicViewDto(User entity);
 
     User mapUserForGroupsDTOToEntity(UserForGroupsDTO userForGroupsDTO);
 
@@ -70,6 +69,12 @@ public interface UserMapper extends ParentMapper {
         List<UserDTO> mapped = new ArrayList<>();
         objects.forEach(object -> mapped.add(mapToUserDTOWithRoles(object)));
         return new PageResultResource<>(mapped, createPagination(objects));
+    }
+
+    default PageResultResource<UserBasicViewDto> mapToPageUserBasicViewDto(Page<User> users){
+        List<UserBasicViewDto> mapped = new ArrayList<>();
+        users.forEach(user -> mapped.add(mapToBasicViewDto(user)));
+        return new PageResultResource<>(mapped, createPagination(users));
     }
 
     default PageResultResource<UserForGroupsDTO> mapToPageResultResourceForGroups(Page<User> objects) {

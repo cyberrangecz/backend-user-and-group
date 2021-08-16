@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
@@ -73,9 +74,26 @@ public interface UserFacade {
      *
      * @param predicate specifies query to database.
      * @param pageable  pageable parameter with information about pagination.
-     * @return a list of the {@link UserDTO}s wrapped up in {@link PageResultResource}.
+     * @return a list of the {@link UserBasicViewDto}s wrapped up in {@link PageResultResource}.
      */
-    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable);
+    PageResultResource<UserBasicViewDto> getUsers(Predicate predicate, Pageable pageable);
+
+    /**
+     * Gets users with given ids.
+     *
+     * @param ids ids of users.
+     * @return set of {@link UserBasicViewDto}s with given ids wrapped up in {@link PageResultResource}.
+     */
+    PageResultResource<UserBasicViewDto> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate);
+
+    /**
+     * Gets a page of users specified by given predicate and pageable.
+     *
+     * @param predicate specifies query to database.
+     * @param pageable  pageable parameter with information about pagination.
+     * @return a list of the {@link UserBasicViewDto}s wrapped up in {@link PageResultResource}.
+     */
+    PageResultResource<UserBasicViewDto> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds);
 
     /**
      * Gets a page of users who are not in the group with given a group ID.
@@ -132,22 +150,4 @@ public interface UserFacade {
      * @return set of the {@link RoleDTO}s of the user with the given ID.
      */
     PageResultResource<RoleDTO> getRolesOfUserWithPagination(Long userId, Pageable pageable, Predicate predicate);
-
-
-    /**
-     * Gets users with given ids.
-     *
-     * @param ids ids of users.
-     * @return set of {@link UserDTO}s with given ids wrapped up in {@link PageResultResource}.
-     */
-    PageResultResource<UserDTO> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate);
-
-    /**
-     * Gets a page of users specified by given predicate and pageable.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @return a list of the {@link UserDTO}s wrapped up in {@link PageResultResource}.
-     */
-    PageResultResource<UserDTO> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds);
 }

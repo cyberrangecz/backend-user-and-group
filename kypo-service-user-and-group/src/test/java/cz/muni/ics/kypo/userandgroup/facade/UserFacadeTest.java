@@ -6,6 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
@@ -68,6 +69,7 @@ public class UserFacadeTest {
 
     private User user1, user2;
     private UserDTO userDTO1, userDTO2;
+    private UserBasicViewDto userBasicViewDto1, userBasicViewDto2;
     private UserForGroupsDTO userForGroupsDTO1, userForGroupsDTO2;
     private UserUpdateDTO userUpdateDTO;
     private Role guestRole, userRole;
@@ -90,6 +92,11 @@ public class UserFacadeTest {
         user1.setId(1L);
         user2 = testDataFactory.getUser2();
         user2.setId(2L);
+
+        userBasicViewDto1 = testDataFactory.getUserBasicViewDto1();
+        userBasicViewDto1.setId(1L);
+        userBasicViewDto2 = testDataFactory.getUserBasicViewDto2();
+        userBasicViewDto2.setId(2L);
 
         adminGroup = testDataFactory.getUAGAdminGroup();
         adminGroup.setId(1L);
@@ -126,21 +133,21 @@ public class UserFacadeTest {
     @Test
     public void testGetUsers() {
         Page<User> rolePage = new PageImpl<>(Arrays.asList(user1, user2));
-        PageResultResource<UserDTO> pageResult = new PageResultResource<>();
-        pageResult.setContent(Arrays.asList(userDTO1, userDTO2));
+        PageResultResource<UserBasicViewDto> pageResult = new PageResultResource<>();
+        pageResult.setContent(Arrays.asList(userBasicViewDto1, userBasicViewDto2));
 
         given(userService.getAllUsers(predicate, pageable)).willReturn(rolePage);
-        PageResultResource<UserDTO> pageResultResource = userFacade.getUsers(predicate, pageable);
+        PageResultResource<UserBasicViewDto> pageResultResource = userFacade.getUsers(predicate, pageable);
 
         assertEquals(2, pageResultResource.getContent().size());
-        assertEquals(userDTO1, pageResultResource.getContent().get(0));
-        assertEquals(userDTO2, pageResultResource.getContent().get(1));
+        assertEquals(userBasicViewDto1, pageResultResource.getContent().get(0));
+        assertEquals(userBasicViewDto2, pageResultResource.getContent().get(1));
     }
 
     @Test
-    public void testGetUserInfo(){
+    public void testGetUserInfo() {
         Set<Role> expectedRoles = new HashSet<>();
-        for (IDMGroup groupOfUser: user1.getGroups()) {
+        for (IDMGroup groupOfUser : user1.getGroups()) {
             expectedRoles.addAll(groupOfUser.getRoles());
         }
         given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.of(user1));
@@ -148,7 +155,7 @@ public class UserFacadeTest {
 
         userDTO1.setId(user1.getId());
         assertEquals(userDTO1, userDTO);
-        for (Role role : expectedRoles){
+        for (Role role : expectedRoles) {
             RoleDTO expectedRole = new RoleDTO();
             expectedRole.setId(role.getId());
             expectedRole.setIdOfMicroservice(role.getMicroservice().getId());
@@ -159,7 +166,7 @@ public class UserFacadeTest {
     }
 
     @Test(expected = EntityNotFoundException.class)
-    public void testGetUserInfoWithEmptyUserOptional(){
+    public void testGetUserInfoWithEmptyUserOptional() {
         given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.empty());
         userFacade.getUserInfo(user1.getSub(), user1.getIss());
     }
@@ -232,7 +239,7 @@ public class UserFacadeTest {
 
     @Test
     public void testDeleteUsers() {
-        given(userService.getUsersByIds(List.of(user1.getId(), user2.getId()))).willReturn(List.of(user1,user2));
+        given(userService.getUsersByIds(List.of(user1.getId(), user2.getId()))).willReturn(List.of(user1, user2));
         userFacade.deleteUsers(List.of(user1.getId(), user2.getId()));
         then(userService).should().deleteUser(user1);
         then(userService).should().deleteUser(user2);
@@ -291,13 +298,13 @@ public class UserFacadeTest {
     @Test
     public void getUsersWithGivenIds() {
         given(userService.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
-        PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null);
+        PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null);
 
         assertEquals(2, usersDTO.getContent().size());
-        assertTrue(usersDTO.getContent().containsAll(Set.of(userDTO1, userDTO2)));
+        assertTrue(usersDTO.getContent().containsAll(Set.of(userBasicViewDto1, userBasicViewDto2)));
     }
 
-    private static JsonObject createSub(User user){
+    private static JsonObject createSub(User user) {
         JsonObject sub = new JsonObject();
         sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getSub());
         sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user.getFullName());

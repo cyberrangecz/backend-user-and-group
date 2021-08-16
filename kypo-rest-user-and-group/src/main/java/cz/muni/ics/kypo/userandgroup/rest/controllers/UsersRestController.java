@@ -9,6 +9,7 @@ import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
@@ -88,7 +89,7 @@ public class UsersRestController {
                                            Pageable pageable,
                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
                                            @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<UserDTO> userDTOs = userFacade.getUsers(predicate, pageable);
+        PageResultResource<UserBasicViewDto> userDTOs = userFacade.getUsers(predicate, pageable);
         Squiggly.init(objectMapper, fields);
         return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
     }
@@ -309,7 +310,7 @@ public class UsersRestController {
         if (pageable.getPageSize() >= 1000) {
             throw new BadRequestException("Choose page size lower than 1000");
         }
-        PageResultResource<UserDTO> userDTOs;
+        PageResultResource<UserBasicViewDto> userDTOs;
         if (ids.isEmpty()) {
             userDTOs = new PageResultResource<>(Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0));
         } else {
