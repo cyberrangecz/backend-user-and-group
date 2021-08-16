@@ -73,7 +73,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
      * @param userIds the ID of users.
      * @return the list of {@link User} instance based on the given IDs.
      */
-    @EntityGraph(value = "User.groupsRolesMicroservice", type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.FETCH)
     List<User> findByIdIn(List<Long> userIds);
 
     /**

@@ -22,6 +22,10 @@ import java.util.*;
                 subgraphs = {
                         @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
                 }
+        ),
+        @NamedEntityGraph(
+                name = "IDMGroup.users",
+                attributeNodes = @NamedAttributeNode(value = "users")
         )
 })
 @NamedQueries({
