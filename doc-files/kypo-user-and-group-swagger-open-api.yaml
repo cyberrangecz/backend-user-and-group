@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "Version: 1.1.78"
+  version: "Version: 1.1.79"
   title: "KYPO User and Group - API Reference"
 host: "localhost:8084"
 basePath: "/kypo-rest-user-and-group/api/v1"
@@ -1326,7 +1326,7 @@ definitions:
         type: "array"
         description: "Retrieved IDMGroups from databases."
         items:
-          $ref: "#/definitions/GroupDTO"
+          $ref: "#/definitions/GroupViewDTO"
       pagination:
         description: "Pagination including: page number, number of elements in page,\
           \ size, total elements and total pages."
@@ -1334,6 +1334,40 @@ definitions:
     description: "Content (Retrieved data) and meta information about REST API result\
       \ page. Including page number, number of elements in page, size of elements,\
       \ total number of elements and total number of pages."
+  GroupViewDTO:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        example: "Main group of organizers"
+        description: "A name of the group."
+      description:
+        type: "string"
+        example: "Organizers group for training run in June."
+        description: "A description of the group."
+      source:
+        type: "string"
+        example: "Internal"
+        description: "Source of the group, whether its internal or from perun."
+        enum:
+        - "INTERNAL"
+        - "PERUN"
+      canBeDeleted:
+        type: "boolean"
+        example: false
+        description: "Sign if the group can be deleted."
+      expirationDate:
+        type: "string"
+        format: "date-time"
+        example: "2017-10-19 10:23:54+02"
+        description: "Time until the group is valid."
+      id:
+        type: "integer"
+        format: "int64"
+        example: 1
+        position: 1
+        description: "Main identifier of group."
+    description: "The basic information about a group."
   NewGroupDTO:
     type: "object"
     required:
