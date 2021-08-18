@@ -1,1 +1,1 @@
-1.1.78 KYPO2 renamed to KYPO.
+1.1.79 Clean up roles in the users view and other refactoring regarding the new easier UI that invokes better SQL performance for several basic queries
