@@ -38,11 +38,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- used for setting SSL for restTemplate calls -->
-        <dependency>
-            <groupId>org.mitre</groupId>
-            <artifactId>openid-connect-client</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

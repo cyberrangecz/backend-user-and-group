@@ -77,11 +77,6 @@
                 <version>${commons.codec.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.mitre</groupId>
-                <artifactId>openid-connect-client</artifactId>
-                <version>${mitre.oidc.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${glassfish-jaxb.version}</version>

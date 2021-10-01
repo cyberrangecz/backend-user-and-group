@@ -4,6 +4,7 @@ import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.UserCreateDTO;
 import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.entities.IDMGroup;
@@ -83,7 +84,7 @@ public class UserConcurrentIntegrationTest {
     @Test
     @ThreadCount(50)
     public void createOrUpdateUser() throws Exception {
-        UserDTO createdUserDTO = userFacade.createOrUpdateOrGetOIDCUser("mail@muni.cz", "oidc.ics.muni.cz", getIntrospectionResponse());
+        UserDTO createdUserDTO = userFacade.createOrUpdateOrGetOIDCUser(getOIDCUserInfo());
         assertEquals(userDTO.getFullName(), createdUserDTO.getFullName());
         assertEquals(userDTO.getSub(), createdUserDTO.getSub());
         assertEquals(userDTO.getIss(), createdUserDTO.getIss());
@@ -96,12 +97,13 @@ public class UserConcurrentIntegrationTest {
         assertEquals("Ing. Michael Johnson", users.get(0).getFullName());
     }
 
-    private JsonObject getIntrospectionResponse() {
-        JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), "mail@muni.cz");
-        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), "Ing. Michael Johnson");
-        sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), "Michael");
-        sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), "Johnson");
-        return sub;
+    private UserCreateDTO getOIDCUserInfo() {
+        UserCreateDTO oidcUserInfo = new UserCreateDTO();
+        oidcUserInfo.setSub("mail@muni.cz");
+        oidcUserInfo.setIss("oidc.ics.muni.cz");
+        oidcUserInfo.setFullName("Ing. Michael Johnson");
+        oidcUserInfo.setGivenName("Michael");
+        oidcUserInfo.setFamilyName("Johnson");
+        return oidcUserInfo;
     }
 }

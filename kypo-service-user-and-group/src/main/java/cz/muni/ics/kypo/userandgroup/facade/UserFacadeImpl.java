@@ -10,10 +10,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
@@ -49,22 +46,17 @@ public class UserFacadeImpl implements UserFacade {
     private static final int ICON_WIDTH = 75;
     private static final int ICON_HEIGHT = 75;
 
-    @Value("${service.name}")
-    private String nameOfUserAndGroupService;
-
     private UserService userService;
     private IDMGroupService idmGroupService;
     private IdenticonService identiconService;
-    private SecurityService securityService;
     private UserMapper userMapper;
     private RoleMapper roleMapper;
 
     @Autowired
-    public UserFacadeImpl(UserService userService, IDMGroupService idmGroupService, IdenticonService identiconService, SecurityService securityService, UserMapper userMapper, RoleMapper roleMapper) {
+    public UserFacadeImpl(UserService userService, IDMGroupService idmGroupService, IdenticonService identiconService, UserMapper userMapper, RoleMapper roleMapper) {
         this.userService = userService;
         this.idmGroupService = idmGroupService;
         this.identiconService = identiconService;
-        this.securityService = securityService;
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
     }
@@ -113,45 +105,38 @@ public class UserFacadeImpl implements UserFacade {
     //    @Cacheable(key = "{#sub+#iss}", sync = true)
     // if creation of user fail because of DataIntegrityViolationException, method is repeated one more time which cause that user is updated not created
     @Retryable(value = { DataIntegrityViolationException.class }, maxAttempts = 2)
-    public UserDTO createOrUpdateOrGetOIDCUser(String sub, String iss, JsonObject introspectionResponse) {
-        Assert.hasLength(sub, "In method createOrUpdateOrGetOIDCUser(sub, iss) the input sub must not be empty.");
-        Assert.hasLength(iss, "In method createOrUpdateOrGetOIDCUser(sub, iss) the input iss must not be empty.");
+    public UserDTO createOrUpdateOrGetOIDCUser(UserCreateDTO oidcUserDTO) {
+        Assert.notNull(oidcUserDTO, "In method createOrUpdateOrGetOIDCUser(userInfo) the input userInfo must not be null.");
 
-        Optional<User> user = userService.getUserBySubAndIss(sub, iss);
+        Optional<User> user = userService.getUserBySubAndIss(oidcUserDTO.getSub(), oidcUserDTO.getIss());
         if (user.isPresent()) {
-            return this.updateExistingUserInfo(user.get(), introspectionResponse);
+            return this.updateExistingUserInfo(user.get(), oidcUserDTO);
         } else {
-            UserDTO userDTO = this.createNewUserWithDefaultGroupRoles(sub, iss, introspectionResponse);
+            UserDTO userDTO = this.createNewUserWithDefaultGroupRoles(oidcUserDTO);
             userDTO.setRoles(roleMapper.mapToSetDTO(idmGroupService.getIDMGroupWithRolesByName(ImplicitGroupNames.DEFAULT_GROUP.getName()).getRoles()));
             return userDTO;
         }
     }
 
-    private UserDTO createNewUserWithDefaultGroupRoles(String sub, String issuer, JsonObject introspectionResponse) {
-        User userToCreate = new User();
-        userToCreate.setSub(sub);
-        userToCreate.setIss(issuer);
-        userToCreate.setFullName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.NAME));
-        userToCreate.setMail(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.EMAIL));
-        userToCreate.setGivenName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.GIVEN_NAME));
-        userToCreate.setFamilyName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.FAMILY_NAME));
-        userToCreate.setPicture(identiconService.generateIdenticons(sub + issuer, ICON_WIDTH, ICON_HEIGHT));
+    private UserDTO createNewUserWithDefaultGroupRoles(UserCreateDTO oidcUserDTO) {
+        User userToCreate = userMapper.mapToEntity(oidcUserDTO);
+        userToCreate.setPicture(identiconService.generateIdenticons(oidcUserDTO.getSub() + oidcUserDTO.getIss(), ICON_WIDTH, ICON_HEIGHT));
 
         User newlyCreatedUser = userService.createUser(userToCreate);
         idmGroupService.getIDMGroupWithRolesByName(ImplicitGroupNames.DEFAULT_GROUP.getName()).addUser(newlyCreatedUser);
         return userMapper.mapToDTO(newlyCreatedUser);
     }
 
-    private UserDTO updateExistingUserInfo(User user, JsonObject introspectionResponse) {
-        if (user.getFullName() == null || !user.getFullName().equals(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.NAME))
-                || user.getGivenName() == null || !user.getGivenName().equals(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.GIVEN_NAME))
-                || user.getFamilyName() == null || !user.getFamilyName().equals(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.FAMILY_NAME))
-                || user.getMail() == null || !user.getMail().equals(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.EMAIL))) {
+    private UserDTO updateExistingUserInfo(User user, UserCreateDTO oidcUserDTO) {
+        if (user.getFullName() == null || !user.getFullName().equals(oidcUserDTO.getFullName())
+                || user.getGivenName() == null || !user.getGivenName().equals(oidcUserDTO.getGivenName())
+                || user.getFamilyName() == null || !user.getFamilyName().equals(oidcUserDTO.getFamilyName())
+                || user.getMail() == null || !user.getMail().equals(oidcUserDTO.getMail())) {
 
-            user.setGivenName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.GIVEN_NAME));
-            user.setFamilyName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.FAMILY_NAME));
-            user.setFullName(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.NAME));
-            user.setMail(getIntrospectionField(introspectionResponse, AuthenticatedUserOIDCItems.EMAIL));
+            user.setGivenName(oidcUserDTO.getGivenName());
+            user.setFamilyName(oidcUserDTO.getFamilyName());
+            user.setFullName(oidcUserDTO.getFullName());
+            user.setMail(oidcUserDTO.getMail());
             userService.updateUser(user);
         }
         UserDTO updatedUser = userMapper.mapToDTO(user);
@@ -159,10 +144,6 @@ public class UserFacadeImpl implements UserFacade {
                 .flatMap(group -> group.getRoles().stream())
                 .collect(Collectors.toCollection(HashSet::new))));
         return updatedUser;
-    }
-
-    private String getIntrospectionField(JsonObject introspectionResponse, AuthenticatedUserOIDCItems userOIDCFields) {
-        return introspectionResponse.get(userOIDCFields.getName()) == null ? "" : introspectionResponse.get(userOIDCFields.getName()).getAsString();
     }
 
     @Override

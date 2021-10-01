@@ -1,4 +1,4 @@
-package cz.muni.ics.kypo.userandgroup.security.config;
+package cz.muni.ics.kypo.userandgroup.security.impl;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
