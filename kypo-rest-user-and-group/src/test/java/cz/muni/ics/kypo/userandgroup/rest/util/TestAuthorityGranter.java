@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.entities.User;
 import cz.muni.ics.kypo.userandgroup.entities.enums.RoleType;
+import cz.muni.ics.kypo.userandgroup.security.model.OAuth2AccessTokenImpl;
+import cz.muni.ics.kypo.userandgroup.security.model.UserInfo;
 import org.mockito.Mockito;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.List;
 
@@ -29,8 +32,8 @@ public class TestAuthorityGranter{
     }
 
     public static void mockSpringSecurityContextForGetUserInfo(RoleType roleType, User user){
-        JsonObject sub = createSub(user);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, sub, mockGrantedAuthorities(roleType));
+        UserInfo userInfo = createUserInfo(user);
+        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(userInfo, userInfo.getSub(), mockGrantedAuthorities(roleType));
         OAuth2Authentication oAuth2Authentication = Mockito.mock(OAuth2Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(oAuth2Authentication);
         given(oAuth2Authentication.getUserAuthentication()).willReturn(authenticationToken);
@@ -51,13 +54,12 @@ public class TestAuthorityGranter{
         }
     }
 
-    private static JsonObject createSub(User user){
-        JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getSub());
-        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user.getFullName());
-        sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), user.getGivenName());
-        sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), user.getFamilyName());
-        sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), user.getIss());
-        return sub;
+    private static UserInfo createUserInfo(User user){
+        UserInfo userInfo = new UserInfo(user.getSub());
+        userInfo.setName(user.getFullName());
+        userInfo.setGivenName(user.getGivenName());
+        userInfo.setFamilyName(user.getFamilyName());
+        userInfo.setIssuer(user.getIss());
+        return userInfo;
     }
 }

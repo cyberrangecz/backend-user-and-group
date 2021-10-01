@@ -20,6 +20,7 @@ import cz.muni.ics.kypo.userandgroup.entities.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.CustomRestExceptionHandler;
+import cz.muni.ics.kypo.userandgroup.security.model.UserInfo;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -284,17 +285,16 @@ public class UsersRestControllerTest {
     }
 
     private void mockSpringSecurityContextForGet() {
-        JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), userDTO1.getSub());
-        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), userDTO1.getFullName());
-        sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), userDTO1.getIss());
+        UserInfo userInfo = new UserInfo(userDTO1.getSub());
+        userInfo.setName(userDTO1.getFullName());
+        userInfo.setIssuer(userDTO1.getIss());
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2Authentication auth = Mockito.mock(OAuth2Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
         SecurityContextHolder.setContext(securityContext);
         given(securityContext.getAuthentication()).willReturn(auth);
         given(auth.getUserAuthentication()).willReturn(auth);
-        given(auth.getCredentials()).willReturn(sub);
+        given(auth.getPrincipal()).willReturn(userInfo);
         given(authentication.getDetails()).willReturn(auth);
     }
 

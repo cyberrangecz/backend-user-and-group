@@ -4,10 +4,7 @@ import com.google.gson.JsonObject;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import org.springframework.data.domain.Pageable;
 
@@ -40,12 +37,10 @@ public interface UserFacade {
     /**
      * Create or update user based on OIDC issuer
      *
-     * @param sub
-     * @param iss
-     * @param introspectionResponse
+     * @param userDTO user data obtained from the OIDC issuer
      * @return
      */
-    UserDTO createOrUpdateOrGetOIDCUser(String sub, String iss, JsonObject introspectionResponse);
+    UserDTO createOrUpdateOrGetOIDCUser(UserCreateDTO userCreateDTO);
 
     /**
      * Deletes user with given ID from database.

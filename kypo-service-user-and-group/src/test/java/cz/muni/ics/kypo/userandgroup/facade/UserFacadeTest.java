@@ -6,10 +6,7 @@ import cz.muni.ics.kypo.userandgroup.api.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.AuthenticatedUserOIDCItems;
 import cz.muni.ics.kypo.userandgroup.api.dto.enums.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.api.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserBasicViewDto;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.muni.ics.kypo.userandgroup.api.dto.user.UserUpdateDTO;
+import cz.muni.ics.kypo.userandgroup.api.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.api.facade.UserFacade;
 import cz.muni.ics.kypo.userandgroup.mapping.mapstruct.RoleMapperImpl;
@@ -83,7 +80,7 @@ public class UserFacadeTest {
     public void init() {
 
         MockitoAnnotations.initMocks(this);
-        userFacade = new UserFacadeImpl(userService, idmGroupService, identiconService, securityService, userMapper, roleMapper);
+        userFacade = new UserFacadeImpl(userService, idmGroupService, identiconService, userMapper, roleMapper);
 
         microservice = testDataFactory.getKypoUaGMicroservice();
         microservice.setId(1L);
@@ -184,13 +181,13 @@ public class UserFacadeTest {
         given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.empty());
         given(userService.createUser(user1)).willReturn(user1);
         given(idmGroupService.getIDMGroupWithRolesByName(ImplicitGroupNames.DEFAULT_GROUP.getName())).willReturn(defaultGroup);
-        userFacade.createOrUpdateOrGetOIDCUser(user1.getSub(), user1.getIss(), createSub(user1));
+        userFacade.createOrUpdateOrGetOIDCUser(createOIDCUserInfo(user1));
     }
 
     @Test
     public void testCreateOrUpdateOrGetOIDCUserUpdate() {
         given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.ofNullable(user1));
-        userFacade.createOrUpdateOrGetOIDCUser(user1.getSub(), user1.getIss(), createSub(user1));
+        userFacade.createOrUpdateOrGetOIDCUser(createOIDCUserInfo(user1));
 
         then(userService).should().updateUser(user1);
     }
@@ -202,7 +199,7 @@ public class UserFacadeTest {
         userToUpdate.setSub(user1.getSub());
         userToUpdate.setIss(user1.getIss());
         given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.ofNullable(userToUpdate));
-        userFacade.createOrUpdateOrGetOIDCUser(user1.getSub(), user1.getIss(), createSub(user1));
+        userFacade.createOrUpdateOrGetOIDCUser(createOIDCUserInfo(user1));
 
         then(userService).should().updateUser(user1);
     }
@@ -304,14 +301,14 @@ public class UserFacadeTest {
         assertTrue(usersDTO.getContent().containsAll(Set.of(userBasicViewDto1, userBasicViewDto2)));
     }
 
-    private static JsonObject createSub(User user) {
-        JsonObject sub = new JsonObject();
-        sub.addProperty(AuthenticatedUserOIDCItems.SUB.getName(), user.getSub());
-        sub.addProperty(AuthenticatedUserOIDCItems.NAME.getName(), user.getFullName());
-        sub.addProperty(AuthenticatedUserOIDCItems.GIVEN_NAME.getName(), user.getGivenName());
-        sub.addProperty(AuthenticatedUserOIDCItems.FAMILY_NAME.getName(), user.getFamilyName());
-        sub.addProperty(AuthenticatedUserOIDCItems.ISS.getName(), user.getIss());
-        return sub;
+    private static UserCreateDTO createOIDCUserInfo(User user){
+        UserCreateDTO oidcUserInfo = new UserCreateDTO();
+        oidcUserInfo.setSub(user.getSub());
+        oidcUserInfo.setFullName(user.getFullName());
+        oidcUserInfo.setGivenName(user.getGivenName());
+        oidcUserInfo.setFamilyName(user.getFamilyName());
+        oidcUserInfo.setIss(user.getIss());
+        return oidcUserInfo;
     }
 
 }

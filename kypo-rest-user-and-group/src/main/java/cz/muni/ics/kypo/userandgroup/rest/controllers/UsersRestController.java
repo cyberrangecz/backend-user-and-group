@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.entities.User;
 import cz.muni.ics.kypo.userandgroup.rest.exceptionhandling.ApiError;
 import cz.muni.ics.kypo.userandgroup.api.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.rest.utils.ApiPageableSwagger;
+import cz.muni.ics.kypo.userandgroup.security.model.UserInfo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -273,10 +275,8 @@ public class UsersRestController {
     @GetMapping(path = "/info")
     public ResponseEntity<UserDTO> getUserInfo() {
         OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
-        JsonObject credentials = (JsonObject) authentication.getUserAuthentication().getCredentials();
-        String sub = credentials.get(AuthenticatedUserOIDCItems.SUB.getName()).getAsString();
-        String iss = credentials.get(AuthenticatedUserOIDCItems.ISS.getName()).getAsString();
-        return ResponseEntity.ok(userFacade.getUserInfo(sub, iss));
+        UserInfo principal = (UserInfo) authentication.getUserAuthentication().getPrincipal();
+        return ResponseEntity.ok(userFacade.getUserInfo(principal.getSub(), principal.getIssuer()));
     }
 
     /**
