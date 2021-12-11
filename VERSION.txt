@@ -1,3 +1,4 @@
+1.1.82 Update log4j2 dependency to 2.15.0 to avoid CVE-2021-44228 vulnerability.
 1.1.81 Rename OIDC properties and added validation of the OIDC configuration.
 1.1.80 OIDC implementation and configuration supporting Microsoft ecosystem
 1.1.79 Clean up roles in the users view and other refactoring regarding the new easier UI that invokes better SQL performance for several basic queries
