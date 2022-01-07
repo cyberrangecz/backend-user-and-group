@@ -28,7 +28,7 @@ create_tag:
     - /app/prepare-git.sh
     - /app/set-version-java.sh
     # generate swagger documentation
-    - mvn clean compile $MAVEN_CLI_OPTS -DskipTests -Dswagger.skip=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
+    - mvn clean package $MAVEN_CLI_OPTS -DskipTests -Dswagger.skip=false -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
     - git add doc-files/kypo-user-and-group-swagger-open-api.yaml
     - git commit -m "Updated Swagger documentation generated"
     - /app/tag-and-push.sh
@@ -42,6 +42,10 @@ build:
   script:
     - mvn clean install $MAVEN_CLI_OPTS -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL
   rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - $DEPLOYMENT_INFO_VERSION_FILE
+      when: never
     - if: '$CI_COMMIT_TAG'
       changes:
         - pom.xml

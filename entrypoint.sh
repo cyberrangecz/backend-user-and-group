@@ -37,4 +37,4 @@ do
     wait_for_it ${i}
 done
 
-exec /usr/bin/supervisord -c /app/supervisord.conf
+exec java -Dspring.config.location=/app/etc/user-and-group.properties -Dpath.to.initial.users=/app/etc/initial-users.yml -jar /app/kypo-rest-user-and-group.jar
