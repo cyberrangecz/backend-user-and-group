@@ -200,4 +200,8 @@ public class UserFacade {
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
 
+    public InitialOIDCUserDto[] getInitialOIDCUsers() {
+        return userService.getInitialOIDCUsers();
+    }
+
 }
