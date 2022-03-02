@@ -5,9 +5,11 @@ import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.QUser;
 import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.domain.User;
+import cz.muni.ics.kypo.userandgroup.dto.user.InitialOIDCUserDto;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
+import cz.muni.ics.kypo.userandgroup.exceptions.FileNotFoundException;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +35,9 @@ public class UserService {
     private final RoleRepository roleRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, IDMGroupRepository groupRepository, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository,
+                       IDMGroupRepository groupRepository,
+                       RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
         this.roleRepository = roleRepository;
@@ -147,6 +152,14 @@ public class UserService {
             throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType));
         }
         return userRepository.findAllByRoleType(roleType, predicate, pageable);
+    }
+
+    public InitialOIDCUserDto[] getInitialOIDCUsers() {
+        try {
+            return userRepository.getInitialOIDCUsers();
+        } catch (IOException e) {
+            throw new FileNotFoundException(e);
+        }
     }
 
 }

@@ -10,9 +10,7 @@ import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
-import cz.muni.ics.kypo.userandgroup.dto.user.UserBasicViewDto;
-import cz.muni.ics.kypo.userandgroup.dto.user.UserDTO;
-import cz.muni.ics.kypo.userandgroup.dto.user.UserForGroupsDTO;
+import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.exceptions.BadRequestException;
 import cz.muni.ics.kypo.userandgroup.exceptions.errors.ApiError;
 import cz.muni.ics.kypo.userandgroup.facade.UserFacade;
@@ -315,6 +313,25 @@ public class UsersRestController {
         }
         Squiggly.init(objectMapper, fields);
         return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
+    }
+
+    /**
+     * Gets initial OIDC users.
+     *
+     * @return the {@link ResponseEntity} with body type {@link InitialOIDCUsersDto} and specific status code and header.
+     */
+    @ApiOperation(httpMethod = "GET",
+            value = "Get initial oidc users",
+            nickname = "getInitialOIDCUsers",
+            notes = "Returns details of initial OIDC users.",
+            produces = "application/x-yaml"
+    )
+    @GetMapping(path = "/initial-oidc-users", produces = "application/x-yaml")
+    public ResponseEntity<InitialOIDCUserDto[]> getInitialOIDCUsers() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/x-yaml"))
+                .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
+                .body(userFacade.getInitialOIDCUsers());
     }
 
     @ApiModel(value = "UserRestResource",

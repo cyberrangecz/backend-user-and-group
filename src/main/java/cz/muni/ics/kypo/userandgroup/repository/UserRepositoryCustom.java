@@ -3,13 +3,17 @@ package cz.muni.ics.kypo.userandgroup.repository;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.domain.User;
+import cz.muni.ics.kypo.userandgroup.dto.user.InitialOIDCUserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
+import java.io.IOException;
 import java.util.Set;
 
 public interface UserRepositoryCustom {
+
+    InitialOIDCUserDto[] getInitialOIDCUsers() throws IOException;
 
     /**
      * Find all users, not in the given {@link cz.muni.ics.kypo.userandgroup.domain.IDMGroup} with the given ID.

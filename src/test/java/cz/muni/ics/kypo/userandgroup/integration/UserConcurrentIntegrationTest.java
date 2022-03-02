@@ -2,6 +2,7 @@ package cz.muni.ics.kypo.userandgroup.integration;
 
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.muni.ics.kypo.userandgroup.controller.UsersRestController;
 import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.Microservice;
@@ -28,8 +29,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,6 +74,9 @@ public class UserConcurrentIntegrationTest {
     private RoleRepository roleRepository;
     @Autowired
     private MicroserviceRepository microserviceRepository;
+    @MockBean
+    @Qualifier("yamlObjectMapper")
+    private ObjectMapper yamlObjectMapper;
 
     private UserDTO userDTO;
 
