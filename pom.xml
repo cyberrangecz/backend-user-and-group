@@ -5,7 +5,7 @@
 
     <artifactId>kypo-user-and-group</artifactId>
     <groupId>cz.muni.ics.kypo</groupId>
-    <version>1.1.84</version>
+    <version>1.1.85</version>
     <packaging>jar</packaging>
     <name>kypo-user-and-group</name>
     <description>Project for managing users and groups of KYPO</description>
