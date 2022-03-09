@@ -13,6 +13,7 @@ RUN mvn clean install -DskipTests -Dproprietary-repo-url=$PROPRIETARY_REPO_URL &
 ############ RUNNABLE STAGE ############
 FROM openjdk:11-jre-slim AS runnable
 WORKDIR /app
+COPY /etc/exported-local-oidc-users.yml /app/etc/exported-local-oidc-users.yml
 COPY /etc/initial-users.yml /app/etc/initial-users.yml
 COPY /etc/user-and-group.properties /app/etc/user-and-group.properties
 COPY entrypoint.sh /app/entrypoint.sh

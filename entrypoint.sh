@@ -37,4 +37,4 @@ do
     wait_for_it ${i}
 done
 
-exec java -Dspring.config.location=/app/etc/user-and-group.properties -Dpath.to.initial.users=/app/etc/initial-users.yml -jar /app/kypo-user-and-group.jar
+exec java -Dspring.config.location=/app/etc/user-and-group.properties -Dpath.to.initial.users=/app/etc/initial-users.yml -Dpath.to.initial.oidc.users=/app/etc/exported-local-oidc-users.yml -jar /app/kypo-user-and-group.jar

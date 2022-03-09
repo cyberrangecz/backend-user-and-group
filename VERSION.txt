@@ -1,3 +1,4 @@
+1.1.86 Fix default file for exported OIDC users.
 1.1.85 Get initial users from local OIDC provider.
 1.1.84 Added missing flyway dependency to migrate database at startup.
 1.1.83 Updated dependencies to the latest versions. Code cleanup. Configured multi-stage docker build to decrease the resulting image size. Internal change of security configuration using security filters. Change multi-module project to single-module.
