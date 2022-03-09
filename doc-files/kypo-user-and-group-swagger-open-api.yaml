@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "Version: 1.1.84"
+  version: "Version: 1.1.85"
   title: "KYPO User and Group - API Reference"
 host: "localhost:8084"
 basePath: "/kypo-rest-user-and-group/api/v1"
@@ -967,6 +967,25 @@ paths:
             $ref: "#/definitions/ApiError"
       security:
       - bearerAuth: []
+  /users/initial-oidc-users:
+    get:
+      tags:
+      - "users"
+      summary: "Get initial oidc users"
+      description: "Returns details of initial OIDC users."
+      operationId: "getInitialOIDCUsers"
+      produces:
+      - "application/x-yaml"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/InitialOIDCUserDto"
+      security:
+      - bearerAuth: []
   /users/not-in-groups/{groupId}:
     get:
       tags:
@@ -1368,6 +1387,19 @@ definitions:
         position: 1
         description: "Main identifier of group."
     description: "The basic information about a group."
+  InitialOIDCUserDto:
+    type: "object"
+    properties:
+      password:
+        type: "string"
+        example: "batman"
+        description: "Password of a user."
+      name:
+        type: "string"
+        example: "441048@muni.cz"
+        position: 1
+        description: "Main identifier of the user."
+    description: "Basic information about initial OIDC user."
   NewGroupDTO:
     type: "object"
     required:
