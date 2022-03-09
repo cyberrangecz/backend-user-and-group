@@ -1,3 +1,4 @@
+1.1.85 Get initial users from local OIDC provider.
 1.1.84 Added missing flyway dependency to migrate database at startup.
 1.1.83 Updated dependencies to the latest versions. Code cleanup. Configured multi-stage docker build to decrease the resulting image size. Internal change of security configuration using security filters. Change multi-module project to single-module.
 1.1.82 Update log4j2 dependency to 2.15.0 to avoid CVE-2021-44228 vulnerability.
