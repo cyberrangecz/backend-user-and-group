@@ -199,7 +199,7 @@ public class UserFacade {
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
-//    @IsAdmin
+    @IsAdmin
     public InitialOIDCUserDto[] getInitialOIDCUsers() {
         return userService.getInitialOIDCUsers();
     }

@@ -318,7 +318,7 @@ public class UsersRestController {
     /**
      * Gets initial OIDC users.
      *
-     * @return the {@link ResponseEntity} with body type {@link InitialOIDCUsersDto} and specific status code and header.
+     * @return the {@link ResponseEntity} with body type array of {@link InitialOIDCUserDto} and specific status code and header.
      */
     @ApiOperation(httpMethod = "GET",
             value = "Get initial oidc users",
