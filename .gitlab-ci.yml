@@ -9,7 +9,7 @@ variables:
   DEPLOYMENT_INFO_VERSION_FILE: VERSION.txt
   MAVEN_CLI_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   TRUSTED_HOST: gitlab.ics.muni.cz
-  GIT_CLONE_URL: "git@$CI_SERVER_HOST:$CI_PROJECT_PATH.git"
+  GIT_CLONE_URL: "git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
 
 stages:
   - build
