@@ -324,12 +324,12 @@ public class UsersRestController {
             value = "Get initial oidc users",
             nickname = "getInitialOIDCUsers",
             notes = "Returns details of initial OIDC users.",
-            produces = "application/x-yaml"
+            produces = "application/octet-stream"
     )
-    @GetMapping(path = "/initial-oidc-users", produces = "application/x-yaml")
-    public ResponseEntity<InitialOIDCUserDto[]> getInitialOIDCUsers() {
+    @GetMapping(path = "/initial-oidc-users", produces = "application/octet-stream")
+    public ResponseEntity<byte[]> getInitialOIDCUsers() {
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/x-yaml"))
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
                 .body(userFacade.getInitialOIDCUsers());
     }
