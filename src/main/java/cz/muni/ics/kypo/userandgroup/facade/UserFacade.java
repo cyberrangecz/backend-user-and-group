@@ -200,7 +200,7 @@ public class UserFacade {
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
     @IsAdmin
-    public InitialOIDCUserDto[] getInitialOIDCUsers() {
+    public byte[] getInitialOIDCUsers() {
         return userService.getInitialOIDCUsers();
     }
 

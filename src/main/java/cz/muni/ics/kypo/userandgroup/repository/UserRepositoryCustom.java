@@ -13,7 +13,7 @@ import java.util.Set;
 
 public interface UserRepositoryCustom {
 
-    InitialOIDCUserDto[] getInitialOIDCUsers() throws IOException;
+    byte[] getInitialOIDCUsers() throws IOException;
 
     /**
      * Find all users, not in the given {@link cz.muni.ics.kypo.userandgroup.domain.IDMGroup} with the given ID.

@@ -1,9 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.handler;
 
-import cz.muni.ics.kypo.userandgroup.exceptions.BadRequestException;
-import cz.muni.ics.kypo.userandgroup.exceptions.EntityConflictException;
-import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
-import cz.muni.ics.kypo.userandgroup.exceptions.UnprocessableEntityException;
+import cz.muni.ics.kypo.userandgroup.exceptions.*;
 import cz.muni.ics.kypo.userandgroup.exceptions.errors.ApiEntityError;
 import cz.muni.ics.kypo.userandgroup.exceptions.errors.ApiError;
 import org.slf4j.Logger;
@@ -51,6 +48,26 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final UrlPathHelper URL_PATH_HELPER = new UrlPathHelper();
     private static final Logger LOG = LoggerFactory.getLogger(CustomRestExceptionHandler.class);
+
+    @ExceptionHandler({FileNotFoundException.class})
+    public ResponseEntity<Object> handleFileNotFoundException(final FileNotFoundException ex, HttpServletRequest req) {
+        final ApiError apiError = ApiError.of(
+                HttpStatus.NOT_FOUND,
+                getInitialException(ex).getLocalizedMessage(),
+                getFullStackTrace(ex),
+                URL_PATH_HELPER.getRequestUri(req));
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({FileCannotReadException.class})
+    public ResponseEntity<Object> handleFileCannotReadException(final FileCannotReadException ex, HttpServletRequest req) {
+        final ApiError apiError = ApiError.of(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                getInitialException(ex).getLocalizedMessage(),
+                getFullStackTrace(ex),
+                URL_PATH_HELPER.getRequestUri(req));
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(final TypeMismatchException ex, final HttpHeaders headers, final HttpStatus status,

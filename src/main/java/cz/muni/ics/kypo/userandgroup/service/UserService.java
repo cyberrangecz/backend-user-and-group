@@ -154,7 +154,7 @@ public class UserService {
         return userRepository.findAllByRoleType(roleType, predicate, pageable);
     }
 
-    public InitialOIDCUserDto[] getInitialOIDCUsers() {
+    public byte[] getInitialOIDCUsers() {
         try {
             return userRepository.getInitialOIDCUsers();
         } catch (IOException e) {
