@@ -56,7 +56,7 @@ public class UserService {
         return userRepository.findAll(predicate, pageable);
     }
 
-    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+    public Page<User> getUsersWithGivenIds(List<Long> ids, Pageable pageable, Predicate predicate) {
         Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
         return userRepository.findAll(finalPredicate, pageable);
     }

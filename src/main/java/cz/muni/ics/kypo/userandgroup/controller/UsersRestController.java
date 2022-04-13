@@ -301,7 +301,7 @@ public class UsersRestController {
             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Ids of users to be obtained.", required = true)
-            @RequestParam(value = "ids") Set<Long> ids) {
+            @RequestParam(value = "ids") List<Long> ids) {
         if (pageable.getPageSize() >= 1000) {
             throw new BadRequestException("Choose page size lower than 1000");
         }
