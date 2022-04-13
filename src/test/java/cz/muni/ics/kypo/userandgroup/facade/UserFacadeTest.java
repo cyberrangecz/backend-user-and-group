@@ -297,8 +297,8 @@ public class UserFacadeTest {
 
     @Test
     public void getUsersWithGivenIds() {
-        given(userService.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
-        PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null);
+        given(userService.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null);
 
         assertEquals(2, usersDTO.getContent().size());
         assertTrue(usersDTO.getContent().containsAll(Set.of(userBasicViewDto1, userBasicViewDto2)));

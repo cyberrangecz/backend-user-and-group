@@ -68,7 +68,7 @@ public class UserFacade {
     }
 
     @IsGuest
-    public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+    public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(List<Long> ids, Pageable pageable, Predicate predicate) {
         return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
 
