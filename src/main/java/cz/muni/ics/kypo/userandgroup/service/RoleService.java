@@ -11,7 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleService {
@@ -53,5 +57,18 @@ public class RoleService {
 
     public Set<Role> getAllRolesOfMicroservice(String nameOfMicroservice) {
         return roleRepository.getAllRolesByMicroserviceName(nameOfMicroservice);
+    }
+
+    public Set<Role> getAllRolesByRoleTypes(Set<String> roleTypes) {
+        Set<Role> resultRoles = roleRepository.getAllByRoleTypeIn(roleTypes);
+        Set<String> resultRoleTypes = resultRoles.stream()
+                .map(Role::getRoleType)
+                .collect(Collectors.toSet());
+        for (String roleType : roleTypes) {
+            if (!resultRoleTypes.contains(roleType)) {
+                throw new EntityNotFoundException(new EntityErrorDetail(Role.class, "roleType", roleType.getClass(), roleType, "Role '" + roleType + "' not found."));
+            }
+        }
+        return resultRoles;
     }
 }
