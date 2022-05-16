@@ -51,7 +51,7 @@ public class IDMGroupService {
     public IDMGroup createIDMGroup(IDMGroup group, List<Long> groupIdsOfImportedMembers) {
         group.setStatus(UserAndGroupStatus.VALID);
         if (groupRepository.existsByName(group.getName())) {
-            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, group.getName(), "Group with this name already exists."));
+            throw new EntityConflictException(new EntityErrorDetail(IDMGroup.class, "name", String.class, group.getName(), "Group with name '" + group.getName() + "' already exists."));
         }
 
         if (!groupIdsOfImportedMembers.isEmpty()) {

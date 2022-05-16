@@ -9,6 +9,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -216,6 +217,16 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleSpringAccessDeniedException(org.springframework.security.access.AccessDeniedException ex, WebRequest request, HttpServletRequest req) {
         final ApiError apiError = ApiError.of(
                 HttpStatus.FORBIDDEN,
+                getInitialException(ex).getLocalizedMessage(),
+                getFullStackTrace(ex),
+                URL_PATH_HELPER.getRequestUri(req));
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(final DataAccessException ex, final WebRequest request, HttpServletRequest req) {
+        final ApiError apiError = ApiError.of(
+                HttpStatus.CONFLICT,
                 getInitialException(ex).getLocalizedMessage(),
                 getFullStackTrace(ex),
                 URL_PATH_HELPER.getRequestUri(req));
