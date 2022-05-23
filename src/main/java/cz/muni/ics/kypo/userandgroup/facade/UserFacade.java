@@ -218,7 +218,11 @@ public class UserFacade {
     @IsAdmin
     @TransactionalWO
     public void importUsers(UsersImportDTO usersImportDTO) {
-        Set<User> storedUsers = new HashSet<>(userService.createUsers(userMapper.mapUsersImportToSet(usersImportDTO.getUsers())));
+        Set<User> importedUsers = userMapper.mapUsersImportToSet(usersImportDTO.getUsers());
+        for (User user : importedUsers) {
+            user.setPicture(identiconService.generateIdenticons(user.getSub() + user.getIss(), ICON_WIDTH, ICON_HEIGHT));
+        }
+        Set<User> storedUsers = new HashSet<>(userService.createUsers(importedUsers));
         // add users to default group
         IDMGroup defaultGroup = idmGroupService.getGroupForDefaultRoles();
         storedUsers.forEach(defaultGroup::addUser);
