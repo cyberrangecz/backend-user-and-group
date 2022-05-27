@@ -14,6 +14,7 @@ import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.service.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.IdenticonService;
+import cz.muni.ics.kypo.userandgroup.service.RoleService;
 import cz.muni.ics.kypo.userandgroup.service.UserService;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -47,6 +48,8 @@ public class UserFacadeTest {
     private IdenticonService identiconService;
     @Mock
     private IDMGroupService idmGroupService;
+    @Mock
+    private RoleService roleService;
     @Autowired
     private UserMapperImpl userMapper;
     @Autowired
@@ -78,7 +81,7 @@ public class UserFacadeTest {
     @BeforeEach
     public void init() {
         closeable = MockitoAnnotations.openMocks(this);
-        userFacade = new UserFacade(userService, idmGroupService, identiconService, userMapper, roleMapper);
+        userFacade = new UserFacade(userService, idmGroupService, roleService, identiconService, userMapper, roleMapper);
 
         microservice = testDataFactory.getKypoUaGMicroservice();
         microservice.setId(1L);
@@ -297,8 +300,8 @@ public class UserFacadeTest {
 
     @Test
     public void getUsersWithGivenIds() {
-        given(userService.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
-        PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, null);
+        given(userService.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null);
 
         assertEquals(2, usersDTO.getContent().size());
         assertTrue(usersDTO.getContent().containsAll(Set.of(userBasicViewDto1, userBasicViewDto2)));

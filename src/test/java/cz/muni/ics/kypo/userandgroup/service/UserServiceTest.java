@@ -332,7 +332,7 @@ public class UserServiceTest {
     @Test
     public void getUsersWithGivenIds() {
         given(userRepository.findAll(any(Predicate.class), any(Pageable.class))).willReturn(new PageImpl<>(List.of(user1, user2)));
-        List<User> users = userService.getUsersWithGivenIds(Set.of(user1.getId(), user2.getId()), pageable, predicate).getContent();
+        List<User> users = userService.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, predicate).getContent();
         assertEquals(2, users.size());
         assertTrue(users.containsAll(Set.of(user1, user2)));
     }

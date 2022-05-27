@@ -7,6 +7,7 @@ import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.user.InitialOIDCUserDto;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
+import cz.muni.ics.kypo.userandgroup.exceptions.EntityConflictException;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.exceptions.FileNotFoundException;
@@ -16,11 +17,14 @@ import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -56,7 +60,7 @@ public class UserService {
         return userRepository.findAll(predicate, pageable);
     }
 
-    public Page<User> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+    public Page<User> getUsersWithGivenIds(List<Long> ids, Pageable pageable, Predicate predicate) {
         Predicate finalPredicate = QUser.user.id.in(ids).and(predicate);
         return userRepository.findAll(finalPredicate, pageable);
     }
@@ -75,6 +79,10 @@ public class UserService {
 
     public User createUser(User user) {
         return userRepository.saveAndFlush(user);
+    }
+
+    public List<User> createUsers(Set<User> users) {
+        return userRepository.saveAllAndFlush(users);
     }
 
     public User updateUser(User user) {
@@ -154,7 +162,7 @@ public class UserService {
         return userRepository.findAllByRoleType(roleType, predicate, pageable);
     }
 
-    public InitialOIDCUserDto[] getInitialOIDCUsers() {
+    public byte[] getInitialOIDCUsers() {
         try {
             return userRepository.getInitialOIDCUsers();
         } catch (IOException e) {

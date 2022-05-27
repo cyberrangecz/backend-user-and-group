@@ -9,6 +9,9 @@ import cz.muni.ics.kypo.userandgroup.annotations.swagger.ApiPageableSwagger;
 import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.dto.UsersImportDTO;
+import cz.muni.ics.kypo.userandgroup.dto.group.GroupDTO;
+import cz.muni.ics.kypo.userandgroup.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.exceptions.BadRequestException;
@@ -28,6 +31,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
@@ -301,7 +305,7 @@ public class UsersRestController {
             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
             @RequestParam(value = "fields", required = false) String fields,
             @ApiParam(value = "Ids of users to be obtained.", required = true)
-            @RequestParam(value = "ids") Set<Long> ids) {
+            @RequestParam(value = "ids") List<Long> ids) {
         if (pageable.getPageSize() >= 1000) {
             throw new BadRequestException("Choose page size lower than 1000");
         }
@@ -324,14 +328,36 @@ public class UsersRestController {
             value = "Get initial oidc users",
             nickname = "getInitialOIDCUsers",
             notes = "Returns details of initial OIDC users.",
-            produces = "application/x-yaml"
+            produces = "application/octet-stream"
     )
-    @GetMapping(path = "/initial-oidc-users", produces = "application/x-yaml")
-    public ResponseEntity<InitialOIDCUserDto[]> getInitialOIDCUsers() {
+    @GetMapping(path = "/initial-oidc-users", produces = "application/octet-stream")
+    public ResponseEntity<byte[]> getInitialOIDCUsers() {
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/x-yaml"))
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
                 .body(userFacade.getInitialOIDCUsers());
+    }
+
+    /**
+     * Import new users. It is possible to assign them to newly created group.
+     *
+     * @param usersImportDTO object containing users to be imported along with  new group to which they will be assigned.
+     * @return the {@link ResponseEntity} with body type {@link GroupDTO} and specific status code and header.
+     */
+    @ApiOperation(httpMethod = "POST",
+            value = "Import new users.",
+            nickname = "importUsers"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Given group created.", response = GroupDTO.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> importUsers(@ApiParam(value = "Object with users to be imported", required = true)
+                                                   @Valid @RequestBody UsersImportDTO usersImportDTO) {
+        userFacade.importUsers(usersImportDTO);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
     }
 
     @ApiModel(value = "UserRestResource",

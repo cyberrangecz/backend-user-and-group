@@ -6,6 +6,9 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import cz.muni.ics.kypo.userandgroup.domain.*;
 import cz.muni.ics.kypo.userandgroup.dto.user.InitialOIDCUserDto;
+import cz.muni.ics.kypo.userandgroup.exceptions.FileCannotReadException;
+import cz.muni.ics.kypo.userandgroup.exceptions.FileNotFoundException;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -19,6 +22,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Set;
 
 @Repository
@@ -35,8 +41,15 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
         this.yamlObjectMapper = yamlObjectMapper;
     }
 
-    public InitialOIDCUserDto[] getInitialOIDCUsers() throws IOException {
-        return yamlObjectMapper.readValue(new File(initialOIDCUsers), InitialOIDCUserDto[].class);
+    public byte[] getInitialOIDCUsers() throws IOException {
+        Path oidcUsersPath = Paths.get(initialOIDCUsers);
+        if (!Files.isRegularFile(oidcUsersPath)) {
+            throw new FileNotFoundException("File with the initial OIDC users doesn't exist. File: " + initialOIDCUsers);
+        }
+        if (!Files.isReadable(oidcUsersPath)) {
+            throw new FileCannotReadException("Not enough permissions to read file with initial OIDC users. File: " + initialOIDCUsers);
+        }
+        return Files.readAllBytes(oidcUsersPath);
     }
 
     @Override

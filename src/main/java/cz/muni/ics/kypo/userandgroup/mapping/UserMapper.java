@@ -25,6 +25,8 @@ public interface UserMapper extends ParentMapper {
 
     User mapToEntity(UserCreateDTO dto);
 
+    User mapToEntity(UserImportDTO dto);
+
     User mapToEntity(UserUpdateDTO dto);
 
     UserUpdateDTO mapUserDTOToUserUpdateDTO(UserDTO dto);
@@ -40,6 +42,8 @@ public interface UserMapper extends ParentMapper {
     UserForGroupsDTO mapEntityToUserForGroupsDTO(User user);
 
     List<User> mapToList(Collection<UserDTO> dtos);
+
+    Set<User> mapUsersImportToSet(Collection<UserImportDTO> dtos);
 
     List<UserDTO> mapToListDTO(Collection<User> entities);
 

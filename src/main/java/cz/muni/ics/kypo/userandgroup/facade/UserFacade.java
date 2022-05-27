@@ -5,12 +5,15 @@ import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
 import cz.muni.ics.kypo.userandgroup.annotations.security.IsGuest;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalRO;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalWO;
+import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
+import cz.muni.ics.kypo.userandgroup.dto.UsersImportDTO;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.enums.AbstractCacheNames;
+import cz.muni.ics.kypo.userandgroup.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
@@ -18,6 +21,7 @@ import cz.muni.ics.kypo.userandgroup.mapping.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapper;
 import cz.muni.ics.kypo.userandgroup.service.IDMGroupService;
 import cz.muni.ics.kypo.userandgroup.service.IdenticonService;
+import cz.muni.ics.kypo.userandgroup.service.RoleService;
 import cz.muni.ics.kypo.userandgroup.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -42,14 +46,21 @@ public class UserFacade {
 
     private final UserService userService;
     private final IDMGroupService idmGroupService;
+    private final RoleService roleService;
     private final IdenticonService identiconService;
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
 
     @Autowired
-    public UserFacade(UserService userService, IDMGroupService idmGroupService, IdenticonService identiconService, UserMapper userMapper, RoleMapper roleMapper) {
+    public UserFacade(UserService userService,
+                      IDMGroupService idmGroupService,
+                      RoleService roleService,
+                      IdenticonService identiconService,
+                      UserMapper userMapper,
+                      RoleMapper roleMapper) {
         this.userService = userService;
         this.idmGroupService = idmGroupService;
+        this.roleService = roleService;
         this.identiconService = identiconService;
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
@@ -68,7 +79,7 @@ public class UserFacade {
     }
 
     @IsGuest
-    public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(Set<Long> ids, Pageable pageable, Predicate predicate) {
+    public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(List<Long> ids, Pageable pageable, Predicate predicate) {
         return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
 
@@ -200,8 +211,29 @@ public class UserFacade {
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
     @IsAdmin
-    public InitialOIDCUserDto[] getInitialOIDCUsers() {
+    public byte[] getInitialOIDCUsers() {
         return userService.getInitialOIDCUsers();
     }
 
+    @IsAdmin
+    @TransactionalWO
+    public void importUsers(UsersImportDTO usersImportDTO) {
+        Set<User> importedUsers = userMapper.mapUsersImportToSet(usersImportDTO.getUsers());
+        for (User user : importedUsers) {
+            user.setPicture(identiconService.generateIdenticons(user.getSub() + user.getIss(), ICON_WIDTH, ICON_HEIGHT));
+        }
+        Set<User> storedUsers = new HashSet<>(userService.createUsers(importedUsers));
+        // add users to default group
+        IDMGroup defaultGroup = idmGroupService.getGroupForDefaultRoles();
+        storedUsers.forEach(defaultGroup::addUser);
+
+        if(usersImportDTO.getGroupName() != null && !usersImportDTO.getGroupName().isBlank()) {
+            IDMGroup group = new IDMGroup();
+            group.setName(usersImportDTO.getGroupName());
+            group.setDescription("No description");
+            group.setStatus(UserAndGroupStatus.VALID);
+            idmGroupService.createIDMGroup(group, new ArrayList<>());
+            storedUsers.forEach(group::addUser);
+        }
+    }
 }

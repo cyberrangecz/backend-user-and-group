@@ -89,4 +89,12 @@ public interface RoleRepository extends JpaRepository<Role, Long>, RoleRepositor
      */
     Optional<Role> findDefaultRoleOfMicroservice(@Param("microserviceName") String microserviceName);
 
+    /**
+     * Gets all roles by role types.
+     *
+     * @param roleTypes set of role types
+     * @return the set of {@link Role}s
+     */
+    Set<Role> getAllByRoleTypeIn(@Param("roleTypes") Set<String> roleTypes);
+
 }
