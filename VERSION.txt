@@ -1,3 +1,4 @@
+2.0.1 Endpoint to get user credentials from local OIDC provider. Endpoint to import new users.
 2.0.0 Migrate the project to Java 17.
 1.1.87 Fix YAML message converter.
 1.1.86 Fix default file for exported OIDC users.
