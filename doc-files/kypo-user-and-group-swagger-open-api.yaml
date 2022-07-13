@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "Version: 2.0.0"
+  version: "Version: 2.0.1"
   title: "KYPO User and Group - API Reference"
 host: "localhost:8084"
 basePath: "/kypo-rest-user-and-group/api/v1"
@@ -779,6 +779,34 @@ paths:
             $ref: "#/definitions/ApiError"
       security:
       - bearerAuth: []
+    post:
+      tags:
+      - "users"
+      summary: "Import new users."
+      description: ""
+      operationId: "importUsers"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Object with users to be imported"
+        required: true
+        schema:
+          $ref: "#/definitions/UsersImportDTO"
+      responses:
+        201:
+          description: "Given group created."
+          schema:
+            $ref: "#/definitions/GroupDTO"
+        500:
+          description: "Unexpected condition was encountered."
+          schema:
+            $ref: "#/definitions/ApiError"
+      security:
+      - bearerAuth: []
     delete:
       tags:
       - "users"
@@ -975,7 +1003,7 @@ paths:
       description: "Returns details of initial OIDC users."
       operationId: "getInitialOIDCUsers"
       produces:
-      - "application/x-yaml"
+      - "application/octet-stream"
       parameters: []
       responses:
         200:
@@ -983,7 +1011,8 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/InitialOIDCUserDto"
+              type: "string"
+              format: "byte"
       security:
       - bearerAuth: []
   /users/not-in-groups/{groupId}:
@@ -1387,19 +1416,6 @@ definitions:
         position: 1
         description: "Main identifier of group."
     description: "The basic information about a group."
-  InitialOIDCUserDto:
-    type: "object"
-    properties:
-      password:
-        type: "string"
-        example: "batman"
-        description: "Password of a user."
-      name:
-        type: "string"
-        example: "441048@muni.cz"
-        position: 1
-        description: "Main identifier of the user."
-    description: "Basic information about initial OIDC user."
   NewGroupDTO:
     type: "object"
     required:
@@ -1666,6 +1682,30 @@ definitions:
         position: 1
         description: "Main identifiers of the user."
     description: "Encapsulates information about a user used in a given groups."
+  UserImportDTO:
+    type: "object"
+    properties:
+      sub:
+        type: "string"
+        example: "johndoe@ics.muni.cz"
+        description: "User sub."
+      iss:
+        type: "string"
+        example: "https://oidc.muni.cz/oidc"
+        description: "OIDC issuer for that user record."
+      full_name:
+        type: "string"
+        example: "John Doe"
+        description: "User full name."
+      given_name:
+        type: "string"
+        example: "John"
+        description: "User given name."
+      family_name:
+        type: "string"
+        example: "Doe"
+        description: "User family name."
+    description: "Information that are necessary to import a user."
   UserRestResource:
     type: "object"
     properties:
@@ -1681,3 +1721,15 @@ definitions:
     description: "Content (Retrieved data) and meta information about REST API result\
       \ page. Including page number, number of elements in page, size of elements,\
       \ total number of elements and total number of pages."
+  UsersImportDTO:
+    type: "object"
+    properties:
+      users:
+        type: "array"
+        description: "List of the user to be imported."
+        items:
+          $ref: "#/definitions/UserImportDTO"
+      groupName:
+        type: "string"
+        description: "New group to which the user will be assigned."
+    description: "Information that are necessary to import users."
