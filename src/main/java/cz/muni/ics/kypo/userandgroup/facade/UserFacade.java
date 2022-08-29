@@ -19,16 +19,14 @@ import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapper;
-import cz.muni.ics.kypo.userandgroup.service.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.service.IdenticonService;
-import cz.muni.ics.kypo.userandgroup.service.RoleService;
-import cz.muni.ics.kypo.userandgroup.service.UserService;
+import cz.muni.ics.kypo.userandgroup.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -46,6 +44,8 @@ public class UserFacade {
 
     private final UserService userService;
     private final IDMGroupService idmGroupService;
+
+    private final SecurityService securityService;
     private final RoleService roleService;
     private final IdenticonService identiconService;
     private final UserMapper userMapper;
@@ -54,12 +54,13 @@ public class UserFacade {
     @Autowired
     public UserFacade(UserService userService,
                       IDMGroupService idmGroupService,
-                      RoleService roleService,
+                      SecurityService securityService, RoleService roleService,
                       IdenticonService identiconService,
                       UserMapper userMapper,
                       RoleMapper roleMapper) {
         this.userService = userService;
         this.idmGroupService = idmGroupService;
+        this.securityService = securityService;
         this.roleService = roleService;
         this.identiconService = identiconService;
         this.userMapper = userMapper;
@@ -84,7 +85,7 @@ public class UserFacade {
     }
 
     //    @Cacheable(key = "#id", sync = true)
-    @IsGuest
+    @IsAdmin
     @TransactionalRO
     public UserDTO getUserById(Long id) {
         return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
