@@ -364,21 +364,17 @@ public class UsersIntegrationTests {
     @Test
     public void getUserWithUserRole() throws Exception {
         TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
-        MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
+        mvc.perform(get("/users/{id}", user1.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().is(403));
     }
 
     @Test
     public void getUserWithGuestRole() throws Exception {
         TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
-        MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
+        mvc.perform(get("/users/{id}", user1.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().is(403));
     }
 
     @Test
