@@ -12,16 +12,11 @@ import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapperImpl;
-import cz.muni.ics.kypo.userandgroup.service.IDMGroupService;
-import cz.muni.ics.kypo.userandgroup.service.IdenticonService;
-import cz.muni.ics.kypo.userandgroup.service.RoleService;
-import cz.muni.ics.kypo.userandgroup.service.UserService;
+import cz.muni.ics.kypo.userandgroup.service.*;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,6 +44,9 @@ public class UserFacadeTest {
     private IDMGroupService idmGroupService;
     @Mock
     private RoleService roleService;
+
+    @Mock
+    private SecurityService securityService;
     @Autowired
     private UserMapperImpl userMapper;
     @Autowired
@@ -81,7 +78,7 @@ public class UserFacadeTest {
     @BeforeEach
     public void init() {
         closeable = MockitoAnnotations.openMocks(this);
-        userFacade = new UserFacade(userService, idmGroupService, roleService, identiconService, userMapper, roleMapper);
+        userFacade = new UserFacade(userService, idmGroupService, securityService, roleService, identiconService, userMapper, roleMapper);
 
         microservice = testDataFactory.getKypoUaGMicroservice();
         microservice.setId(1L);
