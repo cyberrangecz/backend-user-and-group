@@ -10,10 +10,12 @@ import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
+import cz.muni.ics.kypo.userandgroup.exceptions.SecurityException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.service.*;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
+import cz.muni.ics.kypo.userandgroup.utils.RoleNames;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -172,11 +174,32 @@ public class UserFacadeTest {
     }
 
     @Test
-    public void testGetUserById() {
-        given(userService.getUserById(anyLong())).willReturn(user1);
+    public void testGetUserByIdHimself() {
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getUserById(user1.getId())).willReturn(user1);
         UserDTO userDTO = userFacade.getUserById(user1.getId());
 
         assertEquals(userDTO1, userDTO);
+    }
+
+    @Test
+    public void testGetUserByIdFailAuth() {
+        Role role = new Role();
+        role.setRoleType(RoleNames.TRAINING_TRAINEE);
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
+        assertThrows(SecurityException.class, () -> userFacade.getUserById(user2.getId()));
+    }
+
+    @Test
+    public void testGetUserByIdAny() {
+        Role role = new Role();
+        role.setRoleType(RoleNames.TRAINING_DESIGNER);
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
+        given(userService.getUserById(user2.getId())).willReturn(user2);
+        UserDTO userDTO = userFacade.getUserById(user2.getId());
+        assertEquals(userDTO, userDTO2);
     }
 
     @Test
@@ -288,6 +311,10 @@ public class UserFacadeTest {
 
     @Test
     public void getUsersWithGivenRoleType() {
+        Role role = new Role();
+        role.setRoleType(RoleNames.ADAPTIVE_TRAINING_ORGANIZER);
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
         given(userService.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable);
 
@@ -296,12 +323,49 @@ public class UserFacadeTest {
     }
 
     @Test
+    public void getUsersWithGivenRoleTypeFailAuth() {
+        Role role = new Role();
+        role.setRoleType(RoleNames.ADAPTIVE_TRAINING_TRAINEE);
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
+        assertThrows(SecurityException.class, () -> userFacade.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable));
+    }
+
+    @Test
     public void getUsersWithGivenIds() {
+        Role role = new Role();
+        role.setRoleType(RoleNames.ADAPTIVE_TRAINING_DESIGNER);
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
         given(userService.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null);
 
         assertEquals(2, usersDTO.getContent().size());
         assertTrue(usersDTO.getContent().containsAll(Set.of(userBasicViewDto1, userBasicViewDto2)));
+    }
+
+    @Test
+    public void getUsersWithGivenIdsAnonymize() {
+        List<Role> roles = List.of(new Role(), new Role(), new Role());
+        roles.get(0).setRoleType(RoleNames.USER_AND_GROUP_USER);
+        roles.get(1).setRoleType(RoleNames.ADAPTIVE_TRAINING_TRAINEE);
+        roles.get(2).setRoleType(RoleNames.TRAINING_TRAINEE);
+
+        List<Long> userIds = List.of(user1.getId(), user2.getId());
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        given(userService.getRolesOfUser(user1.getId())).willReturn(new HashSet<>(roles));
+        given(userService.getUsersWithGivenIds(userIds, pageable, null)).willReturn(new PageImpl<>(List.of(user1, user2)));
+        PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(userIds, pageable, null);
+
+        assertEquals(2, usersDTO.getContent().size());
+        for (UserBasicViewDto userBasicViewDto : usersDTO.getContent()) {
+            if (userBasicViewDto.getId() == user1.getId()) {
+                assertEquals(userBasicViewDto, userBasicViewDto1);
+            } else {
+                assertEquals(userBasicViewDto.getId(), user2.getId());
+                assertEquals(userBasicViewDto.getGivenName(), "other player");
+            }
+        }
     }
 
 }

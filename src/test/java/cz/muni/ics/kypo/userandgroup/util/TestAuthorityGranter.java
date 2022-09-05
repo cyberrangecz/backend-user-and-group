@@ -33,7 +33,7 @@ public class TestAuthorityGranter {
 
     public static void mockSpringSecurityContextForGetUserInfo(RoleType roleType, User user) {
         Jwt jwt = new Jwt("bearer-token-value", null, null, Map.of("alg", "HS256"), Map.of("iss", user.getIss(), "sub", user.getSub()));
-        JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(jwt, List.of( new SimpleGrantedAuthority(roleType.name())), user.getSub());
+        JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(jwt, mockGrantedAuthorities(roleType), user.getSub());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
