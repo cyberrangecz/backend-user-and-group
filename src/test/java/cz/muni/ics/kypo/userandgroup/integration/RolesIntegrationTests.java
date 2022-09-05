@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
+import cz.muni.ics.kypo.userandgroup.service.SecurityService;
 import cz.muni.ics.kypo.userandgroup.util.ObjectConverter;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -295,99 +296,57 @@ public class RolesIntegrationTests {
 
     @Test
     public void getUsersWithGivenRoleType() throws Exception {
-        MockHttpServletResponse response = mvc.perform(get("/roles/users")
+        mvc.perform(get("/roles/users")
                 .param("roleType", roleOrganizer.getRoleType())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {
-        })
-                .getContent().contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
     public void getUsersWithGivenRoleTypeWithUserRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
-        MockHttpServletResponse response = mvc.perform(get("/roles/users")
-                .param("roleType", roleOrganizer.getRoleType())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {
-        })
-                .getContent().contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+        mvc.perform(get("/roles/users")
+                        .param("roleType", roleOrganizer.getRoleType())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
     public void getUsersWithGivenRoleTypeWithGuestRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
-        MockHttpServletResponse response = mvc.perform(get("/roles/users")
-                .param("roleType", roleOrganizer.getRoleType())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        assertTrue(convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {
-        })
-                .getContent().contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+        mvc.perform(get("/roles/users")
+                        .param("roleType", roleOrganizer.getRoleType())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
     public void getUsersWithGivenRoleTypeAndNotWithGivenIds() throws Exception {
-        MockHttpServletResponse response = mvc.perform(get("/roles/users-not-with-ids")
+        mvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", roleTrainee.getRoleType())
                 .param("ids", user3.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        PageResultResource<UserDTO> users =
-                objectMapper.readValue(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {
-                });
-
-        assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
-        assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));
-        assertFalse(users.getContent().contains(convertToUserDTO(user3, group2.getRoles())));
-        assertEquals(2, users.getPagination().getTotalElements());
-        assertEquals(20, users.getPagination().getSize());
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
     public void getUsersWithGivenRoleTypeAndNotWithGivenIdsWithUserRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
-        MockHttpServletResponse response = mvc.perform(get("/roles/users-not-with-ids")
+        mvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", roleTrainee.getRoleType())
                 .param("ids", user3.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        PageResultResource<UserDTO> users =
-                objectMapper.readValue(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {
-                });
-
-        assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
-        assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));
-        assertFalse(users.getContent().contains(convertToUserDTO(user3, group2.getRoles())));
-        assertEquals(2, users.getPagination().getTotalElements());
-        assertEquals(20, users.getPagination().getSize());
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
     public void getUsersWithGivenRoleTypeAndNotWithGivenIdsWithGuestRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
-        MockHttpServletResponse response = mvc.perform(get("/roles/users-not-with-ids")
+        mvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", roleTrainee.getRoleType())
                 .param("ids", user3.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        PageResultResource<UserDTO> users =
-                objectMapper.readValue(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {
-                });
-
-        assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
-        assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));
-        assertFalse(users.getContent().contains(convertToUserDTO(user3, group2.getRoles())));
-        assertEquals(2, users.getPagination().getTotalElements());
-        assertEquals(20, users.getPagination().getSize());
+                .andExpect(status().isInternalServerError());
     }
 
     private void assertEntityDetailError(EntityErrorDetail entityErrorDetail, Class<?> entity, String identifier, Object value, String reason) {

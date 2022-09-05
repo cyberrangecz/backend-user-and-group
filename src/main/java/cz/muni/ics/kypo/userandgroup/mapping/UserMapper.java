@@ -81,6 +81,34 @@ public interface UserMapper extends ParentMapper {
         return new PageResultResource<>(mapped, createPagination(users));
     }
 
+    default PageResultResource<UserBasicViewDto> mapToPageUserBasicViewDTOAnonymize(Page<User> users, Long loggedInUserId) {
+        List<UserBasicViewDto> mapped = new ArrayList<>();
+        users.forEach(user -> mapped.add(mapToBasicViewDtoAnonymize(user, loggedInUserId)));
+        return new PageResultResource<>(mapped, createPagination(users));
+    }
+
+    default UserBasicViewDto mapToBasicViewDtoAnonymize(User user, Long loggedInUserId) {
+        if ( user == null ) {
+            return null;
+        }
+
+        UserBasicViewDto userBasicViewDto = new UserBasicViewDto();
+
+        userBasicViewDto.setId( user.getId() );
+        userBasicViewDto.setFullName( loggedInUserId != user.getId() ? "other player" : user.getFullName() );
+        userBasicViewDto.setSub( loggedInUserId != user.getId() ? "other player" : user.getSub() );
+        userBasicViewDto.setMail( loggedInUserId != user.getId() ? "other player" : user.getMail() );
+        userBasicViewDto.setGivenName( loggedInUserId != user.getId() ? "other player" : user.getGivenName() );
+        userBasicViewDto.setFamilyName( loggedInUserId != user.getId() ? "other player" : user.getFamilyName() );
+        userBasicViewDto.setIss( user.getIss() );
+        byte[] picture = user.getPicture();
+        if ( picture != null ) {
+            userBasicViewDto.setPicture( Arrays.copyOf( picture, picture.length ) );
+        }
+
+        return userBasicViewDto;
+    }
+
     default PageResultResource<UserForGroupsDTO> mapToPageResultResourceForGroups(Page<User> objects) {
         List<UserForGroupsDTO> mapped = new ArrayList<>();
         objects.forEach(object -> mapped.add(mapEntityToUserForGroupsDTO(object)));
