@@ -2,15 +2,18 @@ package cz.muni.ics.kypo.userandgroup.service;
 
 import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.User;
+import cz.muni.ics.kypo.userandgroup.enums.RoleType;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -35,7 +38,12 @@ public class SecurityService {
         this.groupRepository = groupRepository;
     }
 
-    private User getLoggedInUser() {
+    /**
+     * Get logged in User
+     *
+     * @return {@link User} that is currently logged in
+     */
+    public User getLoggedInUser() {
         String sub = getSubOfLoggedInUser();
         String iss = getIssOfLoggedInUser();
         Optional<User> optionalUser = userRepository.findBySubAndIss(sub, iss);

@@ -1,3 +1,4 @@
+2.1.0 /users/ids endpoint now anonymizes the returned users if the logged-in user does not have the necessary roles and other public endpoints now throw an exception in that case.
 2.0.2 Removed stacktrace from errors, changed authorization for getUserById
 2.0.1 Endpoint to get user credentials from local OIDC provider. Endpoint to import new users.
 2.0.0 Migrate the project to Java 17.

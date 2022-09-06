@@ -17,9 +17,11 @@ import cz.muni.ics.kypo.userandgroup.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
+import cz.muni.ics.kypo.userandgroup.exceptions.SecurityException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapper;
 import cz.muni.ics.kypo.userandgroup.service.*;
+import cz.muni.ics.kypo.userandgroup.utils.RoleNames;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,6 +32,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,10 +44,14 @@ public class UserFacade {
 
     private static final int ICON_WIDTH = 75;
     private static final int ICON_HEIGHT = 75;
+    private static final Set<String> NON_TRAINEE_ROLES = Set.of(
+            RoleNames.TRAINING_ADMINISTRATOR, RoleNames.ADAPTIVE_TRAINING_ADMINISTRATOR, RoleNames.USER_AND_GROUP_ADMINISTRATOR,
+            RoleNames.TRAINING_DESIGNER, RoleNames.ADAPTIVE_TRAINING_DESIGNER,
+            RoleNames.TRAINING_ORGANIZER, RoleNames.ADAPTIVE_TRAINING_ORGANIZER
+    );
 
     private final UserService userService;
     private final IDMGroupService idmGroupService;
-
     private final SecurityService securityService;
     private final RoleService roleService;
     private final IdenticonService identiconService;
@@ -76,19 +83,45 @@ public class UserFacade {
     @IsGuest
     @TransactionalRO
     public PageResultResource<UserBasicViewDto> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
+        checkCanRetrieveAnyUser(securityService.getLoggedInUser().getId());
         return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable));
     }
 
     @IsGuest
+    @TransactionalRO
     public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(List<Long> ids, Pageable pageable, Predicate predicate) {
-        return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenIds(ids, pageable, predicate));
+        Page<User> users = userService.getUsersWithGivenIds(ids, pageable, predicate);
+        Long loggedInUserId = securityService.getLoggedInUser().getId();
+        try {
+            checkCanRetrieveAnyUser(loggedInUserId);
+            return userMapper.mapToPageUserBasicViewDto(users);
+        } catch (SecurityException ex) {
+            return userMapper.mapToPageUserBasicViewDTOAnonymize(users, loggedInUserId);
+        }
     }
 
-    //    @Cacheable(key = "#id", sync = true)
-    @IsAdmin
+    @IsGuest
     @TransactionalRO
     public UserDTO getUserById(Long id) {
+        User loggedInUser = securityService.getLoggedInUser();
+
+        // user can always retrieve himself
+        if (loggedInUser.getId() == id) {
+            return userMapper.mapToUserDTOWithRoles(loggedInUser);
+        }
+
+        checkCanRetrieveAnyUser(loggedInUser.getId());
         return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
+    }
+
+    private void checkCanRetrieveAnyUser(Long userId) {
+        Set<String> userRoles = userService.getRolesOfUser(userId)
+                .stream()
+                .map(Role::getRoleType)
+                .collect(Collectors.toSet());
+        if (!CollectionUtils.containsAny(userRoles, NON_TRAINEE_ROLES)) {
+            throw new SecurityException("Cannot retrieve user with current authorization.");
+        }
     }
 
     //    @Cacheable(key = "{#sub+#iss}", sync = true)
@@ -209,6 +242,7 @@ public class UserFacade {
     @IsGuest
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
+        checkCanRetrieveAnyUser(securityService.getLoggedInUser().getId());
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
     @IsAdmin
