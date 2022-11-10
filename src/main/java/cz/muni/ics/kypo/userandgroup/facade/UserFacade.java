@@ -18,6 +18,7 @@ import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.exceptions.SecurityException;
+import cz.muni.ics.kypo.userandgroup.exceptions.UnprocessableEntityException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapper;
 import cz.muni.ics.kypo.userandgroup.service.*;
@@ -28,7 +29,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -140,6 +140,10 @@ public class UserFacade {
     @Retryable(value = {DataIntegrityViolationException.class}, maxAttempts = 2)
     public UserDTO createOrUpdateOrGetOIDCUser(UserCreateDTO oidcUserDTO) {
         Assert.notNull(oidcUserDTO, "In method createOrUpdateOrGetOIDCUser(userInfo) the input userInfo must not be null.");
+
+        if (oidcUserDTO.getGivenName() == null || oidcUserDTO.getFullName() == null || oidcUserDTO.getFamilyName() == null) {
+            throw new UnprocessableEntityException(new EntityErrorDetail(UserCreateDTO.class, "User must provide access to their name."));
+        }
 
         Optional<User> user = userService.getUserBySubAndIss(oidcUserDTO.getSub(), oidcUserDTO.getIss());
         if (user.isPresent()) {
