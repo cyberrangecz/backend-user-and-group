@@ -67,12 +67,6 @@ public class IDMGroupFacade {
         groupService.updateIDMGroup(groupToUpdate);
     }
 
-    public void addUser(Long groupId, Long userId) {
-        IDMGroup groupToUpdate = groupService.getGroupById(groupId);
-        User userToBeAdded = userService.getUserById(userId);
-        groupService.addUserToGroup(groupToUpdate, userToBeAdded);
-    }
-
     @IsAdmin
     @TransactionalWO
     public void addUsersToGroup(Long groupId, AddUsersToGroupDTO addUsers) {

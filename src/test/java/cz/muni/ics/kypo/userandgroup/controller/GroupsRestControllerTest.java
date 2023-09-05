@@ -387,25 +387,6 @@ public class GroupsRestControllerTest {
         return groupDTO;
     }
 
-    private NewGroupDTO getNewGroupDTO() {
-        NewGroupDTO newGroupDTO = new NewGroupDTO();
-        newGroupDTO.setName("GroupOne");
-        newGroupDTO.setDescription("Group One");
-        newGroupDTO.setGroupIdsOfImportedUsers(List.of(1L));
-        newGroupDTO.setUsers(Set.of(getUserForGroupsDTO()));
-
-        return newGroupDTO;
-    }
-
-    private UserForGroupsDTO getUserForGroupsDTO() {
-        UserForGroupsDTO userDTO = new UserForGroupsDTO();
-        userDTO.setId(1L);
-        userDTO.setMail("kypo@mail.cz");
-        userDTO.setFullName("KYPO LOCAL ADMIN");
-        userDTO.setSub("kypo");
-        return userDTO;
-    }
-
     private RoleDTO getAdminRoleDTO() {
         RoleDTO adminRole = new RoleDTO();
         adminRole.setId(1L);

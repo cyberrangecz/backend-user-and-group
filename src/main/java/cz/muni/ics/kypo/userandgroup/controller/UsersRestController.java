@@ -11,7 +11,6 @@ import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.dto.UsersImportDTO;
 import cz.muni.ics.kypo.userandgroup.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.exceptions.BadRequestException;

@@ -177,15 +177,6 @@ public class IDMGroupFacadeTest {
     }
 
     @Test
-    public void addUser() {
-        given(groupService.getGroupById(group2.getId())).willReturn(group2);
-        given(userService.getUserById(user1.getId())).willReturn(user1);
-
-        groupFacade.addUser(group2.getId(), user1.getId());
-        then(groupService).should().addUserToGroup(group2, user1);
-    }
-
-    @Test
     public void addUsersToGroup() {
         AddUsersToGroupDTO addUsersToGroupDTO = new AddUsersToGroupDTO();
         addUsersToGroupDTO.setIdsOfUsersToBeAdd(List.of(user2.getId(), user3.getId()));
