@@ -18,7 +18,6 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
-import cz.muni.ics.kypo.userandgroup.service.SecurityService;
 import cz.muni.ics.kypo.userandgroup.util.ObjectConverter;
 import cz.muni.ics.kypo.userandgroup.util.TestAuthorityGranter;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -45,7 +44,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.transaction.Transactional;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -103,10 +101,10 @@ public class UsersIntegrationTests {
         roleAdmin = testDataFactory.getUAGAdminRole();
         roleAdmin.setMicroservice(microserviceUserAndGroup);
 
-        roleGuest = testDataFactory.getUAGGuestRole();
+        roleGuest = testDataFactory.getUAGTraineeRole();
         roleGuest.setMicroservice(microserviceUserAndGroup);
 
-        roleUser = testDataFactory.getUAGUserRole();
+        roleUser = testDataFactory.getUAGPowerUserRole();
         roleUser.setMicroservice(microserviceUserAndGroup);
 
         roleDesigner = testDataFactory.getTrainingDesignerRole();
@@ -123,7 +121,7 @@ public class UsersIntegrationTests {
         user2 = testDataFactory.getUser2();
         user3 = testDataFactory.getUser3();
         user4 = testDataFactory.getUser4();
-        userRepository.saveAll(new HashSet<>(Set.of(user1, user2, user3, user4)));
+        userRepository.saveAllAndFlush(new HashSet<>(Set.of(user1, user2, user3, user4)));
 
         group1 = testDataFactory.getTrainingOrganizerGroup();
         group1.setRoles(new HashSet<>(Set.of(roleOrganizer)));
@@ -133,12 +131,11 @@ public class UsersIntegrationTests {
         group2.setRoles(Set.of(roleOrganizer, roleTrainee, roleGuest));
         group2.setUsers(new HashSet<>(Set.of(user1, user2)));
         groupRepository.saveAll(new HashSet<>(Set.of(group1, group2)));
-
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR);
     }
 
     @Test
     public void getUsers() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -154,7 +151,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/users")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -166,7 +163,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(get("/users")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -176,26 +173,25 @@ public class UsersIntegrationTests {
         assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
     }
 
-//    @Test
-//    public void getUsersWithGivenIdsWithAdminRole() throws Exception {
-//        userRepository.saveAllAndFlush(Set.of(user1, user2, user3, user4));
-//        TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user3);
-//        MockHttpServletResponse response = mvc.perform(get("/users/ids")
-//                .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andReturn().getResponse();
-//        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
-//                new TypeReference<PageResultResource<UserDTO>>() {
-//                }).getContent();
-//        assertFalse(responseUsersDTOs.contains(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest))));
-//        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user2, Set.of(roleTrainee, roleOrganizer, roleGuest))));
-//        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
-//    }
+    @Test
+    public void getUsersWithGivenIdsWithAdminRole() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user3);
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        List<UserDTO> responseUsersDTOs = convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {
+                }).getContent();
+        assertFalse(responseUsersDTOs.contains(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user2, Set.of(roleTrainee, roleOrganizer, roleGuest))));
+        assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+    }
 
     @Test
     public void getUsersWithGivenIdsWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         userRepository.saveAll(Set.of(user1, user2, user3, user4));
         mvc.perform(get("/users/ids")
                 .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
@@ -205,7 +201,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersWithGivenIdsWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         userRepository.saveAll(Set.of(user1, user2, user3, user4));
         mvc.perform(get("/users/ids")
                 .param("ids", StringUtils.join(Set.of(user2.getId(), user4.getId()), ","))
@@ -213,18 +209,18 @@ public class UsersIntegrationTests {
                 .andExpect(status().isInternalServerError());
     }
 
-//    @Test
-//    public void getUsersWithGivenIdsNotInDB() throws Exception {
-//        userRepository.saveAll(Set.of(user1, user2, user3, user4));
-//        MockHttpServletResponse response = mvc.perform(get("/users/ids")
-//                .param("ids", StringUtils.join(Set.of(100, 200), ","))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andReturn().getResponse();
-//        assertEquals(0, convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
-//                new TypeReference<PageResultResource<UserDTO>>() {
-//                }).getContent().size());
-//    }
+    @Test
+    public void getUsersWithGivenIdsNotInDB() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
+        MockHttpServletResponse response = mvc.perform(get("/users/ids")
+                .param("ids", StringUtils.join(Set.of(100, 200), ","))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(0, convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()),
+                new TypeReference<PageResultResource<UserDTO>>() {
+                }).getContent().size());
+    }
 
     @Test
     public void getUsersWithGivenIdsEmptyListOfIds() throws Exception {
@@ -241,18 +237,17 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUserInfoWithAdministratorRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/info")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        UserDTO user = convertJsonBytesToObject(response.getContentAsString(), UserDTO.class);
         assertEquals(convertJsonBytesToObject(response.getContentAsString(), UserDTO.class), convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)));
     }
 
     @Test
-    public void getUserInfoWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_USER, user1);
+    public void getUserInfoWithPowerUserRole() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_POWER_USER, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/info")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -262,7 +257,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUserInfoWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_GUEST, user1);
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_TRAINEE, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/info")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -272,6 +267,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersInGroups() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/groups")
                 .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId()), ","))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -287,7 +283,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersInGroupsWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/users/groups")
                 .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId()), ","))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -300,7 +296,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersInGroupsWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(get("/users/groups")
                 .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId()), ","))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -313,6 +309,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersInTwoGroupsAndNonExistGroup() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/groups")
                 .param("ids", StringUtils.join(Set.of(group1.getId(), group2.getId(), 500L), ","))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -328,6 +325,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUsersInOneGroups() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/groups")
                 .param("ids", StringUtils.join(Set.of(group1.getId()), ","))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -339,18 +337,19 @@ public class UsersIntegrationTests {
         assertTrue(responseUsersDTOs.contains(modelMapper.map(user4, UserForGroupsDTO.class)));
     }
 
-//    @Test
-//    public void getUserWithAdministratorRole() throws Exception {
-//        MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andReturn().getResponse();
-//        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
-//    }
+    @Test
+    public void getUserWithAdministratorRole() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user2);
+        MockHttpServletResponse response = mvc.perform(get("/users/{id}", user1.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertEquals(convertToUserDTO(user1, Set.of(roleTrainee, roleOrganizer, roleGuest)), convertJsonBytesToObject(response.getContentAsString(), UserDTO.class));
+    }
 
     @Test
     public void getUserWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         mvc.perform(get("/users/{id}", user1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                         .andExpect(status().isInternalServerError());
@@ -358,26 +357,28 @@ public class UsersIntegrationTests {
 
     @Test
     public void getUserWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         mvc.perform(get("/users/{id}", user1.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                         .andExpect(status().isInternalServerError());
     }
 
-//    @Test
-//    public void getUserNotFound() throws Exception {
-//        MockHttpServletResponse response = mvc.perform(get("/users/{id}", 100L)
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isNotFound())
-//                .andReturn().getResponse();
-//        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
-//        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-//        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "Entity User (id: 100) not found.");
-//
-//    }
+    @Test
+    public void getUserNotFound() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_POWER_USER, user1);
+        MockHttpServletResponse response = mvc.perform(get("/users/{id}", 100L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn().getResponse();
+        ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
+        assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
+        assertEntityDetailError(error.getEntityErrorDetail(), User.class, "id", "100", "Entity User (id: 100) not found.");
+
+    }
 
     @Test
     public void getAllUsersNotInGivenGroup() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -391,7 +392,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getAllUsersNotInGivenGroupWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -403,7 +404,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getAllUsersNotInGivenGroupWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -415,6 +416,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUser() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user2);
         Long userId = user1.getId();
         mvc.perform(delete("/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -424,7 +426,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUserWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(delete("/users/{id}", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -436,7 +438,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUserWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(delete("/users/{id}", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -448,6 +450,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUserNotFound() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(delete("/users/{id}", 100)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -459,8 +462,8 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUsers() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user2);
         userRepository.save(user3);
-
         mvc.perform(delete("/users")
                 .content(convertObjectToJsonBytes(List.of(100L, user1.getId(), user3.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -472,8 +475,8 @@ public class UsersIntegrationTests {
     }
 
     @Test
-    public void deleteUsersWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+    public void deleteUsersWithPowerUserRole() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(delete("/users")
                 .content(convertObjectToJsonBytes(List.of(100L, user1.getId(), user3.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -486,7 +489,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void deleteUsersWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(delete("/users")
                 .content(convertObjectToJsonBytes(List.of(100L, user1.getId(), user3.getId())))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -499,6 +502,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getRolesOfUserWithAdministratorRole() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user2);
         MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -511,7 +515,7 @@ public class UsersIntegrationTests {
 
     @Test
     public void getRolesOfUserWithUserRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -524,19 +528,15 @@ public class UsersIntegrationTests {
 
     @Test
     public void getRolesOfUserWithGuestRole() throws Exception {
-        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
-        MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", user1.getId())
+        TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
+        mvc.perform(get("/users/{id}/roles", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-        PageResultResource<RoleDTO> responseUsersDTOs = convertJsonBytesToObject(response.getContentAsString(),
-                new TypeReference<PageResultResource<RoleDTO>>() {
-                });
-        assertTrue(responseUsersDTOs.getContent().containsAll(List.of(convertToRoleDTO(roleOrganizer), convertToRoleDTO(roleTrainee), convertToRoleDTO(roleGuest))));
+                .andExpect(status().isForbidden());
     }
 
     @Test
     public void getRolesOfUserNotFound() throws Exception {
+        TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
         MockHttpServletResponse response = mvc.perform(get("/users/{id}/roles", 100L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())

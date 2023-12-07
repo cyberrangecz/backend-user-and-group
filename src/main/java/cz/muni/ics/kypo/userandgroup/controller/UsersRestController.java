@@ -11,7 +11,6 @@ import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.dto.UsersImportDTO;
 import cz.muni.ics.kypo.userandgroup.dto.group.GroupDTO;
-import cz.muni.ics.kypo.userandgroup.dto.group.NewGroupDTO;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.exceptions.BadRequestException;
@@ -272,10 +271,7 @@ public class UsersRestController {
     })
     @GetMapping(path = "/info")
     public ResponseEntity<UserDTO> getUserInfo() {
-        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        String issuer = authentication.getToken().getIssuer().toString();
-        String subject = authentication.getName();
-        return ResponseEntity.ok(userFacade.getUserInfo(subject, issuer));
+        return ResponseEntity.ok(userFacade.getUserInfo());
     }
 
     /**

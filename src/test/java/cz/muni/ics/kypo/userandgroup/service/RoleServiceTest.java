@@ -15,7 +15,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,9 +43,9 @@ public class RoleServiceTest {
 
         adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setId(1L);
-        userRole = testDataFactory.getUAGUserRole();
+        userRole = testDataFactory.getUAGPowerUserRole();
         userRole.setId(2L);
-        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole = testDataFactory.getUAGTraineeRole();
         userRole.setId(3L);
 
         pageable = PageRequest.of(0, 10);

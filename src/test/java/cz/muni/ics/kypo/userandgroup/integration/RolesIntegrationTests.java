@@ -18,10 +18,8 @@ import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
 import cz.muni.ics.kypo.userandgroup.repository.UserRepository;
-import cz.muni.ics.kypo.userandgroup.service.SecurityService;
 import cz.muni.ics.kypo.userandgroup.util.ObjectConverter;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +41,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.transaction.Transactional;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -100,9 +97,9 @@ public class RolesIntegrationTests {
 
         roleAdmin = testDataFactory.getUAGAdminRole();
         roleAdmin.setMicroservice(microserviceUserAndGroup);
-        roleGuest = testDataFactory.getUAGGuestRole();
+        roleGuest = testDataFactory.getUAGTraineeRole();
         roleGuest.setMicroservice(microserviceUserAndGroup);
-        roleUser = testDataFactory.getUAGUserRole();
+        roleUser = testDataFactory.getUAGPowerUserRole();
         roleUser.setMicroservice(microserviceUserAndGroup);
         roleDesigner = testDataFactory.getTrainingDesignerRole();
         roleDesigner.setMicroservice(microserviceTraining);
@@ -176,7 +173,7 @@ public class RolesIntegrationTests {
 
     @Test
     public void getRolesWithUserRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/roles")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -188,7 +185,7 @@ public class RolesIntegrationTests {
 
     @Test
     public void getRolesWithGuestRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(get("/roles")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -220,7 +217,7 @@ public class RolesIntegrationTests {
 
     @Test
     public void getRoleWithUserRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/roles/{id}", roleGuest.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -232,7 +229,7 @@ public class RolesIntegrationTests {
 
     @Test
     public void getRoleWithGuestRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(get("/roles/{id}", roleGuest.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -271,8 +268,8 @@ public class RolesIntegrationTests {
     }
 
     @Test
-    public void getUsersWithGivenRoleWithUserRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+    public void getUsersWithGivenRoleWithPowerUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/roles/{roleId}/users", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -283,8 +280,8 @@ public class RolesIntegrationTests {
     }
 
     @Test
-    public void getUsersWithGivenRoleWithGuestRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
+    public void getUsersWithGivenRoleWithTraineeRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         Exception exception = mvc.perform(get("/roles/{roleId}/users", user1.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
@@ -296,57 +293,83 @@ public class RolesIntegrationTests {
 
     @Test
     public void getUsersWithGivenRoleType() throws Exception {
-        mvc.perform(get("/roles/users")
-                .param("roleType", roleOrganizer.getRoleType())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+        MockHttpServletResponse response = mvc.perform(get("/roles/users")
+                        .param("roleType", roleOrganizer.getRoleType())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertTrue(convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {})
+                .getContent().contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
     }
 
     @Test
-    public void getUsersWithGivenRoleTypeWithUserRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
-        mvc.perform(get("/roles/users")
+    public void getUsersWithGivenRoleTypeWithPowerUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
+        MockHttpServletResponse response = mvc.perform(get("/roles/users")
                         .param("roleType", roleOrganizer.getRoleType())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        assertTrue(convertJsonBytesToObject(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<UserDTO>>() {})
+                .getContent().contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
+
     }
 
     @Test
-    public void getUsersWithGivenRoleTypeWithGuestRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+    public void getUsersWithGivenRoleTypeWithTraineeRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         mvc.perform(get("/roles/users")
                         .param("roleType", roleOrganizer.getRoleType())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isForbidden());
     }
 
     @Test
     public void getUsersWithGivenRoleTypeAndNotWithGivenIds() throws Exception {
-        mvc.perform(get("/roles/users-not-with-ids")
+        MockHttpServletResponse response = mvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", roleTrainee.getRoleType())
                 .param("ids", user3.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        PageResultResource<UserDTO> users = objectMapper.readValue(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<>() {});
+
+        assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
+        assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));
+        assertFalse(users.getContent().contains(convertToUserDTO(user3, group2.getRoles())));
+        assertEquals(2, users.getPagination().getTotalElements());
+        assertEquals(20, users.getPagination().getSize());
+
     }
 
     @Test
-    public void getUsersWithGivenRoleTypeAndNotWithGivenIdsWithUserRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_USER);
-        mvc.perform(get("/roles/users-not-with-ids")
+    public void getUsersWithGivenRoleTypeAndNotWithGivenIdsWithPowerUserRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
+        MockHttpServletResponse response = mvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", roleTrainee.getRoleType())
                 .param("ids", user3.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+
+        PageResultResource<UserDTO> users = objectMapper.readValue(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<>() {});
+
+        assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
+        assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));
+        assertFalse(users.getContent().contains(convertToUserDTO(user3, group2.getRoles())));
+        assertEquals(2, users.getPagination().getTotalElements());
+        assertEquals(20, users.getPagination().getSize());
+
     }
 
     @Test
-    public void getUsersWithGivenRoleTypeAndNotWithGivenIdsWithGuestRole() throws Exception {
-        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_GUEST);
+    public void getUsersWithGivenRoleTypeAndNotWithGivenIdsWithTraineeRole() throws Exception {
+        mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
         mvc.perform(get("/roles/users-not-with-ids")
                 .param("roleType", roleTrainee.getRoleType())
                 .param("ids", user3.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isForbidden());
     }
 
     private void assertEntityDetailError(EntityErrorDetail entityErrorDetail, Class<?> entity, String identifier, Object value, String reason) {

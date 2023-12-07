@@ -88,21 +88,6 @@ public class MicroserviceServiceTest {
         assertThrows(EntityNotFoundException.class, () -> microserviceService.getMicroserviceByName(name));
     }
 
-    public void existsByName() {
-        String name = "kypo-microservice";
-        given(microserviceRepository.existsByName(name)).willReturn(true);
-        boolean exists = microserviceService.existsByName(name);
-        assertTrue(exists);
-    }
-
-    public void doesNotExistsByName() {
-        String name = "kypo-microservice";
-        given(microserviceRepository.existsByName(name)).willReturn(false);
-        boolean exists = microserviceService.existsByName(name);
-        assertFalse(exists);
-    }
-
-
     @Test
     public void getMicroservices() {
         Pageable pageable = PageRequest.of(0, 10);
