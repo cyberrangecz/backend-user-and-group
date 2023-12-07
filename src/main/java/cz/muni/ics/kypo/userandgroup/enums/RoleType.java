@@ -10,11 +10,13 @@ public enum RoleType {
      */
     ROLE_USER_AND_GROUP_ADMINISTRATOR,
     /**
-     * Gives rights of the user to a user.
+     * Gives rights of the power user to a user. The user with this role can retrieve any information
+     * from the project kypo-user-and-group.
      */
-    ROLE_USER_AND_GROUP_USER,
+    ROLE_USER_AND_GROUP_POWER_USER,
     /**
-     * Gives rights of the guest to a user. User with this role cannot do anything.
+     * Gives rights of the trainee to a user. The user with this role can only retrieve information about himself and
+     * anonymized information about other users for the purposes of visualization.
      */
-    ROLE_USER_AND_GROUP_GUEST
+    ROLE_USER_AND_GROUP_TRAINEE
 }

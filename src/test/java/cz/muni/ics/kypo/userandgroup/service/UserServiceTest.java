@@ -59,12 +59,12 @@ public class UserServiceTest {
 
         adminGroup = testDataFactory.getUAGAdminGroup();
         adminGroup.setId(1L);
-        userGroup = testDataFactory.getUAGUserGroup();
+        userGroup = testDataFactory.getUAGPowerUserGroup();
         userGroup.setId(2L);
 
         adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setId(1L);
-        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole = testDataFactory.getUAGTraineeRole();
         guestRole.setId(2L);
 
         pageable = PageRequest.of(0, 10);

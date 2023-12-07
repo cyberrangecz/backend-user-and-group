@@ -2,7 +2,8 @@ package cz.muni.ics.kypo.userandgroup.facade;
 
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdmin;
-import cz.muni.ics.kypo.userandgroup.annotations.security.IsGuest;
+import cz.muni.ics.kypo.userandgroup.annotations.security.IsAdminOrPowerUser;
+import cz.muni.ics.kypo.userandgroup.annotations.security.IsTrainee;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalRO;
 import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalWO;
 import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
@@ -16,13 +17,11 @@ import cz.muni.ics.kypo.userandgroup.enums.AbstractCacheNames;
 import cz.muni.ics.kypo.userandgroup.enums.UserAndGroupStatus;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityErrorDetail;
-import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.exceptions.SecurityException;
 import cz.muni.ics.kypo.userandgroup.exceptions.UnprocessableEntityException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapper;
 import cz.muni.ics.kypo.userandgroup.service.*;
-import cz.muni.ics.kypo.userandgroup.utils.RoleNames;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,7 +31,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,11 +42,6 @@ public class UserFacade {
 
     private static final int ICON_WIDTH = 75;
     private static final int ICON_HEIGHT = 75;
-    private static final Set<String> NON_TRAINEE_ROLES = Set.of(
-            RoleNames.TRAINING_ADMINISTRATOR, RoleNames.ADAPTIVE_TRAINING_ADMINISTRATOR, RoleNames.USER_AND_GROUP_ADMINISTRATOR,
-            RoleNames.TRAINING_DESIGNER, RoleNames.ADAPTIVE_TRAINING_DESIGNER,
-            RoleNames.TRAINING_ORGANIZER, RoleNames.ADAPTIVE_TRAINING_ORGANIZER
-    );
 
     private final UserService userService;
     private final IDMGroupService idmGroupService;
@@ -80,59 +73,43 @@ public class UserFacade {
         return userMapper.mapToPageUserBasicViewDto(userService.getAllUsers(predicate, pageable));
     }
 
-    @IsGuest
+    @IsAdminOrPowerUser
     @TransactionalRO
     public PageResultResource<UserBasicViewDto> getUsers(Predicate predicate, Pageable pageable, String roleType, Set<Long> userIds) {
-        checkCanRetrieveAnyUser(securityService.getLoggedInUser().getId());
         return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenRoleAndNotWithGivenIds(roleType, userIds, predicate, pageable));
     }
 
-    @IsGuest
+    @IsTrainee
     @TransactionalRO
     public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(List<Long> ids, Pageable pageable, Predicate predicate) {
-        Page<User> users = userService.getUsersWithGivenIds(ids, pageable, predicate);
-        Long loggedInUserId = securityService.getLoggedInUser().getId();
-        try {
-            checkCanRetrieveAnyUser(loggedInUserId);
-            return userMapper.mapToPageUserBasicViewDto(users);
-        } catch (SecurityException ex) {
-            return userMapper.mapToPageUserBasicViewDTOAnonymize(users, loggedInUserId);
+        if (securityService.canRetrieveAnyInformation()) {
+            return userMapper.mapToPageUserBasicViewDto(userService.getUsersWithGivenIds(ids, pageable, predicate));
         }
+        return userMapper.mapToPageUserBasicViewDTOAnonymize(
+                userService.getUsersWithGivenIds(ids, pageable, predicate),
+                securityService.getLoggedInUser().getId());
     }
 
-    @IsGuest
+    @IsTrainee
     @TransactionalRO
     public UserDTO getUserById(Long id) {
-        User loggedInUser = securityService.getLoggedInUser();
+        if (securityService.canRetrieveAnyInformation()) {
+            return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
+        }
 
+        User loggedInUser = securityService.getLoggedInUser();
         // user can always retrieve himself
         if (loggedInUser.getId() == id) {
             return userMapper.mapToUserDTOWithRoles(loggedInUser);
         }
-
-        checkCanRetrieveAnyUser(loggedInUser.getId());
-        return userMapper.mapToUserDTOWithRoles(userService.getUserById(id));
-    }
-
-    private void checkCanRetrieveAnyUser(Long userId) {
-        Set<String> userRoles = userService.getRolesOfUser(userId)
-                .stream()
-                .map(Role::getRoleType)
-                .collect(Collectors.toSet());
-        if (!CollectionUtils.containsAny(userRoles, NON_TRAINEE_ROLES)) {
-            throw new SecurityException("Cannot retrieve user with current authorization.");
-        }
+        throw new SecurityException("Cannot retrieve information about another user with current authorization.");
     }
 
     //    @Cacheable(key = "{#sub+#iss}", sync = true)
+    @IsTrainee
     @TransactionalRO
-    public UserDTO getUserInfo(String sub, String iss) {
-        Assert.hasLength(sub, "In method getUserInfo(sub, iss) the input sub must not be empty.");
-        Assert.hasLength(iss, "In method getUserInfo(sub, iss) the input iss must not be empty.");
-        User user = userService.getUserBySubAndIss(sub, iss)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(new EntityErrorDetail(User.class, "sub", sub.getClass(), sub, "User not found.")));
-        return userMapper.mapToUserDTOWithRoles(user);
+    public UserDTO getUserInfo() {
+        return userMapper.mapToUserDTOWithRoles(securityService.getLoggedInUser());
     }
 
     //    @Cacheable(key = "{#sub+#iss}", sync = true)
@@ -214,27 +191,23 @@ public class UserFacade {
     @TransactionalWO
     public void deleteUsers(List<Long> userIds) {
         List<User> usersToBeDeleted = userService.getUsersByIds(userIds);
-        usersToBeDeleted.forEach(user -> userService.deleteUser(user));
+        usersToBeDeleted.forEach(userService::deleteUser);
     }
 
-    public UserDTO updateUser(UserUpdateDTO userUpdateDTO) {
-        return userMapper.mapToDTO(userService.updateUser(userMapper.mapToEntity(userUpdateDTO)));
-    }
-
-    @IsGuest
+    @IsAdminOrPowerUser
     @TransactionalRO
     public Set<RoleDTO> getRolesOfUser(Long id) {
         Set<Role> roles = userService.getRolesOfUser(id);
         return roles.stream()
-                .map(role -> roleMapper.mapToRoleDTOWithMicroservice(role))
+                .map(roleMapper::mapToRoleDTOWithMicroservice)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
-    @IsGuest
+    @IsAdminOrPowerUser
     @TransactionalRO
     public PageResultResource<RoleDTO> getRolesOfUserWithPagination(Long id, Pageable pageable, Predicate predicate) {
         Page<Role> rolePage = userService.getRolesOfUserWithPagination(id, pageable, predicate);
-        return new PageResultResource<>(rolePage.map(role -> roleMapper.mapToRoleDTOWithMicroservice(role)).getContent(), roleMapper.createPagination(rolePage));
+        return new PageResultResource<>(rolePage.map(roleMapper::mapToRoleDTOWithMicroservice).getContent(), roleMapper.createPagination(rolePage));
     }
 
     @IsAdmin
@@ -243,10 +216,9 @@ public class UserFacade {
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRole(roleId, predicate, pageable));
     }
 
-    @IsGuest
+    @IsAdminOrPowerUser
     @TransactionalRO
     public PageResultResource<UserDTO> getUsersWithGivenRoleType(String roleType, Predicate predicate, Pageable pageable) {
-        checkCanRetrieveAnyUser(securityService.getLoggedInUser().getId());
         return userMapper.mapToPageResultResource(userService.getUsersWithGivenRoleType(roleType, predicate, pageable));
     }
     @IsAdmin

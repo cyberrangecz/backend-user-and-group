@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +49,7 @@ public class RoleRepositoryTest {
         adminRole.setMicroservice(kypoUserAndGroup);
         this.entityManager.persistAndFlush(adminRole);
 
-        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole = testDataFactory.getUAGTraineeRole();
         guestRole.setMicroservice(kypoUserAndGroup);
         this.entityManager.persistAndFlush(guestRole);
 
@@ -73,7 +72,7 @@ public class RoleRepositoryTest {
         group1.setUsers(Set.of(user1));
         this.entityManager.persistAndFlush(group1);
 
-        group2 = testDataFactory.getUAGUserGroup();
+        group2 = testDataFactory.getUAGPowerUserGroup();
         group2.setRoles(Set.of(guestRole, traineeRole));
         group2.setUsers(Set.of(user1, user2));
         this.entityManager.persistAndFlush(group2);
@@ -89,13 +88,13 @@ public class RoleRepositoryTest {
 
     @Test
     public void findByRoleTypeNotFound() {
-        assertFalse(this.roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString()).isPresent());
+        assertFalse(this.roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_POWER_USER.toString()).isPresent());
     }
 
     @Test
     public void existByRoleType() {
         assertTrue(roleRepository.existsByRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.toString()));
-        assertFalse(roleRepository.existsByRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString()));
+        assertFalse(roleRepository.existsByRoleType(RoleType.ROLE_USER_AND_GROUP_POWER_USER.toString()));
     }
 
     @Test

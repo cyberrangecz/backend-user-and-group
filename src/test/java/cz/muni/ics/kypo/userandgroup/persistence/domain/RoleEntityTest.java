@@ -24,7 +24,7 @@ public class RoleEntityTest {
     private TestEntityManager entityManager;
 
     private final RoleType roleType1 = RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR;
-    private final RoleType roleType2 = RoleType.ROLE_USER_AND_GROUP_USER;
+    private final RoleType roleType2 = RoleType.ROLE_USER_AND_GROUP_POWER_USER;
     private Microservice microservice;
 
     @BeforeEach

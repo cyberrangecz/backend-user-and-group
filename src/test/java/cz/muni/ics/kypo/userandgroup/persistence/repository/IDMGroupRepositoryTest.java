@@ -37,7 +37,7 @@ public class IDMGroupRepositoryTest {
 
     private IDMGroup group1, group2, group3, group4;
     private User user1, user2, user3, user4;
-    private Role adminRole, userRole, guestRole, designerRole;
+    private Role adminRole, powerUserRole, traineeRole, designerRole;
     private Microservice uagMicroservice, trainingMicroservice;
     private Pageable pageable;
 
@@ -52,13 +52,13 @@ public class IDMGroupRepositoryTest {
         adminRole.setMicroservice(uagMicroservice);
         this.entityManager.persistAndFlush(adminRole);
 
-        guestRole = testDataFactory.getUAGGuestRole();
-        guestRole.setMicroservice(uagMicroservice);
-        this.entityManager.persistAndFlush(guestRole);
+        traineeRole = testDataFactory.getUAGTraineeRole();
+        traineeRole.setMicroservice(uagMicroservice);
+        this.entityManager.persistAndFlush(traineeRole);
 
-        userRole = testDataFactory.getUAGUserRole();
-        userRole.setMicroservice(uagMicroservice);
-        this.entityManager.persistAndFlush(userRole);
+        powerUserRole = testDataFactory.getUAGPowerUserRole();
+        powerUserRole.setMicroservice(uagMicroservice);
+        this.entityManager.persistAndFlush(powerUserRole);
 
         designerRole = testDataFactory.getTrainingDesignerRole();
         designerRole.setMicroservice(trainingMicroservice);
@@ -66,11 +66,11 @@ public class IDMGroupRepositoryTest {
 
         group1 = testDataFactory.getUAGAdminGroup();
         group2 = testDataFactory.getUAGDefaultGroup();
-        group3 = testDataFactory.getUAGUserGroup();
+        group3 = testDataFactory.getUAGPowerUserGroup();
         group4 = testDataFactory.getTrainingDesignerGroup();
         group1.setRoles(new HashSet<>(Set.of(adminRole)));
-        group2.setRoles(new HashSet<>(Set.of(guestRole)));
-        group3.setRoles(new HashSet<>(Set.of(userRole)));
+        group2.setRoles(new HashSet<>(Set.of(traineeRole)));
+        group3.setRoles(new HashSet<>(Set.of(powerUserRole)));
         group4.setRoles(new HashSet<>(Set.of(designerRole)));
 
         pageable = PageRequest.of(0, 10);

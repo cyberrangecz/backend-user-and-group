@@ -29,7 +29,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -83,10 +82,10 @@ public class RolesRestControllerTest {
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .setControllerAdvice(new CustomRestExceptionHandler()).build();
 
-        adminRoleDTO = testDataFactory.getuAGAdminRoleDTO();
+        adminRoleDTO = testDataFactory.getUAGAdminRoleDTO();
         adminRoleDTO.setId(1L);
 
-        userRoleDTO = testDataFactory.getUAGUserRoleDTO();
+        userRoleDTO = testDataFactory.getUAGPowerUserRoleDTO();
         userRoleDTO.setId(2L);
 
         userDTO1 = testDataFactory.getUser1DTO();

@@ -107,24 +107,24 @@ public class StartUpRunner implements ApplicationRunner {
     }
 
     private void loadUserRole() {
-        userRole = roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString())
+        userRole = roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_POWER_USER.toString())
                 .orElseGet(() -> {
                     userRole = new Role();
-                    userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_USER.toString());
+                    userRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_POWER_USER.toString());
                     userRole.setMicroservice(mainMicroservice);
-                    userRole.setDescription("This role is user role.");
+                    userRole.setDescription("This role will allow you to view data about other users.");
                     return roleRepository.save(userRole);
                 });
         userRole.setMicroservice(mainMicroservice);
     }
 
     private void loadGuestRole() {
-        guestRole = roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString())
+        guestRole = roleRepository.findByRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.toString())
                 .orElseGet(() -> {
                     guestRole = new Role();
-                    guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.toString());
+                    guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.toString());
                     guestRole.setMicroservice(mainMicroservice);
-                    guestRole.setDescription("Default role for user and group microservice. It is usually required, e.g., to see basic data about user.");
+                    guestRole.setDescription("Default role for user and group microservice. This role will allow you to view data about yourself.");
                     return roleRepository.save(guestRole);
                 });
         guestRole.setMicroservice(mainMicroservice);
@@ -149,12 +149,12 @@ public class StartUpRunner implements ApplicationRunner {
     }
 
     private void loadUserGroup() {
-        userGroup = groupRepository.getIDMGroupByNameWithUsers(ImplicitGroupNames.USER_AND_GROUP_USER.getName())
+        userGroup = groupRepository.getIDMGroupByNameWithUsers(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName())
                 .orElseGet(() -> {
                     userGroup = new IDMGroup();
                     userGroup.setDescription("Initial group for users with USER role");
                     userGroup.setStatus(UserAndGroupStatus.VALID);
-                    userGroup.setName(ImplicitGroupNames.USER_AND_GROUP_USER.getName());
+                    userGroup.setName(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
                     userGroup.setRoles(Set.of(userRole));
                     return groupRepository.save(userGroup);
                 });
@@ -191,7 +191,7 @@ public class StartUpRunner implements ApplicationRunner {
         if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR)) {
             adminGroup.addUser(user);
             userGroup.addUser(user);
-        } else if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_USER)) {
+        } else if (usersWrapper.getRoles().contains(RoleType.ROLE_USER_AND_GROUP_POWER_USER)) {
             userGroup.addUser(user);
         }
         defaultGroup.addUser(user);
@@ -221,14 +221,14 @@ public class StartUpRunner implements ApplicationRunner {
         Set<RoleType> usersWrapperRoles = usersWrapper.getRoles();
         if (usersWrapperRoles.contains(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR)) {
             newUser.setGroups(Set.of(adminGroup, userGroup, defaultGroup));
-        } else if (usersWrapperRoles.contains(RoleType.ROLE_USER_AND_GROUP_USER)) {
+        } else if (usersWrapperRoles.contains(RoleType.ROLE_USER_AND_GROUP_POWER_USER)) {
             newUser.setGroups(Set.of(userGroup, defaultGroup));
-        } else if (usersWrapperRoles.contains(RoleType.ROLE_USER_AND_GROUP_GUEST) || usersWrapperRoles.isEmpty()) {
+        } else if (usersWrapperRoles.contains(RoleType.ROLE_USER_AND_GROUP_TRAINEE) || usersWrapperRoles.isEmpty()) {
             newUser.setGroups(Set.of(defaultGroup));
         } else {
-            LOGGER.error("User cannot have roles other than these: {}, {}, {}", RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), RoleType.ROLE_USER_AND_GROUP_USER.name(), RoleType.ROLE_USER_AND_GROUP_GUEST.name());
+            LOGGER.error("User cannot have roles other than these: {}, {}, {}", RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), RoleType.ROLE_USER_AND_GROUP_POWER_USER.name(), RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
             throw new LoadingRolesAndUserException("User cannot have roles other than these: " + RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name() +
-                    ", " + RoleType.ROLE_USER_AND_GROUP_USER.name() + ", " + RoleType.ROLE_USER_AND_GROUP_GUEST.name());
+                    ", " + RoleType.ROLE_USER_AND_GROUP_POWER_USER.name() + ", " + RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
         }
         return newUser;
     }

@@ -2,7 +2,6 @@ package cz.muni.ics.kypo.userandgroup.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.querydsl.core.types.Predicate;
 import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
@@ -34,8 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -126,8 +123,8 @@ public class UsersRestControllerTest {
         user.setSub(userDTO1.getSub());
         user.setFamilyName(userDTO1.getFamilyName());
         user.setIss(userDTO1.getIss());
-        TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_GUEST, user);
-        given(userFacade.getUserInfo(userDTO1.getSub(), userDTO1.getIss())).willReturn(userDTO1);
+        TestAuthorityGranter.mockSpringSecurityContextForGetUserInfo(RoleType.ROLE_USER_AND_GROUP_TRAINEE, user);
+        given(userFacade.getUserInfo()).willReturn(userDTO1);
 
         MockHttpServletResponse result = mockMvc.perform(
                 get("/users/info"))
@@ -270,7 +267,7 @@ public class UsersRestControllerTest {
     private RoleDTO getGuestRoleDTO() {
         RoleDTO guestRole = new RoleDTO();
         guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.name());
+        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
         return guestRole;
     }
 
