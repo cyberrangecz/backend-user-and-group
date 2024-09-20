@@ -42,13 +42,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.transaction.Transactional;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static cz.muni.ics.kypo.userandgroup.util.ObjectConverter.*;
 import static cz.muni.ics.kypo.userandgroup.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -78,7 +81,7 @@ public class RolesIntegrationTests {
     private TestDataFactory testDataFactory;
 
     private Role roleAdmin, roleGuest, roleDesigner, roleOrganizer, roleTrainee, roleUser;
-    private IDMGroup group2;
+    private IDMGroup group2, group3;
     private User user1, user2, user3, user4;
 
     @BeforeEach
@@ -111,11 +114,16 @@ public class RolesIntegrationTests {
 
         IDMGroup group1 = testDataFactory.getTrainingOrganizerGroup();
         group1.setRoles(new HashSet<>(Set.of(roleOrganizer)));
-
+        
+        
         group2 = testDataFactory.getUAGDefaultGroup();
         group2.setName("DEFAULT-GROUP");
         group2.setRoles(new HashSet<>(Set.of(roleOrganizer, roleTrainee, roleGuest)));
-        groupRepository.saveAll(Set.of(group1, group2));
+        
+        group3 = testDataFactory.getTrainingDesignerGroup();
+        group3.setRoles(new HashSet<>(Set.of(roleAdmin)));
+        
+        groupRepository.saveAll(Set.of(group1, group2, group3));
 
         user1 = testDataFactory.getUser1();
         user2 = testDataFactory.getUser2();
@@ -172,6 +180,21 @@ public class RolesIntegrationTests {
     }
 
     @Test
+    public void getAllRolesNotInGivenGroup() throws Exception {
+        MockHttpServletResponse response = mvc.perform(get("/roles/not-in-group/{groupId}", group3.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        PageResultResource<RoleDTO> roles = objectMapper.readValue(convertJsonBytesToObject(response.getContentAsString()), new TypeReference<PageResultResource<RoleDTO>>() {
+        });
+        Set<Role> adminRolesNotInGroup = new HashSet<>(testDataFactory.getUAGAdminGroup().getRoles());
+        adminRolesNotInGroup.removeAll(group3.getRoles());
+        
+        assertTrue(adminRolesNotInGroup.stream().allMatch(role -> roles.getContent().stream().anyMatch(r -> r.getRoleType().equals(role.getRoleType()))));
+        assertTrue(roles.getContent().stream().allMatch(role -> group3.getRoles().stream().noneMatch(r -> r.getRoleType().equals(role.getRoleType()))));
+    }
+
+    @Test
     public void getRolesWithUserRole() throws Exception {
         mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
         Exception exception = mvc.perform(get("/roles")
@@ -206,13 +229,13 @@ public class RolesIntegrationTests {
 
     @Test
     public void getRoleNotFound() throws Exception {
-        MockHttpServletResponse response = mvc.perform(get("/roles/{id}", 100L)
+        MockHttpServletResponse response = mvc.perform(get("/roles/{id}", -1L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn().getResponse();
         ApiEntityError error = convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
         assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
-        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", 100, "Entity Role (id: 100) not found.");
+        assertEntityDetailError(error.getEntityErrorDetail(), Role.class, "id", -1, "Entity Role (id: -1) not found.");
     }
 
     @Test

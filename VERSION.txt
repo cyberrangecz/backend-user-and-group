@@ -1,3 +1,4 @@
+2.2.1 Add endpoint for roles not already assigned to a group.
 2.2.0 Rework user roles.
 22.12-rc.1 Users now must provide access to their name when logging in through OIDC.
 2.1.0 /users/ids endpoint now anonymizes the returned users if the logged-in user does not have the necessary roles and other public endpoints now throw an exception in that case.
