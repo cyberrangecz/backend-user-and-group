@@ -180,7 +180,7 @@ public class UsersRestControllerTest {
         given(userFacade.getAllUsersNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class))).willReturn(userPageResultResource);
 
         MockHttpServletResponse result = mockMvc.perform(
-                get("/users" + "/not-in-groups/{groupId}", 1L))
+                get("/users" + "/not-in-group/{groupId}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
                 .andReturn().getResponse();

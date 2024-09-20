@@ -159,6 +159,21 @@ public class RolesRestControllerTest {
     }
 
     @Test
+    public void testGetAllRolesNotInGivenGroup() throws Exception {
+        String valueAs = convertObjectToJsonBytes(rolePageResultResource);
+        given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
+        given(roleFacade.getAllRolesNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class))).willReturn(rolePageResultResource);
+
+        MockHttpServletResponse result = mockMvc.perform(
+                        get("/roles" + "/not-in-group/{groupId}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
+                .andReturn().getResponse();
+        assertEquals(convertObjectToJsonBytes(convertObjectToJsonBytes(rolePageResultResource)), result.getContentAsString());
+        then(roleFacade).should().getAllRolesNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class));
+    }
+
+    @Test
     public void getUsersWithGivenRole() throws Exception {
         String valueTr = convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
         given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);

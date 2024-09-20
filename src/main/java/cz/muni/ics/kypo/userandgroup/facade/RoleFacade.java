@@ -42,7 +42,7 @@ public class RoleFacade {
     public RoleDTO getByRoleType(String roleType) {
         return roleMapper.mapToRoleDTOWithMicroservice(roleService.getByRoleType(roleType.toUpperCase()));
     }
-
+    
     @IsAdmin
     @TransactionalRO
     public PageResultResource<RoleDTO> getAllRoles(Predicate predicate, Pageable pageable) {
@@ -53,4 +53,17 @@ public class RoleFacade {
         PageResultResource.Pagination pagination = roleMapper.createPagination(roles);
         return new PageResultResource<>(roleDTOs, pagination);
     }
+
+    @IsAdmin
+    @TransactionalRO
+    public PageResultResource<RoleDTO> getAllRolesNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
+        Page<Role> roles = roleService.getAllRolesNotInGivenGroup(groupId, predicate, pageable);
+        List<RoleDTO> roleDTOs = roles.getContent().stream()
+                .map(roleMapper::mapToRoleDTOWithMicroservice)
+                .toList();
+        PageResultResource.Pagination pagination = roleMapper.createPagination(roles);
+        return new PageResultResource<>(roleDTOs, pagination);
+    }
+
+
 }

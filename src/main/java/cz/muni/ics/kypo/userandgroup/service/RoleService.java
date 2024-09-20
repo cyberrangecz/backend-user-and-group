@@ -43,6 +43,10 @@ public class RoleService {
         return roleRepository.findAll(predicate, pageable);
     }
 
+    public Page<Role> getAllRolesNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
+        return roleRepository.rolesNotInGivenGroup(groupId, predicate, pageable);
+    }
+
     public void createRole(Role role) {
         if (roleRepository.existsByRoleType(role.getRoleType())) {
             throw new EntityConflictException(new EntityErrorDetail(Role.class, "roleType", role.getRoleType().getClass(), role.getRoleType(), "Role already exist. " +
