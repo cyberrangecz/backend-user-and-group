@@ -1,7 +1,7 @@
 package cz.muni.ics.kypo.userandgroup.enums.dto;
 
 /**
- * The enum Implicit group names of main microservice <strong>User-anf-group</strong>.
+ * The enum Implicit group names of main microservice <strong>User-and-group</strong>.
  */
 public enum ImplicitGroupNames {
 
@@ -16,7 +16,7 @@ public enum ImplicitGroupNames {
     /**
      * Implicit group names for users.
      */
-    USER_AND_GROUP_USER("USER-AND-GROUP_USER");
+    USER_AND_GROUP_POWER_USER("USER-AND-GROUP_USER");
 
     private String name;
 

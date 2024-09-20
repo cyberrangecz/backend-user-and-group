@@ -1,5 +1,6 @@
 package cz.muni.ics.kypo.userandgroup.service;
 
+import cz.muni.ics.kypo.userandgroup.annotations.transactions.TransactionalRO;
 import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
@@ -8,17 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
  * SecurityService class provides methods for obtaining information about logged in user.
  */
 @Service
-@Transactional(propagation = Propagation.REQUIRES_NEW)
+@TransactionalRO
 public class SecurityService {
 
     private final UserRepository userRepository;
@@ -102,6 +100,29 @@ public class SecurityService {
         Optional<IDMGroup> optionalGroup = groupRepository.findByName(groupName);
         IDMGroup group = optionalGroup.orElseThrow(() -> new SecurityException("Group with name " + groupName + " could not be found."));
         return group.getUsers().contains(loggedInUser);
+    }
+
+    /**
+     * Has role boolean
+     * @param roleType the role type
+     * @return the boolean
+     */
+    public boolean hasRole(RoleType roleType) {
+        JwtAuthenticationToken authenticationToken = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        for (GrantedAuthority grantedAuthority: authenticationToken.getAuthorities()) {
+            if (grantedAuthority.getAuthority().equals(roleType.name())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check whether the currently logged-in user can retrieve any information
+     * @return the boolean
+     */
+    public boolean canRetrieveAnyInformation() {
+        return hasRole(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR) || hasRole(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
     }
 
 }

@@ -11,9 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,18 +35,27 @@ public class TestAuthorityGranter {
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
+    public static void mockSpringSecurityContextJWT(RoleType roleType, User user) {
+        AuthenticationProvider authenticationProvider = Mockito.mock(AuthenticationProvider.class);
+        Jwt jwt = new Jwt("bearer-token-value", null, null, Map.of("alg", "HS256"), Map.of("iss", user.getIss(), "sub", user.getSub()));
+        JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(jwt, mockGrantedAuthorities(roleType), user.getSub());
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        given(authenticationProvider.supports(any())).willReturn(true);
+        given(authenticationProvider.authenticate(any())).willReturn(authenticationToken);
+    }
+
     private static List<GrantedAuthority> mockGrantedAuthorities(RoleType roleType) {
         if (roleType == RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR) {
             return List.of(
                     new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()),
-                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_GUEST.name()),
-                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_USER.name()));
-        } else if (roleType == RoleType.ROLE_USER_AND_GROUP_USER) {
+                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name()),
+                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name()));
+        } else if (roleType == RoleType.ROLE_USER_AND_GROUP_POWER_USER) {
             return List.of(
-                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_USER.name()),
-                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_GUEST.name()));
+                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name()),
+                    new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name()));
         } else {
-            return List.of(new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_GUEST.name()));
+            return List.of(new SimpleGrantedAuthority(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name()));
         }
     }
 

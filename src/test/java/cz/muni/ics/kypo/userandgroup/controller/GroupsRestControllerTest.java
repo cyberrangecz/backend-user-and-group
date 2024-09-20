@@ -18,25 +18,19 @@ import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -88,7 +82,7 @@ public class GroupsRestControllerTest {
         groupViewDTO1 = testDataFactory.getAdminGroupViewDTO();
         groupViewDTO1.setId(1L);
 
-        groupViewDTO2 = testDataFactory.getUserGroupViewDTO();
+        groupViewDTO2 = testDataFactory.getPowerUserGroupViewDTO();
         groupViewDTO2.setId(2L);
 
         newGroupDTO = testDataFactory.getNewGroupDTO();
@@ -397,7 +391,7 @@ public class GroupsRestControllerTest {
     private RoleDTO getGuestRoleDTO() {
         RoleDTO guestRole = new RoleDTO();
         guestRole.setId(2L);
-        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_GUEST.name());
+        guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
         return guestRole;
     }
 

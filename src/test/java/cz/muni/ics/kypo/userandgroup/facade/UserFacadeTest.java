@@ -9,13 +9,11 @@ import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.*;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
-import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
 import cz.muni.ics.kypo.userandgroup.exceptions.SecurityException;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.service.*;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
-import cz.muni.ics.kypo.userandgroup.utils.RoleNames;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,8 +58,8 @@ public class UserFacadeTest {
     private UserBasicViewDto userBasicViewDto1, userBasicViewDto2;
     private UserForGroupsDTO userForGroupsDTO1, userForGroupsDTO2;
     private UserUpdateDTO userUpdateDTO;
-    private Role guestRole, userRole;
-    private RoleDTO guestRoleDTO, userRoleDTO;
+    private Role traineeRole, powerUserRole;
+    private RoleDTO traineeRoleDTO, powerUserRoleDTO;
     private Microservice microservice;
     private Predicate predicate;
     private Pageable pageable;
@@ -102,17 +100,17 @@ public class UserFacadeTest {
         defaultGroup.setId(2L);
         defaultGroup.addUser(user1);
 
-        guestRole = testDataFactory.getUAGGuestRole();
-        guestRole.setId(1L);
-        guestRole.setMicroservice(microservice);
-        guestRoleDTO = testDataFactory.getuAGGuestRoleDTO();
-        guestRoleDTO.setId(guestRole.getId());
+        traineeRole = testDataFactory.getUAGTraineeRole();
+        traineeRole.setId(1L);
+        traineeRole.setMicroservice(microservice);
+        traineeRoleDTO = testDataFactory.getUAGTraineeRoleDTO();
+        traineeRoleDTO.setId(traineeRole.getId());
 
-        userRole = testDataFactory.getUAGUserRole();
-        userRole.setId(1L);
-        userRole.setMicroservice(microservice);
-        userRoleDTO = testDataFactory.getUAGUserRoleDTO();
-        userRoleDTO.setId(userRole.getId());
+        powerUserRole = testDataFactory.getUAGPowerUserRole();
+        powerUserRole.setId(1L);
+        powerUserRole.setMicroservice(microservice);
+        powerUserRoleDTO = testDataFactory.getUAGPowerUserRoleDTO();
+        powerUserRoleDTO.setId(powerUserRole.getId());
 
         userDTO1 = testDataFactory.getUser1DTO();
         userDTO1.setId(user1.getId());
@@ -152,8 +150,9 @@ public class UserFacadeTest {
         for (IDMGroup groupOfUser : user1.getGroups()) {
             expectedRoles.addAll(groupOfUser.getRoles());
         }
-        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.of(user1));
-        UserDTO userDTO = userFacade.getUserInfo(user1.getSub(), user1.getIss());
+
+        given(securityService.getLoggedInUser()).willReturn(user1);
+        UserDTO userDTO = userFacade.getUserInfo();
 
         userDTO1.setId(user1.getId());
         assertEquals(userDTO1, userDTO);
@@ -169,12 +168,13 @@ public class UserFacadeTest {
 
     @Test
     public void testGetUserInfoWithEmptyUserOptional() {
-        given(userService.getUserBySubAndIss(user1.getSub(), user1.getIss())).willReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> userFacade.getUserInfo(user1.getSub(), user1.getIss()));
+        given(securityService.getLoggedInUser()).willThrow(SecurityException.class);
+        assertThrows(SecurityException.class, () -> userFacade.getUserInfo());
     }
 
     @Test
     public void testGetUserByIdHimself() {
+        given(securityService.canRetrieveAnyInformation()).willReturn(false);
         given(securityService.getLoggedInUser()).willReturn(user1);
         given(userService.getUserById(user1.getId())).willReturn(user1);
         UserDTO userDTO = userFacade.getUserById(user1.getId());
@@ -184,19 +184,15 @@ public class UserFacadeTest {
 
     @Test
     public void testGetUserByIdFailAuth() {
-        Role role = new Role();
-        role.setRoleType(RoleNames.TRAINING_TRAINEE);
+        given(securityService.canRetrieveAnyInformation()).willReturn(false);
         given(securityService.getLoggedInUser()).willReturn(user1);
-        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
         assertThrows(SecurityException.class, () -> userFacade.getUserById(user2.getId()));
     }
 
     @Test
     public void testGetUserByIdAny() {
-        Role role = new Role();
-        role.setRoleType(RoleNames.TRAINING_DESIGNER);
         given(securityService.getLoggedInUser()).willReturn(user1);
-        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
+        given(securityService.canRetrieveAnyInformation()).willReturn(true);
         given(userService.getUserById(user2.getId())).willReturn(user2);
         UserDTO userDTO = userFacade.getUserById(user2.getId());
         assertEquals(userDTO, userDTO2);
@@ -269,34 +265,27 @@ public class UserFacadeTest {
     }
 
     @Test
-    public void testUpdateUser() {
-        given(userService.updateUser(user1)).willReturn(user1);
-        userFacade.updateUser(userUpdateDTO);
-        then(userService).should().updateUser(user1);
-    }
-
-    @Test
     public void testGetRolesOfUser() {
-        userRoleDTO.setNameOfMicroservice(microservice.getName());
-        guestRoleDTO.setNameOfMicroservice(microservice.getName());
-        given(userService.getRolesOfUser(anyLong())).willReturn(Set.of(guestRole, userRole));
+        powerUserRoleDTO.setNameOfMicroservice(microservice.getName());
+        traineeRoleDTO.setNameOfMicroservice(microservice.getName());
+        given(userService.getRolesOfUser(anyLong())).willReturn(Set.of(traineeRole, powerUserRole));
         Set<RoleDTO> responseRolesDTO = userFacade.getRolesOfUser(1L);
 
         assertEquals(2, responseRolesDTO.size());
-        assertTrue(responseRolesDTO.contains(userRoleDTO));
-        assertTrue(responseRolesDTO.contains(guestRoleDTO));
+        assertTrue(responseRolesDTO.contains(powerUserRoleDTO));
+        assertTrue(responseRolesDTO.contains(traineeRoleDTO));
     }
 
     @Test
     public void testGetRolesOfUserWithPagination() {
-        userRoleDTO.setNameOfMicroservice(microservice.getName());
-        guestRoleDTO.setNameOfMicroservice(microservice.getName());
-        given(userService.getRolesOfUserWithPagination(eq(user1.getId()), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(List.of(guestRole, userRole)));
+        powerUserRoleDTO.setNameOfMicroservice(microservice.getName());
+        traineeRoleDTO.setNameOfMicroservice(microservice.getName());
+        given(userService.getRolesOfUserWithPagination(eq(user1.getId()), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(List.of(traineeRole, powerUserRole)));
         PageResultResource<RoleDTO> responseRolesDTO = userFacade.getRolesOfUserWithPagination(user1.getId(), pageable, predicate);
 
         assertEquals(2, responseRolesDTO.getContent().size());
-        assertTrue(responseRolesDTO.getContent().contains(userRoleDTO));
-        assertTrue(responseRolesDTO.getContent().contains(guestRoleDTO));
+        assertTrue(responseRolesDTO.getContent().contains(powerUserRoleDTO));
+        assertTrue(responseRolesDTO.getContent().contains(traineeRoleDTO));
     }
 
     @Test
@@ -311,32 +300,18 @@ public class UserFacadeTest {
 
     @Test
     public void getUsersWithGivenRoleType() {
-        Role role = new Role();
-        role.setRoleType(RoleNames.ADAPTIVE_TRAINING_ORGANIZER);
         given(securityService.getLoggedInUser()).willReturn(user1);
-        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
-        given(userService.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
-        PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable);
+        given(userService.getUsersWithGivenRoleType(powerUserRole.getRoleType(), null, pageable)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
+        PageResultResource<UserDTO> usersDTO = userFacade.getUsersWithGivenRoleType(powerUserRole.getRoleType(), null, pageable);
 
         assertEquals(2, usersDTO.getContent().size());
         assertTrue(usersDTO.getContent().containsAll(Set.of(userDTO1, userDTO2)));
     }
 
     @Test
-    public void getUsersWithGivenRoleTypeFailAuth() {
-        Role role = new Role();
-        role.setRoleType(RoleNames.ADAPTIVE_TRAINING_TRAINEE);
-        given(securityService.getLoggedInUser()).willReturn(user1);
-        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
-        assertThrows(SecurityException.class, () -> userFacade.getUsersWithGivenRoleType(userRole.getRoleType(), null, pageable));
-    }
-
-    @Test
     public void getUsersWithGivenIds() {
-        Role role = new Role();
-        role.setRoleType(RoleNames.ADAPTIVE_TRAINING_DESIGNER);
+        given(securityService.canRetrieveAnyInformation()).willReturn(true);
         given(securityService.getLoggedInUser()).willReturn(user1);
-        given(userService.getRolesOfUser(user1.getId())).willReturn(Set.of(role));
         given(userService.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null)).willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
         PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null);
 
@@ -346,14 +321,9 @@ public class UserFacadeTest {
 
     @Test
     public void getUsersWithGivenIdsAnonymize() {
-        List<Role> roles = List.of(new Role(), new Role(), new Role());
-        roles.get(0).setRoleType(RoleNames.USER_AND_GROUP_USER);
-        roles.get(1).setRoleType(RoleNames.ADAPTIVE_TRAINING_TRAINEE);
-        roles.get(2).setRoleType(RoleNames.TRAINING_TRAINEE);
-
         List<Long> userIds = List.of(user1.getId(), user2.getId());
+        given(securityService.canRetrieveAnyInformation()).willReturn(false);
         given(securityService.getLoggedInUser()).willReturn(user1);
-        given(userService.getRolesOfUser(user1.getId())).willReturn(new HashSet<>(roles));
         given(userService.getUsersWithGivenIds(userIds, pageable, null)).willReturn(new PageImpl<>(List.of(user1, user2)));
         PageResultResource<UserBasicViewDto> usersDTO = userFacade.getUsersWithGivenIds(userIds, pageable, null);
 

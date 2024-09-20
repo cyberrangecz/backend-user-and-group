@@ -18,18 +18,13 @@ import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,8 +60,8 @@ public class IDMGroupFacadeTest {
     private Microservice userAndGroupMicroservice;
     private Predicate predicate;
     private UserForGroupsDTO userForGroupsDTO;
-    private Role adminRole, userRole;
-    private RoleDTO adminRoleDTO, userRoleDTO;
+    private Role adminRole, powerUserRole;
+    private RoleDTO adminRoleDTO, powerUserRoleDTO;
     private GroupDTO groupDTO1, groupDTO2;
     private GroupViewDTO groupViewDTO1, groupViewDTO2;
     private Pageable pageable;
@@ -91,15 +86,15 @@ public class IDMGroupFacadeTest {
         adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setId(1L);
         adminRole.setMicroservice(userAndGroupMicroservice);
-        userRole = testDataFactory.getUAGUserRole();
-        userRole.setMicroservice(userAndGroupMicroservice);
-        userRole.setId(2L);
+        powerUserRole = testDataFactory.getUAGPowerUserRole();
+        powerUserRole.setMicroservice(userAndGroupMicroservice);
+        powerUserRole.setId(2L);
 
         group1 = testDataFactory.getUAGAdminGroup();
         group1.setUsers(new HashSet<>(Set.of(user1, user2, user3, user4)));
-        group1.setRoles(new HashSet<>(Set.of(userRole, adminRole)));
+        group1.setRoles(new HashSet<>(Set.of(powerUserRole, adminRole)));
         group1.setId(1L);
-        group2 = testDataFactory.getUAGUserGroup();
+        group2 = testDataFactory.getUAGPowerUserGroup();
         group2.setId(2L);
 
         groupDTO1 = testDataFactory.getUAGUAdminGroupDTO();
@@ -107,7 +102,7 @@ public class IDMGroupFacadeTest {
 
         groupViewDTO1 = testDataFactory.getAdminGroupViewDTO();
         groupViewDTO1.setId(1L);
-        groupViewDTO2 = testDataFactory.getUserGroupViewDTO();
+        groupViewDTO2 = testDataFactory.getPowerUserGroupViewDTO();
         groupViewDTO2.setId(2L);
 
         updateGroupDTO = testDataFactory.getUpdateGroupDTO();
@@ -118,9 +113,9 @@ public class IDMGroupFacadeTest {
         newGroupDTO.setUsers(Set.of(userForGroupsDTO));
 
 
-        userRoleDTO = testDataFactory.getUAGUserRoleDTO();
-        userRoleDTO.setId(userRole.getId());
-        adminRoleDTO = testDataFactory.getuAGAdminRoleDTO();
+        powerUserRoleDTO = testDataFactory.getUAGPowerUserRoleDTO();
+        powerUserRoleDTO.setId(powerUserRole.getId());
+        adminRoleDTO = testDataFactory.getUAGAdminRoleDTO();
         adminRoleDTO.setId(adminRole.getId());
     }
 
@@ -260,31 +255,31 @@ public class IDMGroupFacadeTest {
 
     @Test
     public void testGetGroupWithRoles() {
-        group1.addRole(userRole);
+        group1.addRole(powerUserRole);
 
         given(groupService.getIDMGroupWithRolesByName(group1.getName())).willReturn(group1);
         GroupWithRolesDTO groupWithRolesDTO = groupFacade.getIDMGroupWithRolesByName(group1.getName());
 
         assertEquals(group1.getName(), groupWithRolesDTO.getName());
-        assertTrue(groupWithRolesDTO.getRoles().containsAll(Set.of(userRoleDTO, adminRoleDTO)));
+        assertTrue(groupWithRolesDTO.getRoles().containsAll(Set.of(powerUserRoleDTO, adminRoleDTO)));
         then(groupService).should().getIDMGroupWithRolesByName(group1.getName());
     }
 
     @Test
     public void testGetRolesOfGroup() {
-        given(groupService.getRolesOfGroup(anyLong(), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(List.of(adminRole, userRole)));
+        given(groupService.getRolesOfGroup(anyLong(), eq(pageable), eq(predicate))).willReturn(new PageImpl<>(List.of(adminRole, powerUserRole)));
         PageResultResource<RoleDTO> rolesDTO = groupFacade.getRolesOfGroup(1L, pageable, predicate);
 
         assertEquals(2, rolesDTO.getContent().size());
         assertTrue(rolesDTO.getContent().stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name())));
-        assertTrue(rolesDTO.getContent().stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_USER.name())));
+        assertTrue(rolesDTO.getContent().stream().anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name())));
     }
 
     @Test
     public void assignRoleToGroup() {
-        given(groupService.assignRole(group1.getId(), userRole.getId())).willReturn(group1);
+        given(groupService.assignRole(group1.getId(), powerUserRole.getId())).willReturn(group1);
 
-        groupFacade.assignRole(group1.getId(), userRole.getId());
+        groupFacade.assignRole(group1.getId(), powerUserRole.getId());
         group1.getUsers().forEach(user -> {
             then(groupService).should().evictUserFromCache(user);
         });

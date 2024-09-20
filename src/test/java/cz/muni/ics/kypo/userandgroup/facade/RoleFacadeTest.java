@@ -6,7 +6,6 @@ import cz.muni.ics.kypo.userandgroup.domain.Role;
 import cz.muni.ics.kypo.userandgroup.dto.PageResultResource;
 import cz.muni.ics.kypo.userandgroup.dto.role.RoleDTO;
 import cz.muni.ics.kypo.userandgroup.enums.dto.RoleTypeDTO;
-import cz.muni.ics.kypo.userandgroup.mapping.MicroserviceMapperImpl;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
 import cz.muni.ics.kypo.userandgroup.service.RoleService;
 import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
@@ -20,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Arrays;
 
@@ -61,14 +59,14 @@ public class RoleFacadeTest {
         adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setId(1L);
         adminRole.setMicroservice(microservice);
-        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole = testDataFactory.getUAGTraineeRole();
         guestRole.setId(2L);
         guestRole.setMicroservice(microservice);
 
-        adminRoleDTO = testDataFactory.getuAGAdminRoleDTO();
+        adminRoleDTO = testDataFactory.getUAGAdminRoleDTO();
         adminRoleDTO.setId(1L);
         adminRoleDTO.setNameOfMicroservice(adminRole.getMicroservice().getName());
-        guestRoleDTO = testDataFactory.getuAGGuestRoleDTO();
+        guestRoleDTO = testDataFactory.getUAGTraineeRoleDTO();
         guestRoleDTO.setId(2L);
         guestRoleDTO.setNameOfMicroservice(guestRole.getMicroservice().getName());
 

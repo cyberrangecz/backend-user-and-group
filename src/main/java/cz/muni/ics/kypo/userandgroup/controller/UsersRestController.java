@@ -271,10 +271,7 @@ public class UsersRestController {
     })
     @GetMapping(path = "/info")
     public ResponseEntity<UserDTO> getUserInfo() {
-        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        String issuer = authentication.getToken().getIssuer().toString();
-        String subject = authentication.getName();
-        return ResponseEntity.ok(userFacade.getUserInfo(subject, issuer));
+        return ResponseEntity.ok(userFacade.getUserInfo());
     }
 
     /**

@@ -7,8 +7,6 @@ import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.enums.dto.ImplicitGroupNames;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityConflictException;
 import cz.muni.ics.kypo.userandgroup.exceptions.EntityNotFoundException;
-import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
-import cz.muni.ics.kypo.userandgroup.mapping.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
 import cz.muni.ics.kypo.userandgroup.repository.RoleRepository;
@@ -17,7 +15,6 @@ import cz.muni.ics.kypo.userandgroup.util.TestDataFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,8 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
 
@@ -74,9 +69,9 @@ public class IDMGroupServiceTest {
 
         adminRole = testDataFactory.getUAGAdminRole();
         adminRole.setId(1L);
-        userRole = testDataFactory.getUAGUserRole();
+        userRole = testDataFactory.getUAGPowerUserRole();
         userRole.setId(2L);
-        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole = testDataFactory.getUAGTraineeRole();
         guestRole.setId(3L);
 
         user1 = testDataFactory.getUser1();

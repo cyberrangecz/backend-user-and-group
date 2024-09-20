@@ -106,9 +106,7 @@ public class IDMGroupFacade {
     @TransactionalWO
     public void deleteGroups(List<Long> ids) {
         List<IDMGroup> groupsToBeDeleted = groupService.getGroupsByIds(ids);
-        groupsToBeDeleted.forEach(group -> {
-            groupService.deleteIDMGroup(group);
-        });
+        groupsToBeDeleted.forEach(groupService::deleteIDMGroup);
     }
 
     @IsAdmin
@@ -124,7 +122,7 @@ public class IDMGroupFacade {
     }
 
     private List<String> getListOfImplicitGroups() {
-        return List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName());
+        return List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
     }
 
     @IsAdmin

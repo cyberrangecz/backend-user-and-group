@@ -130,9 +130,9 @@ public class IDMGroupService {
     }
 
     private void checkIfCanBeRemoved(String groupName, String roleType) {
-        if (groupName.equals(ImplicitGroupNames.DEFAULT_GROUP.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_GUEST.name()) ||
+        if (groupName.equals(ImplicitGroupNames.DEFAULT_GROUP.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name()) ||
                 groupName.equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name()) ||
-                groupName.equals(ImplicitGroupNames.USER_AND_GROUP_USER.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_USER.name())) {
+                groupName.equals(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName()) && roleType.equals(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name())) {
             throw new EntityConflictException(new EntityErrorDetail(Role.class, "roleType", String.class, roleType,
                     "Main role of the group cannot be removed."));
         }
@@ -158,7 +158,7 @@ public class IDMGroupService {
     }
 
     private List<String> getImplicitGroupNames() {
-        return List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName());
+        return List.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
     }
 
     /**

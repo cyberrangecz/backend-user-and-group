@@ -77,7 +77,7 @@ public class ObjectConverter {
         groupDTO.setId(group.getId());
         groupDTO.setDescription(group.getDescription());
         groupDTO.setName(group.getName());
-        if (Set.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_USER.getName()).contains(groupDTO.getName())) {
+        if (Set.of(ImplicitGroupNames.DEFAULT_GROUP.getName(), ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName()).contains(groupDTO.getName())) {
             groupDTO.setCanBeDeleted(false);
         }
 

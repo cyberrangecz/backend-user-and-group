@@ -13,7 +13,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,11 +47,11 @@ public class UserRepositoryTest {
         adminRole.setMicroservice(microservice);
         this.entityManager.persistAndFlush(adminRole);
 
-        guestRole = testDataFactory.getUAGGuestRole();
+        guestRole = testDataFactory.getUAGTraineeRole();
         guestRole.setMicroservice(microservice);
         this.entityManager.persistAndFlush(guestRole);
 
-        userRole = testDataFactory.getUAGUserRole();
+        userRole = testDataFactory.getUAGPowerUserRole();
         userRole.setMicroservice(microservice);
         this.entityManager.persistAndFlush(userRole);
 
@@ -60,7 +59,7 @@ public class UserRepositoryTest {
         group1.setRoles(Set.of(guestRole));
         group2 = testDataFactory.getTrainingAdminGroup();
         group2.setRoles(Set.of(adminRole));
-        group3 = testDataFactory.getUAGUserGroup();
+        group3 = testDataFactory.getUAGPowerUserGroup();
         group3.setRoles(Set.of(userRole));
 
         user1 = testDataFactory.getUser1();

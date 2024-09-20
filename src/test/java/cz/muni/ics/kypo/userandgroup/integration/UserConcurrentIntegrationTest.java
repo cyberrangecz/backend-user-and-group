@@ -3,7 +3,6 @@ package cz.muni.ics.kypo.userandgroup.integration;
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.muni.ics.kypo.userandgroup.controller.UsersRestController;
 import cz.muni.ics.kypo.userandgroup.domain.IDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.Microservice;
 import cz.muni.ics.kypo.userandgroup.domain.Role;
@@ -11,9 +10,7 @@ import cz.muni.ics.kypo.userandgroup.domain.User;
 import cz.muni.ics.kypo.userandgroup.dto.user.UserCreateDTO;
 import cz.muni.ics.kypo.userandgroup.dto.user.UserDTO;
 import cz.muni.ics.kypo.userandgroup.facade.UserFacade;
-import cz.muni.ics.kypo.userandgroup.mapping.RoleMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.RoleMapperImpl;
-import cz.muni.ics.kypo.userandgroup.mapping.UserMapper;
 import cz.muni.ics.kypo.userandgroup.mapping.UserMapperImpl;
 import cz.muni.ics.kypo.userandgroup.repository.IDMGroupRepository;
 import cz.muni.ics.kypo.userandgroup.repository.MicroserviceRepository;
@@ -95,7 +92,7 @@ public class UserConcurrentIntegrationTest {
         Microservice userAndGroupMicroservice = testDataFactory.getKypoUaGMicroservice();
         microserviceRepository.save(userAndGroupMicroservice);
 
-        Role role = testDataFactory.getUAGGuestRole();
+        Role role = testDataFactory.getUAGTraineeRole();
         role.setMicroservice(userAndGroupMicroservice);
         roleRepository.save(role);
 

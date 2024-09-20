@@ -62,17 +62,17 @@ public class TestDataFactory {
             = generateRole("ROLE_TRAINING_DESIGNER", kypoTrainingMicroservice, "Designer description");
     private final Role trainingAdminRole
             = generateRole("ROLE_TRAINING_ADMIN", kypoTrainingMicroservice, "Training admin description");
-    private final Role uAGUserRole
-            = generateRole(RoleType.ROLE_USER_AND_GROUP_USER.name(), kypoUaGMicroservice, "User description");
-    private final Role uAGGuestRole
-            = generateRole(RoleType.ROLE_USER_AND_GROUP_GUEST.name(), kypoUaGMicroservice, "Guest description");
+    private final Role uAGPowerUserRole
+            = generateRole(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name(), kypoUaGMicroservice, "User description");
+    private final Role uAGTraineeRole
+            = generateRole(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name(), kypoUaGMicroservice, "Guest description");
     private final Role uAGAdminRole
             = generateRole(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), kypoUaGMicroservice, "UaG admin description");
 
-    private final RoleDTO uAGUserRoleDTO
-            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_USER.name(), "User description", 1L, "userAndGroup");
-    private final RoleDTO uAGGuestRoleDTO
-            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_GUEST.name(), "Guest description", 1L, "userAndGroup");
+    private final RoleDTO uAGPowerUserRoleDTO
+            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name(), "User description", 1L, "userAndGroup");
+    private final RoleDTO uAGTraineeRoleDTO
+            = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name(), "Guest description", 1L, "userAndGroup");
     private final RoleDTO uAGAdminRoleDTO
             = generateRoleDTO(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name(), "UaG admin description", 1L, "userAndGroup");
 
@@ -118,13 +118,13 @@ public class TestDataFactory {
     private final IDMGroup trainingOrganizerGroup = generateGroup("trainingOrganizerGroup", new HashSet<Role>(List.of(trainingOrganizerRole)), 23);
     private final IDMGroup trainingDesignerGroup = generateGroup("trainingDesignerGroup", new HashSet<Role>(List.of(trainingDesignerRole)), 5);
     private final IDMGroup trainingAdminGroup = generateGroup("trainingAdminGroup", new HashSet<Role>(List.of(trainingAdminRole)), 6);
-    private final IDMGroup uAGUserGroup = generateGroup(ImplicitGroupNames.USER_AND_GROUP_USER.getName(), new HashSet<Role>(List.of(uAGUserRole)), 1);
-    private final IDMGroup uAGDefaultGroup = generateGroup(ImplicitGroupNames.DEFAULT_GROUP.getName(), new HashSet<Role>(List.of(uAGGuestRole)), 7);
+    private final IDMGroup uAGPowerUserGroup = generateGroup(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName(), new HashSet<Role>(List.of(uAGPowerUserRole)), 1);
+    private final IDMGroup uAGDefaultGroup = generateGroup(ImplicitGroupNames.DEFAULT_GROUP.getName(), new HashSet<Role>(List.of(uAGTraineeRole)), 7);
     private final IDMGroup uAGAdminGroup = generateGroup(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), new HashSet<Role>(List.of(uAGAdminRole)), 29);
 
-    private final GroupDTO uAGUserGroupDTO = generateGroupDTO(ImplicitGroupNames.USER_AND_GROUP_USER.getName(), Source.INTERNAL);
+    private final GroupDTO uAGPowerUserGroupDTO = generateGroupDTO(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName(), Source.INTERNAL);
     private final GroupDTO uAGUAdminGroupDTO = generateGroupDTO(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), Source.INTERNAL);
-    private final GroupViewDTO userGroupViewDTO = generateGroupViewDTO(ImplicitGroupNames.USER_AND_GROUP_USER.getName(), Source.INTERNAL);
+    private final GroupViewDTO powerUserGroupViewDTO = generateGroupViewDTO(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName(), Source.INTERNAL);
     private final GroupViewDTO adminGroupViewDTO = generateGroupViewDTO(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), Source.INTERNAL);
     private final NewGroupDTO newGroupDTO = generateNewGroupDTO("New Group");
     private final UpdateGroupDTO updateGroupDTO = generateUpdateGroupDTO("Update Group");
@@ -165,27 +165,27 @@ public class TestDataFactory {
         return clone(trainingAdminRole, Role.class);
     }
 
-    public Role getUAGUserRole() {
-        return clone(uAGUserRole, Role.class);
+    public Role getUAGPowerUserRole() {
+        return clone(uAGPowerUserRole, Role.class);
     }
 
-    public Role getUAGGuestRole() {
-        return clone(uAGGuestRole, Role.class);
+    public Role getUAGTraineeRole() {
+        return clone(uAGTraineeRole, Role.class);
     }
 
     public Role getUAGAdminRole() {
         return clone(uAGAdminRole, Role.class);
     }
 
-    public RoleDTO getUAGUserRoleDTO() {
-        return clone(uAGUserRoleDTO, RoleDTO.class);
+    public RoleDTO getUAGPowerUserRoleDTO() {
+        return clone(uAGPowerUserRoleDTO, RoleDTO.class);
     }
 
-    public RoleDTO getuAGGuestRoleDTO() {
-        return clone(uAGGuestRoleDTO, RoleDTO.class);
+    public RoleDTO getUAGTraineeRoleDTO() {
+        return clone(uAGTraineeRoleDTO, RoleDTO.class);
     }
 
-    public RoleDTO getuAGAdminRoleDTO() {
+    public RoleDTO getUAGAdminRoleDTO() {
         return clone(uAGAdminRoleDTO, RoleDTO.class);
     }
 
@@ -269,8 +269,8 @@ public class TestDataFactory {
         return clone(trainingAdminGroup, IDMGroup.class);
     }
 
-    public IDMGroup getUAGUserGroup() {
-        return clone(uAGUserGroup, IDMGroup.class);
+    public IDMGroup getUAGPowerUserGroup() {
+        return clone(uAGPowerUserGroup, IDMGroup.class);
     }
 
     public IDMGroup getUAGDefaultGroup() {
@@ -282,15 +282,15 @@ public class TestDataFactory {
     }
 
     public GroupDTO getUAGUserGroupDTO() {
-        return clone(uAGUserGroupDTO, GroupDTO.class);
+        return clone(uAGPowerUserGroupDTO, GroupDTO.class);
     }
 
     public GroupDTO getUAGUAdminGroupDTO() {
         return clone(uAGUAdminGroupDTO, GroupDTO.class);
     }
 
-    public GroupViewDTO getUserGroupViewDTO() {
-        return clone(userGroupViewDTO, GroupViewDTO.class);
+    public GroupViewDTO getPowerUserGroupViewDTO() {
+        return clone(powerUserGroupViewDTO, GroupViewDTO.class);
     }
 
     public GroupViewDTO getAdminGroupViewDTO() {

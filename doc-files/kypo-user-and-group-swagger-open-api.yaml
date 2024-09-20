@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "Version: 22.12-rc.1"
+  version: "Version: 2.2.0"
   title: "KYPO User and Group - API Reference"
 host: "localhost:8084"
 basePath: "/kypo-rest-user-and-group/api/v1"
