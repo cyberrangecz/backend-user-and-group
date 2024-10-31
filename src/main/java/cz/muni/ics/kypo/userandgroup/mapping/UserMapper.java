@@ -98,8 +98,8 @@ public interface UserMapper extends ParentMapper {
         userBasicViewDto.setFullName( loggedInUserId != user.getId() ? "other player" : user.getFullName() );
         userBasicViewDto.setSub( loggedInUserId != user.getId() ? "other player" : user.getSub() );
         userBasicViewDto.setMail( loggedInUserId != user.getId() ? "other player" : user.getMail() );
-        userBasicViewDto.setGivenName( loggedInUserId != user.getId() ? "other player" : user.getGivenName() );
-        userBasicViewDto.setFamilyName( loggedInUserId != user.getId() ? "other player" : user.getFamilyName() );
+        userBasicViewDto.setGivenName( loggedInUserId != user.getId() ? "other" : user.getGivenName() );
+        userBasicViewDto.setFamilyName( loggedInUserId != user.getId() ? "player" : user.getFamilyName() );
         userBasicViewDto.setIss( user.getIss() );
         byte[] picture = user.getPicture();
         if ( picture != null ) {
