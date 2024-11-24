@@ -11,8 +11,8 @@ on:
       - master
   workflow_dispatch:
 
-# env:
-#   MAVEN_CLI_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+env:
+  MAVEN_CLI_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
 
 jobs:
   # This will create docker image as well
