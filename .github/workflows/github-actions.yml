@@ -1,4 +1,4 @@
-name: Adaptive training CI
+name: User and group CI
 
 on:
   push:
@@ -11,15 +11,14 @@ on:
       - master
   workflow_dispatch:
 
-env:
-  MAVEN_CLI_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-
 jobs:
   # This will create docker image as well
   java_template:
     uses: cyberrangecz/actions-templates/.github/workflows/java_template.yml@master
+    secrets:
+      READ_PACKAGES: ${{ secrets.READ_PACKAGES }}
     with:
-      MAVEN_CLI_OPTS: $MAVEN_CLI_OPTS
+      MAVEN_CLI_OPTS: "-s etc/ci_settings.xml"
 
   create_tag:
     uses: cyberrangecz/actions-templates/.github/workflows/tag_template.yml@master
