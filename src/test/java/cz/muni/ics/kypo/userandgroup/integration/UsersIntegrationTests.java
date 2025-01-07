@@ -379,7 +379,7 @@ public class UsersIntegrationTests {
     @Test
     public void getAllUsersNotInGivenGroup() throws Exception {
         TestAuthorityGranter.mockSpringSecurityContextJWT(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR, user1);
-        MockHttpServletResponse response = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
+        MockHttpServletResponse response = mvc.perform(get("/users/not-in-group/{groupId}", group2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -393,7 +393,7 @@ public class UsersIntegrationTests {
     @Test
     public void getAllUsersNotInGivenGroupWithUserRole() throws Exception {
         TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_POWER_USER);
-        Exception exception = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
+        Exception exception = mvc.perform(get("/users/not-in-group/{groupId}", group2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andReturn().getResolvedException();
@@ -405,7 +405,7 @@ public class UsersIntegrationTests {
     @Test
     public void getAllUsersNotInGivenGroupWithGuestRole() throws Exception {
         TestAuthorityGranter.mockSpringSecurityContextForGet(RoleType.ROLE_USER_AND_GROUP_TRAINEE);
-        Exception exception = mvc.perform(get("/users/not-in-groups/{groupId}", group2.getId())
+        Exception exception = mvc.perform(get("/users/not-in-group/{groupId}", group2.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andReturn().getResolvedException();

@@ -107,6 +107,40 @@ public class RolesRestController {
         return ResponseEntity.ok(roleFacade.getRoleById(id));
     }
 
+
+    /**
+     * Gets all roles, not in the group with the given group ID.
+     *
+     * @param groupId  the ID of the group
+     * @param pageable pageable parameter with information about pagination.
+     * @param fields   attributes of the object to be returned as the result.
+     * @return the {@link ResponseEntity} with body type {@link RoleDTO} and specific status code and header.
+     */
+    @ApiOperation(httpMethod = "GET",
+            value = "Gets all roles except roles of given group.",
+            nickname = "getAllRolesNotInGivenGroup",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Roles found.", response = RoleRestResource.class),
+            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
+    })
+    @ApiPageableSwagger
+    @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getAllRolesNotInGivenGroup(@ApiParam(value = "Filtering on Role entity attributes",required = false)
+                                                             @QuerydslPredicate(root = Role.class) Predicate predicate,
+                                                             Pageable pageable,
+                                                             @ApiParam(value = "Id of group whose roles not to include",
+                                                                     required = true)
+                                                             @PathVariable("groupId") final Long groupId,
+                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
+                                                             @RequestParam(value = "fields", required = false) String fields) {
+        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRolesNotInGivenGroup(groupId, predicate, pageable);
+        Squiggly.init(objectMapper, fields);
+        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, roleDTOs));
+    }
+
+
     /**
      * Gets users with a given role ID.
      *

@@ -333,7 +333,8 @@ public class UserFacadeTest {
                 assertEquals(userBasicViewDto, userBasicViewDto1);
             } else {
                 assertEquals(userBasicViewDto.getId(), user2.getId());
-                assertEquals(userBasicViewDto.getGivenName(), "other player");
+                assertEquals(userBasicViewDto.getGivenName(), "other");
+                assertEquals(userBasicViewDto.getFamilyName(), "player");
             }
         }
     }

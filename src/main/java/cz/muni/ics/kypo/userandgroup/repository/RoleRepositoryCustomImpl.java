@@ -1,7 +1,9 @@
 package cz.muni.ics.kypo.userandgroup.repository;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import cz.muni.ics.kypo.userandgroup.domain.QIDMGroup;
 import cz.muni.ics.kypo.userandgroup.domain.QRole;
@@ -48,16 +50,38 @@ public class RoleRepositoryCustomImpl extends QuerydslRepositorySupport implemen
         QIDMGroup groups = QIDMGroup.iDMGroup;
         QRole roles = QRole.role;
 
-        JPQLQuery<Role> queryRoleOfUser = new JPAQueryFactory(entityManager).select(roles).from(groups)
+        JPQLQuery<Role> rolesQuery = new JPAQueryFactory(entityManager).select(roles).from(groups)
                 .distinct()
                 .join(groups.roles, roles)
                 .where(groups.id.eq(groupId));
 
         if (predicate != null) {
-            queryRoleOfUser.where(predicate);
+            rolesQuery.where(predicate);
         }
-        return getPage(queryRoleOfUser, pageable);
+        return getPage(rolesQuery, pageable);
     }
+
+    @Override
+    public Page<Role> rolesNotInGivenGroup(Long groupId, Predicate predicate, Pageable pageable) {
+        QIDMGroup groups = QIDMGroup.iDMGroup;
+        QRole roles = QRole.role;
+
+        JPQLQuery<Role> rolesQuery = new JPAQuery<>(entityManager)
+                .from(roles)
+                .where(roles.id.notIn(
+                        JPAExpressions
+                                .select(roles.id)
+                                .from(groups)
+                                .join(groups.roles, roles)
+                                .where(groups.id.eq(groupId))
+                )).select(roles);
+
+        if (predicate != null) {
+            rolesQuery.where(predicate);
+        }
+        return getPage(rolesQuery, pageable);
+    }
+
 
     private <T> Page getPage(JPQLQuery<T> query, Pageable pageable) {
         if (pageable == null) {
