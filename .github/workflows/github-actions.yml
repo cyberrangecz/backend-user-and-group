@@ -19,6 +19,7 @@ jobs:
       READ_PACKAGES: ${{ secrets.READ_PACKAGES }}
     with:
       MAVEN_CLI_OPTS: "-s etc/ci_settings.xml"
+      IMAGE_NAME: "user-and-group"
 
   create_tag:
     uses: cyberrangecz/actions-templates/.github/workflows/tag_template.yml@master
