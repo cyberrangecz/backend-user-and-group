@@ -19,7 +19,7 @@
     </logger>
 
 
-    <logger name="cz.muni.ics" level="WARN" additivity="false">
+    <logger name="cz.cyberrange.platform" level="WARN" additivity="false">
         <appender-ref ref="CONSOLE"/>
     </logger>
 

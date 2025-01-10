@@ -1,46 +1,51 @@
-# KYPO User and Group
-This project represents back-end for managing users, groups and roles in KYPO platform.
+# CyberRangeCZ Platform User and Group
+This project represents back-end for managing users, groups and roles in CyberRangeCZ Platform.
 
-## Content
+# Repository Structure
 
-1. Project modules
-2. Build and Start the Project Using Docker
+The repository is structured with packages as follows:
 
-### 1. Project Modules
-This project is divided into several modules:
-* `kypo-rest-user-and-group`
-  * Provides REST layer for communication with front-end.
-  * Based on HTTP REST without HATEOAS.
-  * Documented with Swagger.
-* `kypo-service-user-and-group`
-    * Provides business logic of the application:
-      * Calls persistence layer for database queries and combining the results as necessary.
-      * Calls another microservices.
-      * Manages transactions and Aspect Oriented Programming (AOP) mechanisms.
-* `kypo-security-user-and-group`
-    * Provides security settings:
-      * Behaves as Resource Server in OpenID Connect schema.
-      * Set Cross-origin Resource Sharing (CORS) to be abble to communicate with clients (Angular).
-      * Communicates with Authorization Server.
-* `kypo-persistence-user-and-group`
-  * Provides data layer of the application (database queries).
-  * Uses Spring Data JPA (Spring wrapper layer over JPA implemented with Hibernate framework).
-  * Uses QueryDSL for filtering the data.
-* `kypo-api-user-and-group`
-  * Contains API (DTO classes)
-    * These are annotated with proprietary converters for DateTime processing.
-    * Localized Bean validations are set (messages are localized).
-    * Annotations for Swagger documentation are included.
-  * Map Entities to DTO classes and vice versa with MapStruct framework.
+### .api
+Objects that are used for communication between the front-end and the back-end.
 
-And the main project (parent maven project with packaging pom):
-* `kypo-user-and-group`
-  * Contains configurations for all modules as dependency versions, dependency for spring boot parent project etc.
+- model definitions for transferred and received DTOs.
+- mappers
 
-  
+### .definition
+Objects used for defining internal working of the application.
+
+- annotations for swagger documentation
+- configuration of frameworks and libraries
+- exceptions
+
+### .persistence
+Objects used for communication with the database.
+
+- entities and their enums
+- repositories
+
+### .rest
+Objects used for handling HTTP requests.
+
+- controllers
+- facades
+
+### .security
+Objects used for handling authentication and authorization.
+
+- configuration of identity provider
+- configuration of server security
+- implementation of security logic
+- model of security objects
+
+### .service
+Objects used for business logic.
+
+### .startup
+Startup hooks.
 
 
-### 2. Build and Start the Project Using Docker
+# Build and Start the Project Using Docker
 
 #### Prerequisities
 Install the following technology:
@@ -51,7 +56,7 @@ Docker            | https://docs.docker.com/install/
 
 #### 1. Preparation of Configuration Files
 To build and run the project in docker it is necessary to prepare several configurations:
-* Set the [OpenID Connect configuration](https://docs.crp.kypo.muni.cz/installation-guide/setting-up-oidc-provider/).
+* Set the [OpenID Connect configuration](https://docs.platform.cyberrange.cz/installation-guide/setting-up-oidc-provider/).
 * Modify the [initial-users.yaml](/etc/initial-users.yml) to set initial users and their roles. That file is used to add predefined roles for administrators and key people of the project.
 * Fill OIDC credentials gained from the previous step and set additional settings in the [user-and-group.properties](/etc/user-and-group.properties) file and save it.
 
@@ -68,7 +73,7 @@ Dockefile contains several default arguments:
 * USERNAME=postgres - the name of the user to connect to the database. 
 * PASSWORD=postgres - user password.
 * POSRGRES_DB=user-and-group - the name of the created database.
-* PROJECT_ARTIFACT_ID=kypo-rest-user-and-group - the name of the project artifact.
+* PROJECT_ARTIFACT_ID=user-and-group - the name of the project artifact.
 * PROPRIETARY_REPO_URL=YOUR-PATH-TO-PROPRIETARY_REPO.
 
 Those arguments can be overwritten during the build of the image, by adding the following option for each argument: 

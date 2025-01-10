@@ -1,5 +1,5 @@
 - user:
-    sub: admin@oidc.csirt.muni.cz
-    iss: http://localhost:8080/csirtmu-dummy-issuer-server/
+    sub: admin@cshub.cz
+    iss: http://localhost:8080/dummy-issuer-server/
   roles:
     - ROLE_USER_AND_GROUP_ADMINISTRATOR
