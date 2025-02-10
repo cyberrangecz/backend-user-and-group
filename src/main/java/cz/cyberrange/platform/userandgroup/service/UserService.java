@@ -2,7 +2,7 @@ package cz.cyberrange.platform.userandgroup.service;
 
 import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
-import cz.cyberrange.platform.userandgroup.entity.QUser;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;

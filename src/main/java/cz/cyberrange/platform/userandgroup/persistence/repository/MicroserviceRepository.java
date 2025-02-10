@@ -3,7 +3,7 @@ package cz.cyberrange.platform.userandgroup.persistence.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
-import cz.cyberrange.platform.userandgroup.entity.QMicroservice;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QMicroservice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;

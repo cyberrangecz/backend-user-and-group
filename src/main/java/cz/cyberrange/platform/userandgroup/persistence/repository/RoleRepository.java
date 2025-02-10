@@ -4,7 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
-import cz.cyberrange.platform.userandgroup.entity.QRole;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QRole;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

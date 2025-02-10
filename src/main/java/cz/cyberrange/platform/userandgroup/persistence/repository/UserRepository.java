@@ -3,7 +3,7 @@ package cz.cyberrange.platform.userandgroup.persistence.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
-import cz.cyberrange.platform.userandgroup.entity.QUser;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import org.springframework.data.domain.Page;
