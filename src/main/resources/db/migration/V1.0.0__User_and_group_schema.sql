@@ -4,12 +4,13 @@ CREATE TABLE users (
     family_name varchar(255),
     full_name   varchar(255),
     given_name  varchar(255),
-    iss         varchar(255) NOT NULL UNIQUE,
+    iss         varchar(255) NOT NULL,
     mail        varchar(255),
     picture     oid,
     status      varchar(255),
-    sub         varchar(255) NOT NULL UNIQUE,
-    PRIMARY KEY (id)
+    sub         varchar(255) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (sub, iss)
 );
 
 CREATE TABLE microservice (
