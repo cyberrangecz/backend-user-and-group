@@ -5,11 +5,18 @@
 
     <artifactId>user-and-group</artifactId>
     <groupId>cz.cyberrange.platform</groupId>
-    <version>0.0.2</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <name>CyberRangeCZ Platform User and Group</name>
     <description>Backend handling the security and authorization of app</description>
 
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://github.com/cyberrangecz/backend-user-and-group/blob/master/LICENSE</url>
+        </license>
+    </licenses>
+    
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
