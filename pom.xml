@@ -274,7 +274,7 @@
                                 </securityDefinition>
                             </securityDefinitions>
                             <swaggerDirectory>${swagger.directory}</swaggerDirectory>
-                            <swaggerFileName>swagger-docs</swaggerFileName>
+                            <swaggerFileName>${project.artifactId}-swagger-docs</swaggerFileName>
                             <outputFormats>yaml</outputFormats>
                         </apiSource>
                     </apiSources>
