@@ -7,13 +7,10 @@ WORKDIR /app
 
 ARG PROJECT_ARTIFACT_ID
 ARG PROPRIETARY_REPO_URL=YOUR-PATH-TO-PROPRIETARY_REPO
-ARG GITHUB_ACTOR=REGISTRY-USER
-ARG READ_PACKAGES_TOKEN=REGISTRY-TOKEN
 ARG MAVEN_CLI_OPTS=EXTRA-OPTIONS
 
 COPY pom.xml /app/pom.xml
 COPY /src /app/src
-COPY etc/ci_settings.xml /app/etc/ci_settings.xml
 
 # Build JAR file
 RUN mvn clean install -DskipTests $MAVEN_CLI_OPTS -Dproprietary-repo-url=$PROPRIETARY_REPO_URL && \
