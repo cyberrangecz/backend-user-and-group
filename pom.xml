@@ -5,7 +5,7 @@
 
     <artifactId>user-and-group</artifactId>
     <groupId>cz.cyberrange.platform</groupId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <name>CyberRangeCZ Platform User and Group</name>
     <description>Backend handling the security and authorization of app</description>
@@ -266,7 +266,7 @@
                                 </securityDefinition>
                             </securityDefinitions>
                             <swaggerDirectory>${swagger.directory}</swaggerDirectory>
-                            <swaggerFileName>swagger-docs</swaggerFileName>
+                            <swaggerFileName>${project.artifactId}-swagger-docs</swaggerFileName>
                             <outputFormats>yaml</outputFormats>
                         </apiSource>
                     </apiSources>
