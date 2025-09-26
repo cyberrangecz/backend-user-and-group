@@ -1,5 +1,0 @@
-- user:
-    sub: admin@cshub.cz
-    iss: http://localhost:8080/dummy-issuer-server/
-  roles:
-    - ROLE_USER_AND_GROUP_ADMINISTRATOR
