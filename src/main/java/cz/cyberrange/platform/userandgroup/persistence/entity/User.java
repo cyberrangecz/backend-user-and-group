@@ -1,8 +1,9 @@
 package cz.cyberrange.platform.userandgroup.persistence.entity;
 
-
 import cz.cyberrange.platform.userandgroup.persistence.enums.UserAndGroupStatus;
-
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -18,344 +19,264 @@ import javax.persistence.NamedSubgraph;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 
 /**
- * Represents a user in the system.
+ * Represents an authenticated user of the system. The combination of sub and iss is unique across
+ * users, and the {@link IDMGroup} side owns the many-to-many relationship to the groups a user
+ * belongs to.
  */
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"sub", "iss"}))
 @NamedEntityGraphs({
-        @NamedEntityGraph(
-                name = "User.groupsRolesMicroservice",
-                attributeNodes = @NamedAttributeNode(value = "groups", subgraph = "groups.roles"),
-                subgraphs = {
-                        @NamedSubgraph(name = "groups.roles", attributeNodes = @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")),
-                        @NamedSubgraph(name = "roles.microservice", attributeNodes = @NamedAttributeNode(value = "microservice"))
-                }
-        ),
-        @NamedEntityGraph(
-                name = "User.groups",
-                attributeNodes = @NamedAttributeNode(value = "groups")
-        )
+  @NamedEntityGraph(
+      name = "User.groupsRolesMicroservice",
+      attributeNodes = @NamedAttributeNode(value = "groups", subgraph = "groups.roles"),
+      subgraphs = {
+        @NamedSubgraph(
+            name = "groups.roles",
+            attributeNodes = @NamedAttributeNode(value = "roles", subgraph = "roles.microservice")),
+        @NamedSubgraph(
+            name = "roles.microservice",
+            attributeNodes = @NamedAttributeNode(value = "microservice"))
+      }),
+  @NamedEntityGraph(name = "User.groups", attributeNodes = @NamedAttributeNode(value = "groups"))
 })
 @NamedQueries({
-        @NamedQuery(
-                name = "User.getSub",
-                query = "SELECT u.sub FROM User u WHERE u.id = :userId"
-        ),
-        @NamedQuery(
-                name = "User.getRolesOfUser",
-                query = "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId"
-        ),
-        @NamedQuery(
-                name = "User.getUserBySubWithGroups",
-                query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.sub = :sub AND u.iss = :iss"
-        ),
-        @NamedQuery(
-                name = "User.getUserByIdWithGroups",
-                query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId"
-        ),
-        @NamedQuery(
-                name = "User.findAllWithGivenIds",
-                query = "SELECT u FROM User u WHERE u.id IN :ids"
-        )
+  @NamedQuery(name = "User.getSub", query = "SELECT u.sub FROM User u WHERE u.id = :userId"),
+  @NamedQuery(
+      name = "User.getRolesOfUser",
+      query =
+          "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId"),
+  @NamedQuery(
+      name = "User.getUserBySubWithGroups",
+      query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.sub = :sub AND u.iss = :iss"),
+  @NamedQuery(
+      name = "User.getUserByIdWithGroups",
+      query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId"),
+  @NamedQuery(name = "User.findAllWithGivenIds", query = "SELECT u FROM User u WHERE u.id IN :ids")
 })
 public class User extends AbstractEntity<Long> {
 
-    @ManyToMany(mappedBy = "users")
-    private final Set<IDMGroup> groups = new HashSet<>();
-    @Column(name = "sub", nullable = false)
-    private String sub;
-    @Column(name = "full_name")
-    private String fullName;
-    @Column(name = "given_name")
-    private String givenName;
-    @Column(name = "family_name")
-    private String familyName;
-    @Column(name = "external_id", unique = true)
-    private Long externalId;
-    @Column(name = "mail")
-    private String mail;
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private UserAndGroupStatus status;
-    @Column(name = "iss", nullable = false)
-    private String iss;
-    @Lob
-    @Column(name = "picture")
-    private byte[] picture;
+  @ManyToMany(mappedBy = "users")
+  private final Set<IDMGroup> groups = new HashSet<>();
 
-    /**
-     * Instantiates a new User.
-     */
-    public User() {
-        this.status = UserAndGroupStatus.VALID;
-    }
+  // Uniquely identifies the user within its issuing OIDC provider.
+  @Column(name = "sub", nullable = false)
+  private String sub;
 
-    /**
-     * Instantiates a new User with sub and his oidc provider. Sub should not be empty.
-     *
-     * @param sub the sub of type String. Sub should be of type 13***5@example.cz
-     * @param iss URI of provider which will be used to authenticate this user.
-     */
-    public User(String sub, String iss) {
-        this.sub = sub;
-        this.status = UserAndGroupStatus.VALID;
-        this.iss = iss;
-    }
+  // Composed of a title before the name, the given name and the family name.
+  @Column(name = "full_name")
+  private String fullName;
 
-    /**
-     * Gets the ID of the user.
-     *
-     * @return the ID of type long.
-     */
-    public Long getId() {
-        return super.getId();
-    }
+  @Column(name = "given_name")
+  private String givenName;
 
-    /**
-     * Sets the new ID of the user.
-     *
-     * @param id the ID of the user.
-     */
-    public void setId(Long id) {
-        super.setId(id);
-    }
+  @Column(name = "family_name")
+  private String familyName;
 
-    /**
-     * Gets the sub of the user.
-     *
-     * @return the sub of the user.
-     */
-    public String getSub() {
-        return sub;
-    }
+  // Identifies the user when imported from an external source.
+  @Column(name = "external_id", unique = true)
+  private Long externalId;
 
-    /**
-     * Sets a new sub of the user.
-     *
-     * @param sub the sub of the user.
-     */
-    public void setSub(String sub) {
-        this.sub = sub;
-    }
+  @Column(name = "mail")
+  private String mail;
 
-    /**
-     * Gets the full name of the user. Full name is composed of title before a name, given name and family name.
-     *
-     * @return the full name of of the user.
-     */
-    public String getFullName() {
-        return fullName;
-    }
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  private UserAndGroupStatus status;
 
-    /**
-     * Sets the new full name of the user.
-     *
-     * @param fullName the full name of the user.
-     */
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+  // Identifies the OIDC provider that authenticated the user.
+  @Column(name = "iss", nullable = false)
+  private String iss;
 
-    /**
-     * Gets the external ID of the user. This ID is used when the user is imported from an external source.
-     *
-     * @return the external ID of the user.
-     */
-    public Long getExternalId() {
-        return externalId;
-    }
+  // Holds the user's generated identicon image.
+  @Lob
+  @Column(name = "picture")
+  private byte[] picture;
 
-    /**
-     * Sets the new external ID of the user.
-     *
-     * @param externalId the external ID of the user.
-     */
-    public void setExternalId(Long externalId) {
-        this.externalId = externalId;
-    }
+  /** Creates a user with valid status. */
+  public User() {
+    this.status = UserAndGroupStatus.VALID;
+  }
 
-    /**
-     * Gets the mail of the user.
-     *
-     * @return the mail of the user.
-     */
-    public String getMail() {
-        return mail;
-    }
+  /**
+   * Creates a user identified by the given subject and issuer, with valid status.
+   *
+   * @param sub subject identifier from the OIDC provider
+   * @param iss issuer of the OIDC provider used to authenticate the user
+   */
+  public User(String sub, String iss) {
+    this.sub = sub;
+    this.status = UserAndGroupStatus.VALID;
+    this.iss = iss;
+  }
 
-    /**
-     * Sets a new mail of the user.
-     *
-     * @param mail the mail of the user
-     */
-    public void setMail(String mail) {
-        this.mail = mail;
-    }
+  public Long getId() {
+    return super.getId();
+  }
 
-    /**
-     * Gets the status of the user.
-     *
-     * @return the status {@link UserAndGroupStatus} of the user.
-     */
-    public UserAndGroupStatus getStatus() {
-        return status;
-    }
+  public void setId(Long id) {
+    super.setId(id);
+  }
 
-    /**
-     * Sets a new status of the user.
-     *
-     * @param status the status {@link UserAndGroupStatus} of the user.
-     */
-    public void setStatus(UserAndGroupStatus status) {
-        this.status = status;
-    }
+  public String getSub() {
+    return sub;
+  }
 
-    /**
-     * Gets groups in which user participates.
-     *
-     * @return the set of {@link IDMGroup}s.
-     */
-    public Set<IDMGroup> getGroups() {
-        return new HashSet<>(groups);
-    }
+  public void setSub(String sub) {
+    this.sub = sub;
+  }
 
-    /**
-     * Sets a new set of groups of the user.
-     *
-     * @param groups the {@link IDMGroup}s in which the user participates.
-     */
-    public void setGroups(Set<IDMGroup> groups) {
-        for (IDMGroup group : groups) {
-            group.addUser(this);
-        }
-    }
+  public String getFullName() {
+    return fullName;
+  }
 
-    /**
-     * Gets the given name of the user.
-     *
-     * @return the given name of the user.
-     */
-    public String getGivenName() {
-        return givenName;
-    }
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
 
-    /**
-     * Sets a new given name of the user.
-     *
-     * @param givenName the given name of the user.
-     */
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
+  public Long getExternalId() {
+    return externalId;
+  }
 
-    /**
-     * Gets the family name of the user.
-     *
-     * @return the new family name of the user.
-     */
-    public String getFamilyName() {
-        return familyName;
-    }
+  public void setExternalId(Long externalId) {
+    this.externalId = externalId;
+  }
 
-    /**
-     * Sets the new family name of the user.
-     *
-     * @param familyName the family name of the user.
-     */
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
-    }
+  public String getMail() {
+    return mail;
+  }
 
-    /**
-     * Add the user to the group.
-     *
-     * @param group the {@link IDMGroup} to which the user is added.
-     */
-    public void addGroup(IDMGroup group) {
-        groups.add(group);
-    }
+  public void setMail(String mail) {
+    this.mail = mail;
+  }
 
-    /**
-     * Remove group.
-     *
-     * @param group the group
-     */
-    public void removeGroup(IDMGroup group) {
-        groups.remove(group);
-    }
+  public UserAndGroupStatus getStatus() {
+    return status;
+  }
 
-    /**
-     * Gets the URI of provider which will be used to authenticate this user.
-     *
-     * @return URI of the oidc provider.
-     */
-    public String getIss() {
-        return iss;
-    }
+  public void setStatus(UserAndGroupStatus status) {
+    this.status = status;
+  }
 
-    /**
-     * Sets the URI of provider which will be used to authenticate this user.
-     *
-     * @param iss the URI of the oidc provider.
-     */
-    public void setIss(String iss) {
-        this.iss = iss;
-    }
+  /**
+   * Returns the groups the user belongs to. The set is a copy; changes to it do not affect the
+   * user.
+   *
+   * @return the user's groups
+   */
+  public Set<IDMGroup> getGroups() {
+    return new HashSet<>(groups);
+  }
 
-    /**
-     * Gets the identicon of the user encoded in base64.
-     *
-     * @return identicon of the user.
-     */
-    public byte[] getPicture() {
-        return picture;
+  /**
+   * Adds this user to each of the given groups; group membership not included in the given set is
+   * left unchanged. Each given group also has this user added to its own set of users.
+   *
+   * @param groups groups to add this user to
+   */
+  public void setGroups(Set<IDMGroup> groups) {
+    for (IDMGroup group : groups) {
+      group.addUser(this);
     }
+  }
 
-    /**
-     * Sets the identicon of the user encoded in base64.
-     *
-     * @param picture encoded identicon of the user.
-     */
-    public void setPicture(byte[] picture) {
-        this.picture = picture;
-    }
+  public String getGivenName() {
+    return givenName;
+  }
 
-    @PreRemove
-    private void removeUserFromGroups() {
-        for (IDMGroup group : this.getGroups()) {
-            group.removeUser(this);
-        }
-    }
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof User)) return false;
-        User user = (User) object;
-        return Objects.equals(getSub(), user.getSub()) &&
-                Objects.equals(getIss(), user.getIss());
-    }
+  public String getFamilyName() {
+    return familyName;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSub(), getIss());
-    }
+  public void setFamilyName(String familyName) {
+    this.familyName = familyName;
+  }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + super.getId() +
-                ", sub='" + sub + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", givenName='" + givenName + '\'' +
-                ", familyName='" + familyName + '\'' +
-                ", externalId=" + externalId +
-                ", mail='" + mail + '\'' +
-                ", iss='" + iss + '\'' +
-                '}';
+  /**
+   * Adds one group to this user's set of groups. Does not add this user to the group's own set of
+   * users.
+   *
+   * @param group group to add
+   */
+  public void addGroup(IDMGroup group) {
+    groups.add(group);
+  }
+
+  /**
+   * Removes one group from this user's set of groups. Does not remove this user from the group's
+   * own set of users.
+   *
+   * @param group group to remove
+   */
+  public void removeGroup(IDMGroup group) {
+    groups.remove(group);
+  }
+
+  public String getIss() {
+    return iss;
+  }
+
+  public void setIss(String iss) {
+    this.iss = iss;
+  }
+
+  public byte[] getPicture() {
+    return picture;
+  }
+
+  public void setPicture(byte[] picture) {
+    this.picture = picture;
+  }
+
+  @PreRemove
+  private void removeUserFromGroups() {
+    for (IDMGroup group : this.getGroups()) {
+      group.removeUser(this);
     }
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof User)) return false;
+    User user = (User) object;
+    return Objects.equals(getSub(), user.getSub()) && Objects.equals(getIss(), user.getIss());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getSub(), getIss());
+  }
+
+  @Override
+  public String toString() {
+    return "User{"
+        + "id="
+        + super.getId()
+        + ", sub='"
+        + sub
+        + '\''
+        + ", fullName='"
+        + fullName
+        + '\''
+        + ", givenName='"
+        + givenName
+        + '\''
+        + ", familyName='"
+        + familyName
+        + '\''
+        + ", externalId="
+        + externalId
+        + ", mail='"
+        + mail
+        + '\''
+        + ", iss='"
+        + iss
+        + '\''
+        + '}';
+  }
 }

@@ -1,233 +1,165 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
-import cz.cyberrange.platform.userandgroup.utils.converters.LocalDateTimeUTCSerializer;
-import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
-import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.enums.SourceDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.enums.UserAndGroupStatusDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
+import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
+import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
+import cz.cyberrange.platform.userandgroup.utils.converters.LocalDateTimeUTCSerializer;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-/**
- * GroupDTO encapsulates information about a group.
- */
-@ApiModel(value = "GroupDTO", description = "The detailed information about a group.")
+/** The full detail of a group, including its users and roles, returned to the caller. */
+@Schema(
+    name = "GroupDTO",
+    description = "A group with its members and the roles granted through it.")
 public class GroupDTO {
 
-    @ApiModelProperty(value = "Main identifier of group.", example = "1", position = 1)
-    private Long id;
-    @ApiModelProperty(value = "A name of the group.", example = "Main group of organizers")
-    private String name;
-    @ApiModelProperty(value = "A description of the group.", example = "Organizers group for training run in June.")
-    private String description;
-    @ApiModelProperty(value = "Set of roles of  group.")
-    private Set<RoleDTO> roles = new HashSet<>();
-    @ApiModelProperty(value = "Set of users in group.")
-    private Set<UserForGroupsDTO> users = new HashSet<>();
-    @ApiModelProperty(value = "Source of the group, whether its internal or from perun.", example = "Internal")
-    private SourceDTO source;
-    @ApiModelProperty(value = "Sign if the group can be deleted.", example = "false")
-    private boolean canBeDeleted = true;
-    @ApiModelProperty(value = "Time until the group is valid.", example = "2017-10-19 10:23:54+02")
-    @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
-    private LocalDateTime expirationDate;
+  @Schema(example = "1")
+  private Long id;
 
-    /**
-     * Convert the external ID to {@link SourceDTO}.
-     *
-     * @param externalId the external id
-     */
-    public void convertExternalIdToSource(Long externalId) {
-        if (externalId == null) {
-            this.source = SourceDTO.INTERNAL;
-        } else {
-            this.source = SourceDTO.PERUN;
-        }
-    }
+  @Schema(example = "Main group of organizers")
+  private String name;
 
-    /**
-     * Convert {@link UserAndGroupStatusDTO} to can be deleted.
-     *
-     * @param status the status
-     */
-    public void convertStatusToCanBeDeleted(UserAndGroupStatusDTO status) {
-        if (status.equals(UserAndGroupStatusDTO.DELETED)) {
-            this.canBeDeleted = true;
-        }
-        if (status.equals(UserAndGroupStatusDTO.VALID)) {
-            this.canBeDeleted = false;
-        }
-    }
+  @Schema(example = "Organizers group for training run in June.")
+  private String description;
 
-    /**
-     * Gets the ID of the group.
-     *
-     * @return the ID of the group.
-     */
-    public Long getId() {
-        return id;
-    }
+  private Set<RoleDTO> roles = new HashSet<>();
 
-    /**
-     * Sets the ID of the group.
-     *
-     * @param id the ID of the group.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
+  private Set<UserForGroupsDTO> users = new HashSet<>();
 
-    /**
-     * Gets the name of the group.
-     *
-     * @return the name of the group.
-     */
-    public String getName() {
-        return name;
-    }
+  @Schema(description = "Where the group comes from.", example = "INTERNAL")
+  private SourceDTO source;
 
-    /**
-     * Sets the name of the group.
-     *
-     * @param name the name of the group.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+  @Schema(
+      description = "Set by the server; false for the groups it creates itself.",
+      example = "false")
+  private boolean canBeDeleted = true;
 
-    /**
-     * Gets the description of the group.
-     *
-     * @return the description of the group.
-     */
-    public String getDescription() {
-        return description;
-    }
+  @Schema(example = "2017-10-19T10:23:54")
+  @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
+  private LocalDateTime expirationDate;
 
-    /**
-     * Sets the description of the group.
-     *
-     * @param description the description of the group.
-     */
-    public void setDescription(String description) {
-        this.description = description;
+  /**
+   * Sets the group's source from the given external id: internal when the id is absent, perun
+   * otherwise.
+   *
+   * @param externalId the group's external identifier, or null for an internal group
+   */
+  public void convertExternalIdToSource(Long externalId) {
+    if (externalId == null) {
+      this.source = SourceDTO.INTERNAL;
+    } else {
+      this.source = SourceDTO.PERUN;
     }
+  }
 
-    /**
-     * Gets the {@link UserForGroupsDTO} of the group.
-     *
-     * @return the {@link UserForGroupsDTO} of the group.
-     */
-    public Set<UserForGroupsDTO> getUsers() {
-        return users;
+  /**
+   * Sets whether the group can be deleted from the given status: true when deleted, false when
+   * valid. Leaves the current value unchanged for any other status.
+   *
+   * @param status status to derive the flag from
+   */
+  public void convertStatusToCanBeDeleted(UserAndGroupStatusDTO status) {
+    if (status.equals(UserAndGroupStatusDTO.DELETED)) {
+      this.canBeDeleted = true;
     }
+    if (status.equals(UserAndGroupStatusDTO.VALID)) {
+      this.canBeDeleted = false;
+    }
+  }
 
-    /**
-     * Sets the {@link UserForGroupsDTO} of the group. .
-     *
-     * @param users the {@link UserForGroupsDTO} of the group.
-     */
-    public void setUsers(Set<UserForGroupsDTO> users) {
-        this.users = users;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    /**
-     * Gets the {@link RoleDTO} of the group..
-     *
-     * @return the {@link RoleDTO} of the group.
-     */
-    public Set<RoleDTO> getRoles() {
-        return roles;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    /**
-     * Sets the {@link RoleDTO} of the group.
-     *
-     * @param roles the {@link RoleDTO} of the group.
-     */
-    public void setRoles(Set<RoleDTO> roles) {
-        this.roles = roles;
-    }
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Gets the {@link SourceDTO} of the group.
-     *
-     * @return the {@link SourceDTO} of the group.
-     */
-    public SourceDTO getSource() {
-        return source;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    /**
-     * Sets the {@link SourceDTO} of the group.
-     *
-     * @param source the {@link SourceDTO} of the group.
-     */
-    public void setSource(SourceDTO source) {
-        this.source = source;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    /**
-     * Mark if the group can be deleted.
-     *
-     * @return true if the group can be deleted, false otherwise
-     */
-    public boolean isCanBeDeleted() {
-        return canBeDeleted;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    /**
-     * Sets mark if the group can be deleted.
-     *
-     * @param canBeDeleted true if group can be deleted, false otherwise
-     */
-    public void setCanBeDeleted(boolean canBeDeleted) {
-        this.canBeDeleted = canBeDeleted;
-    }
+  public Set<UserForGroupsDTO> getUsers() {
+    return users;
+  }
 
-    /**
-     * Gets expiration date of the group.
-     *
-     * @return the expiration date of the group.
-     */
-    public LocalDateTime getExpirationDate() {
-        return expirationDate;
-    }
+  public void setUsers(Set<UserForGroupsDTO> users) {
+    this.users = users;
+  }
 
-    /**
-     * Sets expiration date of the group.
-     *
-     * @param expirationDate the expiration date of the group.
-     */
-    public void setExpirationDate(LocalDateTime expirationDate) {
-        this.expirationDate = expirationDate;
-    }
+  public Set<RoleDTO> getRoles() {
+    return roles;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof GroupDTO)) return false;
-        GroupDTO groupDTO = (GroupDTO) object;
-        return Objects.equals(getId(), groupDTO.getId()) &&
-                Objects.equals(getName(), groupDTO.getName());
-    }
+  public void setRoles(Set<RoleDTO> roles) {
+    this.roles = roles;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getName());
-    }
+  public SourceDTO getSource() {
+    return source;
+  }
 
-    @Override
-    public String toString() {
-        return "GroupDTO{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                '}';
-    }
+  public void setSource(SourceDTO source) {
+    this.source = source;
+  }
+
+  public boolean isCanBeDeleted() {
+    return canBeDeleted;
+  }
+
+  public void setCanBeDeleted(boolean canBeDeleted) {
+    this.canBeDeleted = canBeDeleted;
+  }
+
+  public LocalDateTime getExpirationDate() {
+    return expirationDate;
+  }
+
+  public void setExpirationDate(LocalDateTime expirationDate) {
+    this.expirationDate = expirationDate;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof GroupDTO)) return false;
+    GroupDTO groupDTO = (GroupDTO) object;
+    return Objects.equals(getId(), groupDTO.getId())
+        && Objects.equals(getName(), groupDTO.getName());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getId(), getName());
+  }
+
+  @Override
+  public String toString() {
+    return "GroupDTO{"
+        + "id="
+        + id
+        + ", name='"
+        + name
+        + '\''
+        + ", description='"
+        + description
+        + '\''
+        + '}';
+  }
 }

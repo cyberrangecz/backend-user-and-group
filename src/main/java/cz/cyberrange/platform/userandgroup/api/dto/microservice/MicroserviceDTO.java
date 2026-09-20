@@ -1,96 +1,68 @@
 package cz.cyberrange.platform.userandgroup.api.dto.microservice;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
-/**
- * Encapsulates information about a microservice.
- */
-@ApiModel(value = "MicroserviceDTO", description = "Information about a microservice.")
+/** The detail of a registered microservice, returned to the caller. */
+@Schema(name = "MicroserviceDTO", description = "A service registered with the platform.")
 public class MicroserviceDTO {
 
-    @ApiModelProperty(value = "Main identifier of the microservice.", example = "1", position = 1)
-    private Long id;
-    @ApiModelProperty(value = "A name of the microservice.", example = "training")
-    private String name;
-    @ApiModelProperty(value = "URI of the microservice.", example = "/training/api/v1")
-    private String endpoint;
+  @Schema(example = "1")
+  private Long id;
 
-    /**
-     * Gets the ID of the microservice.
-     *
-     * @return the ID of the microservice.
-     */
-    public Long getId() {
-        return id;
-    }
+  @Schema(example = "training")
+  private String name;
 
-    /**
-     * Sets the ID of the microservice.
-     *
-     * @param id the ID of the microservice.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
+  @Schema(example = "/training/api/v1")
+  private String endpoint;
 
-    /**
-     * Gets the name of the microservice.
-     *
-     * @return the name of the microservice.
-     */
-    public String getName() {
-        return name;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    /**
-     * Sets the name of the microservice.
-     *
-     * @param name the name of the microservice.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    /**
-     * Gets endpoint of the microservice.
-     *
-     * @return the endpoint of the microservice.
-     */
-    public String getEndpoint() {
-        return endpoint;
-    }
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Sets endpoint of the microservice.
-     *
-     * @param endpoint the endpoint of the microservice.
-     */
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof MicroserviceDTO)) return false;
-        MicroserviceDTO that = (MicroserviceDTO) object;
-        return Objects.equals(getId(), that.getId()) &&
-                Objects.equals(getName(), that.getName());
-    }
+  public String getEndpoint() {
+    return endpoint;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getName());
-    }
+  public void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
+  }
 
-    @Override
-    public String toString() {
-        return "MicroserviceDTO{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                '}';
-    }
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof MicroserviceDTO)) return false;
+    MicroserviceDTO that = (MicroserviceDTO) object;
+    return Objects.equals(getId(), that.getId()) && Objects.equals(getName(), that.getName());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getId(), getName());
+  }
+
+  @Override
+  public String toString() {
+    return "MicroserviceDTO{"
+        + "id="
+        + id
+        + ", name='"
+        + name
+        + '\''
+        + ", endpoint='"
+        + endpoint
+        + '\''
+        + '}';
+  }
 }

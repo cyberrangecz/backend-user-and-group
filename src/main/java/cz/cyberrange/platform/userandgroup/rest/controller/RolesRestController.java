@@ -1,29 +1,29 @@
 package cz.cyberrange.platform.userandgroup.rest.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
-import cz.cyberrange.platform.userandgroup.definition.annotations.swagger.ApiPageableSwagger;
-import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
-import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserDTO;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntityError;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
+import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
+import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.rest.facade.RoleFacade;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Set;
+import javax.validation.constraints.NotBlank;
+import javax.ws.rs.Encoded;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -35,240 +35,299 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.NotBlank;
-import javax.ws.rs.Encoded;
-import java.util.List;
-import java.util.Set;
-
 /**
- * Rest controller for the Role resource.
+ * Endpoints for querying roles, individually, by role type, or as a filtered page, and for finding
+ * the users assigned a given role.
  */
-@Api(value = "Endpoint for Roles",
-        tags = "roles",
-        authorizations = @Authorization(value = "bearerAuth"))
+@Tag(name = "roles")
+@SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+  @ApiResponse(
+      responseCode = "401",
+      description = "Missing or invalid bearer token.",
+      content = @Content(schema = @Schema(implementation = ApiError.class))),
+  @ApiResponse(
+      responseCode = "500",
+      description = "Unexpected server error.",
+      content = @Content(schema = @Schema(implementation = ApiError.class)))
+})
 @RestController
 @RequestMapping(path = "/roles")
 public class RolesRestController {
 
-    private final RoleFacade roleFacade;
-    private final UserFacade userFacade;
-    private final ObjectMapper objectMapper;
+  private final RoleFacade roleFacade;
+  private final UserFacade userFacade;
 
-    /**
-     * Instantiates a new RolesRestController.
-     *
-     * @param roleFacade   the role facade
-     * @param userFacade   the user facade
-     * @param objectMapper the object mapper
-     */
-    @Autowired
-    public RolesRestController(RoleFacade roleFacade, UserFacade userFacade, ObjectMapper objectMapper) {
-        this.roleFacade = roleFacade;
-        this.objectMapper = objectMapper;
-        this.userFacade = userFacade;
+  @Autowired
+  public RolesRestController(RoleFacade roleFacade, UserFacade userFacade) {
+    this.roleFacade = roleFacade;
+    this.userFacade = userFacade;
+  }
+
+  /**
+   * Returns every role that matches the given predicate, with each role's microservice id and name
+   * filled in. Requires the administrator authority; answers with HTTP 401 when the caller is not
+   * authenticated.
+   *
+   * @param predicate optional filter on role attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @return HTTP 200 with the matching page of roles; empty page when none match
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching roles; empty when none match."),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<RoleDTO>> getRoles(
+      @QuerydslPredicate(root = Role.class) Predicate predicate,
+      @ParameterObject Pageable pageable) {
+    PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
+    return ResponseEntity.ok(roleDTOs);
+  }
+
+  /**
+   * Returns the role with the given id, with its microservice id and name filled in. Requires the
+   * administrator authority; answers with HTTP 401 when the caller is not authenticated, and HTTP
+   * 400 when id is not a number.
+   *
+   * @param id id of the role
+   * @return HTTP 200 with the matching role
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no role has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(operationId = "getRole", summary = "Get a role by id")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "The requested role.",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = RoleDTO.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The role id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No role has that id.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/{roleId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RoleDTO> getRole(@PathVariable("roleId") final Long id) {
+    return ResponseEntity.ok(roleFacade.getRoleById(id));
+  }
+
+  /**
+   * Returns every role not assigned to the group with the given id, matching the given predicate,
+   * with each role's microservice id and name filled in. Requires the administrator authority;
+   * answers with HTTP 401 when the caller is not authenticated, and HTTP 400 when groupId is not a
+   * number.
+   *
+   * @param predicate optional filter on role attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param groupId id of the group whose roles are excluded
+   * @return HTTP 200 with the matching page of roles; empty page when none match
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getAllRolesNotInGivenGroup",
+      summary = "List roles not assigned to a group",
+      description = "Text filters match any part of a value, ignoring case.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching roles; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The group id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<RoleDTO>> getAllRolesNotInGivenGroup(
+      @QuerydslPredicate(root = Role.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @PathVariable("groupId") final Long groupId) {
+    PageResultResource<RoleDTO> roleDTOs =
+        roleFacade.getAllRolesNotInGivenGroup(groupId, predicate, pageable);
+    return ResponseEntity.ok(roleDTOs);
+  }
+
+  /**
+   * Returns every user assigned, through any of their groups, the role with the given id, with each
+   * user's roles filled in from every group it belongs to and each role's microservice id and name
+   * filled in. Requires the administrator authority; answers with HTTP 401 when the caller is not
+   * authenticated, and HTTP 400 when roleId is not a number.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param roleId id of the role
+   * @return HTTP 200 with the matching page of users; empty page when none match
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no role has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUsersWithGivenRole",
+      summary = "List users holding a role",
+      description =
+          "A user holds a role through the groups it belongs to. Text filters match any part of"
+              + " a value, ignoring case.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The role id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No role has that id.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/{roleId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRole(
+      @QuerydslPredicate(root = User.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @PathVariable("roleId") Long roleId) {
+    PageResultResource<UserDTO> userDTOs =
+        userFacade.getUsersWithGivenRole(roleId, predicate, pageable);
+    return ResponseEntity.ok(userDTOs);
+  }
+
+  /**
+   * Returns every user assigned, through any of their groups, a role with the given role type, with
+   * each user's roles filled in from every group it belongs to and each role's microservice id and
+   * name filled in. A blank role type is not rejected before the lookup runs; it simply matches no
+   * role, producing the not-found error below. Requires the administrator or power user authority;
+   * answers with HTTP 401 when the caller is not authenticated, and HTTP 400 when roleType is
+   * missing.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param roleType role type to match
+   * @return HTTP 200 with the matching page of users; empty page when none match
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no role has that type
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUsersWithGivenRoleType",
+      summary = "List users holding a role type",
+      description =
+          "The role type must match in full. A user holds a role through the groups it belongs"
+              + " to.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The roleType parameter is missing.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description =
+            "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR or"
+                + " ROLE_USER_AND_GROUP_POWER_USER role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No role has that type.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRoleType(
+      @QuerydslPredicate(root = User.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @NotBlank @RequestParam("roleType") @Encoded String roleType) {
+    PageResultResource<UserDTO> userDTOs =
+        userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
+    return ResponseEntity.ok(userDTOs);
+  }
+
+  /**
+   * Returns every user, other than those with the given ids, assigned a role with the given role
+   * type, as basic views. Requires the administrator or power user authority; answers with HTTP 401
+   * when the caller is not authenticated, and HTTP 400 when roleType or ids is missing.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param roleType role type to match
+   * @param userIds ids excluded from the result
+   * @return HTTP 200 with the matching page of basic user views; empty page when none match
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException (HTTP
+   *     400) when the requested page size is 1000 or more
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUsersWithGivenRoleTypeAndNotWithGivenIds",
+      summary = "List users of a role type, minus given ids",
+      description = "The role type must match in full. Page size must be below 1000.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The roleType or ids parameter is missing, or page size is 1000 or more.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description =
+            "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR or"
+                + " ROLE_USER_AND_GROUP_POWER_USER role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(path = "/users-not-with-ids", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserBasicViewDto>>
+      getUsersWithGivenRoleTypeAndNotWithGivenIds(
+          @QuerydslPredicate(root = User.class) Predicate predicate,
+          @ParameterObject Pageable pageable,
+          @RequestParam("roleType") String roleType,
+          @Parameter(description = "Ids of the users left out of the result.") @RequestParam("ids")
+              Set<Long> userIds) {
+    if (pageable.getPageSize() >= 1000) {
+      throw new BadRequestException("Choose page size lower than 1000");
     }
-
-    /**
-     * Gets all roles.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @return the roles
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Get all roles",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "All roles found.", response = RoleRestResource.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getRoles(@ApiParam(value = "Filtering on Role entity attributes", required = false)
-                                           @QuerydslPredicate(root = Role.class) Predicate predicate,
-                                           Pageable pageable,
-                                           @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                           @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRoles(predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, roleDTOs));
-    }
-
-    /**
-     * Gets the role with the given ID.
-     *
-     * @param id the ID of the role.
-     * @return the {@link ResponseEntity} with body type {@link RoleDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Get role with given id",
-            nickname = "getRole",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Role found.", response = RoleDTO.class),
-            @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @GetMapping(path = "/{roleId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RoleDTO> getRole(@ApiParam(value = "Id of role to be returned", required = true)
-                                           @PathVariable("roleId") final Long id) {
-        return ResponseEntity.ok(roleFacade.getRoleById(id));
-    }
-
-
-    /**
-     * Gets all roles, not in the group with the given group ID.
-     *
-     * @param groupId  the ID of the group
-     * @param pageable pageable parameter with information about pagination.
-     * @param fields   attributes of the object to be returned as the result.
-     * @return the {@link ResponseEntity} with body type {@link RoleDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all roles except roles of given group.",
-            nickname = "getAllRolesNotInGivenGroup",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Roles found.", response = RoleRestResource.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getAllRolesNotInGivenGroup(@ApiParam(value = "Filtering on Role entity attributes",required = false)
-                                                             @QuerydslPredicate(root = Role.class) Predicate predicate,
-                                                             Pageable pageable,
-                                                             @ApiParam(value = "Id of group whose roles not to include",
-                                                                     required = true)
-                                                             @PathVariable("groupId") final Long groupId,
-                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                             @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<RoleDTO> roleDTOs = roleFacade.getAllRolesNotInGivenGroup(groupId, predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, roleDTOs));
-    }
-
-
-    /**
-     * Gets users with a given role ID.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @param roleId    the ID of the role
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all users with given role ID.",
-            nickname = "getUsersWithGivenRole",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Users with specific role ID found.", response = UsersRestController.UserRestResource.class),
-            @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/{roleId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersWithGivenRole(@ApiParam(value = "Filtering on User entity attributes", required = false)
-                                                        @QuerydslPredicate(root = User.class) Predicate predicate,
-                                                        Pageable pageable,
-                                                        @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                        @RequestParam(value = "fields", required = false) String fields,
-                                                        @ApiParam(value = "Type of role to getGroupById users for.", required = true)
-                                                        @PathVariable("roleId") Long roleId) {
-        PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRole(roleId, predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-    }
-
-    /**
-     * Gets users with a given role type.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @param roleType  the type of the role
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all users with given role type.",
-            nickname = "getUsersWithGivenRoleType",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Users with specific role type found.", response = UsersRestController.UserRestResource.class),
-            @ApiResponse(code = 404, message = "Role cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersWithGivenRoleType(@ApiParam(value = "Filtering on User entity attributes", required = false)
-                                                            @QuerydslPredicate(root = User.class) Predicate predicate,
-                                                            Pageable pageable,
-                                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                            @RequestParam(value = "fields", required = false) String fields,
-                                                            @ApiParam(value = "Type of role to getGroupById users for.", required = true)
-                                                            @NotBlank @RequestParam("roleType") @Encoded String roleType) {
-        PageResultResource<UserDTO> userDTOs = userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-    }
-
-
-    /**
-     * Gets users with a given role type and not with given ids.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @param roleType  the type of the role
-     * @param userIds   ids of the users to be excluded from the result.
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all users with given role and not with given ids.",
-            nickname = "getUsersWithGivenRoleTypeAndNotWithGivenIds",
-            notes = "Page size cannot be higher than 1000",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "All roles found.", response = UsersRestController.UserRestResource.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/users-not-with-ids", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersWithGivenRoleTypeAndNotWithGivenIds(
-            @ApiParam(value = "Filtering on User entity attributes", required = false)
-            @QuerydslPredicate(root = User.class) Predicate predicate,
-            Pageable pageable,
-            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-            @RequestParam(value = "fields", required = false) String fields,
-            @ApiParam(value = "Type of role to getGroupById users for.", required = true)
-            @RequestParam("roleType") String roleType,
-            @ApiParam(value = "Ids of the users to be excluded from the result.", required = true)
-            @RequestParam("ids") Set<Long> userIds) {
-        if (pageable.getPageSize() >= 1000) {
-            throw new BadRequestException("Choose page size lower than 1000");
-        }
-        PageResultResource<UserBasicViewDto> userDTOs = userFacade.getUsers(predicate, pageable, roleType, userIds);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-    }
-
-    @ApiModel(value = "RoleRestResource",
-            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
-    public static class RoleRestResource extends PageResultResource<RoleDTO> {
-        @JsonProperty(required = true)
-        @ApiModelProperty(value = "Retrieved Roles from databases.")
-        private List<RoleDTO> content;
-        @JsonProperty(required = true)
-        @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
-        private Pagination pagination;
-    }
-
-
+    PageResultResource<UserBasicViewDto> userDTOs =
+        userFacade.getUsers(predicate, pageable, roleType, userIds);
+    return ResponseEntity.ok(userDTOs);
+  }
 }

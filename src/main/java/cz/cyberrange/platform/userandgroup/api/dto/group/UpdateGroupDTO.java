@@ -1,126 +1,90 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
 import cz.cyberrange.platform.userandgroup.utils.converters.LocalDateTimeUTCSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-/**
- * Encapsulates information about a group to be updated.
- */
-@ApiModel(value = "UpdateGroupDTO", description = "Data that need to be provided to update particular group.")
+/** Request body identifying an existing group and the values to update it with. */
+@Schema(name = "UpdateGroupDTO", description = "New values for an existing group, named by its id.")
 public class UpdateGroupDTO {
 
-    @ApiModelProperty(value = "Main identifier of group.", required = true, example = "1", position = 1)
-    @NotNull(message = "{group.id.NotNull.message}")
-    private Long id;
-    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group.")
-    @NotEmpty(message = "{group.name.NotEmpty.message}")
-    private String name;
-    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
-    @NotEmpty(message = "{group.description.NotEmpty.message}")
-    private String description;
-    @ApiModelProperty(name = "expiration_date", value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
-    @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
-    private LocalDateTime expirationDate;
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+  @NotNull(message = "{group.id.NotNull.message}")
+  private Long id;
 
-    /**
-     * Gets the ID of the the group.
-     *
-     * @return the ID of the group.
-     */
-    public Long getId() {
-        return id;
-    }
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Main group.")
+  @NotEmpty(message = "{group.name.NotEmpty.message}")
+  private String name;
 
-    /**
-     * Sets the ID of the group.
-     *
-     * @param id the ID of the group.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Group for main users.")
+  @NotEmpty(message = "{group.description.NotEmpty.message}")
+  private String description;
 
-    /**
-     * Gets the name of the group.
-     *
-     * @return the name of the group.
-     */
-    public String getName() {
-        return name;
-    }
+  @Schema(example = "2019-11-20T10:28:02.727")
+  @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
+  private LocalDateTime expirationDate;
 
-    /**
-     * Sets the name of the group.
-     *
-     * @param name the name of the group.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    /**
-     * Gets the description of the group.
-     *
-     * @return the description of the group.
-     */
-    public String getDescription() {
-        return description;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    /**
-     * Sets the description of the group.
-     *
-     * @param description the description of the group.
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Gets expiration date of the group.
-     *
-     * @return the expiration date of the group.
-     */
-    public LocalDateTime getExpirationDate() {
-        return expirationDate;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    /**
-     * Sets expiration date of the group.
-     *
-     * @param expirationDate the expiration date of the group.
-     */
-    public void setExpirationDate(LocalDateTime expirationDate) {
-        this.expirationDate = expirationDate;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof UpdateGroupDTO)) return false;
-        UpdateGroupDTO that = (UpdateGroupDTO) object;
-        return Objects.equals(getId(), that.getId()) &&
-                Objects.equals(getName(), that.getName());
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getName());
-    }
+  public LocalDateTime getExpirationDate() {
+    return expirationDate;
+  }
 
-    @Override
-    public String toString() {
-        return "UpdateGroupDTO{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", expirationDate=" + expirationDate +
-                '}';
-    }
+  public void setExpirationDate(LocalDateTime expirationDate) {
+    this.expirationDate = expirationDate;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof UpdateGroupDTO)) return false;
+    UpdateGroupDTO that = (UpdateGroupDTO) object;
+    return Objects.equals(getId(), that.getId()) && Objects.equals(getName(), that.getName());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getId(), getName());
+  }
+
+  @Override
+  public String toString() {
+    return "UpdateGroupDTO{"
+        + "id="
+        + id
+        + ", name='"
+        + name
+        + '\''
+        + ", description='"
+        + description
+        + '\''
+        + ", expirationDate="
+        + expirationDate
+        + '}';
+  }
 }

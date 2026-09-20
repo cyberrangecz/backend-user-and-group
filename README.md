@@ -14,7 +14,7 @@ Objects that are used for communication between the front-end and the back-end.
 ### .definition
 Objects used for defining internal working of the application.
 
-- annotations for swagger documentation
+- annotations for OpenAPI documentation
 - configuration of frameworks and libraries
 - exceptions
 

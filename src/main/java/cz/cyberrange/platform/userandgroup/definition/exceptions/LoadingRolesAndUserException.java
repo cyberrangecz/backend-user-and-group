@@ -1,44 +1,26 @@
 package cz.cyberrange.platform.userandgroup.definition.exceptions;
 
 /**
- * Custom RuntimeException is thrown when some error appears during loading roles and users.
+ * Signals a failure while loading roles and users. CustomRestExceptionHandler has no dedicated
+ * handler for it, so it falls to the catch-all Exception handler and is answered with HTTP 500 and
+ * an ApiError body whose message carries the localized message of the deepest cause and whose
+ * single error entry carries the exception's own message.
  */
 public class LoadingRolesAndUserException extends RuntimeException {
 
-    /**
-     * Instantiates a new LoadingRolesAndUserException with <i>null<i/> as its detail message.
-     */
-    public LoadingRolesAndUserException() {
-        super();
-    }
+  public LoadingRolesAndUserException() {
+    super();
+  }
 
-    /**
-     * Instantiates a new LoadingRolesAndUserException with the specified detail message.
-     *
-     * @param message the message
-     */
-    public LoadingRolesAndUserException(String message) {
-        super(message);
-    }
+  public LoadingRolesAndUserException(String message) {
+    super(message);
+  }
 
-    /**
-     * Instantiates a new LoadingRolesAndUserException with the specified detail message and cause.
-     *
-     * @param message   the message
-     * @param throwable the throwable
-     */
-    public LoadingRolesAndUserException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
+  public LoadingRolesAndUserException(String message, Throwable throwable) {
+    super(message, throwable);
+  }
 
-    /**
-     * Instantiates a new LoadingRolesAndUserException with the specified cause and detail message of
-     * (cause==null ? null : cause.toString()) (which typically contains the class and detail message of cause).
-     *
-     * @param throwable the throwable
-     */
-    public LoadingRolesAndUserException(Throwable throwable) {
-        super(throwable);
-    }
-
+  public LoadingRolesAndUserException(Throwable throwable) {
+    super(throwable);
+  }
 }

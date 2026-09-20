@@ -1,76 +1,53 @@
 package cz.cyberrange.platform.userandgroup.api.dto.user;
 
 import cz.cyberrange.platform.userandgroup.api.dto.enums.UserDeletionStatusDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
 /**
- * Encapsulates information about a deleted user.
+ * Pairs a deleted user with the outcome of the deletion attempt. Returned to the client immediately
+ * after a delete request.
  */
-@ApiModel(value = "UserDeletionResponseDTO", description = "The information provided immediately to the client after the client deletes a given user.")
+@Schema(
+    name = "UserDeletionResponseDTO",
+    description = "Outcome of deleting one user, paired with the user itself.")
 public class UserDeletionResponseDTO {
 
-    @ApiModelProperty(value = "User to be deleted.")
-    private UserDTO user;
-    @ApiModelProperty(value = "Status about result of deletion.", example = "SUCCESS")
-    private UserDeletionStatusDTO status;
+  private UserDTO user;
 
-    /**
-     * Gets user who has been deleted.
-     *
-     * @return the {@link UserDTO} who has been deleted.
-     */
-    public UserDTO getUser() {
-        return user;
-    }
+  @Schema(example = "SUCCESS")
+  private UserDeletionStatusDTO status;
 
-    /**
-     * Sets user who has been deleted.
-     *
-     * @param user the {@link UserDTO} who has been deleted.
-     */
-    public void setUser(UserDTO user) {
-        this.user = user;
-    }
+  public UserDTO getUser() {
+    return user;
+  }
 
-    /**
-     * Gets the status of user deletion.
-     *
-     * @return the {@link UserDeletionStatusDTO} of user who has been deleted.
-     */
-    public UserDeletionStatusDTO getStatus() {
-        return status;
-    }
+  public void setUser(UserDTO user) {
+    this.user = user;
+  }
 
-    /**
-     * Sets the status of user deletion.
-     *
-     * @param status the {@link UserDeletionStatusDTO} of user who has been deleted.
-     */
-    public void setStatus(UserDeletionStatusDTO status) {
-        this.status = status;
-    }
+  public UserDeletionStatusDTO getStatus() {
+    return status;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof UserDeletionResponseDTO)) return false;
-        UserDeletionResponseDTO that = (UserDeletionResponseDTO) object;
-        return Objects.equals(getUser(), that.getUser()) &&
-                getStatus() == that.getStatus();
-    }
+  public void setStatus(UserDeletionStatusDTO status) {
+    this.status = status;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getUser(), getStatus());
-    }
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof UserDeletionResponseDTO)) return false;
+    UserDeletionResponseDTO that = (UserDeletionResponseDTO) object;
+    return Objects.equals(getUser(), that.getUser()) && getStatus() == that.getStatus();
+  }
 
-    @Override
-    public String toString() {
-        return "UserDeletionResponseDTO{" +
-                "user=" + user +
-                ", status=" + status +
-                '}';
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(getUser(), getStatus());
+  }
+
+  @Override
+  public String toString() {
+    return "UserDeletionResponseDTO{" + "user=" + user + ", status=" + status + '}';
+  }
 }

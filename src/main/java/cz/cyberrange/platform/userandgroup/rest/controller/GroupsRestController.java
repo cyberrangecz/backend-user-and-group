@@ -1,31 +1,32 @@
 package cz.cyberrange.platform.userandgroup.rest.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
-import cz.cyberrange.platform.userandgroup.definition.annotations.swagger.ApiPageableSwagger;
-import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
-import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupViewDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.NewGroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.UpdateGroupDTO;
+import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntityError;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
+import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
+import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.rest.facade.IDMGroupFacade;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -40,334 +41,523 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-
 /**
- * Rest controller for the IDMGroup resource.
+ * Endpoints for creating, updating and deleting groups, and for managing the users and roles
+ * assigned to each one.
  */
-@Api(value = "Endpoint for Groups",
-        tags = "groups",
-        authorizations = @Authorization(value = "bearerAuth"))
+@Tag(name = "groups", description = "Groups of users and the roles granted to their members.")
+@SecurityRequirement(name = "bearerAuth")
+@ApiResponses(
+    value = {
+      @ApiResponse(
+          responseCode = "401",
+          description = "Missing or invalid bearer token.",
+          content = @Content(schema = @Schema(implementation = ApiError.class))),
+      @ApiResponse(
+          responseCode = "500",
+          description = "Unexpected server error.",
+          content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
 @RestController
 @RequestMapping(path = "/groups")
 @Validated
 public class GroupsRestController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GroupsRestController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GroupsRestController.class);
 
-    private final IDMGroupFacade groupFacade;
-    private final ObjectMapper objectMapper;
+  private final IDMGroupFacade groupFacade;
 
-    /**
-     * Instantiates a new GroupsRestController.
-     *
-     * @param groupFacade  the group facade
-     * @param objectMapper the object mapper
-     */
-    @Autowired
-    public GroupsRestController(IDMGroupFacade groupFacade, ObjectMapper objectMapper) {
-        this.groupFacade = groupFacade;
-        this.objectMapper = objectMapper;
-    }
+  @Autowired
+  public GroupsRestController(IDMGroupFacade groupFacade) {
+    this.groupFacade = groupFacade;
+  }
 
-    /**
-     * Create a new group in the database.
-     *
-     * @param newGroupDTO new group to be created {@link NewGroupDTO}.
-     * @return the {@link ResponseEntity} with body type {@link GroupDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "POST",
-            value = "Create new group.",
-            response = GroupDTO.class,
-            nickname = "createNewGroup",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Given group created.", response = GroupDTO.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> createNewGroup(@ApiParam(value = "Group to be created.", required = true)
-                                                   @Valid @RequestBody NewGroupDTO newGroupDTO) {
-        return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
+  /**
+   * Creates a group from the given data, copying the members of each group referenced by its
+   * imported-user group ids into the new group. The created group leaves its source unset and its
+   * deletion flag at the default value of true. Requires the administrator authority; answers with
+   * HTTP 401 when the caller is not authenticated, and HTTP 400 when the request body fails
+   * validation.
+   *
+   * @param newGroupDTO data for the group to create, including the ids of the groups whose members
+   *     are copied in
+   * @return HTTP 201 with the created group
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when a group with that name already exists
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "createNewGroup",
+      summary = "Create a group",
+      description = "Members of the groups listed for import are copied into the new group.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "The created group.",
+            content = @Content(schema = @Schema(implementation = GroupDTO.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The request body is not valid.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "A group with that name already exists.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @PostMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<GroupDTO> createNewGroup(@Valid @RequestBody NewGroupDTO newGroupDTO) {
+    return new ResponseEntity<>(groupFacade.createGroup(newGroupDTO), HttpStatus.CREATED);
+  }
 
-    }
+  /**
+   * Updates the name, description and expiration date of the group with the id carried by the given
+   * data, leaving its other fields unchanged. Requires the administrator authority; answers with
+   * HTTP 401 when the caller is not authenticated, and HTTP 400 when the request body fails
+   * validation.
+   *
+   * @param updateGroupDTO id of the group to update, together with its new name, description and
+   *     expiration date
+   * @return HTTP 204 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when the group is one of the groups created automatically by the service and its name
+   *     is being changed
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "updateGroup",
+      summary = "Update a group's name, description and expiry",
+      description = "The members and roles of the group stay as they are.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "The group was updated."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The request body is not valid.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "A group the service created itself cannot be renamed.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @PutMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> updateGroup(@Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
+    groupFacade.updateGroup(updateGroupDTO);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 
-    /**
-     * Update group in the database.
-     *
-     * @param updateGroupDTO the group to be updated {@link UpdateGroupDTO}.
-     * @return the empty response entity with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "PUT",
-            value = "Update group.",
-            nickname = "updateGroup",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Group updated."),
-            @ApiResponse(code = 405, message = "Group is external and cannot be modified.", response = ApiError.class),
-            @ApiResponse(code = 409, message = "Name of the main group cannot be changed.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateGroup(@ApiParam(value = "Group to be updated.", required = true)
-                                            @Valid @RequestBody UpdateGroupDTO updateGroupDTO) {
-        groupFacade.updateGroup(updateGroupDTO);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+  /**
+   * Removes each given user from the group with the given id. User ids that match no user are
+   * ignored. Requires the administrator authority; answers with HTTP 401 when the caller is not
+   * authenticated, and HTTP 400 when groupId is not a number or the list of user ids contains a
+   * null value.
+   *
+   * @param id id of the group to update
+   * @param userIds ids of the users to remove
+   * @return HTTP 204 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when the group is the administrator group and a user to remove is the user
+   *     authenticated for the current request, or when the group holds the default role of every
+   *     microservice
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "removeUsers",
+      summary = "Remove users from a group",
+      description = "Ids that match no user are ignored.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "The users were removed."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id is not a number, or a user id in the body is null.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description =
+                "The group is the default group, or an administrator would remove themselves"
+                    + " from the administrator group.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @DeleteMapping(path = "/{groupId}/users")
+  public ResponseEntity<Void> removeUsers(
+      @PathVariable("groupId") final Long id, @RequestBody List<@NotNull Long> userIds) {
+    groupFacade.removeUsers(id, userIds);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 
-    /**
-     * Remove users from the group.
-     *
-     * @param id      the ID of the group.
-     * @param userIds a list of IDs of the users to be imported
-     * @return the response entity with empty body and with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "Remove users from the group.",
-            nickname = "removeUsers",
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "User has been removed from the group."),
-            @ApiResponse(code = 304, message = "Group is external and cannot be modified.", response = ApiError.class),
-            @ApiResponse(code = 404, message = "Group or some user cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 409, message = "Users cannot be removed from default group or administrator cannot remove himself.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping(path = "/{groupId}/users")
-    public ResponseEntity<Void> removeUsers(@ApiParam(value = "Id of group to remove users.", required = true)
-                                            @PathVariable("groupId") final Long id,
-                                            @ApiParam(value = "Ids of members to be removed from group.", required = true)
-                                            @RequestBody List<@NotNull Long> userIds) {
-        groupFacade.removeUsers(id, userIds);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+  /**
+   * Adds each user with the given ids, and every member of each group with the given ids, to the
+   * group with the given id. Ids that match no user or no group are ignored. Requires the
+   * administrator authority; answers with HTTP 401 when the caller is not authenticated, HTTP 400
+   * when groupId is not a number, and HTTP 400 when the request body fails validation.
+   *
+   * @param groupId id of the group to update
+   * @param addUsers ids of the users to add directly, and ids of the groups whose members are
+   *     copied in
+   * @return HTTP 204 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "addUsersToGroup",
+      summary = "Add users to a group",
+      description =
+          "Members of the groups listed for import are added as well. Ids that match no user"
+              + " and no group are ignored.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "The users were added."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id is not a number, or the request body is not valid.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @PutMapping(path = "/{groupId}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> addUsers(
+      @PathVariable("groupId") final Long groupId,
+      @Valid @RequestBody AddUsersToGroupDTO addUsers) {
+    groupFacade.addUsersToGroup(groupId, addUsers);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 
-    /**
-     * Add users to the group.
-     *
-     * @param groupId  the ID of the group
-     * @param addUsers {@link AddUsersToGroupDTO}.
-     * @return the response entity with empty body and with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "PUT",
-            value = "Add users to group.",
-            nickname = "addUsersToGroup",
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "User has been given into group."),
-            @ApiResponse(code = 304, message = "Group is external and cannot be modified.", response = ApiError.class),
-            @ApiResponse(code = 404, message = "Group or some user cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @PutMapping(path = "/{groupId}/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> addUsers(@ApiParam(value = "Id of group to add users.", required = true)
-                                         @PathVariable("groupId") final Long groupId,
-                                         @ApiParam(value = "Ids of members to be added and ids of groups of imported members to group.", required = true)
-                                         @Valid @RequestBody AddUsersToGroupDTO addUsers) {
-        groupFacade.addUsersToGroup(groupId, addUsers);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+  /**
+   * Deletes the group with the given id. Requires the administrator authority; answers with HTTP
+   * 401 when the caller is not authenticated, and HTTP 400 when id is not a number.
+   *
+   * @param id id of the group to delete
+   * @return HTTP 200 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when the group is one of the groups created automatically by the service, or the group
+   *     has any users
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "deleteGroup",
+      summary = "Delete a group",
+      description = "The group must have no members left.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "The group was deleted."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id is not a number.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "The group still has members, or the service created it itself.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @DeleteMapping(path = "/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> deleteGroup(@PathVariable("groupId") final Long id) {
+    groupFacade.deleteGroup(id);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 
-    /**
-     * Delete group from the database.
-     *
-     * @param id the ID of the group to be deleted.
-     * @return the {@link ResponseEntity} with body type and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "Delete group",
-            nickname = "deleteGroup",
-            notes = "Tries to deleteIDMGroup group with given id and returns if it was successful.",
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned deletion status of the group."),
-            @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 405, message = "Group cannot be deleted because it is a main group.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping(path = "/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> deleteGroup(@ApiParam(value = "Id of group to be deleted.", required = true)
-                                            @PathVariable("groupId") final Long id) {
-        groupFacade.deleteGroup(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+  /**
+   * Deletes each group with the given ids. Ids that match no group are ignored. Requires the
+   * administrator authority; answers with HTTP 401 when the caller is not authenticated, and HTTP
+   * 400 when the list of ids contains a null value.
+   *
+   * @param ids ids of the groups to delete
+   * @return HTTP 200 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when any of the groups is one of the groups created automatically by the service, or
+   *     has any users
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "deleteGroups",
+      summary = "Delete several groups",
+      description = "Each group must have no members left. Ids that match no group are ignored.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "The groups were deleted."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "An id in the body is null.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "A group still has members, or the service created it itself.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @DeleteMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> deleteGroups(@RequestBody List<@NotNull Long> ids) {
+    LOG.debug("deleteGroups({})", ids);
+    groupFacade.deleteGroups(ids);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 
-    /**
-     * Delete groups from the database.
-     *
-     * @param ids list of IDs of the group to be deleted.
-     * @return the {@link ResponseEntity} with body type and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "Delete groups",
-            notes = "Tries to deleteIDMGroup groups with given ids and returns groups and statuses of their deletion",
-            nickname = "deleteGroups",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned HTTP status OK."),
-            @ApiResponse(code = 500, message = "Cannot deleteIDMGroup non-empty group.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> deleteGroups(@ApiParam(value = "Ids of groups to be deleted.", required = true)
-                                             @RequestBody List<@NotNull Long> ids) {
-        LOG.debug("deleteGroups({})", ids);
-        groupFacade.deleteGroups(ids);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+  /**
+   * Returns every group that matches the given predicate, as basic group views. Requires the
+   * administrator authority; answers with HTTP 401 when the caller is not authenticated.
+   *
+   * @param predicate optional filter on group attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @return HTTP 200 with the matching page of group views; empty page when none match
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getGroups",
+      summary = "List groups",
+      description =
+          "Text filters match any part of a value and ignore case. Every other filter must match"
+              + " the whole value.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The matching page of groups, empty when nothing matches."),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class)))
+      })
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<GroupViewDTO>> getGroups(
+      @QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
+      @ParameterObject Pageable pageable) {
+    PageResultResource<GroupViewDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
+    return ResponseEntity.ok(groupsDTOs);
+  }
 
-    /**
-     * Gets all groups.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @return the groups.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Get groups.",
-            nickname = "getGroups",
-            response = GroupRestResource.class,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "All groups found.", response = GroupRestResource.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getGroups(@ApiParam(value = "Filtering on IDMGroup entity attributes", required = false)
-                                            @QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
-                                            Pageable pageable,
-                                            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                            @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<GroupViewDTO> groupsDTOs = groupFacade.getAllGroups(predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, groupsDTOs));
-    }
+  /**
+   * Returns the group with the given id. Requires the administrator authority; answers with HTTP
+   * 401 when the caller is not authenticated, and HTTP 400 when id is not a number.
+   *
+   * @param id id of the group
+   * @return HTTP 200 with the matching group
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getGroupById",
+      summary = "Get a single group with its members and roles")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The requested group.",
+            content = @Content(schema = @Schema(implementation = GroupDTO.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id is not a number.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @GetMapping(path = "/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<GroupDTO> getGroup(@PathVariable("groupId") Long id) {
+    return ResponseEntity.ok(groupFacade.getGroupById(id));
+  }
 
-    /**
-     * Gets the group with the given ID.
-     *
-     * @param id the ID of the group.
-     * @return the {@link ResponseEntity} with body type {@link GroupDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Get group with given id",
-            nickname = "getGroupById",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Group found.", response = GroupDTO.class),
-            @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @GetMapping(path = "/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GroupDTO> getGroup(@ApiParam(value = "Id of group to be returned.", required = true)
-                                             @PathVariable("groupId") Long id) {
-        return ResponseEntity.ok(groupFacade.getGroupById(id));
-    }
+  /**
+   * Returns the roles assigned to the group with the given id, with each role's microservice id and
+   * name filled in. Requires the administrator authority; answers with HTTP 401 when the caller is
+   * not authenticated, and HTTP 400 when id is not a number.
+   *
+   * @param predicate optional filter on role attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param id id of the group
+   * @return HTTP 200 with the matching page of roles; empty page when none match
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getRolesOfGroup",
+      summary = "List the roles of a group",
+      description =
+          "Text filters match any part of a value and ignore case. Every other filter must match"
+              + " the whole value.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The matching page of roles, empty when nothing matches."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id is not a number.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @GetMapping(path = "/{id}/roles")
+  public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfGroup(
+      @QuerydslPredicate(root = Role.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @Parameter(description = "Id of the group whose roles are listed.") @PathVariable("id")
+          final Long id) {
+    return ResponseEntity.ok(groupFacade.getRolesOfGroup(id, pageable, predicate));
+  }
 
-    /**
-     * Gets the roles of the given group.
-     *
-     * @param id the ID of the group
-     * @return the {@link ResponseEntity} with body type of the given group and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Returns all roles of group",
-            nickname = "getRolesOfGroup",
-            response = RolesRestController.RoleRestResource.class,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "All roles of group found.", response = RolesRestController.RoleRestResource.class),
-            @ApiResponse(code = 404, message = "Group cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @GetMapping(path = "/{id}/roles")
-    @ApiPageableSwagger
-    public ResponseEntity<Object> getRolesOfGroup(@ApiParam(value = "Filtering on IDMGroup entity attributes", required = false)
-                                                  @QuerydslPredicate(root = Role.class) Predicate predicate,
-                                                  Pageable pageable,
-                                                  @ApiParam(value = "id", required = true)
-                                                  @PathVariable("id") final Long id) {
-        return ResponseEntity.ok(groupFacade.getRolesOfGroup(id, pageable, predicate));
-    }
+  /**
+   * Assigns the role with the given id to the group with the given id. Requires the administrator
+   * authority; answers with HTTP 401 when the caller is not authenticated, and HTTP 400 when either
+   * id is not a number.
+   *
+   * @param groupId id of the group
+   * @param roleId id of the role
+   * @return HTTP 204 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id, or no role has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "assignRoleToGroup",
+      summary = "Assign a role to a group",
+      description = "Every member of the group gains the role.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "The role was assigned."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id or the role id is not a number.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id, or no role has that id.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @PutMapping("/{groupId}/roles/{roleId}")
+  public ResponseEntity<Void> assignRoleToGroup(
+      @PathVariable("groupId") Long groupId, @PathVariable("roleId") Long roleId) {
+    groupFacade.assignRole(groupId, roleId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 
-    /**
-     * Assign a new role to the group.
-     *
-     * @param groupId the ID of the group.
-     * @param roleId  the ID of the role to be added.
-     * @return the response entity with empty body and with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "PUT",
-            value = "Assign role to the group",
-            nickname = "assignRoleToGroup"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "Role assigned to group."),
-            @ApiResponse(code = 404, message = "Role or group cannot be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @PutMapping("/{groupId}/roles/{roleId}")
-    public ResponseEntity<Void> assignRoleToGroup(@ApiParam(value = "groupId", required = true)
-                                                  @PathVariable("groupId") Long groupId,
-                                                  @ApiParam(value = "roleId", required = true)
-                                                  @PathVariable("roleId") Long roleId) {
-        groupFacade.assignRole(groupId, roleId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    /**
-     * Remove the role from the given group.
-     *
-     * @param groupId the ID of the group.
-     * @param roleId  the ID of the role to be removed from the group.
-     * @return the response entity with empty body and with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "Remove role from the group",
-            notes = "Role can be removed only if it is not main role of the group.",
-            nickname = "removeRoleFromGroup"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "Role successfully removed from the group."),
-            @ApiResponse(code = 404, message = "Group cannot be found or role cannot be found in group.", response = ApiError.class),
-            @ApiResponse(code = 409, message = "Role cannot be removed from the group because it is the main role of the group.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping("/{groupId}/roles/{roleId}")
-    public ResponseEntity<Void> removeRoleFromGroup(@ApiParam(value = "groupId", required = true)
-                                                    @PathVariable("groupId") Long groupId,
-                                                    @ApiParam(value = "roleId", required = true)
-                                                    @PathVariable("roleId") Long roleId) {
-        groupFacade.removeRoleFromGroup(groupId, roleId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @ApiModel(value = "GroupRestResource",
-            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
-    private static class GroupRestResource extends PageResultResource<GroupViewDTO> {
-        @JsonProperty(required = true)
-        @ApiModelProperty(value = "Retrieved IDMGroups from databases.")
-        private List<GroupViewDTO> content;
-        @JsonProperty(required = true)
-        @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
-        private Pagination pagination;
-    }
+  /**
+   * Removes the role with the given id from the group with the given id. Requires the administrator
+   * authority; answers with HTTP 401 when the caller is not authenticated, and HTTP 400 when either
+   * id is not a number.
+   *
+   * @param groupId id of the group
+   * @param roleId id of the role
+   * @return HTTP 204 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no group has that id, or the group does not have a role with that id
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when the role is the main role of one of the groups created automatically by the
+   *     service: the trainee role of the default group, the administrator role of the administrator
+   *     group, or the power user role of the power user group
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "removeRoleFromGroup",
+      summary = "Remove a role from a group",
+      description = "Every member of the group loses the role.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "The role was removed."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "The group id or the role id is not a number.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No group has that id, or the group does not hold that role.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "The role is the main role of a group the service created itself.",
+            content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+      })
+  @DeleteMapping("/{groupId}/roles/{roleId}")
+  public ResponseEntity<Void> removeRoleFromGroup(
+      @PathVariable("groupId") Long groupId, @PathVariable("roleId") Long roleId) {
+    groupFacade.removeRoleFromGroup(groupId, roleId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 }

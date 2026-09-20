@@ -1,66 +1,168 @@
 package cz.cyberrange.platform.userandgroup.api.mapping;
 
-import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupViewDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupWithRolesDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.NewGroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.UpdateGroupDTO;
-import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-
+import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 /**
- * The IDMGroupMapper is an utility class to map items into data transfer objects. It provides the implementation of mappings between Java bean type IDMGroup and
- * DTOs classes. Code is generated during compile time.
+ * Converts between {@link IDMGroup} entities and group DTOs, in both directions and across
+ * collections and pages.
  */
-@Mapper(componentModel = "spring", uses = {RoleMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+    componentModel = "spring",
+    uses = {RoleMapper.class},
+    unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IDMGroupMapper extends ParentMapper {
 
-    IDMGroup mapToEntity(GroupDTO dto);
+  /**
+   * Maps a group DTO to a group entity. The status and external id are left unset; the DTO's source
+   * and deletion flag have no matching field and are not carried over.
+   *
+   * @param dto group to map
+   * @return the mapped group
+   */
+  IDMGroup mapToEntity(GroupDTO dto);
 
-    GroupDTO mapToDTO(IDMGroup entity);
+  /**
+   * Maps a group entity to a group DTO, with each role's microservice id and name filled in. The
+   * source is left unset and the deletion flag keeps its default value of true.
+   *
+   * @param entity group to map
+   * @return the mapped group
+   */
+  GroupDTO mapToDTO(IDMGroup entity);
 
-    GroupViewDTO mapToViewDTO(IDMGroup entity);
+  /**
+   * Maps a group entity to a basic group view, without its users and roles. The source is left
+   * unset and the deletion flag keeps its default value of true.
+   *
+   * @param entity group to map
+   * @return the mapped group view
+   */
+  GroupViewDTO mapToViewDTO(IDMGroup entity);
 
-    GroupWithRolesDTO mapToWithRolesDto(IDMGroup entity);
+  /**
+   * Maps a group entity to a group DTO including its roles, with each role's microservice id and
+   * name filled in. The source is left unset and the deletion flag keeps its default value of true.
+   *
+   * @param entity group to map
+   * @return the mapped group with its roles
+   */
+  GroupWithRolesDTO mapToWithRolesDto(IDMGroup entity);
 
-    IDMGroup mapCreateToEntity(NewGroupDTO dto);
+  /**
+   * Maps a new group request to a group entity. The id, status, external id and roles are left
+   * unset; the list of group ids to import users from has no matching field and is not carried
+   * over.
+   *
+   * @param dto new group data to map
+   * @return the mapped group
+   */
+  IDMGroup mapCreateToEntity(NewGroupDTO dto);
 
-    IDMGroup mapUpdateToEntity(UpdateGroupDTO dto);
+  /**
+   * Maps a group update request to a group entity. The status, external id, users and roles are
+   * left unset.
+   *
+   * @param dto group update data to map
+   * @return the mapped group
+   */
+  IDMGroup mapUpdateToEntity(UpdateGroupDTO dto);
 
-    List<IDMGroup> mapToList(Collection<GroupDTO> dtos);
+  /**
+   * Maps each group DTO in the given collection to a group entity. Each mapped group has its status
+   * and external id left unset.
+   *
+   * @param dtos groups to map
+   * @return the mapped groups, in a new list
+   */
+  List<IDMGroup> mapToList(Collection<GroupDTO> dtos);
 
-    List<GroupViewDTO> mapToListDTO(Collection<IDMGroup> entities);
+  /**
+   * Maps each group entity in the given collection to a basic group view, without its users and
+   * roles. Each mapped view has its source left unset and its deletion flag at the default value of
+   * true.
+   *
+   * @param entities groups to map
+   * @return the mapped group views, in a new list
+   */
+  List<GroupViewDTO> mapToListDTO(Collection<IDMGroup> entities);
 
-    Set<IDMGroup> mapToSet(Collection<GroupDTO> dtos);
+  /**
+   * Maps each group DTO in the given collection to a group entity. Each mapped group has its status
+   * and external id left unset.
+   *
+   * @param dtos groups to map
+   * @return the mapped groups, in a new set
+   */
+  Set<IDMGroup> mapToSet(Collection<GroupDTO> dtos);
 
-    Set<GroupDTO> mapToSetDTO(Collection<IDMGroup> entities);
+  /**
+   * Maps each group entity in the given collection to a group DTO, with each role's microservice id
+   * and name filled in. Each mapped group has its source left unset and its deletion flag at the
+   * default value of true.
+   *
+   * @param entities groups to map
+   * @return the mapped groups, in a new set
+   */
+  Set<GroupDTO> mapToSetDTO(Collection<IDMGroup> entities);
 
-    default Optional<IDMGroup> mapToOptional(GroupDTO dto) {
-        return Optional.ofNullable(mapToEntity(dto));
-    }
+  /**
+   * Maps a group DTO to a group entity.
+   *
+   * @param dto group to map
+   * @return the mapped group, empty when dto is null
+   */
+  default Optional<IDMGroup> mapToOptional(GroupDTO dto) {
+    return Optional.ofNullable(mapToEntity(dto));
+  }
 
-    default Optional<GroupDTO> mapToOptional(IDMGroup entity) {
-        return Optional.ofNullable(mapToDTO(entity));
-    }
+  /**
+   * Maps a group entity to a group DTO.
+   *
+   * @param entity group to map
+   * @return the mapped group, empty when entity is null
+   */
+  default Optional<GroupDTO> mapToOptional(IDMGroup entity) {
+    return Optional.ofNullable(mapToDTO(entity));
+  }
 
-    default Page<GroupViewDTO> mapToPageDTO(Page<IDMGroup> objects) {
-        List<GroupViewDTO> mapped = mapToListDTO(objects.getContent());
-        return new PageImpl<>(mapped, objects.getPageable(), mapped.size());
-    }
+  /**
+   * Maps a page of group entities to a page of basic group views, keeping the given page's
+   * pageable. The total element count of the returned page is the number of mapped groups, not the
+   * original page's total.
+   *
+   * @param objects page of groups to map
+   * @return the mapped page
+   */
+  default Page<GroupViewDTO> mapToPageDTO(Page<IDMGroup> objects) {
+    List<GroupViewDTO> mapped = mapToListDTO(objects.getContent());
+    return new PageImpl<>(mapped, objects.getPageable(), mapped.size());
+  }
 
-    default PageResultResource<GroupViewDTO> mapToPageResultResource(Page<IDMGroup> objects) {
-        List<GroupViewDTO> mapped = new ArrayList<>();
-        objects.forEach(object -> mapped.add(mapToViewDTO(object)));
-        return new PageResultResource<>(mapped, createPagination(objects));
-    }
+  /**
+   * Maps a page of group entities to a paginated result carrying basic group views. The pagination
+   * metadata reflects the original page.
+   *
+   * @param objects page of groups to map
+   * @return the mapped group views together with the page's pagination metadata
+   */
+  default PageResultResource<GroupViewDTO> mapToPageResultResource(Page<IDMGroup> objects) {
+    List<GroupViewDTO> mapped = new ArrayList<>();
+    objects.forEach(object -> mapped.add(mapToViewDTO(object)));
+    return new PageResultResource<>(mapped, createPagination(objects));
+  }
 }

@@ -1,123 +1,153 @@
 package cz.cyberrange.platform.userandgroup.api.dto.user;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
 /**
- * Encapsulates information about a user.
+ * Carries the information obtained from an OIDC provider about an authenticating user, used to
+ * create that user on first sign-in or refresh their stored details on later ones.
  */
-@ApiModel(value = "UserCreateDto", description = "Information that are necessary to create a user.")
+@Schema(
+    name = "UserCreateDto",
+    description = "Details an OIDC provider reports about a user signing in.")
 public class UserCreateDTO {
-    @ApiModelProperty(name = "sub", value = "User sub.", example = "johndoe@mail.example.cz")
-    private String sub;
-    @ApiModelProperty(name = "full_name", value = "User full name.", example = "John Doe")
-    private String fullName;
-    @ApiModelProperty(name = "given_name", value = "User given name.", example = "John")
-    private String givenName;
-    @ApiModelProperty(name = "family_name", value = "User family name.", example = "Doe")
-    private String familyName;
-    @ApiModelProperty(name = "external_id", value = "User external id.", example = "1")
-    private Long externalId;
-    @ApiModelProperty(name = "mail", value = "User external id.", example = "johndoe@mail.example.cz")
-    private String mail;
-    @ApiModelProperty(name = "iss", value = "OIDC issuer for that user record.", example = "https://oidc.provider.cz/oidc")
-    private String iss;
-    @ApiModelProperty(name = "picture", value = "User profile picture.")
-    private byte[] picture;
+  @Schema(
+      name = "sub",
+      description = "Subject identifier the OIDC provider issued for the user.",
+      example = "johndoe@mail.example.cz")
+  private String sub;
 
-    public UserCreateDTO() {
-    }
+  @Schema(name = "full_name", example = "John Doe")
+  private String fullName;
 
-    public String getSub() {
-        return sub;
-    }
+  @Schema(name = "given_name", example = "John")
+  private String givenName;
 
-    public void setSub(String sub) {
-        this.sub = sub;
-    }
+  @Schema(name = "family_name", example = "Doe")
+  private String familyName;
 
-    public String getFullName() {
-        return fullName;
-    }
+  @Schema(
+      name = "external_id",
+      description = "Id the user carries in the source it was imported from.",
+      example = "1")
+  private Long externalId;
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+  @Schema(name = "mail", example = "johndoe@mail.example.cz")
+  private String mail;
 
-    public String getGivenName() {
-        return givenName;
-    }
+  @Schema(
+      name = "iss",
+      description = "URL of the OIDC provider that issued the subject.",
+      example = "https://oidc.provider.cz/oidc")
+  private String iss;
 
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
+  @Schema(
+      name = "picture",
+      description = "Ignored; a generated identicon is stored for a new user instead.")
+  private byte[] picture;
 
-    public String getFamilyName() {
-        return familyName;
-    }
+  public UserCreateDTO() {}
 
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
-    }
+  public String getSub() {
+    return sub;
+  }
 
-    public Long getExternalId() {
-        return externalId;
-    }
+  public void setSub(String sub) {
+    this.sub = sub;
+  }
 
-    public void setExternalId(Long externalId) {
-        this.externalId = externalId;
-    }
+  public String getFullName() {
+    return fullName;
+  }
 
-    public String getMail() {
-        return mail;
-    }
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
 
-    public void setMail(String mail) {
-        this.mail = mail;
-    }
+  public String getGivenName() {
+    return givenName;
+  }
 
-    public String getIss() {
-        return iss;
-    }
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
 
-    public void setIss(String iss) {
-        this.iss = iss;
-    }
+  public String getFamilyName() {
+    return familyName;
+  }
 
-    public byte[] getPicture() {
-        return picture;
-    }
+  public void setFamilyName(String familyName) {
+    this.familyName = familyName;
+  }
 
-    public void setPicture(byte[] picture) {
-        this.picture = picture;
-    }
+  public Long getExternalId() {
+    return externalId;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserCreateDTO)) return false;
-        UserCreateDTO that = (UserCreateDTO) o;
-        return getSub().equals(that.getSub()) &&
-                getIss().equals(that.getIss());
-    }
+  public void setExternalId(Long externalId) {
+    this.externalId = externalId;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getSub(), getIss());
-    }
+  public String getMail() {
+    return mail;
+  }
 
-    @Override
-    public String toString() {
-        return "UserCreateDto{" +
-                "sub='" + sub + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", givenName='" + givenName + '\'' +
-                ", familyName='" + familyName + '\'' +
-                ", externalId=" + externalId +
-                ", mail='" + mail + '\'' +
-                ", iss='" + iss + '\'' +
-                '}';
-    }
+  public void setMail(String mail) {
+    this.mail = mail;
+  }
+
+  public String getIss() {
+    return iss;
+  }
+
+  public void setIss(String iss) {
+    this.iss = iss;
+  }
+
+  public byte[] getPicture() {
+    return picture;
+  }
+
+  public void setPicture(byte[] picture) {
+    this.picture = picture;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof UserCreateDTO)) return false;
+    UserCreateDTO that = (UserCreateDTO) o;
+    return getSub().equals(that.getSub()) && getIss().equals(that.getIss());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getSub(), getIss());
+  }
+
+  @Override
+  public String toString() {
+    return "UserCreateDto{"
+        + "sub='"
+        + sub
+        + '\''
+        + ", fullName='"
+        + fullName
+        + '\''
+        + ", givenName='"
+        + givenName
+        + '\''
+        + ", familyName='"
+        + familyName
+        + '\''
+        + ", externalId="
+        + externalId
+        + ", mail='"
+        + mail
+        + '\''
+        + ", iss='"
+        + iss
+        + '\''
+        + '}';
+  }
 }

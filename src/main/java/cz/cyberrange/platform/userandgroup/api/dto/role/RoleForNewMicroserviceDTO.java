@@ -1,101 +1,81 @@
 package cz.cyberrange.platform.userandgroup.api.dto.role;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Objects;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Objects;
 
-/**
- * Encapsulates information about a role which will be used in new microservice.
- */
-@ApiModel(value = "RoleForNewMicroserviceDTO", description = "Data that need to be provided to register new role.")
+/** A role defined by a microservice being registered, nested inside its registration request. */
+@Schema(
+    name = "RoleForNewMicroserviceDTO",
+    description = "A role a microservice declares when it registers.")
 public class RoleForNewMicroserviceDTO {
 
-    @ApiModelProperty(value = "Role type of role.", required = true, example = "ROLE_USER_AND_GROUP_ADMINISTRATOR")
-    @NotEmpty(message = "{role.roleType.NotEmpty.message}")
-    private String roleType;
-    @ApiModelProperty(value = "Sign if role is default or not.", required = true, example = "true")
-    @NotNull(message = "{role.isDefault.NotNull.message}")
-    private boolean isDefault;
-    @ApiModelProperty(value = "A description of what the user is capable of with this role.", example = "This role will allow you to create and delete groups.")
-    private String description;
+  @Schema(
+      example = "ROLE_USER_AND_GROUP_ADMINISTRATOR",
+      requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotEmpty(message = "{role.roleType.NotEmpty.message}")
+  private String roleType;
 
-    /**
-     * Gets role type of the role.
-     *
-     * @return the role type of the role.
-     */
-    public String getRoleType() {
-        return roleType;
-    }
+  @Schema(
+      description = "Adds the role to the group every new user joins; at most one may set it.",
+      example = "true",
+      requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull(message = "{role.isDefault.NotNull.message}")
+  private boolean isDefault;
 
-    /**
-     * Sets role type of the role.
-     *
-     * @param roleType the role type of the role.
-     */
-    public void setRoleType(String roleType) {
-        this.roleType = roleType;
-    }
+  @Schema(example = "This role will allow you to create and delete groups.")
+  private String description;
 
-    /**
-     * Mark if the role is default.
-     *
-     * @return true if the role is default, false otherwise.
-     */
-    public boolean isDefault() {
-        return isDefault;
-    }
+  public String getRoleType() {
+    return roleType;
+  }
 
-    /**
-     * Sets mark if the role is default.
-     *
-     * @param aDefault true if role is default, false otherwise.
-     */
-    public void setDefault(boolean aDefault) {
-        isDefault = aDefault;
-    }
+  public void setRoleType(String roleType) {
+    this.roleType = roleType;
+  }
 
-    /**
-     * Gets description of the role.
-     *
-     * @return the description of the role.
-     */
-    public String getDescription() {
-        return description;
-    }
+  public boolean isDefault() {
+    return isDefault;
+  }
 
-    /**
-     * Sets description of the role.
-     *
-     * @param description the description of the role.
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public void setDefault(boolean aDefault) {
+    isDefault = aDefault;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof RoleForNewMicroserviceDTO)) return false;
-        RoleForNewMicroserviceDTO that = (RoleForNewMicroserviceDTO) object;
-        return isDefault() == that.isDefault() &&
-                Objects.equals(getRoleType(), that.getRoleType()) &&
-                Objects.equals(getDescription(), that.getDescription());
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getRoleType(), isDefault(), getDescription());
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    @Override
-    public String toString() {
-        return "RoleForNewMicroserviceDTO{" +
-                "roleType='" + roleType + '\'' +
-                ", isDefault=" + isDefault +
-                ", description='" + description + '\'' +
-                '}';
-    }
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof RoleForNewMicroserviceDTO)) return false;
+    RoleForNewMicroserviceDTO that = (RoleForNewMicroserviceDTO) object;
+    return isDefault() == that.isDefault()
+        && Objects.equals(getRoleType(), that.getRoleType())
+        && Objects.equals(getDescription(), that.getDescription());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getRoleType(), isDefault(), getDescription());
+  }
+
+  @Override
+  public String toString() {
+    return "RoleForNewMicroserviceDTO{"
+        + "roleType='"
+        + roleType
+        + '\''
+        + ", isDefault="
+        + isDefault
+        + ", description='"
+        + description
+        + '\''
+        + '}';
+  }
 }

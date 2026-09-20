@@ -6,25 +6,38 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+/** Configures the message source and validator used to resolve bean validation error messages. */
 @Configuration
 public class ValidationMessagesConfig {
 
-    @Bean
-    public MessageSource messageSourceValidation() {
-        final ReloadableResourceBundleMessageSource source = new ReloadableResourceBundleMessageSource();
-        source.setBasename("classpath:locale/ValidationMessages");
-        source.setUseCodeAsDefaultMessage(true);
-        source.setDefaultEncoding("UTF-8");
+  /**
+   * Returns the message source for validation messages, read from the ValidationMessages resource
+   * bundle in UTF-8 and re-read on every lookup, falling back to the message code itself when a key
+   * has no translation.
+   *
+   * @return the configured message source
+   */
+  @Bean
+  public MessageSource messageSourceValidation() {
+    final ReloadableResourceBundleMessageSource source =
+        new ReloadableResourceBundleMessageSource();
+    source.setBasename("classpath:locale/ValidationMessages");
+    source.setUseCodeAsDefaultMessage(true);
+    source.setDefaultEncoding("UTF-8");
 
-        source.setCacheSeconds(0);
-        return source;
-    }
+    source.setCacheSeconds(0);
+    return source;
+  }
 
-    @Bean
-    public LocalValidatorFactoryBean getValidator() {
-        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
-        bean.setValidationMessageSource(messageSourceValidation());
-        return bean;
-    }
-
+  /**
+   * Returns the validator wired to the message source configured in this class.
+   *
+   * @return the configured validator
+   */
+  @Bean
+  public LocalValidatorFactoryBean getValidator() {
+    LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
+    bean.setValidationMessageSource(messageSourceValidation());
+    return bean;
+  }
 }

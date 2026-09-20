@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.nio.charset.StandardCharsets;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.connector.Request;
 import org.modelmapper.ModelMapper;
@@ -27,18 +30,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import java.nio.charset.StandardCharsets;
-
 @Configuration
-@ComponentScan(basePackages = {
-        "cz.cyberrange.platform.userandgroup.rest.facade",
-        "cz.cyberrange.platform.userandgroup.api.mapping",
-        "cz.cyberrange.platform.userandgroup.service",
-        "cz.cyberrange.platform.userandgroup.rest.handler",
-        "cz.cyberrange.platform.userandgroup.util"
-})
+@ComponentScan(
+    basePackages = {
+      "cz.cyberrange.platform.userandgroup.rest.facade",
+      "cz.cyberrange.platform.userandgroup.api.mapping",
+      "cz.cyberrange.platform.userandgroup.service",
+      "cz.cyberrange.platform.userandgroup.rest.handler",
+      "cz.cyberrange.platform.userandgroup.util"
+    })
 @EntityScan(basePackages = "cz.cyberrange.platform.userandgroup.persistence.entity")
 @EnableJpaRepositories(basePackages = "cz.cyberrange.platform.userandgroup.persistence.repository")
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -46,46 +46,44 @@ import java.nio.charset.StandardCharsets;
 @EnableTransactionManagement
 @EnableRetry
 public class RestConfigTest extends WebSecurityConfigurerAdapter {
-    private static final Logger LOG = LoggerFactory.getLogger(RestConfigTest.class);
-    @Autowired
-    private Environment env;
+  private static final Logger LOG = LoggerFactory.getLogger(RestConfigTest.class);
+  @Autowired private Environment env;
 
-    @Bean
-    public ModelMapper modelMapper() {
-        LOG.debug("modelMapper()");
-        return new ModelMapper();
-    }
+  @Bean
+  public ModelMapper modelMapper() {
+    LOG.debug("modelMapper()");
+    return new ModelMapper();
+  }
 
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate rT = new RestTemplate();
-        rT.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-        return rT;
-    }
+  @Bean
+  public RestTemplate restTemplate() {
+    RestTemplate rT = new RestTemplate();
+    rT.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    return rT;
+  }
 
-    @Bean
-    @Primary
-    @Qualifier("objMapperRESTApi")
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper;
-    }
+  @Bean
+  @Primary
+  @Qualifier("objMapperRESTApi")
+  public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    return mapper;
+  }
 
-    @Bean(name = "yamlObjectMapper")
-    public ObjectMapper yamlObjectMapper() {
-        ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
-        yamlObjectMapper.findAndRegisterModules();
-        yamlObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        yamlObjectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        yamlObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        return yamlObjectMapper;
-    }
+  @Bean(name = "yamlObjectMapper")
+  public ObjectMapper yamlObjectMapper() {
+    ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
+    yamlObjectMapper.findAndRegisterModules();
+    yamlObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    yamlObjectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    yamlObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    return yamlObjectMapper;
+  }
 
-
-    @Bean
-    public HttpServletRequest httpServletRequest() {
-        return new HttpServletRequestWrapper(new Request(new Connector()));
-    }
+  @Bean
+  public HttpServletRequest httpServletRequest() {
+    return new HttpServletRequestWrapper(new Request(new Connector()));
+  }
 }
