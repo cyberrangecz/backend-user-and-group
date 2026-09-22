@@ -11,12 +11,11 @@ import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.cyberrange.platform.userandgroup.api.mapping.RoleMapper;
 import cz.cyberrange.platform.userandgroup.api.mapping.UserMapper;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.EntityErrorDetail;
-import cz.cyberrange.platform.userandgroup.definition.exceptions.SecurityException;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.UnprocessableEntityException;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
-import cz.cyberrange.platform.userandgroup.persistence.enums.AbstractCacheNames;
 import cz.cyberrange.platform.userandgroup.persistence.enums.UserAndGroupStatus;
 import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;
 import cz.cyberrange.platform.userandgroup.rest.facade.annotations.security.IsAdmin;
@@ -32,11 +31,11 @@ import cz.cyberrange.platform.userandgroup.service.UserService;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +49,6 @@ import org.springframework.util.Assert;
  * managing the roles assigned to them.
  */
 @Service
-@CacheConfig(cacheNames = {AbstractCacheNames.USERS_CACHE_NAME})
 @Transactional
 public class UserFacade {
 
@@ -125,8 +123,9 @@ public class UserFacade {
    * @param pageable page and sort request
    * @param predicate further filter applied to the users
    * @return the matching page of basic user views; empty page when none match
-   * @throws SecurityException when the caller lacks the administrator or power user authority and
-   *     no user matches the current request's sub and issuer
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException when
+   *     the caller lacks the administrator or power user authority and no user matches the current
+   *     request's sub and issuer
    */
   @IsTrainee
   @TransactionalRO
@@ -147,10 +146,9 @@ public class UserFacade {
    * @param id id of the user
    * @return the matching user
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException when
-   *     the caller has the administrator or power user authority and no user has that id
-   * @throws SecurityException when the caller lacks the administrator or power user authority and
-   *     no user matches the current request's sub and issuer, or when it is retrieving information
-   *     about a user other than itself
+   *     no user has that id, or when no user matches the current request's sub and issuer
+   * @throws UagAccessForbiddenException when the caller lacks the administrator or power user
+   *     authority and is retrieving information about a user other than itself
    */
   @IsTrainee
   @TransactionalRO
@@ -161,10 +159,10 @@ public class UserFacade {
 
     User loggedInUser = securityService.getLoggedInUser();
     // user can always retrieve himself
-    if (loggedInUser.getId() == id) {
+    if (Objects.equals(loggedInUser.getId(), id)) {
       return userMapper.mapToUserDTOWithRoles(loggedInUser);
     }
-    throw new SecurityException(
+    throw new UagAccessForbiddenException(
         "Cannot retrieve information about another user with current authorization.");
   }
 
@@ -173,9 +171,9 @@ public class UserFacade {
    * their groups filled in.
    *
    * @return the authenticated user
-   * @throws SecurityException when no user matches the current request's sub and issuer
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException when
+   *     no user matches the current request's sub and issuer
    */
-  //    @Cacheable(key = "{#sub+#iss}", sync = true)
   @IsTrainee
   @TransactionalRO
   public UserDTO getUserInfo() {
@@ -197,7 +195,6 @@ public class UserFacade {
    * @throws UnprocessableEntityException when the given data carries no given name, full name or
    *     family name
    */
-  //    @Cacheable(key = "{#sub+#iss}", sync = true)
   // if creation of user fail because of DataIntegrityViolationException, method is repeated one
   // more time which cause that user is updated not created
   @Retryable(

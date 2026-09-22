@@ -155,17 +155,16 @@ public class UsersRestController {
   /**
    * Returns the user with the given id, with the roles held through any of their groups filled in.
    * A caller without the administrator or power user authority may only request their own id;
-   * requesting a different id fails with HTTP 500, not HTTP 403 or HTTP 404. Requires at least the
-   * trainee authority; answers with HTTP 401 when the caller is not authenticated, and HTTP 400
-   * when id is not a number.
+   * requesting a different id fails with HTTP 403. Requires at least the trainee authority; answers
+   * with HTTP 401 when the caller is not authenticated, and HTTP 400 when id is not a number.
    *
    * @param id id of the user
    * @return HTTP 200 with the matching user
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
-   *     404) when the caller has the administrator or power user authority and no user has that id
-   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.SecurityException (HTTP 500)
-   *     when the caller lacks the administrator or power user authority and no user matches the
-   *     current request's sub and issuer, or when it is requesting a user other than itself
+   *     404) when no user has that id, or when no user matches the current request's sub and issuer
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException
+   *     (HTTP 403) when the caller lacks the administrator or power user authority and requests a
+   *     user other than itself
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
    *     does not hold that authority
    */
@@ -174,7 +173,7 @@ public class UsersRestController {
       summary = "Get a user by id",
       description =
           "An administrator or power user may ask for any id. Other callers may ask only for"
-              + " their own. A different id fails as a server error.")
+              + " their own. A different id is forbidden.")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -189,11 +188,13 @@ public class UsersRestController {
         content = @Content(schema = @Schema(implementation = ApiError.class))),
     @ApiResponse(
         responseCode = "403",
-        description = "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role.",
+        description =
+            "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role, or a non-privileged caller asked"
+                + " for another user's id.",
         content = @Content(schema = @Schema(implementation = ApiError.class))),
     @ApiResponse(
         responseCode = "404",
-        description = "No user has that id.",
+        description = "No user has that id, or no user matches the caller's sub and issuer.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
   @GetMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -363,8 +364,8 @@ public class UsersRestController {
    * caller is not authenticated.
    *
    * @return HTTP 200 with the authenticated user
-   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.SecurityException (HTTP 500)
-   *     when no user matches the current request's sub and issuer
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no user matches the current request's sub and issuer
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
    *     does not hold that authority
    */
@@ -377,7 +378,11 @@ public class UsersRestController {
     @ApiResponse(
         responseCode = "403",
         description = "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role.",
-        content = @Content(schema = @Schema(implementation = ApiError.class)))
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user matches the current request's sub and issuer.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
   @GetMapping(path = "/info")
   public ResponseEntity<UserDTO> getUserInfo() {
@@ -401,9 +406,9 @@ public class UsersRestController {
    * @return HTTP 200 with the matching page of basic user views; empty page when none match
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException (HTTP
    *     400) when the requested page size is 1000 or more
-   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.SecurityException (HTTP 500)
-   *     when the caller lacks the administrator or power user authority and no user matches the
-   *     current request's sub and issuer
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when the caller lacks the administrator or power user authority and no user matches
+   *     the current request's sub and issuer
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
    *     does not hold that authority
    */
@@ -424,7 +429,11 @@ public class UsersRestController {
     @ApiResponse(
         responseCode = "403",
         description = "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role.",
-        content = @Content(schema = @Schema(implementation = ApiError.class)))
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user matches the current request's sub and issuer.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
   @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsersWithGivenIds(

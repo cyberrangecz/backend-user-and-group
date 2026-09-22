@@ -188,8 +188,6 @@ class IDMGroupFacadeTest {
 
     groupFacade.addUsersToGroup(group2.getId(), addUsersToGroupDTO);
     then(groupService).should().updateIDMGroup(group2);
-    then(groupService).should().evictUserFromCache(user2);
-    then(groupService).should().evictUserFromCache(user3);
   }
 
   @Test
@@ -202,8 +200,6 @@ class IDMGroupFacadeTest {
 
     groupFacade.addUsersToGroup(group2.getId(), addUsersToGroupDTO);
     then(groupService).should().updateIDMGroup(group2);
-    then(groupService).should(never()).evictUserFromCache(user2);
-    then(groupService).should(never()).evictUserFromCache(user3);
   }
 
   @Test
@@ -216,8 +212,6 @@ class IDMGroupFacadeTest {
 
     groupFacade.addUsersToGroup(group2.getId(), addUsersToGroupDTO);
     then(groupService).should().updateIDMGroup(group2);
-    then(groupService).should(never()).evictUserFromCache(user2);
-    then(groupService).should(never()).evictUserFromCache(user3);
   }
 
   @Test
@@ -288,31 +282,5 @@ class IDMGroupFacadeTest {
     assertTrue(
         rolesDTO.getContent().stream()
             .anyMatch(r -> r.getRoleType().equals(RoleType.ROLE_USER_AND_GROUP_POWER_USER.name())));
-  }
-
-  @Test
-  void assignRoleToGroup() {
-    given(groupService.assignRole(group1.getId(), powerUserRole.getId())).willReturn(group1);
-
-    groupFacade.assignRole(group1.getId(), powerUserRole.getId());
-    group1
-        .getUsers()
-        .forEach(
-            user -> {
-              then(groupService).should().evictUserFromCache(user);
-            });
-  }
-
-  @Test
-  void removeRoleFromGroup() {
-    given(groupService.removeRoleFromGroup(group1.getId(), adminRole.getId())).willReturn(group1);
-
-    groupFacade.removeRoleFromGroup(group1.getId(), adminRole.getId());
-    group1
-        .getUsers()
-        .forEach(
-            user -> {
-              then(groupService).should().evictUserFromCache(user);
-            });
   }
 }

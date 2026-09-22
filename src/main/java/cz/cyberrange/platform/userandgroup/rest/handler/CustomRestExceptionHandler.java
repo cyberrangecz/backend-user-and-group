@@ -5,6 +5,7 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictE
 import cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.FileCannotReadException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.FileNotFoundException;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.UnprocessableEntityException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntityError;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
@@ -562,6 +563,28 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   /**
+   * Catches UagAccessForbiddenException. Answers with the status from its @ResponseStatus
+   * annotation (HTTP 403) and an ApiError whose message carries the localized message of the
+   * deepest cause, whose single error entry carries the exception's own message, and whose path
+   * carries the request's full URI.
+   *
+   * @param ex the caught exception
+   * @param req the failed request
+   * @return the built error response
+   */
+  @ExceptionHandler({UagAccessForbiddenException.class})
+  public ResponseEntity<Object> handleUagAccessForbiddenException(
+      final UagAccessForbiddenException ex, HttpServletRequest req) {
+    final ApiError apiError =
+        ApiError.of(
+            UagAccessForbiddenException.class.getAnnotation(ResponseStatus.class).value(),
+            getInitialException(ex).getLocalizedMessage(),
+            getErrorMessage(ex),
+            URL_PATH_HELPER.getRequestUri(req));
+    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+  }
+
+  /**
    * Catches any exception not caught by a more specific handler in this class. Answers with HTTP
    * 500 and an ApiError whose message carries the localized message of the deepest cause, whose
    * single error entry carries the exception's own message, and whose path carries the request's
@@ -589,19 +612,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
       exception = (Exception) exception.getCause();
     }
     return exception;
-  }
-
-  private String getFullStackTrace(Exception exception) {
-    try (StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw)) {
-      exception.printStackTrace(pw);
-      String fullStackTrace = sw.toString();
-      LOG.error(fullStackTrace);
-      return fullStackTrace;
-    } catch (IOException e) {
-      LOG.error("It was not possible to get the stack trace for that exception: ", e);
-    }
-    return "It was not possible to get the stack trace for that exception.";
   }
 
   private String getErrorMessage(Exception exception) {

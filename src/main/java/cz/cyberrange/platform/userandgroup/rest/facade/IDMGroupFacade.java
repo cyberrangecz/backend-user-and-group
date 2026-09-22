@@ -14,7 +14,6 @@ import cz.cyberrange.platform.userandgroup.api.mapping.RoleMapper;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
-import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;
 import cz.cyberrange.platform.userandgroup.rest.facade.annotations.security.IsAdmin;
 import cz.cyberrange.platform.userandgroup.rest.facade.annotations.transaction.TransactionalRO;
 import cz.cyberrange.platform.userandgroup.rest.facade.annotations.transaction.TransactionalWO;
@@ -54,8 +53,8 @@ public class IDMGroupFacade {
 
   /**
    * Creates a group from the given data, copying the members of each group referenced by its
-   * imported-user group ids into the new group. The returned group leaves its source unset and its
-   * deletion flag at the default value of true.
+   * imported-user group ids into the new group. The returned group has its deletion flag set to
+   * false when it is one of the groups created automatically by the service, and true otherwise.
    *
    * @param newGroupDTO data for the group to create, including the ids of the groups whose members
    *     are copied in
@@ -139,7 +138,6 @@ public class IDMGroupFacade {
       List<User> users = userService.getUsersByIds(idsOfUsers);
       for (User user : users) {
         group.addUser(user);
-        groupService.evictUserFromCache(user);
       }
     }
   }
@@ -188,8 +186,8 @@ public class IDMGroupFacade {
 
   /**
    * Returns every group that matches the given predicate, as basic group views. Each of the groups
-   * created automatically by the service has its deletion flag set to false; every other view
-   * leaves it at the default value of true. Every returned view leaves its source unset.
+   * created automatically by the service has its deletion flag set to false; every other view has
+   * it at true.
    *
    * @param predicate filter applied to the groups
    * @param pageable page and sort request
@@ -198,30 +196,12 @@ public class IDMGroupFacade {
   @IsAdmin
   @TransactionalRO
   public PageResultResource<GroupViewDTO> getAllGroups(Predicate predicate, Pageable pageable) {
-    PageResultResource<GroupViewDTO> groups =
-        groupMapper.mapToPageResultResource(groupService.getAllIDMGroups(predicate, pageable));
-    groups
-        .getContent()
-        .forEach(
-            groupViewDTO -> {
-              if (getListOfImplicitGroups().contains(groupViewDTO.getName())) {
-                groupViewDTO.setCanBeDeleted(false);
-              }
-            });
-    return groups;
-  }
-
-  private List<String> getListOfImplicitGroups() {
-    return List.of(
-        ImplicitGroupNames.DEFAULT_GROUP.getName(),
-        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(),
-        ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
+    return groupMapper.mapToPageResultResource(groupService.getAllIDMGroups(predicate, pageable));
   }
 
   /**
    * Returns the group with the given id. The returned group has its deletion flag set to false when
-   * it is one of the groups created automatically by the service, and left at the default value of
-   * true otherwise; its source stays unset.
+   * it is one of the groups created automatically by the service, and true otherwise.
    *
    * @param id id of the group
    * @return the matching group
@@ -231,17 +211,13 @@ public class IDMGroupFacade {
   @IsAdmin
   @TransactionalRO
   public GroupDTO getGroupById(Long id) {
-    GroupDTO groupDTO = groupMapper.mapToDTO(groupService.getGroupById(id));
-    if (getListOfImplicitGroups().contains(groupDTO.getName())) {
-      groupDTO.setCanBeDeleted(false);
-    }
-    return groupDTO;
+    return groupMapper.mapToDTO(groupService.getGroupById(id));
   }
 
   /**
    * Returns the group with the given name, provided it has at least one role, together with its
-   * roles and each role's microservice id and name. The returned group leaves its source unset and
-   * its deletion flag at the default value of true.
+   * roles and each role's microservice id and name. The returned group has its deletion flag set to
+   * false when it is one of the groups created automatically by the service, and true otherwise.
    *
    * @param groupName name of the group
    * @return the matching group with its roles
@@ -284,8 +260,7 @@ public class IDMGroupFacade {
   @IsAdmin
   @TransactionalWO
   public void assignRole(Long groupId, Long roleId) {
-    IDMGroup idmGroup = groupService.assignRole(groupId, roleId);
-    idmGroup.getUsers().forEach(user -> groupService.evictUserFromCache(user));
+    groupService.assignRole(groupId, roleId);
   }
 
   /**
@@ -303,7 +278,6 @@ public class IDMGroupFacade {
   @IsAdmin
   @TransactionalWO
   public void removeRoleFromGroup(Long groupId, Long roleId) {
-    IDMGroup idmGroup = groupService.removeRoleFromGroup(groupId, roleId);
-    idmGroup.getUsers().forEach(user -> groupService.evictUserFromCache(user));
+    groupService.removeRoleFromGroup(groupId, roleId);
   }
 }

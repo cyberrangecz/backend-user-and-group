@@ -22,7 +22,7 @@ public class RoleForNewMicroserviceDTO {
       example = "true",
       requiredMode = Schema.RequiredMode.REQUIRED)
   @NotNull(message = "{role.isDefault.NotNull.message}")
-  private boolean isDefault;
+  private Boolean isDefault;
 
   @Schema(example = "This role will allow you to create and delete groups.")
   private String description;
@@ -35,11 +35,11 @@ public class RoleForNewMicroserviceDTO {
     this.roleType = roleType;
   }
 
-  public boolean isDefault() {
+  public Boolean isDefault() {
     return isDefault;
   }
 
-  public void setDefault(boolean aDefault) {
+  public void setDefault(Boolean aDefault) {
     isDefault = aDefault;
   }
 
@@ -55,7 +55,7 @@ public class RoleForNewMicroserviceDTO {
   public boolean equals(Object object) {
     if (!(object instanceof RoleForNewMicroserviceDTO)) return false;
     RoleForNewMicroserviceDTO that = (RoleForNewMicroserviceDTO) object;
-    return isDefault() == that.isDefault()
+    return Objects.equals(isDefault(), that.isDefault())
         && Objects.equals(getRoleType(), that.getRoleType())
         && Objects.equals(getDescription(), that.getDescription());
   }

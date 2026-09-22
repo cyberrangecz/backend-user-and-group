@@ -1,18 +1,22 @@
 package cz.cyberrange.platform.userandgroup.api.mapping;
 
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
+import cz.cyberrange.platform.userandgroup.api.dto.group.GroupBaseDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupViewDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupWithRolesDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.NewGroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.UpdateGroupDTO;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
+import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -28,8 +32,8 @@ import org.springframework.data.domain.PageImpl;
 public interface IDMGroupMapper extends ParentMapper {
 
   /**
-   * Maps a group DTO to a group entity. The status and external id are left unset; the DTO's source
-   * and deletion flag have no matching field and are not carried over.
+   * Maps a group DTO to a group entity. The status and external id are left unset; the DTO's
+   * deletion flag has no matching field and is not carried over.
    *
    * @param dto group to map
    * @return the mapped group
@@ -38,7 +42,8 @@ public interface IDMGroupMapper extends ParentMapper {
 
   /**
    * Maps a group entity to a group DTO, with each role's microservice id and name filled in. The
-   * source is left unset and the deletion flag keeps its default value of true.
+   * deletion flag is false when the group is one of the groups created automatically by the
+   * service, and true otherwise.
    *
    * @param entity group to map
    * @return the mapped group
@@ -46,8 +51,9 @@ public interface IDMGroupMapper extends ParentMapper {
   GroupDTO mapToDTO(IDMGroup entity);
 
   /**
-   * Maps a group entity to a basic group view, without its users and roles. The source is left
-   * unset and the deletion flag keeps its default value of true.
+   * Maps a group entity to a basic group view, without its users and roles. The deletion flag is
+   * false when the group is one of the groups created automatically by the service, and true
+   * otherwise.
    *
    * @param entity group to map
    * @return the mapped group view
@@ -56,7 +62,8 @@ public interface IDMGroupMapper extends ParentMapper {
 
   /**
    * Maps a group entity to a group DTO including its roles, with each role's microservice id and
-   * name filled in. The source is left unset and the deletion flag keeps its default value of true.
+   * name filled in. The deletion flag is false when the group is one of the groups created
+   * automatically by the service, and true otherwise.
    *
    * @param entity group to map
    * @return the mapped group with its roles
@@ -93,8 +100,8 @@ public interface IDMGroupMapper extends ParentMapper {
 
   /**
    * Maps each group entity in the given collection to a basic group view, without its users and
-   * roles. Each mapped view has its source left unset and its deletion flag at the default value of
-   * true.
+   * roles. Each view of a group created automatically by the service has its deletion flag set to
+   * false, and every other view has it at true.
    *
    * @param entities groups to map
    * @return the mapped group views, in a new list
@@ -112,8 +119,8 @@ public interface IDMGroupMapper extends ParentMapper {
 
   /**
    * Maps each group entity in the given collection to a group DTO, with each role's microservice id
-   * and name filled in. Each mapped group has its source left unset and its deletion flag at the
-   * default value of true.
+   * and name filled in. Each group created automatically by the service has its deletion flag set
+   * to false, and every other group has it at true.
    *
    * @param entities groups to map
    * @return the mapped groups, in a new set
@@ -164,5 +171,25 @@ public interface IDMGroupMapper extends ParentMapper {
     List<GroupViewDTO> mapped = new ArrayList<>();
     objects.forEach(object -> mapped.add(mapToViewDTO(object)));
     return new PageResultResource<>(mapped, createPagination(objects));
+  }
+
+  /**
+   * Denies deletion of a mapped group that is one of the groups created automatically by the
+   * service, leaving the flag of every other group at the value it was mapped with.
+   *
+   * @param groupDTO mapped group to apply the rule to
+   */
+  @AfterMapping
+  default void denyDeletionOfImplicitGroup(@MappingTarget GroupBaseDTO groupDTO) {
+    if (implicitGroupNames().contains(groupDTO.getName())) {
+      groupDTO.setCanBeDeleted(false);
+    }
+  }
+
+  private static Set<String> implicitGroupNames() {
+    return Set.of(
+        ImplicitGroupNames.DEFAULT_GROUP.getName(),
+        ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(),
+        ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
   }
 }

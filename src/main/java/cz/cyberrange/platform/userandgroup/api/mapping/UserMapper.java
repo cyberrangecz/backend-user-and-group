@@ -12,10 +12,10 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -280,26 +280,14 @@ public interface UserMapper extends ParentMapper {
    * @return the basic view, or null when the user is null
    */
   default UserBasicViewDto mapToBasicViewDtoAnonymize(User user, Long loggedInUserId) {
-    if (user == null) {
-      return null;
+    UserBasicViewDto userBasicViewDto = mapToBasicViewDto(user);
+    if (userBasicViewDto != null && !Objects.equals(loggedInUserId, user.getId())) {
+      userBasicViewDto.setFullName("other player");
+      userBasicViewDto.setSub("other player");
+      userBasicViewDto.setMail("other player");
+      userBasicViewDto.setGivenName("other");
+      userBasicViewDto.setFamilyName("player");
     }
-
-    UserBasicViewDto userBasicViewDto = new UserBasicViewDto();
-
-    userBasicViewDto.setId(user.getId());
-    userBasicViewDto.setFullName(
-        loggedInUserId != user.getId() ? "other player" : user.getFullName());
-    userBasicViewDto.setSub(loggedInUserId != user.getId() ? "other player" : user.getSub());
-    userBasicViewDto.setMail(loggedInUserId != user.getId() ? "other player" : user.getMail());
-    userBasicViewDto.setGivenName(loggedInUserId != user.getId() ? "other" : user.getGivenName());
-    userBasicViewDto.setFamilyName(
-        loggedInUserId != user.getId() ? "player" : user.getFamilyName());
-    userBasicViewDto.setIss(user.getIss());
-    byte[] picture = user.getPicture();
-    if (picture != null) {
-      userBasicViewDto.setPicture(Arrays.copyOf(picture, picture.length));
-    }
-
     return userBasicViewDto;
   }
 

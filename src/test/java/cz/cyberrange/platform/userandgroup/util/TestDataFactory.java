@@ -3,7 +3,6 @@ package cz.cyberrange.platform.userandgroup.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cz.cyberrange.platform.userandgroup.api.dto.enums.SourceDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupViewDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.NewGroupDTO;
@@ -230,16 +229,13 @@ public class TestDataFactory {
           29);
 
   private final GroupDTO uAGPowerUserGroupDTO =
-      generateGroupDTO(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName(), SourceDTO.INTERNAL);
+      generateGroupDTO(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
   private final GroupDTO uAGUAdminGroupDTO =
-      generateGroupDTO(
-          ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), SourceDTO.INTERNAL);
+      generateGroupDTO(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName());
   private final GroupViewDTO powerUserGroupViewDTO =
-      generateGroupViewDTO(
-          ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName(), SourceDTO.INTERNAL);
+      generateGroupViewDTO(ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
   private final GroupViewDTO adminGroupViewDTO =
-      generateGroupViewDTO(
-          ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(), SourceDTO.INTERNAL);
+      generateGroupViewDTO(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName());
   private final NewGroupDTO newGroupDTO = generateNewGroupDTO("New Group");
   private final UpdateGroupDTO updateGroupDTO = generateUpdateGroupDTO("Update Group");
 
@@ -445,18 +441,16 @@ public class TestDataFactory {
     return group;
   }
 
-  private GroupDTO generateGroupDTO(String name, SourceDTO source) {
+  private GroupDTO generateGroupDTO(String name) {
     GroupDTO group = new GroupDTO();
     group.setName(name);
-    group.setSource(source);
     group.setDescription("Description of " + name);
     return group;
   }
 
-  private GroupViewDTO generateGroupViewDTO(String name, SourceDTO source) {
+  private GroupViewDTO generateGroupViewDTO(String name) {
     GroupViewDTO group = new GroupViewDTO();
     group.setName(name);
-    group.setSource(source);
     group.setDescription("Description of " + name);
     return group;
   }

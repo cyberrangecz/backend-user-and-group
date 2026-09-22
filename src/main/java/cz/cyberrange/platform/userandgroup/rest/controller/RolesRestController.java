@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Set;
 import javax.validation.constraints.NotBlank;
-import javax.ws.rs.Encoded;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -273,7 +272,7 @@ public class RolesRestController {
   public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRoleType(
       @QuerydslPredicate(root = User.class) Predicate predicate,
       @ParameterObject Pageable pageable,
-      @NotBlank @RequestParam("roleType") @Encoded String roleType) {
+      @NotBlank @RequestParam("roleType") String roleType) {
     PageResultResource<UserDTO> userDTOs =
         userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
     return ResponseEntity.ok(userDTOs);

@@ -1,7 +1,6 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
-import cz.cyberrange.platform.userandgroup.utils.converters.LocalDateTimeUTCSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.validation.constraints.NotEmpty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * Request body for creating a new group, either with an explicit set of users or by importing every
@@ -30,7 +28,6 @@ public class NewGroupDTO {
   private String description;
 
   @Schema(example = "2019-11-20T10:28:02.727")
-  @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
   private LocalDateTime expirationDate;
 
   private Set<UserForGroupsDTO> users = new HashSet<>();

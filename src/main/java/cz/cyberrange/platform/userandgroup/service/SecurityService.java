@@ -1,5 +1,7 @@
 package cz.cyberrange.platform.userandgroup.service;
 
+import cz.cyberrange.platform.userandgroup.definition.exceptions.EntityErrorDetail;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.RoleType;
@@ -32,7 +34,7 @@ public class SecurityService {
    * in its JWT.
    *
    * @return the authenticated user
-   * @throws SecurityException when no user has that sub and issuer
+   * @throws EntityNotFoundException when no user has that sub and issuer
    */
   public User getLoggedInUser() {
     String sub = getSubOfLoggedInUser();
@@ -40,8 +42,13 @@ public class SecurityService {
     Optional<User> optionalUser = userRepository.findBySubAndIss(sub, iss);
     return optionalUser.orElseThrow(
         () ->
-            new SecurityException(
-                "Logged in user with sub " + sub + " could not be found in database."));
+            new EntityNotFoundException(
+                new EntityErrorDetail(
+                    User.class,
+                    "sub",
+                    sub.getClass(),
+                    sub,
+                    "Logged in user with sub " + sub + " could not be found in database.")));
   }
 
   private String getSubOfLoggedInUser() {
@@ -71,7 +78,7 @@ public class SecurityService {
    *
    * @param userId id to compare
    * @return true when it matches, false otherwise
-   * @throws SecurityException when no user has the current sub and issuer
+   * @throws EntityNotFoundException when no user has the current sub and issuer
    */
   public boolean hasLoggedInUserSameId(Long userId) {
     User loggedInUser = getLoggedInUser();
@@ -84,12 +91,12 @@ public class SecurityService {
    *
    * @param groupId id of the group to check
    * @return true when the user belongs to that group, false otherwise
-   * @throws SecurityException when no user has the current sub and issuer
+   * @throws EntityNotFoundException when no user has the current sub and issuer
    * @throws javax.persistence.EntityNotFoundException when no group has that id
    */
   public boolean isLoggedInUserInGroup(Long groupId) {
     User loggedInUser = getLoggedInUser();
-    IDMGroup group = groupRepository.getOne(groupId);
+    IDMGroup group = groupRepository.getById(groupId);
     return group.getUsers().contains(loggedInUser);
   }
 
@@ -99,15 +106,22 @@ public class SecurityService {
    *
    * @param groupName name of the group to check
    * @return true when the user belongs to that group, false otherwise
-   * @throws SecurityException when no user has the current sub and issuer, or no group has that
-   *     name
+   * @throws EntityNotFoundException when no user has the current sub and issuer
+   * @throws EntityNotFoundException when no group has that name
    */
   public boolean isLoggedInUserInGroup(String groupName) {
     User loggedInUser = getLoggedInUser();
     Optional<IDMGroup> optionalGroup = groupRepository.findByName(groupName);
     IDMGroup group =
         optionalGroup.orElseThrow(
-            () -> new SecurityException("Group with name " + groupName + " could not be found."));
+            () ->
+                new EntityNotFoundException(
+                    new EntityErrorDetail(
+                        IDMGroup.class,
+                        "name",
+                        groupName.getClass(),
+                        groupName,
+                        "Group with name " + groupName + " could not be found.")));
     return group.getUsers().contains(loggedInUser);
   }
 

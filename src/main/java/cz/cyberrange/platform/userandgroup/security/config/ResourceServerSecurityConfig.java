@@ -34,6 +34,7 @@ public class ResourceServerSecurityConfig extends WebSecurityConfigurerAdapter {
 
   private final UserInfoValidator userInfoValidator;
   private final AuthorityGranter authorityGranter;
+
   // Each entry is one allowed origin from configuration, split on commas; defaults to allowing
   // every origin.
   @Value("#{'${cors.allowed.origins:#{*}}'.split(',')}")

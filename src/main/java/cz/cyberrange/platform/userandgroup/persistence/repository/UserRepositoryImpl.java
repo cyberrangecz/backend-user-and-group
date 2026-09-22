@@ -1,6 +1,5 @@
 package cz.cyberrange.platform.userandgroup.persistence.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,7 +17,6 @@ import java.nio.file.Paths;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -36,11 +34,8 @@ public class UserRepositoryImpl extends QuerydslRepositorySupport implements Use
   @Value("${path.to.initial.oidc.users:#{null}}")
   private String initialOIDCUsers;
 
-  private ObjectMapper yamlObjectMapper;
-
-  public UserRepositoryImpl(@Qualifier("yamlObjectMapper") ObjectMapper yamlObjectMapper) {
+  public UserRepositoryImpl() {
     super(User.class);
-    this.yamlObjectMapper = yamlObjectMapper;
   }
 
   public byte[] getInitialOIDCUsers() throws IOException {

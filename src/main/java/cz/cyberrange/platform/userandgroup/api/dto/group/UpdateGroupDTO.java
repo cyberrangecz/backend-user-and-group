@@ -1,12 +1,10 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
-import cz.cyberrange.platform.userandgroup.utils.converters.LocalDateTimeUTCSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /** Request body identifying an existing group and the values to update it with. */
 @Schema(name = "UpdateGroupDTO", description = "New values for an existing group, named by its id.")
@@ -25,7 +23,6 @@ public class UpdateGroupDTO {
   private String description;
 
   @Schema(example = "2019-11-20T10:28:02.727")
-  @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
   private LocalDateTime expirationDate;
 
   public Long getId() {

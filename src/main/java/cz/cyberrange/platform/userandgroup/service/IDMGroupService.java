@@ -322,7 +322,6 @@ public class IDMGroupService {
    *     user authenticated for the current request
    * @throws EntityConflictException when the group holds the default role of every microservice
    */
-  //    @CacheEvict(value = AbstractCacheNames.USERS_CACHE_NAME, key = "{#user.sub+#user.iss}")
   public void removeUserFromGroup(IDMGroup groupToUpdate, User user) {
     if (groupToUpdate.getName().equals(ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName())
         && securityService.hasLoggedInUserSameLogin(user.getSub())) {
@@ -353,8 +352,6 @@ public class IDMGroupService {
    * @param userToBeAdded user to add
    * @return the updated group
    */
-  //    @CacheEvict(value = AbstractCacheNames.USERS_CACHE_NAME, key =
-  // "{#userToBeAdded.sub+#userToBeAdded.iss}")
   public IDMGroup addUserToGroup(IDMGroup groupToUpdate, User userToBeAdded) {
     groupToUpdate.addUser(userToBeAdded);
     return groupRepository.save(groupToUpdate);
@@ -365,15 +362,5 @@ public class IDMGroupService {
         ImplicitGroupNames.DEFAULT_GROUP.getName(),
         ImplicitGroupNames.USER_AND_GROUP_ADMINISTRATOR.getName(),
         ImplicitGroupNames.USER_AND_GROUP_POWER_USER.getName());
-  }
-
-  /**
-   * Has no effect.
-   *
-   * @param user unused
-   */
-  //    @CacheEvict(AbstractCacheNames.USERS_CACHE_NAME, key = "{#user.sub+#user.iss}")
-  public void evictUserFromCache(User user) {
-    // evicting user from cache
   }
 }

@@ -18,7 +18,7 @@ import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserUpdateDTO;
 import cz.cyberrange.platform.userandgroup.api.mapping.RoleMapperImpl;
 import cz.cyberrange.platform.userandgroup.api.mapping.UserMapperImpl;
-import cz.cyberrange.platform.userandgroup.definition.exceptions.SecurityException;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
@@ -186,8 +186,8 @@ class UserFacadeTest {
 
   @Test
   void testGetUserInfoWithEmptyUserOptional() {
-    given(securityService.getLoggedInUser()).willThrow(SecurityException.class);
-    assertThrows(SecurityException.class, () -> userFacade.getUserInfo());
+    given(securityService.getLoggedInUser()).willThrow(UagAccessForbiddenException.class);
+    assertThrows(UagAccessForbiddenException.class, () -> userFacade.getUserInfo());
   }
 
   @Test
@@ -204,7 +204,7 @@ class UserFacadeTest {
   void testGetUserByIdFailAuth() {
     given(securityService.canRetrieveAnyInformation()).willReturn(false);
     given(securityService.getLoggedInUser()).willReturn(user1);
-    assertThrows(SecurityException.class, () -> userFacade.getUserById(user2.getId()));
+    assertThrows(UagAccessForbiddenException.class, () -> userFacade.getUserById(user2.getId()));
   }
 
   @Test

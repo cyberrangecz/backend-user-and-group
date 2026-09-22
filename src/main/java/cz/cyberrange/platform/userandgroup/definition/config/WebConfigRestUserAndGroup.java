@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import cz.cyberrange.platform.userandgroup.security.config.ResourceServerSecurityConfig;
 import java.util.List;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -19,7 +18,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @EnableSpringDataWebSupport
 @EnableScheduling
-@EnableCaching
 @EnableTransactionManagement
 @EnableRetry
 @Import({ResourceServerSecurityConfig.class})
