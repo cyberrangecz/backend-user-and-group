@@ -144,8 +144,7 @@ class RolesIntegrationTests {
             .getResponse();
     PageResultResource<RoleDTO> roles =
         objectMapper.readValue(
-            convertJsonBytesToObject(response.getContentAsString()),
-            new TypeReference<PageResultResource<RoleDTO>>() {});
+            response.getContentAsString(), new TypeReference<PageResultResource<RoleDTO>>() {});
     assertTrue(roles.getContent().contains(convertToRoleDTO(roleAdmin)));
     assertTrue(roles.getContent().contains(convertToRoleDTO(roleGuest)));
     assertTrue(roles.getContent().contains(convertToRoleDTO(roleUser)));
@@ -166,8 +165,7 @@ class RolesIntegrationTests {
             .getResponse();
     PageResultResource<RoleDTO> roles1 =
         objectMapper.readValue(
-            convertJsonBytesToObject(response1.getContentAsString()),
-            new TypeReference<PageResultResource<RoleDTO>>() {});
+            response1.getContentAsString(), new TypeReference<PageResultResource<RoleDTO>>() {});
     assertEquals(4, roles1.getPagination().getNumberOfElements());
     assertEquals(6, roles1.getPagination().getTotalElements());
 
@@ -180,8 +178,7 @@ class RolesIntegrationTests {
             .getResponse();
     PageResultResource<RoleDTO> roles2 =
         objectMapper.readValue(
-            convertJsonBytesToObject(response2.getContentAsString()),
-            new TypeReference<PageResultResource<RoleDTO>>() {});
+            response2.getContentAsString(), new TypeReference<PageResultResource<RoleDTO>>() {});
     assertEquals(2, roles2.getPagination().getNumberOfElements());
     assertEquals(1, roles2.getPagination().getNumber());
     assertEquals(2, roles2.getPagination().getTotalPages());
@@ -198,8 +195,7 @@ class RolesIntegrationTests {
             .getResponse();
     PageResultResource<RoleDTO> roles =
         objectMapper.readValue(
-            convertJsonBytesToObject(response.getContentAsString()),
-            new TypeReference<PageResultResource<RoleDTO>>() {});
+            response.getContentAsString(), new TypeReference<PageResultResource<RoleDTO>>() {});
     Set<Role> adminRolesNotInGroup = new HashSet<>(testDataFactory.getUAGAdminGroup().getRoles());
     adminRolesNotInGroup.removeAll(group3.getRoles());
 
@@ -307,20 +303,17 @@ class RolesIntegrationTests {
             .getResponse();
     assertTrue(
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .contains(convertToUserDTO(user1, Set.of(roleOrganizer, roleTrainee, roleGuest))));
     assertTrue(
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .contains(convertToUserDTO(user2, Set.of(roleOrganizer, roleTrainee, roleGuest))));
     assertTrue(
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
   }
@@ -383,8 +376,7 @@ class RolesIntegrationTests {
             .getResponse();
     assertTrue(
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
   }
@@ -402,8 +394,7 @@ class RolesIntegrationTests {
             .getResponse();
     assertTrue(
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
   }
@@ -430,8 +421,7 @@ class RolesIntegrationTests {
             .andReturn()
             .getResponse();
     PageResultResource<UserDTO> users =
-        objectMapper.readValue(
-            convertJsonBytesToObject(response.getContentAsString()), new TypeReference<>() {});
+        objectMapper.readValue(response.getContentAsString(), new TypeReference<>() {});
 
     assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
     assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));
@@ -454,8 +444,7 @@ class RolesIntegrationTests {
             .getResponse();
 
     PageResultResource<UserDTO> users =
-        objectMapper.readValue(
-            convertJsonBytesToObject(response.getContentAsString()), new TypeReference<>() {});
+        objectMapper.readValue(response.getContentAsString(), new TypeReference<>() {});
 
     assertTrue(users.getContent().contains(convertToUserDTO(user1, group2.getRoles())));
     assertTrue(users.getContent().contains(convertToUserDTO(user2, group2.getRoles())));

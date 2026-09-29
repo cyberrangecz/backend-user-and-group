@@ -122,8 +122,6 @@ class RolesRestControllerTest {
 
   @Test
   void getRoles() throws Exception {
-    String valueAs = convertObjectToJsonBytes(rolePageResultResource);
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
     given(roleFacade.getAllRoles(any(Predicate.class), any(Pageable.class)))
         .willReturn(rolePageResultResource);
 
@@ -134,9 +132,7 @@ class RolesRestControllerTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
             .getResponse();
-    assertEquals(
-        convertObjectToJsonBytes(convertObjectToJsonBytes(rolePageResultResource)),
-        result.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(rolePageResultResource), result.getContentAsString());
     then(roleFacade).should().getAllRoles(any(Predicate.class), any(Pageable.class));
   }
 
@@ -169,8 +165,6 @@ class RolesRestControllerTest {
 
   @Test
   void testGetAllRolesNotInGivenGroup() throws Exception {
-    String valueAs = convertObjectToJsonBytes(rolePageResultResource);
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
     given(
             roleFacade.getAllRolesNotInGivenGroup(
                 anyLong(), any(Predicate.class), any(Pageable.class)))
@@ -183,9 +177,7 @@ class RolesRestControllerTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
             .getResponse();
-    assertEquals(
-        convertObjectToJsonBytes(convertObjectToJsonBytes(rolePageResultResource)),
-        result.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(rolePageResultResource), result.getContentAsString());
     then(roleFacade)
         .should()
         .getAllRolesNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class));
@@ -193,11 +185,10 @@ class RolesRestControllerTest {
 
   @Test
   void getUsersWithGivenRole() throws Exception {
-    String valueTr =
-        convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
+    PageResultResource<UserDTO> expectedPage =
+        new PageResultResource<>(List.of(userDTO1, userDTO2));
     given(userFacade.getUsersWithGivenRole(anyLong(), any(Predicate.class), any(Pageable.class)))
-        .willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+        .willReturn(expectedPage);
 
     MockHttpServletResponse result =
         mockMvc
@@ -205,7 +196,7 @@ class RolesRestControllerTest {
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
-    assertEquals(convertObjectToJsonBytes(valueTr), result.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(expectedPage), result.getContentAsString());
   }
 
   @Test
@@ -227,18 +218,17 @@ class RolesRestControllerTest {
 
   @Test
   public void getUsersWithGivenRoleType() throws Exception {
-    String valueTr =
-        convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
+    PageResultResource<UserDTO> expectedPage =
+        new PageResultResource<>(List.of(userDTO1, userDTO2));
     given(userFacade.getUsersWithGivenRoleType(any(String.class), any(), any(Pageable.class)))
-        .willReturn(new PageResultResource<>(List.of(userDTO1, userDTO2)));
+        .willReturn(expectedPage);
     MockHttpServletResponse result =
         mockMvc
             .perform(get("/roles/users").param("roleType", adminRoleDTO.getRoleType()))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
-    assertEquals(convertObjectToJsonBytes(valueTr), result.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(expectedPage), result.getContentAsString());
   }
 
   @Test
@@ -260,11 +250,10 @@ class RolesRestControllerTest {
 
   @Test
   public void getUsersWithGivenRoleTypeAndNotWithGivenIds() throws Exception {
-    String valueTr =
-        convertObjectToJsonBytes(new PageResultResource<>(List.of(userDTO1, userDTO2)));
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueTr);
+    PageResultResource<UserBasicViewDto> expectedPage =
+        new PageResultResource<>(List.of(userBasicViewDto1, userBasicViewDto2));
     given(userFacade.getUsers(any(), any(Pageable.class), anyString(), anySet()))
-        .willReturn(new PageResultResource<>(List.of(userBasicViewDto1, userBasicViewDto2)));
+        .willReturn(expectedPage);
 
     MockHttpServletResponse response =
         mockMvc
@@ -276,6 +265,6 @@ class RolesRestControllerTest {
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
-    assertEquals(convertObjectToJsonBytes(valueTr), response.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(expectedPage), response.getContentAsString());
   }
 }

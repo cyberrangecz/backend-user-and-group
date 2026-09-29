@@ -837,8 +837,7 @@ class IDMGroupsIntegrationTests {
             .getResponse();
     List<GroupDTO> responseGroupDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<GroupDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<GroupDTO>>() {})
             .getContent();
     assertTrue(responseGroupDTOs.contains(convertToGroupDTO(powerUserGroup)));
     assertTrue(responseGroupDTOs.contains(convertToGroupDTO(powerUserGroup)));

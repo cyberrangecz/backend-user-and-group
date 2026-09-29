@@ -307,8 +307,6 @@ class GroupsRestControllerTest {
 
   @Test
   public void testGetGroups() throws Exception {
-    String valueAs = convertObjectToJsonBytes(groupPageResultResource);
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
     given(groupFacade.getAllGroups(any(Predicate.class), any(Pageable.class)))
         .willReturn(groupPageResultResource);
 
@@ -319,9 +317,7 @@ class GroupsRestControllerTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
             .getResponse();
-    assertEquals(
-        convertObjectToJsonBytes(convertObjectToJsonBytes(groupPageResultResource)),
-        result.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(groupPageResultResource), result.getContentAsString());
     then(groupFacade).should().getAllGroups(any(Predicate.class), any(Pageable.class));
   }
 

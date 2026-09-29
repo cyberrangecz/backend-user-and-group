@@ -318,7 +318,7 @@ class MicroservicesIntegrationTests {
             .getResponse();
     List<MicroserviceDTO> microserviceResponseDTO =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
+                response.getContentAsString(),
                 new TypeReference<PageResultResource<MicroserviceDTO>>() {})
             .getContent();
     assertTrue(

@@ -142,8 +142,6 @@ class UsersRestControllerTest {
 
   @Test
   void testGetUsers() throws Exception {
-    String valueAs = convertObjectToJsonBytes(userPageResultResource);
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
     given(userFacade.getUsers(any(Predicate.class), any(Pageable.class)))
         .willReturn(userBasicViewDtoPageResultResource);
 
@@ -155,8 +153,7 @@ class UsersRestControllerTest {
             .andReturn()
             .getResponse();
     assertEquals(
-        convertObjectToJsonBytes(convertObjectToJsonBytes(userPageResultResource)),
-        result.getContentAsString());
+        convertObjectToJsonBytes(userBasicViewDtoPageResultResource), result.getContentAsString());
     then(userFacade).should().getUsers(any(Predicate.class), any(Pageable.class));
   }
 
@@ -188,8 +185,6 @@ class UsersRestControllerTest {
 
   @Test
   void testGetAllUsersNotInGivenGroup() throws Exception {
-    String valueAs = convertObjectToJsonBytes(userPageResultResource);
-    given(objectMapper.writeValueAsString(any(Object.class))).willReturn(valueAs);
     given(
             userFacade.getAllUsersNotInGivenGroup(
                 anyLong(), any(Predicate.class), any(Pageable.class)))
@@ -202,9 +197,7 @@ class UsersRestControllerTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
             .getResponse();
-    assertEquals(
-        convertObjectToJsonBytes(convertObjectToJsonBytes(userPageResultResource)),
-        result.getContentAsString());
+    assertEquals(convertObjectToJsonBytes(userPageResultResource), result.getContentAsString());
     then(userFacade)
         .should()
         .getAllUsersNotInGivenGroup(anyLong(), any(Predicate.class), any(Pageable.class));

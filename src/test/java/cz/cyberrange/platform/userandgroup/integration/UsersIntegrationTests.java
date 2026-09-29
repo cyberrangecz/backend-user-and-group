@@ -146,8 +146,7 @@ class UsersIntegrationTests {
             .getResponse();
     List<UserDTO> responseUsersDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent();
     assertTrue(
         responseUsersDTOs.contains(
@@ -199,8 +198,7 @@ class UsersIntegrationTests {
             .getResponse();
     List<UserDTO> responseUsersDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent();
     assertFalse(
         responseUsersDTOs.contains(
@@ -248,8 +246,7 @@ class UsersIntegrationTests {
     assertEquals(
         0,
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .size());
   }
@@ -268,8 +265,7 @@ class UsersIntegrationTests {
     assertEquals(
         0,
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent()
             .size());
   }
@@ -329,7 +325,7 @@ class UsersIntegrationTests {
             .getResponse();
     List<UserForGroupsDTO> responseUsersDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
+                response.getContentAsString(),
                 new TypeReference<PageResultResource<UserForGroupsDTO>>() {})
             .getContent();
     assertTrue(responseUsersDTOs.contains(modelMapper.map(user1, UserForGroupsDTO.class)));
@@ -384,7 +380,7 @@ class UsersIntegrationTests {
             .getResponse();
     List<UserForGroupsDTO> responseUsersDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
+                response.getContentAsString(),
                 new TypeReference<PageResultResource<UserForGroupsDTO>>() {})
             .getContent();
     assertTrue(responseUsersDTOs.contains(modelMapper.map(user1, UserForGroupsDTO.class)));
@@ -406,7 +402,7 @@ class UsersIntegrationTests {
             .getResponse();
     List<UserForGroupsDTO> responseUsersDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
+                response.getContentAsString(),
                 new TypeReference<PageResultResource<UserForGroupsDTO>>() {})
             .getContent();
     assertTrue(responseUsersDTOs.contains(modelMapper.map(user4, UserForGroupsDTO.class)));
@@ -469,8 +465,7 @@ class UsersIntegrationTests {
             .getResponse();
     List<UserDTO> responseUsersDTOs =
         convertJsonBytesToObject(
-                convertJsonBytesToObject(response.getContentAsString()),
-                new TypeReference<PageResultResource<UserDTO>>() {})
+                response.getContentAsString(), new TypeReference<PageResultResource<UserDTO>>() {})
             .getContent();
     assertTrue(responseUsersDTOs.contains(convertToUserDTO(user3, Set.of())));
     assertTrue(responseUsersDTOs.contains(convertToUserDTO(user4, Set.of(roleOrganizer))));
