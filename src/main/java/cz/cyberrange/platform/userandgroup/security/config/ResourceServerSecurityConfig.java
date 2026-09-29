@@ -4,7 +4,7 @@ import cz.cyberrange.platform.userandgroup.security.AuthorityGranter;
 import cz.cyberrange.platform.userandgroup.security.impl.CustomAuthenticationEntryPoint;
 import cz.cyberrange.platform.userandgroup.security.impl.UserInfoAuthenticationProvider;
 import cz.cyberrange.platform.userandgroup.security.impl.UserInfoValidator;
-import edu.emory.mathcs.backport.java.util.Collections;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
