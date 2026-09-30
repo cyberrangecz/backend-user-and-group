@@ -6,5 +6,4 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
 @Import(RestConfigTest.class)
-class IntegrationTestApplication {
-}
+class IntegrationTestApplication {}

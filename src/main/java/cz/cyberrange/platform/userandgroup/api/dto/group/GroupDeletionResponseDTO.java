@@ -1,82 +1,49 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
 import cz.cyberrange.platform.userandgroup.api.dto.enums.GroupDeletionStatusDTO;
-import cz.cyberrange.platform.userandgroup.api.dto.enums.UserDeletionStatusDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
-/**
- * Data transfer object used when some group is deleted.
- */
-@ApiModel(value = "GroupDeletionResponseDTO",
-        description = "The information provided immediately to the client after the client deletes a given group.")
+/** The outcome reported back to the caller right after a group deletion request. */
+@Schema(name = "GroupDeletionResponseDTO", description = "The outcome of deleting one group.")
 public class GroupDeletionResponseDTO {
 
-    @ApiModelProperty(value = "Main identifiers of deleted group.", example = "1", position = 1)
-    private Long id;
-    @ApiModelProperty(value = "Result of deleting group: \n" +
-            "1) SUCCESS - group was deleted\n " +
-            "2) NOT_FOUND - group has not found\n" +
-            "3) ERROR - group could not be deleted, try it later\n" +
-            "4) ERROR_MAIN_GROUP - group cannot be deleted due to it is one of the main group for roles (ADMINISTRATOR, USER, GUEST)", example = "SUCCESS")
-    private GroupDeletionStatusDTO status;
+  @Schema(example = "1")
+  private Long id;
 
-    /**
-     * Gets the ID of the group.
-     *
-     * @return the ID of the group
-     */
-    public Long getId() {
-        return id;
-    }
+  @Schema(example = "SUCCESS")
+  private GroupDeletionStatusDTO status;
 
-    /**
-     * Sets ID of group.
-     *
-     * @param id the ID of group.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    /**
-     * Gets the status of the deletion.
-     *
-     * @return the status of the deletion {@link UserDeletionStatusDTO}.
-     */
-    public GroupDeletionStatusDTO getStatus() {
-        return status;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    /**
-     * Sets the status of the deletion.
-     *
-     * @param status the status of the deletion {@link UserDeletionStatusDTO}.
-     */
-    public void setStatus(GroupDeletionStatusDTO status) {
-        this.status = status;
-    }
+  public GroupDeletionStatusDTO getStatus() {
+    return status;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof GroupDeletionResponseDTO)) return false;
-        GroupDeletionResponseDTO that = (GroupDeletionResponseDTO) object;
-        return Objects.equals(getId(), that.getId()) &&
-                getStatus() == that.getStatus();
-    }
+  public void setStatus(GroupDeletionStatusDTO status) {
+    this.status = status;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getStatus());
-    }
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof GroupDeletionResponseDTO)) return false;
+    GroupDeletionResponseDTO that = (GroupDeletionResponseDTO) object;
+    return Objects.equals(getId(), that.getId()) && getStatus() == that.getStatus();
+  }
 
-    @Override
-    public String toString() {
-        return "GroupDeletionResponseDTO{" +
-                "id=" + id +
-                ", status=" + status +
-                '}';
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(getId(), getStatus());
+  }
+
+  @Override
+  public String toString() {
+    return "GroupDeletionResponseDTO{" + "id=" + id + ", status=" + status + '}';
+  }
 }

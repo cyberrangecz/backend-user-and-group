@@ -1,119 +1,95 @@
 package cz.cyberrange.platform.userandgroup.persistence.entity;
 
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.Objects;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
- * Represents microservice which participates in the system.
+ * A microservice registered with the system, identified by a unique name. Each {@link Role} that
+ * belongs to it owns the reference to it.
  */
 @Entity
 @Table(name = "microservice")
 public class Microservice extends AbstractEntity<Long> {
 
-    @Column(name = "name", nullable = false, unique = true)
-    private String name;
-    @Column(name = "endpoint", nullable = false)
-    private String endpoint;
+  @Column(name = "name", nullable = false, unique = true)
+  private String name;
 
-    /**
-     * Instantiates a new Microservice.
-     */
-    public Microservice() {
-    }
+  @Column(name = "endpoint", nullable = false)
+  private String endpoint;
 
-    /**
-     * Instantiates a new Microservice with attributes name and endpoint. Neither of them can be empty.
-     *
-     * @param name     the name
-     * @param endpoint the endpoint
-     */
-    public Microservice(String name, String endpoint) {
-        Assert.hasLength(name, "Name of microservice must not be empty");
-        Assert.hasLength(endpoint, "Endpoint of microservice must not be empty");
-        Assert.isTrue(!StringUtils.containsWhitespace(endpoint), "Endpoint of microservice must not contain whitespace");
-        this.name = name;
-        this.endpoint = endpoint;
-    }
+  public Microservice() {}
 
-    /**
-     * Gets the ID of the microservice.
-     *
-     * @return the ID of the microservice
-     */
-    public Long getId() {
-        return super.getId();
-    }
+  /**
+   * Creates a microservice with the given name and endpoint.
+   *
+   * @param name name of the microservice
+   * @param endpoint endpoint of the microservice
+   * @throws IllegalArgumentException when name or endpoint is empty, or endpoint contains
+   *     whitespace
+   */
+  public Microservice(String name, String endpoint) {
+    Assert.hasLength(name, "Name of microservice must not be empty");
+    Assert.hasLength(endpoint, "Endpoint of microservice must not be empty");
+    Assert.isTrue(
+        !StringUtils.containsWhitespace(endpoint),
+        "Endpoint of microservice must not contain whitespace");
+    this.name = name;
+    this.endpoint = endpoint;
+  }
 
-    /**
-     * Sets the new ID of the microservice.
-     *
-     * @param id the ID of the microservice.
-     */
-    public void setId(Long id) {
-        super.setId(id);
-    }
+  public Long getId() {
+    return super.getId();
+  }
 
-    /**
-     * Gets the name of the microservice.
-     *
-     * @return the name of the microservice.
-     */
-    public String getName() {
-        return name;
-    }
+  public void setId(Long id) {
+    super.setId(id);
+  }
 
-    /**
-     * Sets a new name of the microservice.
-     *
-     * @param name the name of the microservice.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Gets endpoint of the microservice.
-     *
-     * @return the endpoint of the microservice.
-     */
-    public String getEndpoint() {
-        return endpoint;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    /**
-     * Sets a new endpoint of the microservice.
-     *
-     * @param endpoint the endpoint of the microservice.
-     */
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
+  public String getEndpoint() {
+    return endpoint;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof Microservice)) {
-            return false;
-        }
-        Microservice other = (Microservice) object;
-        return Objects.equals(getName(), other.getName());
-    }
+  public void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getName());
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof Microservice)) {
+      return false;
     }
+    Microservice other = (Microservice) object;
+    return Objects.equals(getName(), other.getName());
+  }
 
-    @Override
-    public String toString() {
-        return "Microservice{" +
-                "id=" + super.getId() +
-                ", name='" + name + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                '}';
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName());
+  }
+
+  @Override
+  public String toString() {
+    return "Microservice{"
+        + "id="
+        + super.getId()
+        + ", name='"
+        + name
+        + '\''
+        + ", endpoint='"
+        + endpoint
+        + '\''
+        + '}';
+  }
 }

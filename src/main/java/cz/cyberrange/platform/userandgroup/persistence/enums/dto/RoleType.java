@@ -1,23 +1,11 @@
 package cz.cyberrange.platform.userandgroup.persistence.enums.dto;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Enumeration of role types.
- */
-@ApiModel(value = "RoleTypeDTO",
-        description = "The types of a default roles.")
+/** Distinguishes the access levels a default role can grant: administrator, user or guest. */
+@Schema(name = "RoleTypeDTO", description = "Level of access a role grants.")
 public enum RoleType {
-    /**
-     * The role of administrator.
-     */
-    ADMINISTRATOR,
-    /**
-     * The role of user.
-     */
-    USER,
-    /**
-     * Base role of guest.
-     */
-    GUEST
+  ADMINISTRATOR,
+  USER,
+  GUEST
 }

@@ -1,102 +1,131 @@
 package cz.cyberrange.platform.userandgroup.api.dto.user;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+/** Carries the fields accepted when updating a user's stored details. */
 public class UserUpdateDTO {
-    @ApiModelProperty(name = "sub", value = "User sub.", example = "johndoe@mail.example.cz")
-    private String sub;
-    @ApiModelProperty(name = "iss", value = "OIDC issuer for that user record.", example = "https://oidc.provider.cz/oidc")
-    private String iss;
-    @ApiModelProperty(name = "full_name", value = "User full name.", example = "John Doe")
-    private String fullName;
-    @ApiModelProperty(name = "given_name", value = "User given name.", example = "John")
-    private String givenName;
-    @ApiModelProperty(name = "family_name", value = "User family name.", example = "Doe")
-    private String familyName;
-    @ApiModelProperty(name = "external_id", value = "User external id.", example = "1")
-    private Long externalId;
-    @ApiModelProperty(name = "mail", value = "User mail.", example = "johndoe@mail.example.cz")
-    private String mail;
-    @ApiModelProperty(name = "picture", value = "User profile picture.")
-    private byte[] picture;
+  @Schema(
+      name = "sub",
+      description = "Subject identifier the OIDC provider issued for the user.",
+      example = "johndoe@mail.example.cz")
+  private String sub;
 
-    public UserUpdateDTO() {
-    }
+  @Schema(
+      name = "iss",
+      description = "URL of the OIDC provider that issued the subject.",
+      example = "https://oidc.provider.cz/oidc")
+  private String iss;
 
-    public String getSub() {
-        return sub;
-    }
+  @Schema(name = "full_name", example = "John Doe")
+  private String fullName;
 
-    public void setSub(String sub) {
-        this.sub = sub;
-    }
+  @Schema(name = "given_name", example = "John")
+  private String givenName;
 
-    public String getFullName() {
-        return fullName;
-    }
+  @Schema(name = "family_name", example = "Doe")
+  private String familyName;
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+  @Schema(
+      name = "external_id",
+      description = "Id the user carries in the source it was imported from.",
+      example = "1")
+  private Long externalId;
 
-    public String getGivenName() {
-        return givenName;
-    }
+  @Schema(name = "mail", example = "johndoe@mail.example.cz")
+  private String mail;
 
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
+  @Schema(name = "picture")
+  private byte[] picture;
 
-    public String getFamilyName() {
-        return familyName;
-    }
+  public UserUpdateDTO() {}
 
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
-    }
+  public String getSub() {
+    return sub;
+  }
 
-    public Long getExternalId() {
-        return externalId;
-    }
+  public void setSub(String sub) {
+    this.sub = sub;
+  }
 
-    public void setExternalId(Long externalId) {
-        this.externalId = externalId;
-    }
+  public String getFullName() {
+    return fullName;
+  }
 
-    public String getMail() {
-        return mail;
-    }
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
 
-    public void setMail(String mail) {
-        this.mail = mail;
-    }
+  public String getGivenName() {
+    return givenName;
+  }
 
-    public String getIss() {
-        return iss;
-    }
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
 
-    public void setIss(String iss) {
-        this.iss = iss;
-    }
+  public String getFamilyName() {
+    return familyName;
+  }
 
-    public byte[] getPicture() {
-        return picture;
-    }
+  public void setFamilyName(String familyName) {
+    this.familyName = familyName;
+  }
 
-    public void setPicture(byte[] picture) {
-        this.picture = picture;
-    }
+  public Long getExternalId() {
+    return externalId;
+  }
 
-    @Override
-    public String toString() {
-        return "UserUpdateDTO{" +
-                "sub='" + sub + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", givenName='" + givenName + '\'' +
-                ", familyName='" + familyName + '\'' +
-                ", externalId=" + externalId +
-                ", mail='" + mail + '\'' +
-                ", iss='" + iss + '\'' +
-                '}';
-    }
+  public void setExternalId(Long externalId) {
+    this.externalId = externalId;
+  }
+
+  public String getMail() {
+    return mail;
+  }
+
+  public void setMail(String mail) {
+    this.mail = mail;
+  }
+
+  public String getIss() {
+    return iss;
+  }
+
+  public void setIss(String iss) {
+    this.iss = iss;
+  }
+
+  public byte[] getPicture() {
+    return picture;
+  }
+
+  public void setPicture(byte[] picture) {
+    this.picture = picture;
+  }
+
+  @Override
+  public String toString() {
+    return "UserUpdateDTO{"
+        + "sub='"
+        + sub
+        + '\''
+        + ", fullName='"
+        + fullName
+        + '\''
+        + ", givenName='"
+        + givenName
+        + '\''
+        + ", familyName='"
+        + familyName
+        + '\''
+        + ", externalId="
+        + externalId
+        + ", mail='"
+        + mail
+        + '\''
+        + ", iss='"
+        + iss
+        + '\''
+        + '}';
+  }
 }

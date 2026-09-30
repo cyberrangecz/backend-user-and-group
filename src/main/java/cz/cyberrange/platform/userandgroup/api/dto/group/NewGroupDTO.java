@@ -1,147 +1,105 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
-import cz.cyberrange.platform.userandgroup.utils.converters.LocalDateTimeUTCSerializer;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-import javax.validation.constraints.NotEmpty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.validation.constraints.NotEmpty;
 
 /**
- * Encapsulates information about a new group to be created in the database.
+ * Request body for creating a new group, either with an explicit set of users or by importing every
+ * user of the given groups.
  */
-@ApiModel(value = "NewGroupDTO", description = "Data that need to be provided to create a new group.")
+@Schema(
+    name = "NewGroupDTO",
+    description = "A group to create, with the groups its first members are taken from.")
 public class NewGroupDTO {
 
-    @ApiModelProperty(value = "A name of the group.", required = true, example = "Main group")
-    @NotEmpty(message = "{group.name.NotEmpty.message}")
-    private String name;
-    @ApiModelProperty(value = "A description of the group.", required = true, example = "Group for main users.")
-    @NotEmpty(message = "{group.description.NotEmpty.message}")
-    private String description;
-    @ApiModelProperty(value = "Time until the group is valid.", example = "2019-11-20T10:28:02.727Z")
-    @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
-    private LocalDateTime expirationDate;
-    @ApiModelProperty(value = "List of users who is assigned to group.")
-    private Set<UserForGroupsDTO> users = new HashSet<>();
-    @ApiModelProperty(value = "Main identifiers of group.", example = "[1]")
-    private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Main group")
+  @NotEmpty(message = "{group.name.NotEmpty.message}")
+  private String name;
 
-    /**
-     * Gets the name of the group.
-     *
-     * @return the name of the group.
-     */
-    public String getName() {
-        return name;
-    }
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Group for main users.")
+  @NotEmpty(message = "{group.description.NotEmpty.message}")
+  private String description;
 
-    /**
-     * Sets the name of the group.
-     *
-     * @param name the name of the group.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+  @Schema(example = "2019-11-20T10:28:02.727")
+  private LocalDateTime expirationDate;
 
-    /**
-     * Gets the description of the group.
-     *
-     * @return the description of the group.
-     */
-    public String getDescription() {
-        return description;
-    }
+  private Set<UserForGroupsDTO> users = new HashSet<>();
 
-    /**
-     * Sets description of the group.
-     *
-     * @param description the description of the group.
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  @Schema(
+      description = "Ids of the groups whose members are copied into the new group.",
+      example = "[1]")
+  private List<Long> groupIdsOfImportedUsers = new ArrayList<>();
 
-    /**
-     * Gets the {@link UserForGroupsDTO} of the group.
-     *
-     * @return the {@link UserForGroupsDTO} of the group.
-     */
-    public Set<UserForGroupsDTO> getUsers() {
-        return users;
-    }
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Sets the {@link UserForGroupsDTO} of the group.
-     *
-     * @param users the {@link UserForGroupsDTO} of the group.
-     */
-    public void setUsers(Set<UserForGroupsDTO> users) {
-        this.users = users;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    /**
-     * Gets a list of IDs of groups from which import users.
-     *
-     * @return the list of IDs of groups from which import users.
-     */
-    public List<Long> getGroupIdsOfImportedUsers() {
-        return groupIdsOfImportedUsers;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    /**
-     * Sets a list of IDs of groups from which import users.
-     *
-     * @param groupIdsOfImportedUsers the group ids of imported users
-     */
-    public void setGroupIdsOfImportedUsers(List<Long> groupIdsOfImportedUsers) {
-        this.groupIdsOfImportedUsers = groupIdsOfImportedUsers;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    /**
-     * Gets expiration date of the group.
-     *
-     * @return the expiration date of the group
-     */
-    public LocalDateTime getExpirationDate() {
-        return expirationDate;
-    }
+  public Set<UserForGroupsDTO> getUsers() {
+    return users;
+  }
 
-    /**
-     * Sets expiration date of the group.
-     *
-     * @param expirationDate the expiration date of the group.
-     */
-    public void setExpirationDate(LocalDateTime expirationDate) {
-        this.expirationDate = expirationDate;
-    }
+  public void setUsers(Set<UserForGroupsDTO> users) {
+    this.users = users;
+  }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof NewGroupDTO)) return false;
-        NewGroupDTO that = (NewGroupDTO) object;
-        return Objects.equals(getName(), that.getName());
-    }
+  public List<Long> getGroupIdsOfImportedUsers() {
+    return groupIdsOfImportedUsers;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getName());
-    }
+  public void setGroupIdsOfImportedUsers(List<Long> groupIdsOfImportedUsers) {
+    this.groupIdsOfImportedUsers = groupIdsOfImportedUsers;
+  }
 
-    @Override
-    public String toString() {
-        return "NewGroupDTO{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", expirationDate=" + expirationDate +
-                '}';
-    }
+  public LocalDateTime getExpirationDate() {
+    return expirationDate;
+  }
+
+  public void setExpirationDate(LocalDateTime expirationDate) {
+    this.expirationDate = expirationDate;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof NewGroupDTO)) return false;
+    NewGroupDTO that = (NewGroupDTO) object;
+    return Objects.equals(getName(), that.getName());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName());
+  }
+
+  @Override
+  public String toString() {
+    return "NewGroupDTO{"
+        + "name='"
+        + name
+        + '\''
+        + ", description='"
+        + description
+        + '\''
+        + ", expirationDate="
+        + expirationDate
+        + '}';
+  }
 }

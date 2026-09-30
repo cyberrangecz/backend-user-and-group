@@ -1,8 +1,10 @@
 package cz.cyberrange.platform.userandgroup.api.dto.enums;
 
-import io.swagger.annotations.ApiModel;
-
-@ApiModel(value = "UserAndGroupStatusDTO", description = "The user and group status.")
+/** Governs the lifecycle status of a user or group. */
 public enum UserAndGroupStatusDTO {
-    VALID, DELETED, DIRTY
+  /** The user or group is active and not marked for deletion. */
+  VALID,
+  /** The user or group is marked for deletion. */
+  DELETED,
+  DIRTY
 }

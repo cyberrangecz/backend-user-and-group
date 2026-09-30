@@ -1,63 +1,46 @@
 package cz.cyberrange.platform.userandgroup.startup;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.RoleType;
-
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class is used for loading and wrapping {@link User} with his {@link Role}s from the configuration file.
+ * Holds a user together with the role types assigned to it, as read from the initial users
+ * configuration file.
  */
 public class UsersWrapper {
 
-    @JsonIgnoreProperties({"id"})
-    private User user;
-    private Set<RoleType> roles = new HashSet<>();
+  @JsonIgnoreProperties({"id"})
+  private User user;
 
-    /**
-     * Gets an instance of a user.
-     *
-     * @return the {@link User} inserted to system through the configuration file.
-     */
-    public User getUser() {
-        return user;
-    }
+  private Set<RoleType> roles = new HashSet<>();
 
-    /**
-     * Sets new user.
-     *
-     * @param user the {@link User} to be wrapped by this class.
-     */
-    public void setUser(User user) {
-        this.user = user;
-    }
+  public User getUser() {
+    return user;
+  }
 
-    /**
-     * Gets the roles of the user.
-     *
-     * @return the roles of the {@link User} inserted through the configuration file.
-     */
-    public Set<RoleType> getRoles() {
-        return roles;
-    }
+  public void setUser(User user) {
+    this.user = user;
+  }
 
-    /**
-     * Sets {@link Role}s to the {@link User}.
-     *
-     * @param roles roles to be set for the {@link User}
-     */
-    public void setRoles(Set<RoleType> roles) {
-        this.roles = new HashSet<>(roles);
-    }
+  public Set<RoleType> getRoles() {
+    return roles;
+  }
 
-    @Override
-    public String toString() {
-        return "UsersWrapper{" +
-                "user=" + user +
-                ", roles=" + roles +
-                '}';
-    }
+  /**
+   * Stores a copy of the given roles, leaving the given set unaffected by later changes to this
+   * instance.
+   *
+   * @param roles roles to copy
+   */
+  public void setRoles(Set<RoleType> roles) {
+    this.roles = new HashSet<>(roles);
+  }
+
+  @Override
+  public String toString() {
+    return "UsersWrapper{" + "user=" + user + ", roles=" + roles + '}';
+  }
 }

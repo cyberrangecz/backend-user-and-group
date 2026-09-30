@@ -1,34 +1,34 @@
 package cz.cyberrange.platform.userandgroup.rest.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.querydsl.core.types.Predicate;
-import cz.cyberrange.platform.userandgroup.definition.annotations.swagger.ApiPageableSwagger;
-import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
-import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.UsersImportDTO;
-import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
-import cz.cyberrange.platform.userandgroup.api.dto.user.InitialOIDCUserDto;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserBasicViewDto;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException;
+import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntityError;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
+import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
+import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -45,341 +45,499 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 /**
- * Rest controller for the User resource.
+ * Endpoints for querying, importing and deleting users, for retrieving a user's roles or the
+ * caller's own profile, and for exporting the configured initial OIDC users.
  */
-@Api(value = "Endpoint for Users",
-        tags = "users",
-        authorizations = @Authorization(value = "bearerAuth"))
+@Tag(name = "users")
+@SecurityRequirement(name = "bearerAuth")
+@ApiResponses({
+  @ApiResponse(
+      responseCode = "401",
+      description = "Missing or invalid bearer token.",
+      content = @Content(schema = @Schema(implementation = ApiError.class))),
+  @ApiResponse(
+      responseCode = "500",
+      description = "Unexpected server error.",
+      content = @Content(schema = @Schema(implementation = ApiError.class)))
+})
 @RestController
 @RequestMapping(path = "/users")
 @Validated
 public class UsersRestController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UsersRestController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UsersRestController.class);
 
-    private final UserFacade userFacade;
-    private final ObjectMapper objectMapper;
+  private final UserFacade userFacade;
 
-    /**
-     * Instantiates a new UsersRestController.
-     *
-     * @param userFacade   the user facade
-     * @param objectMapper the object mapper
-     */
-    @Autowired
-    public UsersRestController(UserFacade userFacade, ObjectMapper objectMapper) {
-        this.userFacade = userFacade;
-        this.objectMapper = objectMapper;
+  @Autowired
+  public UsersRestController(UserFacade userFacade) {
+    this.userFacade = userFacade;
+  }
+
+  /**
+   * Returns every user that matches the given predicate, as basic views. Requires the administrator
+   * authority; answers with HTTP 401 when the caller is not authenticated.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @return HTTP 200 with the matching page of basic user views; empty page when none match
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUsers",
+      summary = "List users",
+      description = "Text filters match any part of a value, ignoring case.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsers(
+      @QuerydslPredicate(root = User.class) Predicate predicate,
+      @ParameterObject Pageable pageable) {
+    PageResultResource<UserBasicViewDto> userDTOs = userFacade.getUsers(predicate, pageable);
+    return ResponseEntity.ok(userDTOs);
+  }
+
+  /**
+   * Returns every user that belongs to any of the given groups. Requires the administrator
+   * authority; answers with HTTP 401 when the caller is not authenticated, and HTTP 400 when ids is
+   * missing.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param groupsIds ids of the groups to match
+   * @return HTTP 200 with the matching page of users; empty page when none match
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUsersInGroups",
+      summary = "List users of the given groups",
+      description =
+          "A user is returned when it belongs to any of the groups. Text filters match any part"
+              + " of a value, ignoring case.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The ids parameter is missing or is not a list of numbers.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(path = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserForGroupsDTO>> getUsersInGroups(
+      @QuerydslPredicate(root = User.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @Parameter(description = "Ids of the groups whose members are returned.") @RequestParam("ids")
+          Set<Long> groupsIds) {
+    PageResultResource<UserForGroupsDTO> userDTOs =
+        userFacade.getUsersInGroups(groupsIds, predicate, pageable);
+    return ResponseEntity.ok(userDTOs);
+  }
+
+  /**
+   * Returns the user with the given id, with the roles held through any of their groups filled in.
+   * A caller without the administrator or power user authority may only request their own id;
+   * requesting a different id fails with HTTP 403. Requires at least the trainee authority; answers
+   * with HTTP 401 when the caller is not authenticated, and HTTP 400 when id is not a number.
+   *
+   * @param id id of the user
+   * @return HTTP 200 with the matching user
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no user has that id, or when no user matches the current request's sub and issuer
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException
+   *     (HTTP 403) when the caller lacks the administrator or power user authority and requests a
+   *     user other than itself
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUserById",
+      summary = "Get a user by id",
+      description =
+          "An administrator or power user may ask for any id. Other callers may ask only for"
+              + " their own. A different id is forbidden.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "The requested user.",
+        content =
+            @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = UserDTO.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description =
+            "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role, or a non-privileged caller asked"
+                + " for another user's id.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user has that id, or no user matches the caller's sub and issuer.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<UserDTO> getUser(@PathVariable("userId") final Long id) {
+    return ResponseEntity.ok(userFacade.getUserById(id));
+  }
+
+  /**
+   * Returns every user that does not belong to the group with the given id, with each user's roles
+   * filled in from every group it belongs to and each role's microservice id and name filled in.
+   * Requires the administrator authority; answers with HTTP 401 when the caller is not
+   * authenticated, and HTTP 400 when groupId is not a number.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param groupId id of the group to exclude
+   * @return HTTP 200 with the matching page of users; empty page when none match
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getAllUsersNotInGivenGroup",
+      summary = "List users outside a group",
+      description = "Text filters match any part of a value, ignoring case.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The group id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserDTO>> getAllUsersNotInGivenGroup(
+      @QuerydslPredicate(root = User.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @PathVariable("groupId") final Long groupId) {
+    PageResultResource<UserDTO> userDTOs =
+        userFacade.getAllUsersNotInGivenGroup(groupId, predicate, pageable);
+    return ResponseEntity.ok(userDTOs);
+  }
+
+  /**
+   * Deletes the user with the given id, first removing it from each of its groups. Requires the
+   * administrator authority; answers with HTTP 401 when the caller is not authenticated, and HTTP
+   * 400 when id is not a number.
+   *
+   * @param id id of the user to delete
+   * @return HTTP 200 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no user has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "deleteUser",
+      summary = "Delete a user",
+      description = "The user is removed from each of its groups first.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "The user was deleted."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user has that id.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @DeleteMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> deleteUser(@PathVariable("userId") final Long id) {
+    userFacade.deleteUser(id);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  /**
+   * Deletes each user with the given ids, first removing each one from its groups. Ids that match
+   * no user are ignored. Requires the administrator authority; answers with HTTP 401 when the
+   * caller is not authenticated, and HTTP 400 when the list of ids contains a null value.
+   *
+   * @param ids ids of the users to delete
+   * @return HTTP 200 with an empty body
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "deleteUsers",
+      summary = "Delete several users",
+      description = "Ids matching no user are skipped.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "The users were deleted."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The body holds a null id.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @DeleteMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> deleteUsers(@RequestBody List<@NotNull Long> ids) {
+    userFacade.deleteUsers(ids);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  /**
+   * Returns the roles assigned to a group the user with the given id belongs to, with each role's
+   * microservice id and name filled in. Requires the administrator or power user authority; answers
+   * with HTTP 401 when the caller is not authenticated, and HTTP 400 when id is not a number.
+   *
+   * @param predicate optional filter on role attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param id id of the user
+   * @return HTTP 200 with the matching page of roles; empty page when none match
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no user has that id
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching roles; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "The id is not a number.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description =
+            "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR or"
+                + " ROLE_USER_AND_GROUP_POWER_USER role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user has that id.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/{id}/roles")
+  public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfUser(
+      @QuerydslPredicate(root = Role.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @Parameter(description = "Id of the user whose roles are listed.") @PathVariable("id")
+          final Long id) {
+    return ResponseEntity.ok(userFacade.getRolesOfUserWithPagination(id, pageable, predicate));
+  }
+
+  /**
+   * Returns the user authenticated for the current request, with the roles held through any of
+   * their groups filled in. Requires at least the trainee authority; answers with HTTP 401 when the
+   * caller is not authenticated.
+   *
+   * @return HTTP 200 with the authenticated user
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when no user matches the current request's sub and issuer
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(operationId = "getUserInfo", summary = "Get the signed-in user")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "The signed-in user.",
+        content = @Content(schema = @Schema(implementation = UserDTO.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user matches the current request's sub and issuer.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/info")
+  public ResponseEntity<UserDTO> getUserInfo() {
+    return ResponseEntity.ok(userFacade.getUserInfo());
+  }
+
+  /**
+   * Returns every user whose id is in the given list and that matches the given predicate, as basic
+   * views. A caller without the administrator or power user authority receives every other user's
+   * full name, sub, given name, family name and mail replaced by a placeholder; the caller's own
+   * record, and every user's id, issuer and picture, stay unmasked. When ids is empty, this returns
+   * an empty page without evaluating the predicate. Requires at least the trainee authority;
+   * answers with HTTP 401 when the caller is not authenticated, and HTTP 400 when the requested
+   * page size is 1000 or more.
+   *
+   * @param predicate optional filter on user attributes: each string property matches
+   *     case-insensitively as a substring of the given value, every other property must equal it
+   *     exactly
+   * @param pageable page and sort request
+   * @param ids ids to match
+   * @return HTTP 200 with the matching page of basic user views; empty page when none match
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException (HTTP
+   *     400) when the requested page size is 1000 or more
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
+   *     404) when the caller lacks the administrator or power user authority and no user matches
+   *     the current request's sub and issuer
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getUsersWithGivenIds",
+      summary = "List users by id",
+      description =
+          "Other users' names, sub and mail come back masked. Administrators and power users see"
+              + " them in full. Page size must be below 1000.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page of matching users; empty when none match."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Page size is 1000 or more.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_TRAINEE role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No user matches the current request's sub and issuer.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsersWithGivenIds(
+      @QuerydslPredicate(root = User.class) Predicate predicate,
+      @ParameterObject Pageable pageable,
+      @RequestParam(value = "ids") List<Long> ids) {
+    if (pageable.getPageSize() >= 1000) {
+      throw new BadRequestException("Choose page size lower than 1000");
     }
-
-    /**
-     * Gets users.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @return the users
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all users.",
-            nickname = "getUsers",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Users found.", response = UserRestResource.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsers(@ApiParam(value = "Filtering on User entity attributes", required = false)
-                                           @QuerydslPredicate(root = User.class) Predicate predicate,
-                                           Pageable pageable,
-                                           @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                           @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<UserBasicViewDto> userDTOs = userFacade.getUsers(predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
+    PageResultResource<UserBasicViewDto> userDTOs;
+    if (ids.isEmpty()) {
+      userDTOs =
+          new PageResultResource<>(
+              Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0));
+    } else {
+      userDTOs = userFacade.getUsersWithGivenIds(ids, pageable, predicate);
     }
+    return ResponseEntity.ok(userDTOs);
+  }
 
-    /**
-     * Gets all users in groups with a given set of IDs.
-     *
-     * @param predicate specifies query to database.
-     * @param pageable  pageable parameter with information about pagination.
-     * @param fields    attributes of the object to be returned as the result.
-     * @param groupsIds the groups ids
-     * @return the users in groups
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets users in given groups.",
-            nickname = "getUsersInGroups",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Users in specific groups found.", response = UserRestResource.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersInGroups(@ApiParam(value = "Filtering on User entity attributes", required = false)
-                                                   @QuerydslPredicate(root = User.class) Predicate predicate,
-                                                   Pageable pageable,
-                                                   @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                   @RequestParam(value = "fields", required = false) String fields,
-                                                   @ApiParam(value = "Ids of groups where users are assigned.", required = true)
-                                                   @RequestParam("ids") Set<Long> groupsIds) {
-        PageResultResource<UserForGroupsDTO> userDTOs = userFacade.getUsersInGroups(groupsIds, predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-    }
+  /**
+   * Returns the raw bytes of the file configured as the source of initial OIDC users, as an
+   * attachment named oidc-initial-users.yaml. Requires the administrator authority; answers with
+   * HTTP 401 when the caller is not authenticated.
+   *
+   * @return HTTP 200 with the file's bytes
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.FileNotFoundException (HTTP
+   *     404) when the configured file does not exist, or reading it raises an IOException
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.FileCannotReadException (HTTP
+   *     500) when the configured file cannot be read
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "getInitialOIDCUsers",
+      summary = "Download the initial OIDC users file",
+      description = "The file is sent as an attachment named oidc-initial-users.yaml.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Contents of the configured file.",
+        content =
+            @Content(
+                mediaType = "application/octet-stream",
+                schema = @Schema(type = "string", format = "binary"))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "The configured file is missing or could not be read.",
+        content = @Content(schema = @Schema(implementation = ApiError.class)))
+  })
+  @GetMapping(path = "/initial-oidc-users", produces = "application/octet-stream")
+  public ResponseEntity<byte[]> getInitialOIDCUsers() {
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType("application/octet-stream"))
+        .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
+        .body(userFacade.getInitialOIDCUsers());
+  }
 
-    /**
-     * Gets the user with the given ID.
-     *
-     * @param id the ID of the user.
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets user with given id.",
-            nickname = "getUserById",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "User found.", response = UserRestResource.class),
-            @ApiResponse(code = 404, message = "User not found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @GetMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDTO> getUser(@ApiParam(value = "Id of user to be returned.", required = true)
-                                           @PathVariable("userId") final Long id) {
-        return ResponseEntity.ok(userFacade.getUserById(id));
-    }
-
-
-    /**
-     * Gets all users, not in the group with the given group ID.
-     *
-     * @param groupId  the ID of the group
-     * @param pageable pageable parameter with information about pagination.
-     * @param fields   attributes of the object to be returned as the result.
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets all users except users in given group.",
-            nickname = "getAllUsersNotInGivenGroup",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "User found.", response = UserRestResource.class),
-            @ApiResponse(code = 404, message = "Some user could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getAllUsersNotInGivenGroup(@ApiParam(value = "Filtering on User entity attributes", required = false)
-                                                             @QuerydslPredicate(root = User.class) Predicate predicate,
-                                                             Pageable pageable,
-                                                             @ApiParam(value = "Id of group whose users do not getGroupById.", required = true)
-                                                             @PathVariable("groupId") final Long groupId,
-                                                             @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-                                                             @RequestParam(value = "fields", required = false) String fields) {
-        PageResultResource<UserDTO> userDTOs = userFacade.getAllUsersNotInGivenGroup(groupId, predicate, pageable);
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-    }
-
-    /**
-     * Delete the user with the given ID.
-     *
-     * @param id the ID of user to be deleted.
-     * @return the response entity with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "Delete user",
-            nickname = "deleteUser",
-            notes = "Delete user based on given id.",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned HTTP status OK."),
-            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> deleteUser(@ApiParam(value = "Screen name of user to be deleted.", required = true)
-                                           @PathVariable("userId") final Long id) {
-        userFacade.deleteUser(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /**
-     * Delete users with a given list of IDs.
-     *
-     * @param ids a list of IDs of users.
-     * @return the response entity with specific status code and header.
-     */
-    @ApiOperation(httpMethod = "DELETE",
-            value = "DeleteUsers",
-            nickname = "deleteUsers",
-            notes = "Delete users based on given ids.",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned HTTP status OK."),
-            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @DeleteMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> deleteUsers(@ApiParam(value = "Ids of users to be deleted.", required = true)
-                                            @RequestBody List<@NotNull Long> ids) {
-        userFacade.deleteUsers(ids);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /**
-     * Gets the roles of users with the given ID.
-     *
-     * @param id the ID of the user.
-     * @return the {@link ResponseEntity} with body type set of {@link RoleDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Returns all roles of user with given id.",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Roles of the users.", response = RolesRestController.RoleRestResource.class),
-            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @GetMapping(path = "/{id}/roles")
-    @ApiPageableSwagger
-    public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfUser(@ApiParam(value = "Filtering on User entity attributes", required = false)
-                                                                      @QuerydslPredicate(root = Role.class) Predicate predicate,
-                                                                      Pageable pageable,
-                                                                      @ApiParam(value = "id", required = true)
-                                                                      @PathVariable("id") final Long id) {
-        return ResponseEntity.ok(userFacade.getRolesOfUserWithPagination(id, pageable, predicate));
-    }
-
-    /**
-     * Gets info about logged in user.
-     *
-     * @return the {@link ResponseEntity} with body type {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Get user info",
-            nickname = "getUserInfo",
-            notes = "Returns details of user who is logged in.",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Base user info found.", response = UserDTO.class),
-            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @GetMapping(path = "/info")
-    public ResponseEntity<UserDTO> getUserInfo() {
-        return ResponseEntity.ok(userFacade.getUserInfo());
-    }
-
-    /**
-     * Gets users with a given set of ids.
-     *
-     * @param fields attributes of the object to be returned as the result.
-     * @param ids    set of ids of users to be loaded.
-     * @return the {@link ResponseEntity} with body type set of {@link UserDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Gets users with given ids.",
-            nickname = "getUsersWithGivenIds",
-            notes = "Page size cannot be higher than 1000",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Users with given ids found.", response = UserRestResource.class),
-            @ApiResponse(code = 404, message = "User could not be found.", response = ApiError.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @ApiPageableSwagger
-    @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getUsersWithGivenIds(
-            @ApiParam(value = "Filtering on User entity attributes", required = false)
-            @QuerydslPredicate(root = User.class) Predicate predicate,
-            Pageable pageable,
-            @ApiParam(value = "Fields which should be returned in REST API response", required = false)
-            @RequestParam(value = "fields", required = false) String fields,
-            @ApiParam(value = "Ids of users to be obtained.", required = true)
-            @RequestParam(value = "ids") List<Long> ids) {
-        if (pageable.getPageSize() >= 1000) {
-            throw new BadRequestException("Choose page size lower than 1000");
-        }
-        PageResultResource<UserBasicViewDto> userDTOs;
-        if (ids.isEmpty()) {
-            userDTOs = new PageResultResource<>(Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0));
-        } else {
-            userDTOs = userFacade.getUsersWithGivenIds(ids, pageable, predicate);
-        }
-        Squiggly.init(objectMapper, fields);
-        return ResponseEntity.ok(SquigglyUtils.stringify(objectMapper, userDTOs));
-    }
-
-    /**
-     * Gets initial OIDC users.
-     *
-     * @return the {@link ResponseEntity} with body type array of {@link InitialOIDCUserDto} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "GET",
-            value = "Get initial oidc users",
-            nickname = "getInitialOIDCUsers",
-            notes = "Returns details of initial OIDC users.",
-            produces = "application/octet-stream"
-    )
-    @GetMapping(path = "/initial-oidc-users", produces = "application/octet-stream")
-    public ResponseEntity<byte[]> getInitialOIDCUsers() {
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
-                .body(userFacade.getInitialOIDCUsers());
-    }
-
-    /**
-     * Import new users. It is possible to assign them to newly created group.
-     *
-     * @param usersImportDTO object containing users to be imported along with  new group to which they will be assigned.
-     * @return the {@link ResponseEntity} with body type {@link GroupDTO} and specific status code and header.
-     */
-    @ApiOperation(httpMethod = "POST",
-            value = "Import new users.",
-            nickname = "importUsers"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Given group created.", response = GroupDTO.class),
-            @ApiResponse(code = 500, message = "Unexpected condition was encountered.", response = ApiError.class)
-    })
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> importUsers(@ApiParam(value = "Object with users to be imported", required = true)
-                                                   @Valid @RequestBody UsersImportDTO usersImportDTO) {
-        userFacade.importUsers(usersImportDTO);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-
-    }
-
-    @ApiModel(value = "UserRestResource",
-            description = "Content (Retrieved data) and meta information about REST API result page. Including page number, number of elements in page, size of elements, total number of elements and total number of pages.")
-    public static class UserRestResource extends PageResultResource<UserDTO> {
-        @JsonProperty(required = true)
-        @ApiModelProperty(value = "Retrieved users from databases.")
-        private List<UserDTO> content;
-        @JsonProperty(required = true)
-        @ApiModelProperty(value = "Pagination including: page number, number of elements in page, size, total elements and total pages.")
-        private Pagination pagination;
-    }
-
+  /**
+   * Creates the users carried by the given data and adds each one to the group that holds every
+   * microservice's default role, and also to a new group with the given name when one is given. Two
+   * entries with the same subject and issuer collapse into a single created user. Each created user
+   * leaves its external id and mail unset, and is given a generated identicon picture derived from
+   * its subject and issuer. Requires the administrator authority; answers with HTTP 401 when the
+   * caller is not authenticated, and HTTP 400 when the request body fails validation.
+   *
+   * @param usersImportDTO users to import, and the optional name of a group to add them to
+   * @return HTTP 204 with an empty body
+   * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityConflictException (HTTP
+   *     409) when a group with the given name already exists
+   * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
+   *     does not hold that authority
+   */
+  @Operation(
+      operationId = "importUsers",
+      summary = "Import users",
+      description =
+          "Every imported user joins the group holding the default roles. A group name creates"
+              + " that group and adds them to it as well. Entries sharing a subject and issuer"
+              + " become one user.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "The users were imported."),
+    @ApiResponse(
+        responseCode = "400",
+        description = "A user entry is missing its sub or iss.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
+        content = @Content(schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "409",
+        description = "A group with that name already exists.",
+        content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
+  })
+  @PostMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> importUsers(@Valid @RequestBody UsersImportDTO usersImportDTO) {
+    userFacade.importUsers(usersImportDTO);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 }
