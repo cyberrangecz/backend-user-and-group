@@ -8,4 +8,4 @@ nb-configuration.xml
 *.iml
 *.log
 logs/
-.idea/
+.idea/doc-files/
