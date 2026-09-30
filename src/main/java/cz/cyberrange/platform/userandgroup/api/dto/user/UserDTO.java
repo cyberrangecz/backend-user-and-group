@@ -40,6 +40,7 @@ public class UserDTO {
   @Schema(example = "Doe")
   private String familyName;
 
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private Set<RoleDTO> roles = new HashSet<>();
 
   @Schema(

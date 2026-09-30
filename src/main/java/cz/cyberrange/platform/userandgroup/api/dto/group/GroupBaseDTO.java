@@ -7,7 +7,7 @@ import java.util.Objects;
 /** The state every group representation returned to the caller carries. */
 public abstract class GroupBaseDTO {
 
-  @Schema(example = "1")
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
   private Long id;
 
   @Schema(example = "Main group of organizers")
