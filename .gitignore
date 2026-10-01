@@ -9,3 +9,4 @@ nb-configuration.xml
 *.log
 logs/
 .idea/
+doc-files/
