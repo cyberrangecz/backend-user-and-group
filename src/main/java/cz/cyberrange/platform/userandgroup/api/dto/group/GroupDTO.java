@@ -12,8 +12,10 @@ import java.util.Set;
     description = "A group with its members and the roles granted through it.")
 public class GroupDTO extends GroupBaseDTO {
 
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private Set<RoleDTO> roles = new HashSet<>();
 
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private Set<UserForGroupsDTO> users = new HashSet<>();
 
   public Set<UserForGroupsDTO> getUsers() {

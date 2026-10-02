@@ -23,6 +23,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -69,7 +70,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -90,7 +91,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -117,7 +118,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -144,7 +145,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -171,7 +172,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -198,7 +199,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -231,7 +232,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             supportedHttpMethods.toString(),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -263,7 +264,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             supportedMediaTypes.toString(),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -293,7 +294,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
                 .collect(java.util.stream.Collectors.joining(", ")),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -320,7 +321,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             ex.getMostSpecificCause().getMessage(),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   // Handling of own exceptions
@@ -347,7 +348,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             ex.getMessage(),
             getErrorMessage(ex),
             request.getContextPath());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -368,7 +369,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -391,7 +392,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -416,7 +417,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req),
             ex.getEntityErrorDetail());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -440,7 +441,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -462,7 +463,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   // thrown from SERVICE layer (nullpointers, illegal argument etc.)
@@ -485,7 +486,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -507,7 +508,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   // thrown from REST controller
@@ -534,7 +535,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req),
             ex.getEntityErrorDetail());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -559,7 +560,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req),
             ex.getEntityErrorDetail());
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -581,7 +582,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
   }
 
   /**
@@ -604,7 +605,17 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
             getInitialException(ex).getLocalizedMessage(),
             getErrorMessage(ex),
             URL_PATH_HELPER.getRequestUri(req));
-    return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    return jsonResponse(apiError);
+  }
+
+  /**
+   * Wraps the error in a response that carries its own status and is always serialized as JSON,
+   * whatever media types the request accepts or the failed endpoint produces.
+   */
+  private ResponseEntity<Object> jsonResponse(final ApiError apiError) {
+    return ResponseEntity.status(apiError.getStatus())
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(apiError);
   }
 
   private Exception getInitialException(Exception exception) {
