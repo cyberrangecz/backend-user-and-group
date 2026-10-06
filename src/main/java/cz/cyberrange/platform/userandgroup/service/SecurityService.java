@@ -92,7 +92,7 @@ public class SecurityService {
    * @param groupId id of the group to check
    * @return true when the user belongs to that group, false otherwise
    * @throws EntityNotFoundException when no user has the current sub and issuer
-   * @throws javax.persistence.EntityNotFoundException when no group has that id
+   * @throws jakarta.persistence.EntityNotFoundException when no group has that id
    */
   public boolean isLoggedInUserInGroup(Long groupId) {
     User loggedInUser = getLoggedInUser();

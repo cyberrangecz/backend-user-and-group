@@ -17,8 +17,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.enums.UserDeletionStatusDTO;
@@ -52,7 +50,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -63,7 +61,6 @@ class UsersRestControllerTest {
   @Autowired private TestDataFactory testDataFactory;
   private UsersRestController usersRestController;
   @Mock private UserFacade userFacade;
-  @Mock private ObjectMapper objectMapper;
 
   private MockMvc mockMvc;
   private AutoCloseable closeable;
@@ -84,7 +81,7 @@ class UsersRestControllerTest {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
 
@@ -103,10 +100,6 @@ class UsersRestControllerTest {
     userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
     userBasicViewDtoPageResultResource =
         new PageResultResource<>(List.of(userBasicViewDto1, userBasicViewDto2));
-
-    ObjectMapper obj = new ObjectMapper();
-    obj.setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy());
-    given(objectMapper.getSerializationConfig()).willReturn(obj.getSerializationConfig());
   }
 
   @AfterEach
@@ -147,7 +140,7 @@ class UsersRestControllerTest {
 
     MockHttpServletResponse result =
         mockMvc
-            .perform(get("/users" + "/"))
+            .perform(get("/users"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
@@ -237,7 +230,7 @@ class UsersRestControllerTest {
     deletionResponseDTO.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
     mockMvc
         .perform(
-            delete("/users" + "/")
+            delete("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     convertObjectToJsonBytes(Arrays.asList(userDTO1.getId(), userDTO2.getId()))))
@@ -249,7 +242,7 @@ class UsersRestControllerTest {
   public void testDeleteUsersWithNullRequestBody() throws Exception {
     mockMvc
         .perform(
-            delete("/users" + "/")
+            delete("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(null)))
         .andExpect(status().isBadRequest());

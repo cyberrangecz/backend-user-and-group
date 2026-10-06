@@ -1,10 +1,5 @@
 package cz.cyberrange.platform.userandgroup.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserDTO;
@@ -13,44 +8,32 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 public class ObjectConverter {
 
-  private static final ObjectMapper OBJECT_MAPPER =
-      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  private static final JsonMapper JSON_MAPPER = new JsonMapper();
   private static final ModelMapper MODEL_MAPPER = new ModelMapper();
 
-  public static String convertObjectToJsonBytes(Object object) throws IOException {
-    return OBJECT_MAPPER.writeValueAsString(object);
+  public static String convertObjectToJsonBytes(Object object) {
+    return JSON_MAPPER.writeValueAsString(object);
   }
 
-  public static String convertJsonBytesToObject(String object) throws IOException {
-    return OBJECT_MAPPER.readValue(object, String.class);
+  public static String convertJsonBytesToObject(String object) {
+    return JSON_MAPPER.readValue(object, String.class);
   }
 
-  public static <T> T convertJsonBytesToObject(String object, TypeReference<T> tTypeReference)
-      throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    mapper
-        .registerModule(new JavaTimeModule())
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    return mapper.readValue(object, tTypeReference);
+  public static <T> T convertJsonBytesToObject(String object, TypeReference<T> tTypeReference) {
+    return JSON_MAPPER.readValue(object, tTypeReference);
   }
 
-  public static <T> T convertJsonBytesToObject(String object, Class<T> objectClass)
-      throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    mapper
-        .registerModule(new JavaTimeModule())
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    return mapper.readValue(object, objectClass);
+  public static <T> T convertJsonBytesToObject(String object, Class<T> objectClass) {
+    return JSON_MAPPER.readValue(object, objectClass);
   }
 
   public static String getInitialExceptionMessage(Exception exception) {

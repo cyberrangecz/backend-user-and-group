@@ -3,9 +3,9 @@ package cz.cyberrange.platform.userandgroup.api.dto;
 import com.google.common.base.Objects;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserImportDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.Valid;
 
 /**
  * Carries the users to import together with the name of a new group to assign them to. Received as

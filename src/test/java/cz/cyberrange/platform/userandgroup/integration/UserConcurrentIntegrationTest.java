@@ -2,9 +2,6 @@ package cz.cyberrange.platform.userandgroup.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
-import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserCreateDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserDTO;
 import cz.cyberrange.platform.userandgroup.api.mapping.RoleMapperImpl;
@@ -20,25 +17,29 @@ import cz.cyberrange.platform.userandgroup.persistence.repository.UserRepository
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
 import cz.cyberrange.platform.userandgroup.service.IDMGroupService;
 import cz.cyberrange.platform.userandgroup.service.IdenticonService;
+import cz.cyberrange.platform.userandgroup.service.RoleService;
 import cz.cyberrange.platform.userandgroup.service.SecurityService;
 import cz.cyberrange.platform.userandgroup.service.UserService;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.resilience.annotation.EnableResilientMethods;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContextManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @ContextConfiguration(
     classes = {
@@ -46,18 +47,21 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       TestDataFactory.class,
       UserService.class,
       IDMGroupService.class,
+      RoleService.class,
       IdenticonService.class,
       SecurityService.class,
       UserMapperImpl.class,
       RoleMapperImpl.class
     })
 @DataJpaTest
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 @EntityScan(basePackages = "cz.cyberrange.platform.userandgroup.persistence.entity")
 @EnableJpaRepositories(basePackages = "cz.cyberrange.platform.userandgroup.persistence.repository")
 @EnableTransactionManagement
-@EnableRetry
-@RunWith(ConcurrentTestRunner.class)
+@EnableResilientMethods
 class UserConcurrentIntegrationTest {
+
+  private static final int THREAD_COUNT = 50;
 
   @Autowired private TestDataFactory testDataFactory;
   @Autowired private UserFacade userFacade;
@@ -66,24 +70,8 @@ class UserConcurrentIntegrationTest {
   @Autowired private RoleRepository roleRepository;
   @Autowired private MicroserviceRepository microserviceRepository;
 
-  @MockBean
-  @Qualifier("yamlObjectMapper")
-  private ObjectMapper yamlObjectMapper;
-
-  private UserDTO userDTO;
-
-  @Before
-  void init() throws Exception {
-    TestContextManager testContextManager = new TestContextManager(getClass());
-    testContextManager.prepareTestInstance(this);
-
-    userDTO = new UserDTO();
-    userDTO.setFullName("Ing. Michael Johnson");
-    userDTO.setFamilyName("Johnson");
-    userDTO.setGivenName("Michael");
-    userDTO.setSub("mail@test.cz");
-    userDTO.setIss("oidc.provider.cz");
-
+  @BeforeEach
+  void init() {
     Microservice userAndGroupMicroservice = testDataFactory.getCrczpUaGMicroservice();
     microserviceRepository.save(userAndGroupMicroservice);
 
@@ -96,17 +84,33 @@ class UserConcurrentIntegrationTest {
     idmGroupRepository.save(defaultGroup);
   }
 
-  @Test
-  @ThreadCount(50)
-  void createOrUpdateUser() throws Exception {
-    UserDTO createdUserDTO = userFacade.createOrUpdateOrGetOIDCUser(getOIDCUserInfo());
-    assertEquals(userDTO.getFullName(), createdUserDTO.getFullName());
-    assertEquals(userDTO.getSub(), createdUserDTO.getSub());
-    assertEquals(userDTO.getIss(), createdUserDTO.getIss());
+  @AfterEach
+  void cleanUp() {
+    idmGroupRepository.deleteAll();
+    userRepository.deleteAll();
+    roleRepository.deleteAll();
+    microserviceRepository.deleteAll();
   }
 
-  @After
-  void testCreatedUser() throws Exception {
+  @Test
+  void createOrUpdateUser() throws Exception {
+    List<Callable<UserDTO>> logins = new ArrayList<>();
+    for (int thread = 0; thread < THREAD_COUNT; thread++) {
+      logins.add(() -> userFacade.createOrUpdateOrGetOIDCUser(getOIDCUserInfo()));
+    }
+
+    List<UserDTO> loggedInUsers = new ArrayList<>();
+    try (ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT)) {
+      for (Future<UserDTO> login : executor.invokeAll(logins)) {
+        loggedInUsers.add(login.get());
+      }
+    }
+
+    for (UserDTO loggedInUser : loggedInUsers) {
+      assertEquals("Ing. Michael Johnson", loggedInUser.getFullName());
+      assertEquals("mail@test.cz", loggedInUser.getSub());
+      assertEquals("oidc.provider.cz", loggedInUser.getIss());
+    }
     List<User> users = userRepository.findAll();
     assertEquals(1, users.size());
     assertEquals("Ing. Michael Johnson", users.get(0).getFullName());

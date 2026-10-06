@@ -1,8 +1,8 @@
 package cz.cyberrange.platform.userandgroup.security.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.JsonObject;
-import org.codehaus.jackson.annotate.JsonCreator;
 import org.springframework.util.Assert;
 
 /**

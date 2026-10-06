@@ -6,6 +6,7 @@ import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertTo
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertToRoleDTO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -14,7 +15,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.group.AddUsersToGroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
@@ -38,19 +38,19 @@ import cz.cyberrange.platform.userandgroup.rest.handler.CustomRestExceptionHandl
 import cz.cyberrange.platform.userandgroup.util.ObjectConverter;
 import cz.cyberrange.platform.userandgroup.util.TestAuthorityGranter;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
+import jakarta.transaction.Transactional;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -59,11 +59,12 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.core.type.TypeReference;
 
 @SpringBootTest(
     classes = {
@@ -101,7 +102,7 @@ class IDMGroupsIntegrationTests {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
     modelMapper = new ModelMapper();
@@ -176,8 +177,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -192,8 +193,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -283,8 +284,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -303,8 +304,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -389,8 +390,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -405,8 +406,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -481,8 +482,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -499,8 +500,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -597,8 +598,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -611,8 +612,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -701,8 +702,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -719,8 +720,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -811,8 +812,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -824,8 +825,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -854,8 +855,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -868,8 +869,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -914,8 +915,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -929,8 +930,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -980,8 +981,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -998,8 +999,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -1080,8 +1081,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -1098,8 +1099,8 @@ class IDMGroupsIntegrationTests {
             .andReturn()
             .getResolvedException();
     assert exception != null;
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test

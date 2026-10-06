@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -197,9 +197,7 @@ public class UserFacade {
    */
   // if creation of user fail because of DataIntegrityViolationException, method is repeated one
   // more time which cause that user is updated not created
-  @Retryable(
-      value = {DataIntegrityViolationException.class},
-      maxAttempts = 2)
+  @Retryable(includes = DataIntegrityViolationException.class, maxRetries = 1)
   public UserDTO createOrUpdateOrGetOIDCUser(UserCreateDTO oidcUserDTO) {
     Assert.notNull(
         oidcUserDTO,

@@ -1,17 +1,21 @@
 package cz.cyberrange.platform.userandgroup.definition.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import cz.cyberrange.platform.userandgroup.security.config.ResourceServerSecurityConfig;
 import java.util.List;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverters;
+import org.springframework.http.converter.yaml.JacksonYamlHttpMessageConverter;
+import org.springframework.resilience.annotation.EnableResilientMethods;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /**
  * Configures the web MVC message converter used by the REST API's YAML request and response bodies.
@@ -19,22 +23,32 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableSpringDataWebSupport
 @EnableScheduling
 @EnableTransactionManagement
-@EnableRetry
+@EnableResilientMethods
 @Import({ResourceServerSecurityConfig.class})
 public class WebConfigRestUserAndGroup implements WebMvcConfigurer {
 
+  private static final MediaType APPLICATION_X_YAML =
+      MediaType.parseMediaType("application/x-yaml");
+
   /**
-   * Adds a converter for YAML request and response bodies, with indented output and unknown
-   * properties ignored on read.
+   * Registers the converter for YAML request and response bodies, read and written as {@code
+   * application/x-yaml} or {@code application/yaml}, with properties in declaration order, enums by
+   * their constant name, indented output and unknown properties ignored on read.
    *
-   * @param converters message converters registered for the REST API; the YAML converter is
-   *     appended to this list
+   * @param builder the builder of the message converters registered for the REST API
    */
   @Override
-  public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-    YAMLMapper mapper = new YAMLMapper();
-    mapper.enable(SerializationFeature.INDENT_OUTPUT);
-    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    converters.add(new MappingJackson2YamlHttpMessageConverter(mapper));
+  public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+    YAMLMapper mapper =
+        YAMLMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+            .disable(EnumFeature.READ_ENUMS_USING_TO_STRING)
+            .build();
+    JacksonYamlHttpMessageConverter yamlConverter = new JacksonYamlHttpMessageConverter(mapper);
+    yamlConverter.setSupportedMediaTypes(List.of(APPLICATION_X_YAML, MediaType.APPLICATION_YAML));
+    builder.withYamlConverter(yamlConverter);
   }
 }

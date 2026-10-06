@@ -1,10 +1,10 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 /** Request body identifying an existing group and the values to update it with. */
 @Schema(name = "UpdateGroupDTO", description = "New values for an existing group, named by its id.")

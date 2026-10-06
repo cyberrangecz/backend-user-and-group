@@ -1,6 +1,7 @@
 package cz.cyberrange.platform.userandgroup.definition.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -36,8 +37,15 @@ public class OpenApiConfiguration {
                         .description("Bearer token issued by the configured OIDC provider.")));
   }
 
+  /**
+   * Resolves schema property names in snake_case, matching the names written in JSON bodies.
+   *
+   * @return the schema model resolver
+   */
   @Bean
-  public ModelResolver modelResolver(ObjectMapper objectMapper) {
-    return new ModelResolver(objectMapper);
+  public ModelResolver modelResolver() {
+    ObjectMapper schemaObjectMapper = new ObjectMapper();
+    schemaObjectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+    return new ModelResolver(schemaObjectMapper);
   }
 }

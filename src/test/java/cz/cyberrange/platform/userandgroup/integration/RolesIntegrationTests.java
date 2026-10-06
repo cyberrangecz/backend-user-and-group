@@ -7,13 +7,12 @@ import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.getInitia
 import static cz.cyberrange.platform.userandgroup.util.TestAuthorityGranter.mockSpringSecurityContextForGet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserDTO;
@@ -32,15 +31,15 @@ import cz.cyberrange.platform.userandgroup.rest.controller.RolesRestController;
 import cz.cyberrange.platform.userandgroup.rest.handler.CustomRestExceptionHandler;
 import cz.cyberrange.platform.userandgroup.util.ObjectConverter;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
+import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -49,12 +48,14 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(classes = {IntegrationTestApplication.class, RolesRestController.class})
 @TestPropertySource("classpath:application.properties")
@@ -85,7 +86,7 @@ class RolesIntegrationTests {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
 
@@ -159,7 +160,7 @@ class RolesIntegrationTests {
   void getRolesPagination() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
     MockHttpServletResponse response1 =
-        mvc.perform(get("/roles/?page=0&size={size}", 4).contentType(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/roles?page=0&size={size}", 4).contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
@@ -171,8 +172,7 @@ class RolesIntegrationTests {
 
     MockHttpServletResponse response2 =
         mvc.perform(
-                get("/roles/?page={page}&size={size}", 1, 4)
-                    .contentType(MediaType.APPLICATION_JSON))
+                get("/roles?page={page}&size={size}", 1, 4).contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse();
@@ -222,8 +222,8 @@ class RolesIntegrationTests {
             .andReturn()
             .getResolvedException();
     assertNotNull(exception);
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -235,8 +235,8 @@ class RolesIntegrationTests {
             .andReturn()
             .getResolvedException();
     assertNotNull(exception);
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -275,8 +275,8 @@ class RolesIntegrationTests {
             .andReturn()
             .getResolvedException();
     assertNotNull(exception);
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -288,8 +288,8 @@ class RolesIntegrationTests {
             .andReturn()
             .getResolvedException();
     assertNotNull(exception);
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", ObjectConverter.getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", ObjectConverter.getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -346,8 +346,8 @@ class RolesIntegrationTests {
             .andReturn()
             .getResolvedException();
     assertNotNull(exception);
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", getInitialExceptionMessage(exception));
   }
 
   @Test
@@ -360,8 +360,8 @@ class RolesIntegrationTests {
             .andReturn()
             .getResolvedException();
     assertNotNull(exception);
-    assertEquals(AccessDeniedException.class, exception.getClass());
-    assertEquals("Access is denied", getInitialExceptionMessage(exception));
+    assertInstanceOf(AccessDeniedException.class, exception);
+    assertEquals("Access Denied", getInitialExceptionMessage(exception));
   }
 
   @Test

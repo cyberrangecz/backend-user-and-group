@@ -2,13 +2,13 @@ package cz.cyberrange.platform.userandgroup.api.dto.group;
 
 import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import javax.validation.constraints.NotEmpty;
 
 /**
  * Request body for creating a new group, either with an explicit set of users or by importing every

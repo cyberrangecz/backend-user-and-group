@@ -6,22 +6,25 @@ import cz.cyberrange.platform.userandgroup.security.impl.UserInfoAuthenticationP
 import cz.cyberrange.platform.userandgroup.security.impl.UserInfoValidator;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * Configures authentication, CORS and endpoint access for this service as an OAuth2 resource
@@ -29,8 +32,8 @@ import org.springframework.web.filter.CorsFilter;
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class ResourceServerSecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity
+public class ResourceServerSecurityConfig {
 
   private final UserInfoValidator userInfoValidator;
   private final AuthorityGranter authorityGranter;
@@ -40,7 +43,6 @@ public class ResourceServerSecurityConfig extends WebSecurityConfigurerAdapter {
   @Value("#{'${cors.allowed.origins:#{*}}'.split(',')}")
   private List<String> corsAllowedOrigins;
 
-  @Autowired
   public ResourceServerSecurityConfig(
       AuthorityGranter authorityGranter, UserInfoValidator userInfoValidator) {
     this.authorityGranter = authorityGranter;
@@ -48,46 +50,38 @@ public class ResourceServerSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   /**
-   * Registers the bearer token authentication provider as the only authentication mechanism for
-   * this application.
-   *
-   * @param auth the authentication manager builder to configure
-   */
-  @Override
-  public void configure(AuthenticationManagerBuilder auth) {
-    auth.authenticationProvider(userInfoAuthenticationProvider());
-  }
-
-  /**
    * Builds the HTTP security chain: stateless sessions, cross-origin requests allowed per the
    * configured CORS policy, CSRF protection disabled, {@code /webjars/**} and {@code
-   * /microservices} open to every caller, and every other request accepted only with a valid bearer
-   * token. An authentication failure on a request is handled by this configuration's authentication
-   * entry point.
+   * /microservices} open to every caller, and every other request accepted only with a bearer token
+   * the user info provider authenticates. An authentication failure on a request is handled by the
+   * given authentication entry point.
    *
    * @param http the HTTP security to configure
+   * @param customAuthenticationEntryPoint the entry point answering failed authentication
+   * @return the built security filter chain
    * @throws Exception when the security chain cannot be built
    */
-  @Override
-  public void configure(HttpSecurity http) throws Exception {
-    http.sessionManagement()
-        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and()
-        .cors()
-        .and()
-        .csrf()
-        .disable()
+  @Bean
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http, AuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+    return http.sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .cors(Customizer.withDefaults())
+        .csrf(AbstractHttpConfigurer::disable)
         .addFilterBefore(
-            new BearerTokenAuthenticationFilter(authenticationManagerBean()),
+            new BearerTokenAuthenticationFilter(
+                new ProviderManager(userInfoAuthenticationProvider())),
             UsernamePasswordAuthenticationFilter.class)
-        .authorizeRequests()
-        .antMatchers("/webjars/**", "/microservices")
-        .permitAll()
-        .anyRequest()
-        .authenticated()
-        .and()
-        .exceptionHandling()
-        .authenticationEntryPoint(customAuthenticationEntryPoint());
+        .authorizeHttpRequests(
+            requests ->
+                requests
+                    .requestMatchers("/webjars/**", "/microservices")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .exceptionHandling(
+            exceptions -> exceptions.authenticationEntryPoint(customAuthenticationEntryPoint))
+        .build();
   }
 
   /**
@@ -123,10 +117,12 @@ public class ResourceServerSecurityConfig extends WebSecurityConfigurerAdapter {
   /**
    * Returns the entry point invoked when authentication fails for a request that requires it.
    *
+   * @param handlerExceptionResolver the MVC exception resolvers the entry point offers each failure
    * @return the authentication entry point
    */
   @Bean
-  public AuthenticationEntryPoint customAuthenticationEntryPoint() {
-    return new CustomAuthenticationEntryPoint();
+  public AuthenticationEntryPoint customAuthenticationEntryPoint(
+      @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver) {
+    return new CustomAuthenticationEntryPoint(handlerExceptionResolver);
   }
 }

@@ -19,16 +19,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {TestDataFactory.class})
 class MicroserviceServiceTest {
 
   private MicroserviceService microserviceService;
-  @MockBean private MicroserviceRepository microserviceRepository;
+  @MockitoBean private MicroserviceRepository microserviceRepository;
   @Autowired private TestDataFactory testDataFactory;
 
   private Microservice uAGMicroservice, trainingMicroservice;

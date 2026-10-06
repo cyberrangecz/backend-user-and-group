@@ -1,9 +1,9 @@
 package cz.cyberrange.platform.userandgroup.persistence.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

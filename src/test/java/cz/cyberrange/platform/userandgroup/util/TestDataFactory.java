@@ -1,8 +1,5 @@
 package cz.cyberrange.platform.userandgroup.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.GroupViewDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.group.NewGroupDTO;
@@ -22,7 +19,6 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.RoleType;
 import cz.cyberrange.platform.userandgroup.persistence.enums.UserAndGroupStatus;
 import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -32,14 +28,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class TestDataFactory {
 
-  private final ObjectMapper mapper =
-      new ObjectMapper()
-          .registerModule(new JavaTimeModule())
-          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+  private final JsonMapper mapper = new JsonMapper();
 
   private final List<Role> generatedRoles = generateRoleList(50);
   private final List<Microservice> generatedMicroservices = generateMicroserviceList(50);
@@ -631,11 +625,6 @@ public class TestDataFactory {
   }
 
   private <T> T clone(Object object, Class<T> tClass) {
-    try {
-      String json = mapper.writeValueAsString(object);
-      return mapper.readValue(json, tClass);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return mapper.readValue(mapper.writeValueAsString(object), tClass);
   }
 }

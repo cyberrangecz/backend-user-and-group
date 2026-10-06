@@ -31,20 +31,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {TestDataFactory.class})
 class UserServiceTest {
 
   @Autowired private TestDataFactory testDataFactory;
   private UserService userService;
-  @MockBean private UserRepository userRepository;
-  @MockBean private RoleRepository roleRepository;
-  @MockBean private IDMGroupRepository groupRepository;
+  @MockitoBean private UserRepository userRepository;
+  @MockitoBean private RoleRepository roleRepository;
+  @MockitoBean private IDMGroupRepository groupRepository;
 
   private User user1, user2;
   private IDMGroup adminGroup, userGroup;

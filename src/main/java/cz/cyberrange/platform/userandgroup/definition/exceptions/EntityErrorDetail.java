@@ -2,9 +2,9 @@ package cz.cyberrange.platform.userandgroup.definition.exceptions;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 /**
  * Detail identifying the entity and the identifier value involved in an error, together with the

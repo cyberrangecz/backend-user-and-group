@@ -367,7 +367,7 @@ class UserFacadeTest {
 
     assertEquals(2, usersDTO.getContent().size());
     for (UserBasicViewDto userBasicViewDto : usersDTO.getContent()) {
-      if (userBasicViewDto.getId() == user1.getId()) {
+      if (userBasicViewDto.getId().equals(user1.getId())) {
         assertEquals(userBasicViewDto, userBasicViewDto1);
       } else {
         assertEquals(userBasicViewDto.getId(), user2.getId());

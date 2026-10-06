@@ -35,22 +35,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {TestDataFactory.class})
 class IDMGroupServiceTest {
 
   @Autowired private TestDataFactory testDataFactory;
   private IDMGroupService groupService;
-  @MockBean private IDMGroupRepository groupRepository;
-  @MockBean private RoleRepository roleRepository;
-  @MockBean private MicroserviceRepository microserviceRepository;
-  @MockBean private SecurityService securityService;
-  @MockBean private UserRepository userRepository;
+  @MockitoBean private IDMGroupRepository groupRepository;
+  @MockitoBean private RoleRepository roleRepository;
+  @MockitoBean private MicroserviceRepository microserviceRepository;
+  @MockitoBean private SecurityService securityService;
+  @MockitoBean private UserRepository userRepository;
 
   private IDMGroup defaultGroup, designerGroup, adminGroup;
   private Role adminRole, userRole, guestRole;
