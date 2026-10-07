@@ -1,44 +1,45 @@
 package cz.cyberrange.platform.userandgroup.security.impl;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
 /**
- * Caches the authentication resolved for a bearer token, keyed by the token's value, so a token
- * seen again before its cache entry expires skips re-validation.
+ * Thread-safe cache of the authentication resolved for a bearer token, keyed by the token's value,
+ * so a token seen again before its cache entry expires skips re-validation.
  */
 public class TokenCache {
 
-  private final Map<String, TokenCacheItem> cache = new HashMap<>();
+  private final Map<String, TokenCacheItem> cache = new ConcurrentHashMap<>();
 
-  // Default lifetime, in milliseconds, assigned to a cache entry when the token's own expiry does
-  // not determine it.
-  private int defaultExpireTime = 300000;
+  // Lifetime assigned to a cache entry when the token's own expiry does not determine it.
+  private final Duration defaultExpireTime;
 
-  private boolean cacheTokens = true;
-  private boolean cacheNonExpiringTokens = false;
+  private final boolean cacheTokens;
+  private final boolean cacheNonExpiringTokens;
 
   // Caps a cache entry's lifetime to defaultExpireTime even when the token's own expiry is later.
-  private boolean forceCacheExpireTime = false;
+  private final boolean forceCacheExpireTime;
 
-  public TokenCache() {}
+  public TokenCache() {
+    this(Duration.ofMinutes(5), true, false, false);
+  }
 
   /**
    * Creates a cache configured with the given policy.
    *
-   * @param defaultExpireTime default lifetime, in milliseconds, assigned to a cache entry when the
-   *     token's own expiry does not determine it
+   * @param defaultExpireTime lifetime assigned to a cache entry when the token's own expiry does
+   *     not determine it
    * @param cacheTokens whether validated tokens are cached at all
    * @param cacheNonExpiringTokens whether a token with no expiry is cached
    * @param forceCacheExpireTime whether a cache entry's lifetime is capped to defaultExpireTime
    *     even when the token's own expiry is later
    */
   public TokenCache(
-      int defaultExpireTime,
+      Duration defaultExpireTime,
       boolean cacheTokens,
       boolean cacheNonExpiringTokens,
       boolean forceCacheExpireTime) {
@@ -49,20 +50,24 @@ public class TokenCache {
   }
 
   /**
-   * Returns the cached entry for the given token value.
+   * Returns the cached entry for the given token value, evicting it when it has expired.
    *
    * @param key the token value used as the cache key
    * @return the cached entry, or null when caching is turned off, nothing is cached for that value,
    *     or the cached entry has expired
    */
   public TokenCache.TokenCacheItem get(String key) {
-    if (this.cacheTokens && this.cache.containsKey(key)) {
-      TokenCache.TokenCacheItem tco = this.cache.get(key);
-      if (tco != null && tco.cacheExpire != null && tco.cacheExpire.isAfter(Instant.now())) {
-        return tco;
-      }
-      this.cache.remove(key);
+    if (!this.cacheTokens) {
+      return null;
     }
+    TokenCacheItem item = this.cache.get(key);
+    if (item == null) {
+      return null;
+    }
+    if (item.cacheExpire.isAfter(Instant.now())) {
+      return item;
+    }
+    this.cache.remove(key, item);
     return null;
   }
 
@@ -90,8 +95,8 @@ public class TokenCache {
   /** A cached authentication result for one access token, together with its cache expiry. */
   public class TokenCacheItem {
     private final Instant cacheExpire;
-    private OAuth2AccessToken token;
-    private AbstractAuthenticationToken auth;
+    private volatile OAuth2AccessToken token;
+    private volatile AbstractAuthenticationToken auth;
 
     /**
      * Wraps a token together with the authentication resolved for it, and computes when the
@@ -105,16 +110,13 @@ public class TokenCache {
     private TokenCacheItem(OAuth2AccessToken token, AbstractAuthenticationToken auth) {
       this.token = token;
       this.auth = auth;
-      if (this.token.getExpiresAt() == null
-          || TokenCache.this.forceCacheExpireTime
-              && this.token.getExpiresAt().getEpochSecond() - System.currentTimeMillis()
-                  > (long) TokenCache.this.defaultExpireTime) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(14, TokenCache.this.defaultExpireTime);
-        this.cacheExpire = cal.getTime().toInstant();
-      } else {
-        this.cacheExpire = this.token.getExpiresAt();
-      }
+      Instant cappedExpiry = Instant.now().plus(TokenCache.this.defaultExpireTime);
+      Instant tokenExpiry = token.getExpiresAt();
+      this.cacheExpire =
+          tokenExpiry == null
+                  || TokenCache.this.forceCacheExpireTime && tokenExpiry.isAfter(cappedExpiry)
+              ? cappedExpiry
+              : tokenExpiry;
     }
 
     public OAuth2AccessToken getToken() {

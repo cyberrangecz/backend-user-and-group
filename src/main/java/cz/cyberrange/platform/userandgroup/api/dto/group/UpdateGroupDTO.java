@@ -22,7 +22,7 @@ public class UpdateGroupDTO {
   @NotEmpty(message = "{group.description.NotEmpty.message}")
   private String description;
 
-  @Schema(example = "2019-11-20T10:28:02.727")
+  @Schema(example = "2019-11-20T10:28:02.727Z")
   private LocalDateTime expirationDate;
 
   public Long getId() {

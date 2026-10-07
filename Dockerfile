@@ -1,12 +1,12 @@
 ARG PROJECT_ARTIFACT_ID=user-and-group
 
 ############ BUILD STAGE ############
-FROM maven:3.9.11-eclipse-temurin-25 AS build
+FROM maven:3.10.0-eclipse-temurin-25 AS build
 
 WORKDIR /app
 
 ARG PROJECT_ARTIFACT_ID
-ARG MAVEN_CLI_OPTS=EXTRA-OPTIONS
+ARG MAVEN_CLI_OPTS=
 
 COPY pom.xml /app/pom.xml
 COPY /src /app/src
@@ -26,6 +26,7 @@ ENV PROJECT_ARTIFACT_ID=${PROJECT_ARTIFACT_ID}
 
 COPY /etc/exported-local-oidc-users.yml /app/etc/exported-local-oidc-users.yml
 COPY /etc/initial-users.yml /app/etc/initial-users.yml
+COPY etc/logback-spring.xml /app/etc/logback-spring.xml
 
 COPY etc/$PROJECT_ARTIFACT_ID.properties /app/etc/$PROJECT_ARTIFACT_ID.properties
 COPY entrypoint.sh /app/entrypoint.sh

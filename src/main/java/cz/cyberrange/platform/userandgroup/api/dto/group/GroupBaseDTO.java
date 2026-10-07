@@ -1,8 +1,10 @@
 package cz.cyberrange.platform.userandgroup.api.dto.group;
 
+import cz.cyberrange.platform.userandgroup.api.converters.LocalDateTimeUTCSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /** The state every group representation returned to the caller carries. */
 public abstract class GroupBaseDTO {
@@ -21,7 +23,8 @@ public abstract class GroupBaseDTO {
       example = "false")
   private boolean canBeDeleted = true;
 
-  @Schema(example = "2017-10-19T10:23:54")
+  @Schema(example = "2017-10-19T10:23:54.000Z")
+  @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
   private LocalDateTime expirationDate;
 
   public Long getId() {

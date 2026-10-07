@@ -59,12 +59,15 @@ public class UserInfoValidator {
       userInfo.setIssuer(issuerUrl);
       return userInfo;
     } catch (JacksonException e) {
-      throw new InternalAuthenticationServiceException("Unable to parse user info response.");
+      throw new InternalAuthenticationServiceException(
+          "Unable to parse user info response from issuer " + issuerUrl, e);
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-        throw new AuthenticationServiceException("Invalid access token: " + accessToken);
+        throw new AuthenticationServiceException(
+            "Access token rejected by issuer " + issuerUrl + " with status " + e.getStatusCode());
       }
-      throw new AuthenticationServiceException(e.getMessage());
+      throw new AuthenticationServiceException(
+          "User info request to issuer " + issuerUrl + " failed with status " + e.getStatusCode());
     }
   }
 

@@ -43,7 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -62,7 +61,6 @@ import tools.jackson.core.type.TypeReference;
 
 @SpringBootTest(classes = {IntegrationTestApplication.class, UsersRestController.class})
 @TestPropertySource("classpath:application.properties")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @Transactional
 class UsersIntegrationTests {
   private MockMvc mvc;

@@ -1,10 +1,14 @@
 package cz.cyberrange.platform.userandgroup.definition.exceptions.errors;
 
+import cz.cyberrange.platform.userandgroup.api.converters.LocalDateTimeUTCSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Error response body returned for a failed request. The timestamp and status always reflect the
@@ -16,9 +20,10 @@ import org.springframework.http.HttpStatus;
 public class ApiError {
 
   @Schema(
-      description = "Milliseconds since the Unix epoch, taken when the error was built.",
-      example = "1574062900000")
-  protected long timestamp;
+      description = "UTC instant with millisecond precision, taken when the error was built.",
+      example = "2019-11-20T10:28:02.727Z")
+  @JsonSerialize(using = LocalDateTimeUTCSerializer.class)
+  protected LocalDateTime timestamp;
 
   @Schema(example = "NOT_FOUND")
   protected HttpStatus status;
@@ -48,7 +53,7 @@ public class ApiError {
   public static ApiError of(
       HttpStatus httpStatus, String message, List<String> errors, String path) {
     ApiError apiError = new ApiError();
-    apiError.setTimestamp(System.currentTimeMillis());
+    apiError.setTimestamp(LocalDateTime.now(Clock.systemUTC()));
     apiError.setStatus(httpStatus);
     apiError.setMessage(message);
     apiError.setErrors(errors);
@@ -68,7 +73,7 @@ public class ApiError {
    */
   public static ApiError of(HttpStatus httpStatus, String message, String error, String path) {
     ApiError apiError = new ApiError();
-    apiError.setTimestamp(System.currentTimeMillis());
+    apiError.setTimestamp(LocalDateTime.now(Clock.systemUTC()));
     apiError.setStatus(httpStatus);
     apiError.setMessage(message);
     apiError.setError(error);
@@ -86,7 +91,7 @@ public class ApiError {
    */
   public static ApiError of(HttpStatus httpStatus, String message, List<String> errors) {
     ApiError apiError = new ApiError();
-    apiError.setTimestamp(System.currentTimeMillis());
+    apiError.setTimestamp(LocalDateTime.now(Clock.systemUTC()));
     apiError.setStatus(httpStatus);
     apiError.setMessage(message);
     apiError.setErrors(errors);
@@ -105,7 +110,7 @@ public class ApiError {
    */
   public static ApiError of(HttpStatus httpStatus, String message, String error) {
     ApiError apiError = new ApiError();
-    apiError.setTimestamp(System.currentTimeMillis());
+    apiError.setTimestamp(LocalDateTime.now(Clock.systemUTC()));
     apiError.setStatus(httpStatus);
     apiError.setMessage(message);
     apiError.setError(error);
@@ -113,11 +118,11 @@ public class ApiError {
     return apiError;
   }
 
-  public long getTimestamp() {
+  public LocalDateTime getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(long timestamp) {
+  public void setTimestamp(LocalDateTime timestamp) {
     this.timestamp = timestamp;
   }
 
@@ -167,7 +172,7 @@ public class ApiError {
     if (this == o) return true;
     if (!(o instanceof ApiError)) return false;
     ApiError apiError = (ApiError) o;
-    return getTimestamp() == apiError.getTimestamp()
+    return Objects.equals(getTimestamp(), apiError.getTimestamp())
         && getStatus() == apiError.getStatus()
         && Objects.equals(getMessage(), apiError.getMessage())
         && Objects.equals(getErrors(), apiError.getErrors())

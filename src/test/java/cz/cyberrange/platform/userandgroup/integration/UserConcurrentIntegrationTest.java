@@ -20,6 +20,7 @@ import cz.cyberrange.platform.userandgroup.service.IdenticonService;
 import cz.cyberrange.platform.userandgroup.service.RoleService;
 import cz.cyberrange.platform.userandgroup.service.SecurityService;
 import cz.cyberrange.platform.userandgroup.service.UserService;
+import cz.cyberrange.platform.userandgroup.util.PostgresContainerConfiguration;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
     classes = {
       UserFacade.class,
       TestDataFactory.class,
+      PostgresContainerConfiguration.class,
       UserService.class,
       IDMGroupService.class,
       RoleService.class,
