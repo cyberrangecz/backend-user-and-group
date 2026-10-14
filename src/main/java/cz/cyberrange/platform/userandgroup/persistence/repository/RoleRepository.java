@@ -7,6 +7,7 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
 import cz.cyberrange.platform.userandgroup.persistence.entity.QRole;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -85,7 +86,7 @@ public interface RoleRepository
    * microservice.
    *
    * @param microserviceName name of the {@link Microservice} to match
-   * @return the matching roles; empty set when none match
+   * @return the matching roles in ascending id order; empty list when none match
    */
   Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
 
@@ -101,7 +102,7 @@ public interface RoleRepository
    * Finds every role whose role type is in the given set.
    *
    * @param roleTypes role types to match
-   * @return the matching roles; empty set when none match
+   * @return the matching roles in ascending id order; empty list when none match
    */
-  Set<Role> getAllByRoleTypeIn(@Param("roleTypes") Set<String> roleTypes);
+  List<Role> getAllByRoleTypeInOrderById(Set<String> roleTypes);
 }

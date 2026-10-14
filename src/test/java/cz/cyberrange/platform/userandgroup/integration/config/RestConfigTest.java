@@ -1,5 +1,6 @@
 package cz.cyberrange.platform.userandgroup.integration.config;
 
+import cz.cyberrange.platform.userandgroup.persistence.config.PersistenceConfiguration;
 import java.nio.charset.StandardCharsets;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -8,7 +9,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.resilience.annotation.EnableResilientMethods;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,10 +24,11 @@ import org.springframework.web.client.RestTemplate;
       "cz.cyberrange.platform.userandgroup.api.mapping",
       "cz.cyberrange.platform.userandgroup.service",
       "cz.cyberrange.platform.userandgroup.rest.handler",
+      "cz.cyberrange.platform.userandgroup.rest.sorting",
       "cz.cyberrange.platform.userandgroup.util"
     })
 @EntityScan(basePackages = "cz.cyberrange.platform.userandgroup.persistence.entity")
-@EnableJpaRepositories(basePackages = "cz.cyberrange.platform.userandgroup.persistence.repository")
+@Import(PersistenceConfiguration.class)
 @EnableMethodSecurity
 @EnableWebSecurity
 @EnableTransactionManagement

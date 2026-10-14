@@ -13,6 +13,8 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.rest.facade.IDMGroupFacade;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -378,6 +380,7 @@ public class GroupsRestController {
             description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
             content = @Content(schema = @Schema(implementation = ApiError.class)))
       })
+  @SortableProperties(SortableEntity.GROUP)
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<GroupViewDTO>> getGroups(
       @QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
@@ -464,6 +467,7 @@ public class GroupsRestController {
             description = "No group has that id.",
             content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
       })
+  @SortableProperties(SortableEntity.ROLE)
   @GetMapping(path = "/{id}/roles")
   public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfGroup(
       @QuerydslPredicate(root = Role.class) Predicate predicate,

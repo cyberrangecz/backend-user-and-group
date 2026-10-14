@@ -10,10 +10,12 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,5 +167,20 @@ class IDMGroupRepositoryTest {
     if (group.isPresent()) {
       throw new Exception("Group with name 'group' should not be found");
     }
+  }
+
+  @Test
+  public void findByIdInOrderByIdReturnsGroupsInIdOrder() {
+    Stream.of(group1, group2, group3, group4).forEach(entityManager::persistAndFlush);
+    List<Long> descendingIds =
+        Stream.of(group1, group2, group3, group4)
+            .map(IDMGroup::getId)
+            .sorted(Comparator.reverseOrder())
+            .toList();
+
+    List<Long> returnedIds =
+        groupRepository.findByIdInOrderById(descendingIds).stream().map(IDMGroup::getId).toList();
+
+    assertEquals(descendingIds.reversed(), returnedIds);
   }
 }

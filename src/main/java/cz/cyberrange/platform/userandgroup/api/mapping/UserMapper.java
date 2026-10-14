@@ -13,7 +13,9 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -320,7 +322,11 @@ public interface UserMapper extends ParentMapper {
     for (IDMGroup groupOfUser : user.getGroups()) {
       rolesOfUser.addAll(groupOfUser.getRoles());
     }
-    userDTO.setRoles(rolesOfUser.stream().map(this::convertToRoleDTO).collect(Collectors.toSet()));
+    userDTO.setRoles(
+        rolesOfUser.stream()
+            .sorted(Comparator.comparing(Role::getId))
+            .map(this::convertToRoleDTO)
+            .collect(Collectors.toCollection(LinkedHashSet::new)));
     return userDTO;
   }
 

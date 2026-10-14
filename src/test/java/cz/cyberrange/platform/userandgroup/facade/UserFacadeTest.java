@@ -116,6 +116,12 @@ class UserFacadeTest {
     defaultGroup = testDataFactory.getUAGDefaultGroup();
     defaultGroup.setId(2L);
     defaultGroup.addUser(user1);
+    long nextGroupRoleId = 10L;
+    for (IDMGroup group : List.of(adminGroup, defaultGroup)) {
+      for (Role groupRole : group.getRoles()) {
+        groupRole.setId(nextGroupRoleId++);
+      }
+    }
 
     traineeRole = testDataFactory.getUAGTraineeRole();
     traineeRole.setId(1L);

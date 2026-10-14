@@ -46,14 +46,13 @@ import java.util.Set;
   @NamedQuery(
       name = "User.getRolesOfUser",
       query =
-          "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId"),
+          "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId ORDER BY r.id"),
   @NamedQuery(
       name = "User.getUserBySubWithGroups",
       query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.sub = :sub AND u.iss = :iss"),
   @NamedQuery(
       name = "User.getUserByIdWithGroups",
-      query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId"),
-  @NamedQuery(name = "User.findAllWithGivenIds", query = "SELECT u FROM User u WHERE u.id IN :ids")
+      query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId")
 })
 public class User extends AbstractEntity<Long> {
 

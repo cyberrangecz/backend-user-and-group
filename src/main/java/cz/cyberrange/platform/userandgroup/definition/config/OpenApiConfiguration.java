@@ -2,6 +2,7 @@ package cz.cyberrange.platform.userandgroup.definition.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortParameterOpenApiCustomizer;
 import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -52,6 +53,17 @@ public class OpenApiConfiguration {
     ObjectMapper schemaObjectMapper = new ObjectMapper();
     schemaObjectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
     return new ModelResolver(schemaObjectMapper);
+  }
+
+  /**
+   * Registers the customizer that documents the allowed values, format, default order and {@code
+   * id} tiebreaker of each paged operation's {@code sort} parameter.
+   *
+   * @return the customizer applied to every operation
+   */
+  @Bean
+  public SortParameterOpenApiCustomizer sortParameterOpenApiCustomizer() {
+    return new SortParameterOpenApiCustomizer();
   }
 
   /**

@@ -30,7 +30,7 @@ import java.util.Objects;
   @NamedQuery(
       name = "Role.getAllRolesByMicroserviceName",
       query =
-          "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName"),
+          "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName ORDER BY r.id"),
   @NamedQuery(
       name = "Role.findDefaultRoleOfMicroservice",
       query =

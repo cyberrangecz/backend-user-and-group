@@ -48,7 +48,8 @@ import org.springframework.util.Assert;
       query = "SELECT g FROM IDMGroup g JOIN FETCH g.roles WHERE g.name = :name"),
   @NamedQuery(
       name = "IDMGroup.findAllByRoleType",
-      query = "SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType"),
+      query =
+          "SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType ORDER BY g.id"),
   @NamedQuery(
       name = "IDMGroup.findAdministratorGroup",
       query =
@@ -62,7 +63,7 @@ import org.springframework.util.Assert;
   @NamedQuery(
       name = "IDMGroup.findUsersOfGivenGroups",
       query =
-          "SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds")
+          "SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds ORDER BY u.id")
 })
 public class IDMGroup extends AbstractEntity<Long> {
 

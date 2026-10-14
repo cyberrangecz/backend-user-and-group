@@ -63,7 +63,7 @@ public class IDMGroupService {
    * @return the matching groups; empty list when none match
    */
   public List<IDMGroup> getGroupsByIds(List<Long> groupIds) {
-    return groupRepository.findByIdIn(groupIds);
+    return groupRepository.findByIdInOrderById(groupIds);
   }
 
   /**

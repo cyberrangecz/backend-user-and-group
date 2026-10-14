@@ -104,13 +104,15 @@ class IDMGroupServiceTest {
 
   @Test
   void getGroupsByIds() {
-    given(groupRepository.findByIdIn(List.of(defaultGroup.getId(), designerGroup.getId())))
+    given(groupRepository.findByIdInOrderById(List.of(defaultGroup.getId(), designerGroup.getId())))
         .willReturn(List.of(defaultGroup, designerGroup));
     List<IDMGroup> idmGroups =
         groupService.getGroupsByIds(List.of(defaultGroup.getId(), designerGroup.getId()));
     assertEquals(2, idmGroups.size());
     assertTrue(idmGroups.containsAll(Set.of(defaultGroup, designerGroup)));
-    then(groupRepository).should().findByIdIn(List.of(defaultGroup.getId(), designerGroup.getId()));
+    then(groupRepository)
+        .should()
+        .findByIdInOrderById(List.of(defaultGroup.getId(), designerGroup.getId()));
   }
 
   @Test

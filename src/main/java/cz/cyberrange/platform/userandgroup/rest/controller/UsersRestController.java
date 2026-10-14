@@ -13,6 +13,8 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -100,6 +102,7 @@ public class UsersRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsers(
       @QuerydslPredicate(root = User.class) Predicate predicate,
@@ -141,6 +144,7 @@ public class UsersRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserForGroupsDTO>> getUsersInGroups(
       @QuerydslPredicate(root = User.class) Predicate predicate,
@@ -234,6 +238,7 @@ public class UsersRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getAllUsersNotInGivenGroup(
       @QuerydslPredicate(root = User.class) Predicate predicate,
@@ -349,6 +354,7 @@ public class UsersRestController {
         description = "No user has that id.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
+  @SortableProperties(SortableEntity.ROLE)
   @GetMapping(path = "/{id}/roles")
   public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfUser(
       @QuerydslPredicate(root = Role.class) Predicate predicate,
@@ -435,6 +441,7 @@ public class UsersRestController {
         description = "No user matches the current request's sub and issuer.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsersWithGivenIds(
       @QuerydslPredicate(root = User.class) Predicate predicate,

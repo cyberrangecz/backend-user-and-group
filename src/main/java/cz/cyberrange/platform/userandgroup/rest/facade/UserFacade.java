@@ -29,7 +29,9 @@ import cz.cyberrange.platform.userandgroup.service.RoleService;
 import cz.cyberrange.platform.userandgroup.service.SecurityService;
 import cz.cyberrange.platform.userandgroup.service.UserService;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -259,7 +261,8 @@ public class UserFacade {
         roleMapper.mapToSetDTO(
             user.getGroups().stream()
                 .flatMap(group -> group.getRoles().stream())
-                .collect(Collectors.toCollection(HashSet::new))));
+                .sorted(Comparator.comparing(Role::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new))));
     return updatedUser;
   }
 
@@ -349,7 +352,7 @@ public class UserFacade {
     Set<Role> roles = userService.getRolesOfUser(id);
     return roles.stream()
         .map(roleMapper::mapToRoleDTOWithMicroservice)
-        .collect(Collectors.toCollection(HashSet::new));
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   /**

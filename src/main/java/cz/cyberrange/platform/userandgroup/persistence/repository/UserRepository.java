@@ -75,7 +75,7 @@ public interface UserRepository
    * @return the matching users; empty list when none match
    */
   @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.FETCH)
-  List<User> findByIdIn(List<Long> userIds);
+  List<User> findByIdInOrderById(List<Long> userIds);
 
   /**
    * Finds every user that matches the given predicate.
@@ -119,13 +119,4 @@ public interface UserRepository
    * @return the matching user, or an empty Optional when no user has that ID
    */
   Optional<User> getUserByIdWithGroups(@Param("userId") Long userId);
-
-  /**
-   * Finds every user whose ID is in the given set.
-   *
-   * @param ids ids to match
-   * @param pageable page and sort request
-   * @return the matching page of users; empty page when none match
-   */
-  Page<User> findAllWithGivenIds(@Param("ids") Set<Long> ids, Pageable pageable);
 }

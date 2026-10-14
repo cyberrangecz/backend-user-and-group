@@ -4,14 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.querydsl.core.BooleanBuilder;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +26,8 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @DataJpaTest
 class UserRepositoryTest {
@@ -226,16 +233,6 @@ class UserRepositoryTest {
   }
 
   @Test
-  public void findAllWithGivenIds() {
-    Page<User> usersPage =
-        userRepository.findAllWithGivenIds(
-            Set.of(user1.getId(), user4.getId()), PageRequest.of(0, 5));
-    assertEquals(2, usersPage.getContent().size());
-    assertTrue(usersPage.getContent().contains(user1));
-    assertTrue(usersPage.getContent().contains(user4));
-  }
-
-  @Test
   public void getUserByIdWithGroups() {
     group1.addUser(user1);
     group2.addUser(user1);
@@ -270,5 +267,128 @@ class UserRepositoryTest {
         this.userRepository.findBySubAndIss(
             expectedSub, "https://oidc.provider-different.cz/oidc/");
     assertFalse(optionalUser.isPresent());
+  }
+
+  @Test
+  public void pagedQueriesNeverRepeatNorSkipUsersWhenSortKeyTies() {
+    List<User> allUsers = persistUsersWithTiedNamesInDefaultGroup();
+    Comparator<User> nameThenId =
+        Comparator.comparing(User::getFullName).thenComparing(User::getId);
+    List<Long> expectedOrder = allUsers.stream().sorted(nameThenId).map(User::getId).toList();
+    Sort sortByName = Sort.by("fullName");
+
+    Map<String, Function<Pageable, Page<User>>> pagedQueries =
+        Map.of(
+            "findAll",
+            pageable -> userRepository.findAll(new BooleanBuilder(), pageable),
+            "usersInGivenGroups",
+            pageable -> userRepository.usersInGivenGroups(Set.of(group1.getId()), null, pageable),
+            "usersNotInGivenGroup",
+            pageable -> userRepository.usersNotInGivenGroup(group2.getId(), null, pageable),
+            "findAllByRoleId",
+            pageable -> userRepository.findAllByRoleId(guestRole.getId(), null, pageable),
+            "findAllByRoleType",
+            pageable -> userRepository.findAllByRoleType(guestRole.getRoleType(), null, pageable),
+            "findAllByRoleAndNotWithIds",
+            pageable ->
+                userRepository.findAllByRoleAndNotWithIds(
+                    null, pageable, guestRole.getRoleType(), Set.of(0L)));
+
+    pagedQueries.forEach(
+        (queryName, pagedQuery) -> {
+          List<Long> pagedIds = new ArrayList<>();
+          Page<User> page;
+          int pageNumber = 0;
+          do {
+            page = pagedQuery.apply(PageRequest.of(pageNumber++, 3, sortByName));
+            page.getContent().forEach(user -> pagedIds.add(user.getId()));
+          } while (page.hasNext());
+
+          assertEquals(expectedOrder, pagedIds, queryName);
+        });
+  }
+
+  @Test
+  public void pagedQueryWithoutSortReturnsUsersInIdOrder() {
+    List<User> allUsers = persistUsersWithTiedNamesInDefaultGroup();
+    List<Long> expectedOrder = allUsers.stream().map(User::getId).sorted().toList();
+
+    List<Long> pagedIds =
+        userRepository
+            .findAll(new BooleanBuilder(), PageRequest.of(0, allUsers.size()))
+            .map(User::getId)
+            .getContent();
+
+    assertEquals(expectedOrder, pagedIds);
+  }
+
+  @Test
+  public void requestedSortOnIdIsKeptAsRequested() {
+    List<User> allUsers = persistUsersWithTiedNamesInDefaultGroup();
+    List<Long> expectedOrder =
+        allUsers.stream().map(User::getId).sorted(Comparator.reverseOrder()).toList();
+
+    List<Long> pagedIds =
+        userRepository
+            .findAll(
+                new BooleanBuilder(),
+                PageRequest.of(0, allUsers.size(), Sort.by(Sort.Direction.DESC, "id")))
+            .map(User::getId)
+            .getContent();
+
+    assertEquals(expectedOrder, pagedIds);
+  }
+
+  @Test
+  public void queryWithoutPageableReturnsUsersInIdOrder() {
+    List<User> allUsers = persistUsersWithTiedNamesInDefaultGroup();
+    List<Long> expectedOrder = allUsers.stream().map(User::getId).sorted().toList();
+
+    List<Long> returnedIds =
+        userRepository
+            .usersInGivenGroups(Set.of(group1.getId()), null, null)
+            .map(User::getId)
+            .getContent();
+
+    assertEquals(expectedOrder, returnedIds);
+  }
+
+  @Test
+  public void findByIdInOrderByIdReturnsUsersInIdOrder() {
+    List<Long> descendingIds =
+        Stream.of(user1, user2, user3, user4)
+            .map(User::getId)
+            .sorted(Comparator.reverseOrder())
+            .toList();
+
+    List<Long> returnedIds =
+        userRepository.findByIdInOrderById(descendingIds).stream().map(User::getId).toList();
+
+    assertEquals(descendingIds.reversed(), returnedIds);
+  }
+
+  /**
+   * Persists the 4 prepared users and 4 more under alternating full names, all in the default group
+   * holding the trainee role, then rewrites the first user's row so the table's physical order no
+   * longer equals the id order.
+   */
+  private List<User> persistUsersWithTiedNamesInDefaultGroup() {
+    List<User> allUsers = new ArrayList<>(List.of(user1, user2, user3, user4));
+    for (int index = 5; index <= 8; index++) {
+      allUsers.add(
+          entityManager.persistAndFlush(
+              new User("user" + index, "https://oidc.provider.cz/oidc/")));
+    }
+    for (int index = 0; index < allUsers.size(); index++) {
+      User user = allUsers.get(index);
+      user.setFullName(index % 2 == 0 ? "Alpha" : "Beta");
+      group1.addUser(user);
+    }
+    entityManager.persistAndFlush(group1);
+    entityManager.persistAndFlush(group2);
+    user1.setMail("rewritten@oidc.provider.cz");
+    entityManager.flush();
+    entityManager.clear();
+    return allUsers;
   }
 }

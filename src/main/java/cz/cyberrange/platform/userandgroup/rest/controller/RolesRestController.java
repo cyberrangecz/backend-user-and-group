@@ -12,6 +12,8 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.rest.facade.RoleFacade;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -85,6 +87,7 @@ public class RolesRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.ROLE)
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<RoleDTO>> getRoles(
       @QuerydslPredicate(root = Role.class) Predicate predicate,
@@ -164,6 +167,7 @@ public class RolesRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.ROLE)
   @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<RoleDTO>> getAllRolesNotInGivenGroup(
       @QuerydslPredicate(root = Role.class) Predicate predicate,
@@ -214,6 +218,7 @@ public class RolesRestController {
         description = "No role has that id.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/{roleId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRole(
       @QuerydslPredicate(root = User.class) Predicate predicate,
@@ -268,6 +273,7 @@ public class RolesRestController {
         description = "No role has that type.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRoleType(
       @QuerydslPredicate(root = User.class) Predicate predicate,
@@ -314,6 +320,7 @@ public class RolesRestController {
                 + " ROLE_USER_AND_GROUP_POWER_USER role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/users-not-with-ids", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>>
       getUsersWithGivenRoleTypeAndNotWithGivenIds(

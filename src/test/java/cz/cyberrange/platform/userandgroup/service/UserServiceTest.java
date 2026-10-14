@@ -113,12 +113,12 @@ class UserServiceTest {
 
   @Test
   void getUsersByIds() {
-    given(userRepository.findByIdIn(List.of(1L, 2L))).willReturn(List.of(user1, user2));
+    given(userRepository.findByIdInOrderById(List.of(1L, 2L))).willReturn(List.of(user1, user2));
     List<User> users = userService.getUsersByIds(Arrays.asList(1L, 2L));
     assertEquals(2, users.size());
     assertTrue(users.contains(user1));
     assertTrue(users.contains(user2));
-    then(userRepository).should().findByIdIn(Arrays.asList(1L, 2L));
+    then(userRepository).should().findByIdInOrderById(Arrays.asList(1L, 2L));
   }
 
   @Test

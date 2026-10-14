@@ -81,7 +81,7 @@ public interface IDMGroupRepository
    * @return the matching groups, loaded with users; empty list when none match
    */
   @EntityGraph(value = "IDMGroup.users", type = EntityGraph.EntityGraphType.FETCH)
-  List<IDMGroup> findByIdIn(List<Long> groupIds);
+  List<IDMGroup> findByIdInOrderById(List<Long> groupIds);
 
   /**
    * Finds every group that matches the given predicate.

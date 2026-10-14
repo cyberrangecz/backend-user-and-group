@@ -8,6 +8,8 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntit
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
 import cz.cyberrange.platform.userandgroup.rest.facade.MicroserviceFacade;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -89,6 +91,7 @@ public class MicroservicesRestController {
             description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
             content = @Content(schema = @Schema(implementation = ApiError.class)))
       })
+  @SortableProperties(SortableEntity.MICROSERVICE)
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<MicroserviceDTO>> getMicroservices(
       @QuerydslPredicate(root = Microservice.class) Predicate predicate,
