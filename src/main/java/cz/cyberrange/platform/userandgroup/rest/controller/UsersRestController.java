@@ -38,6 +38,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -71,12 +72,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/users")
 @Validated
 public class UsersRestController {
-  /** Documents the {@code name} query parameter of every user listing that offers it. */
 
+  /** Documents the {@code name} query parameter of every user listing that offers it. */
   static final String NAME_FILTER_DESCRIPTION =
       "Matches users whose given name or family name contains every whitespace-separated word of"
           + " the text, ignoring case.";
-
 
   /** Binds the user filters of a request without the name properties. */
   static final class WithoutNameBindings implements QuerydslBinderCustomizer<QUser> {
@@ -87,6 +87,7 @@ public class UsersRestController {
       bindings.excluding(user.givenName, user.familyName);
     }
   }
+
   private static final Logger LOG = LoggerFactory.getLogger(UsersRestController.class);
 
   private final UserFacade userFacade;
@@ -103,8 +104,8 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
-   * @param pageable page and sort request
    * @param name optional free text matched against the given name and family name
+   * @param pageable page and sort request
    * @return HTTP 200 with the matching page of basic user views; empty page when none match
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
    *     does not hold that authority
@@ -126,10 +127,10 @@ public class UsersRestController {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsers(
       @QuerydslPredicate(root = User.class) Predicate predicate,
-      @ParameterObject Pageable pageable) {
       @Parameter(description = NAME_FILTER_DESCRIPTION)
           @RequestParam(name = "name", required = false)
           String name,
+      @ParameterObject Pageable pageable) {
     PageResultResource<UserBasicViewDto> userDTOs =
         userFacade.getUsers(UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
@@ -143,8 +144,8 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
-   * @param pageable page and sort request
    * @param name optional free text matched against the given name and family name
+   * @param pageable page and sort request
    * @param groupsIds ids of the groups to match
    * @return HTTP 200 with the matching page of users; empty page when none match
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
@@ -173,10 +174,10 @@ public class UsersRestController {
   @GetMapping(path = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserForGroupsDTO>> getUsersInGroups(
       @QuerydslPredicate(root = User.class) Predicate predicate,
-      @ParameterObject Pageable pageable,
       @Parameter(description = NAME_FILTER_DESCRIPTION)
           @RequestParam(name = "name", required = false)
           String name,
+      @ParameterObject Pageable pageable,
       @Parameter(description = "Ids of the groups whose members are returned.") @RequestParam("ids")
           Set<Long> groupsIds) {
     PageResultResource<UserForGroupsDTO> userDTOs =
@@ -243,8 +244,8 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
-   * @param pageable page and sort request
    * @param name optional free text matched against the given name and family name
+   * @param pageable page and sort request
    * @param groupId id of the group to exclude
    * @return HTTP 200 with the matching page of users; empty page when none match
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
@@ -271,10 +272,10 @@ public class UsersRestController {
   @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getAllUsersNotInGivenGroup(
       @QuerydslPredicate(root = User.class) Predicate predicate,
-      @ParameterObject Pageable pageable,
       @Parameter(description = NAME_FILTER_DESCRIPTION)
           @RequestParam(name = "name", required = false)
           String name,
+      @ParameterObject Pageable pageable,
       @PathVariable("groupId") final Long groupId) {
     PageResultResource<UserDTO> userDTOs =
         userFacade.getAllUsersNotInGivenGroup(
@@ -440,10 +441,10 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
-   * @param pageable page and sort request
    * @param maskedCallerPredicate the same filter without the givenName and familyName properties,
    *     applied instead of predicate for a caller who lacks the administrator or power user
    *     authority
+   * @param pageable page and sort request
    * @param ids ids to match
    * @return HTTP 200 with the matching page of basic user views; empty page when none match
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException (HTTP
@@ -481,10 +482,10 @@ public class UsersRestController {
   @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsersWithGivenIds(
       @QuerydslPredicate(root = User.class) Predicate predicate,
-      @ParameterObject Pageable pageable,
       @Parameter(hidden = true)
           @QuerydslPredicate(root = User.class, bindings = WithoutNameBindings.class)
           Predicate maskedCallerPredicate,
+      @ParameterObject Pageable pageable,
       @RequestParam(value = "ids") List<Long> ids) {
     if (pageable.getPageSize() >= 1000) {
       throw new BadRequestException("Choose page size lower than 1000");
@@ -538,7 +539,10 @@ public class UsersRestController {
   public ResponseEntity<byte[]> getInitialOIDCUsers() {
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType("application/octet-stream"))
-        .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
+        .headers(
+            headers ->
+                headers.setContentDisposition(
+                    ContentDisposition.attachment().filename("oidc-initial-users.yaml").build()))
         .body(userFacade.getInitialOIDCUsers());
   }
 

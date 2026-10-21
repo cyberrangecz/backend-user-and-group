@@ -17,6 +17,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.querydsl.core.types.Predicate;
@@ -41,8 +42,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,6 +54,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
@@ -114,6 +116,18 @@ class UsersRestControllerTest {
   @Test
   void contextLoads() {
     assertNotNull(usersRestController);
+  }
+
+  @Test
+  void getInitialOIDCUsers_sendsFileAsNamedAttachment() throws Exception {
+    given(userFacade.getInitialOIDCUsers()).willReturn("users: []".getBytes());
+
+    mockMvc
+        .perform(get("/users/initial-oidc-users"))
+        .andExpect(status().isOk())
+        .andExpect(
+            header()
+                .string("Content-Disposition", "attachment; filename=\"oidc-initial-users.yaml\""));
   }
 
   @Test
@@ -284,20 +298,6 @@ class UsersRestControllerTest {
     assertEquals("The requested entity could not be found", error.getMessage());
   }
 
-  private RoleDTO getAdminRoleDTO() {
-    RoleDTO adminRole = new RoleDTO();
-    adminRole.setId(1L);
-    adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
-    return adminRole;
-  }
-
-  private RoleDTO getGuestRoleDTO() {
-    RoleDTO guestRole = new RoleDTO();
-    guestRole.setId(2L);
-    guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
-    return guestRole;
-  }
-
   @Test
   public void getUsersWithGivenIdsPassesNameFilterOnlyInFullPredicate() throws Exception {
     ArgumentCaptor<Predicate> fullPredicate = ArgumentCaptor.forClass(Predicate.class);
@@ -326,6 +326,20 @@ class UsersRestControllerTest {
     assertFalse(maskedCallerPredicate.getValue().toString().contains("givenName"));
     assertFalse(maskedCallerPredicate.getValue().toString().contains("familyName"));
     assertTrue(maskedCallerPredicate.getValue().toString().contains("mail"));
+  }
+
+  private RoleDTO getAdminRoleDTO() {
+    RoleDTO adminRole = new RoleDTO();
+    adminRole.setId(1L);
+    adminRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_ADMINISTRATOR.name());
+    return adminRole;
+  }
+
+  private RoleDTO getGuestRoleDTO() {
+    RoleDTO guestRole = new RoleDTO();
+    guestRole.setId(2L);
+    guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
+    return guestRole;
   }
 
   private PageResultResource<RoleDTO> getPageResultResourceRolesDTO() {

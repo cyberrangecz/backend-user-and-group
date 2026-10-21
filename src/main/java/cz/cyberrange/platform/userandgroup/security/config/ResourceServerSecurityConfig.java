@@ -96,7 +96,7 @@ public class ResourceServerSecurityConfig {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(false);
     config.setMaxAge(3600L);
-    config.setExposedHeaders(List.of("authorization"));
+    config.setExposedHeaders(List.of("authorization", "content-disposition"));
     config.setAllowedOrigins(Collections.unmodifiableList(corsAllowedOrigins));
     config.setAllowedHeaders(List.of("content-type", "authorization", "x-auth-token"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
