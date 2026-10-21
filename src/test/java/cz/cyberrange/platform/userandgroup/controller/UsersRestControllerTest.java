@@ -3,7 +3,9 @@ package cz.cyberrange.platform.userandgroup.controller;
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertObjectToJsonBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.anyList;
@@ -40,6 +42,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -81,7 +84,8 @@ class UsersRestControllerTest {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new JacksonJsonHttpMessageConverter())
+            .setMessageConverters(
+                new ByteArrayHttpMessageConverter(), new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
 
@@ -292,6 +296,36 @@ class UsersRestControllerTest {
     guestRole.setId(2L);
     guestRole.setRoleType(RoleType.ROLE_USER_AND_GROUP_TRAINEE.name());
     return guestRole;
+  }
+
+  @Test
+  public void getUsersWithGivenIdsPassesNameFilterOnlyInFullPredicate() throws Exception {
+    ArgumentCaptor<Predicate> fullPredicate = ArgumentCaptor.forClass(Predicate.class);
+    ArgumentCaptor<Predicate> maskedCallerPredicate = ArgumentCaptor.forClass(Predicate.class);
+    given(userFacade.getUsersWithGivenIds(anyList(), any(Pageable.class), any(), any()))
+        .willReturn(userBasicViewDtoPageResultResource);
+
+    mockMvc
+        .perform(
+            get("/users/ids")
+                .param("ids", "1")
+                .param("givenName", "alice")
+                .param("familyName", "smith")
+                .param("mail", "alice@example.org"))
+        .andExpect(status().isOk());
+
+    then(userFacade)
+        .should()
+        .getUsersWithGivenIds(
+            anyList(),
+            any(Pageable.class),
+            fullPredicate.capture(),
+            maskedCallerPredicate.capture());
+    assertTrue(fullPredicate.getValue().toString().contains("givenName"));
+    assertTrue(fullPredicate.getValue().toString().contains("familyName"));
+    assertFalse(maskedCallerPredicate.getValue().toString().contains("givenName"));
+    assertFalse(maskedCallerPredicate.getValue().toString().contains("familyName"));
+    assertTrue(maskedCallerPredicate.getValue().toString().contains("mail"));
   }
 
   private PageResultResource<RoleDTO> getPageResultResourceRolesDTO() {

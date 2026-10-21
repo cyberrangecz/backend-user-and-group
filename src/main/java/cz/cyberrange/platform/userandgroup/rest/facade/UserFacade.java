@@ -123,7 +123,9 @@ public class UserFacade {
    *
    * @param ids ids to match
    * @param pageable page and sort request
-   * @param predicate further filter applied to the users
+   * @param predicate further filter applied to the users of a caller who sees real names
+   * @param maskedCallerPredicate further filter applied instead of predicate for a caller whose
+   *     output is masked
    * @return the matching page of basic user views; empty page when none match
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException when
    *     the caller lacks the administrator or power user authority and no user matches the current
@@ -132,13 +134,13 @@ public class UserFacade {
   @IsTrainee
   @TransactionalRO
   public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(
-      List<Long> ids, Pageable pageable, Predicate predicate) {
+      List<Long> ids, Pageable pageable, Predicate predicate, Predicate maskedCallerPredicate) {
     if (securityService.canRetrieveAnyInformation()) {
       return userMapper.mapToPageUserBasicViewDto(
           userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
     return userMapper.mapToPageUserBasicViewDTOAnonymize(
-        userService.getUsersWithGivenIds(ids, pageable, predicate),
+        userService.getUsersWithGivenIds(ids, pageable, maskedCallerPredicate),
         securityService.getLoggedInUser().getId());
   }
 
