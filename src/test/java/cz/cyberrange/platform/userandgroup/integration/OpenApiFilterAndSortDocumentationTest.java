@@ -76,6 +76,15 @@ class OpenApiFilterAndSortDocumentationTest {
   }
 
   @Test
+  void userListingDocumentsNameFilter() throws Exception {
+    List<String> descriptions =
+        JsonPath.read(servedDocument(), USERS_PARAMETERS + "[?(@.name=='name')].description");
+
+    assertEquals(1, descriptions.size());
+    assertTrue(descriptions.get(0).contains("contains every whitespace-separated word"));
+  }
+
+  @Test
   void serverUrlCarriesContextPath() throws Exception {
     List<String> serverUrls = JsonPath.read(servedDocument(), "$.servers[*].url");
 

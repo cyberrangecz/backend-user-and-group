@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
@@ -24,10 +26,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
+import org.springframework.util.LinkedMultiValueMap;
 
 @DataJpaTest
 class UserRepositoryTest {
@@ -366,6 +374,68 @@ class UserRepositoryTest {
 
     assertEquals(descendingIds.reversed(), returnedIds);
   }
+
+  @Test
+  public void nameFilterMatchesSingleWordOnGivenName() {
+    persistUsersForNameFilter();
+
+    assertEquals(List.of("zqxjames"), subsMatchingNameFilter("Zqxjames"));
+  }
+
+  @Test
+  public void nameFilterMatchesSingleWordOnFamilyName() {
+    persistUsersForNameFilter();
+
+    assertEquals(Set.of("zqxjames", "zqxanna"), Set.copyOf(subsMatchingNameFilter("Zqxgenerated")));
+  }
+
+  @Test
+  public void nameFilterWithFullNameMatchesExactlyOneUser() {
+    persistUsersForNameFilter();
+
+    assertEquals(List.of("zqxanna"), subsMatchingNameFilter("Zqxanna Zqxgenerated"));
+  }
+
+  @Test
+  public void nameFilterRequiresEveryWordToMatchEitherName() {
+    persistUsersForNameFilter();
+
+    assertTrue(subsMatchingNameFilter("Zqxjames Zqxanna").isEmpty());
+    assertEquals(List.of("zqxanna"), subsMatchingNameFilter("  zqxgenerated   zqxANNA "));
+  }
+
+  @Test
+  public void nameFilterIgnoresCase() {
+    persistUsersForNameFilter();
+
+    assertEquals(List.of("zqxjames"), subsMatchingNameFilter("ZQXJAMES"));
+    assertEquals(List.of("zqxjames"), subsMatchingNameFilter("zqxjames zqxGENERATED"));
+  }
+
+  @Test
+  public void nameFilterWithBlankTextDoesNotRestrictUsers() {
+    persistUsersForNameFilter();
+    long allUsersCount = userRepository.count();
+
+    assertEquals(allUsersCount, subsMatchingNameFilter("").size());
+    assertEquals(allUsersCount, subsMatchingNameFilter("   ").size());
+  }
+
+  @Test
+  public void givenNameStaysFilterableAlongsideNameFilter() {
+    persistUsersForNameFilter();
+
+    assertEquals(List.of("zqxanna"), subsMatching(predicateFromParameters("givenName", "zqxanna")));
+  }
+
+  @Test
+  public void familyNameStaysFilterableAlongsideNameFilter() {
+    persistUsersForNameFilter();
+
+    assertEquals(
+        List.of("zqxother"), subsMatching(predicateFromParameters("familyName", "zqxfamily")));
+  }
+
   @Test
   public void textFilterMatchesWildcardCharactersLiterally() {
     persistUsersForNameFilter();
@@ -388,6 +458,60 @@ class UserRepositoryTest {
         List.of("zqxother"), subsMatching(predicateFromParameters("familyName", "ZQXFAMILY")));
   }
 
+  @Test
+  public void nameGivenNameAndFamilyNameFiltersCombine() {
+    persistUsersForNameFilter();
+    LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+    parameters.add("givenName", "zqxjam");
+    parameters.add("familyName", "zqxgen");
+
+    Predicate predicate =
+        UserNameFilter.narrow(predicateFromParameters(parameters), "zqxgenerated");
+
+    assertEquals(List.of("zqxjames"), subsMatching(predicate));
+  }
+
+  private void persistUsersForNameFilter() {
+    persistNamedUser("zqxjames", "Zqxjames", "Zqxgenerated");
+    persistNamedUser("zqxanna", "Zqxanna", "Zqxgenerated");
+    persistNamedUser("zqxother", "Zqxother", "Zqxfamily");
+    entityManager.flush();
+    entityManager.clear();
+  }
+
+  private void persistNamedUser(String sub, String givenName, String familyName) {
+    User user = new User(sub, "https://oidc.provider.cz/oidc/");
+    user.setGivenName(givenName);
+    user.setFamilyName(familyName);
+    user.setFullName(givenName + " " + familyName);
+    entityManager.persist(user);
+  }
+
+  private List<String> subsMatchingNameFilter(String nameText) {
+    return subsMatching(UserNameFilter.narrow(new BooleanBuilder(), nameText)).stream()
+        .filter(sub -> sub.startsWith("zqx") || nameText.isBlank())
+        .toList();
+  }
+
+  private List<String> subsMatching(Predicate predicate) {
+    return userRepository.findAll(predicate, Pageable.unpaged()).stream()
+        .map(User::getSub)
+        .toList();
+  }
+
+  private Predicate predicateFromParameters(String parameterName, String parameterValue) {
+    LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+    parameters.add(parameterName, parameterValue);
+    return predicateFromParameters(parameters);
+  }
+
+  private Predicate predicateFromParameters(LinkedMultiValueMap<String, String> parameters) {
+    QuerydslBindings bindings = new QuerydslBindings();
+    userRepository.customize(bindings, QUser.user);
+    return new QuerydslPredicateBuilder(
+            DefaultConversionService.getSharedInstance(), SimpleEntityPathResolver.INSTANCE)
+        .getPredicate(TypeInformation.of(User.class), parameters, bindings);
+  }
 
   /**
    * Persists the 4 prepared users and 4 more under alternating full names, all in the default group

@@ -10,6 +10,7 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntit
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
+import cz.cyberrange.platform.userandgroup.persistence.repository.UserNameFilter;
 import cz.cyberrange.platform.userandgroup.rest.facade.RoleFacade;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
 import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
@@ -187,6 +188,7 @@ public class RolesRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param name optional free text matched against the given name and family name
    * @param pageable page and sort request
    * @param roleId id of the role
    * @return HTTP 200 with the matching page of users; empty page when none match
@@ -222,10 +224,13 @@ public class RolesRestController {
   @GetMapping(path = "/{roleId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRole(
       @QuerydslPredicate(root = User.class) Predicate predicate,
+      @Parameter(description = UsersRestController.NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
       @ParameterObject Pageable pageable,
       @PathVariable("roleId") Long roleId) {
     PageResultResource<UserDTO> userDTOs =
-        userFacade.getUsersWithGivenRole(roleId, predicate, pageable);
+        userFacade.getUsersWithGivenRole(roleId, UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -240,6 +245,7 @@ public class RolesRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param name optional free text matched against the given name and family name
    * @param pageable page and sort request
    * @param roleType role type to match
    * @return HTTP 200 with the matching page of users; empty page when none match
@@ -277,10 +283,14 @@ public class RolesRestController {
   @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getUsersWithGivenRoleType(
       @QuerydslPredicate(root = User.class) Predicate predicate,
+      @Parameter(description = UsersRestController.NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
       @ParameterObject Pageable pageable,
       @NotBlank @RequestParam("roleType") String roleType) {
     PageResultResource<UserDTO> userDTOs =
-        userFacade.getUsersWithGivenRoleType(roleType, predicate, pageable);
+        userFacade.getUsersWithGivenRoleType(
+            roleType, UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -292,6 +302,7 @@ public class RolesRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param name optional free text matched against the given name and family name
    * @param pageable page and sort request
    * @param roleType role type to match
    * @param userIds ids excluded from the result
@@ -325,6 +336,9 @@ public class RolesRestController {
   public ResponseEntity<PageResultResource<UserBasicViewDto>>
       getUsersWithGivenRoleTypeAndNotWithGivenIds(
           @QuerydslPredicate(root = User.class) Predicate predicate,
+          @Parameter(description = UsersRestController.NAME_FILTER_DESCRIPTION)
+              @RequestParam(name = "name", required = false)
+              String name,
           @ParameterObject Pageable pageable,
           @RequestParam("roleType") String roleType,
           @Parameter(description = "Ids of the users left out of the result.") @RequestParam("ids")
@@ -333,7 +347,7 @@ public class RolesRestController {
       throw new BadRequestException("Choose page size lower than 1000");
     }
     PageResultResource<UserBasicViewDto> userDTOs =
-        userFacade.getUsers(predicate, pageable, roleType, userIds);
+        userFacade.getUsers(UserNameFilter.narrow(predicate, name), pageable, roleType, userIds);
     return ResponseEntity.ok(userDTOs);
   }
 }

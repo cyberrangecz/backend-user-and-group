@@ -13,6 +13,7 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
+import cz.cyberrange.platform.userandgroup.persistence.repository.UserNameFilter;
 import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
 import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,6 +68,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/users")
 @Validated
 public class UsersRestController {
+  /** Documents the {@code name} query parameter of every user listing that offers it. */
+  static final String NAME_FILTER_DESCRIPTION =
+      "Matches users whose given name or family name contains every whitespace-separated word of"
+          + " the text, ignoring case.";
+
 
   private static final Logger LOG = LoggerFactory.getLogger(UsersRestController.class);
 
@@ -103,11 +109,13 @@ public class UsersRestController {
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
   @SortableProperties(SortableEntity.USER)
+   * @param name optional free text matched against the given name and family name
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsers(
       @QuerydslPredicate(root = User.class) Predicate predicate,
       @ParameterObject Pageable pageable) {
-    PageResultResource<UserBasicViewDto> userDTOs = userFacade.getUsers(predicate, pageable);
+    PageResultResource<UserBasicViewDto> userDTOs =
+        userFacade.getUsers(UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -125,6 +133,9 @@ public class UsersRestController {
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
    *     does not hold that authority
    */
+      @Parameter(description = NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
   @Operation(
       operationId = "getUsersInGroups",
       summary = "List users of the given groups",
@@ -138,6 +149,7 @@ public class UsersRestController {
     @ApiResponse(
         responseCode = "400",
         description = "The ids parameter is missing or is not a list of numbers.",
+   * @param name optional free text matched against the given name and family name
         content = @Content(schema = @Schema(implementation = ApiError.class))),
     @ApiResponse(
         responseCode = "403",
@@ -152,7 +164,7 @@ public class UsersRestController {
       @Parameter(description = "Ids of the groups whose members are returned.") @RequestParam("ids")
           Set<Long> groupsIds) {
     PageResultResource<UserForGroupsDTO> userDTOs =
-        userFacade.getUsersInGroups(groupsIds, predicate, pageable);
+        userFacade.getUsersInGroups(groupsIds, UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -167,6 +179,9 @@ public class UsersRestController {
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException (HTTP
    *     404) when no user has that id, or when no user matches the current request's sub and issuer
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException
+      @Parameter(description = NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
    *     (HTTP 403) when the caller lacks the administrator or power user authority and requests a
    *     user other than itself
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
@@ -234,6 +249,7 @@ public class UsersRestController {
         description = "The group id is not a number.",
         content = @Content(schema = @Schema(implementation = ApiError.class))),
     @ApiResponse(
+   * @param name optional free text matched against the given name and family name
         responseCode = "403",
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
@@ -245,7 +261,8 @@ public class UsersRestController {
       @ParameterObject Pageable pageable,
       @PathVariable("groupId") final Long groupId) {
     PageResultResource<UserDTO> userDTOs =
-        userFacade.getAllUsersNotInGivenGroup(groupId, predicate, pageable);
+        userFacade.getAllUsersNotInGivenGroup(
+            groupId, UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -261,6 +278,9 @@ public class UsersRestController {
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
    *     does not hold that authority
    */
+      @Parameter(description = NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
   @Operation(
       operationId = "deleteUser",
       summary = "Delete a user",
