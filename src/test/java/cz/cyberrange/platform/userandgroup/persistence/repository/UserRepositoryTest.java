@@ -366,6 +366,28 @@ class UserRepositoryTest {
 
     assertEquals(descendingIds.reversed(), returnedIds);
   }
+  @Test
+  public void textFilterMatchesWildcardCharactersLiterally() {
+    persistUsersForNameFilter();
+    persistNamedUser("zqxwild", "Zqx50%_!", "Zqxwildfamily");
+    persistNamedUser("zqxplain", "Zqx50abc", "Zqxwildfamily");
+    entityManager.flush();
+    entityManager.clear();
+
+    assertEquals(List.of("zqxwild"), subsMatching(predicateFromParameters("givenName", "50%_!")));
+    assertEquals(List.of("zqxwild"), subsMatchingNameFilter("50%_!"));
+  }
+
+  @Test
+  public void textFilterMatchesMixedCaseInEitherDirection() {
+    persistUsersForNameFilter();
+
+    assertEquals(
+        List.of("zqxjames"), subsMatching(predicateFromParameters("givenName", "zQxJaMeS")));
+    assertEquals(
+        List.of("zqxother"), subsMatching(predicateFromParameters("familyName", "ZQXFAMILY")));
+  }
+
 
   /**
    * Persists the 4 prepared users and 4 more under alternating full names, all in the default group

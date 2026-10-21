@@ -30,7 +30,8 @@ public interface UserRepository
         QuerydslBinderCustomizer<QUser> {
 
   /**
-   * Binds every string-typed property so QueryDSL predicates match its values case-insensitively.
+   * Binds every string-typed property so QueryDSL predicates match a value as a substring that
+   * ignores case and accents. The database folds both the property and the value.
    *
    * @param querydslBindings bindings being customized for this repository
    * @param qUser unused
@@ -42,7 +43,8 @@ public interface UserRepository
         .all(
             (StringPath path, Collection<? extends String> values) -> {
               BooleanBuilder predicate = new BooleanBuilder();
-              values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
+              values.forEach(
+                  value -> predicate.and(SearchPredicate.contains(path, value)));
               return Optional.ofNullable(predicate);
             });
   }
