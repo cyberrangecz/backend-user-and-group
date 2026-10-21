@@ -136,4 +136,13 @@ public interface IDMGroupRepository
    * @return true when a group has that name, false otherwise
    */
   boolean existsByName(String groupName);
+
+  /**
+   * Checks whether a group other than the one with the given id has the given name.
+   *
+   * @param groupName name to match
+   * @param groupId id of the group to leave out
+   * @return true when another group has that name, false otherwise
+   */
+  boolean existsByNameAndIdNot(String groupName, Long groupId);
 }
