@@ -2,6 +2,7 @@ package cz.cyberrange.platform.userandgroup.security.impl;
 
 import cz.cyberrange.platform.userandgroup.security.IdentityProvidersService;
 import cz.cyberrange.platform.userandgroup.security.model.UserInfo;
+import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -54,7 +55,9 @@ public class UserInfoValidator {
     HttpEntity<String> request = new HttpEntity<>(headersWithBearerAuthorization(accessToken));
     try {
       String userInfoSrc =
-          restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class).getBody();
+          restTemplate
+              .exchange(URI.create(userInfoUrl), HttpMethod.GET, request, String.class)
+              .getBody();
       UserInfo userInfo = jsonMapper.readValue(userInfoSrc, UserInfo.class);
       userInfo.setIssuer(issuerUrl);
       return userInfo;

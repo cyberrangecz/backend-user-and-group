@@ -2,6 +2,8 @@ package cz.cyberrange.platform.userandgroup.controller;
 
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertObjectToJsonBytes;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.querydsl.core.types.Predicate;
@@ -413,6 +416,16 @@ class GroupsRestControllerTest {
     assertEquals(
         "The request could not be completed due to a conflict with the current state of the target resource.",
         error.getMessage());
+  }
+
+  @Test
+  void testGetGroupWithNonNumericIdAnswersWithoutParserText() throws Exception {
+    mockMvc
+        .perform(get("/groups/NaN"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("The value of 'groupId' is invalid."))
+        .andExpect(content().string(not(containsString("For input string"))));
+    then(groupFacade).should(never()).getGroupById(anyLong());
   }
 
   private AddUsersToGroupDTO getAddUsersToGroupDTO() {

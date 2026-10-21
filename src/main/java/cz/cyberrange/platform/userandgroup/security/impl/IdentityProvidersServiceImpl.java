@@ -14,6 +14,7 @@ import cz.cyberrange.platform.userandgroup.security.IdentityProvidersService;
 import cz.cyberrange.platform.userandgroup.security.config.IdentityProvidersConfig;
 import cz.cyberrange.platform.userandgroup.security.model.WellKnownOpenIDConfiguration;
 import cz.cyberrange.platform.userandgroup.security.util.JsonUtils;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,7 +111,7 @@ public class IdentityProvidersServiceImpl implements IdentityProvidersService {
       RestTemplate restTemplate = new RestTemplate(this.httpFactory);
       WellKnownOpenIDConfiguration conf = new WellKnownOpenIDConfiguration();
       String url = provider + "/.well-known/openid-configuration";
-      String jsonString = restTemplate.getForObject(url, String.class);
+      String jsonString = restTemplate.getForObject(URI.create(url), String.class);
       JsonElement parsed = JsonParser.parseString(jsonString);
       if (parsed.isJsonObject()) {
         JsonObject o = parsed.getAsJsonObject();
@@ -192,7 +193,8 @@ public class IdentityProvidersServiceImpl implements IdentityProvidersService {
      */
     private List<Map<String, Object>> getJwks(String jwksUri) {
       if (jwksUri != null) {
-        JwksResponse issuerKeys = new RestTemplate().getForObject(jwksUri, JwksResponse.class);
+        JwksResponse issuerKeys =
+            new RestTemplate().getForObject(URI.create(jwksUri), JwksResponse.class);
         if (issuerKeys != null) {
           return issuerKeys.getKeys();
         }

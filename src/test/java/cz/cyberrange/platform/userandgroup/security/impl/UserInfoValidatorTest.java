@@ -13,6 +13,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import cz.cyberrange.platform.userandgroup.security.IdentityProvidersService;
 import cz.cyberrange.platform.userandgroup.security.model.UserInfo;
 import cz.cyberrange.platform.userandgroup.security.model.WellKnownOpenIDConfiguration;
+import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,17 +38,24 @@ class UserInfoValidatorTest {
 
   @BeforeEach
   void setUp() {
+    BoundValidator bound = bindValidator(USER_INFO_URL);
+    validator = bound.validator();
+    server = bound.server();
+  }
+
+  private static BoundValidator bindValidator(String userInfoUrl) {
     WellKnownOpenIDConfiguration configuration = new WellKnownOpenIDConfiguration();
-    configuration.setUserInfoUri(USER_INFO_URL);
+    configuration.setUserInfoUri(userInfoUrl);
     IdentityProvidersService identityProvidersService = mock(IdentityProvidersService.class);
     when(identityProvidersService.getIdentityProviderConfiguration(ISSUER))
         .thenReturn(configuration);
-
-    validator = new UserInfoValidator(identityProvidersService);
+    UserInfoValidator boundValidator = new UserInfoValidator(identityProvidersService);
     RestTemplate restTemplate =
-        (RestTemplate) ReflectionTestUtils.getField(validator, "restTemplate");
-    server = MockRestServiceServer.bindTo(restTemplate).build();
+        (RestTemplate) ReflectionTestUtils.getField(boundValidator, "restTemplate");
+    return new BoundValidator(boundValidator, MockRestServiceServer.bindTo(restTemplate).build());
   }
+
+  private record BoundValidator(UserInfoValidator validator, MockRestServiceServer server) {}
 
   private static void assertNoTokenInChain(Throwable thrown) {
     for (Throwable cause = thrown; cause != null; cause = cause.getCause()) {
@@ -111,5 +119,21 @@ class UserInfoValidatorTest {
         .hasMessageContaining(ISSUER)
         .hasCauseInstanceOf(JacksonException.class)
         .satisfies(UserInfoValidatorTest::assertNoTokenInChain);
+  }
+
+  @Test
+  @DisplayName("validate_userInfoUrlWithEscapedCharacters_requestsConfiguredUrlVerbatim")
+  void validate_userInfoUrlWithEscapedCharacters_requestsConfiguredUrlVerbatim() {
+    String escapedUrl = USER_INFO_URL + "?scope=a%20b&next=%2Fhome";
+    BoundValidator escaping = bindValidator(escapedUrl);
+    escaping
+        .server()
+        .expect(requestTo(URI.create(escapedUrl)))
+        .andRespond(withSuccess("{\"sub\":\"subject-1\"}", MediaType.APPLICATION_JSON));
+
+    UserInfo userInfo = escaping.validator().validate(SECRET_TOKEN, ISSUER);
+
+    assertThat(userInfo.getSub()).isEqualTo("subject-1");
+    escaping.server().verify();
   }
 }

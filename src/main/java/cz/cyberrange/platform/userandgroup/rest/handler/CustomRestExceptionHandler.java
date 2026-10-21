@@ -98,8 +98,9 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   /**
    * Catches TypeMismatchException, including MethodArgumentTypeMismatchException. Ignores the
    * headers and status supplied by the base handler and always answers with HTTP 400 and an
-   * ApiError whose message carries the localized message of the deepest cause, whose single error
-   * entry carries the exception's own message, and whose path carries the request's context path.
+   * ApiError whose message and single error entry both name the rejected parameter without
+   * repeating the submitted value or any parser text, and whose path carries the request's context
+   * path. The exception is logged with its stack trace.
    *
    * @param ex the caught exception
    * @param headers ignored
@@ -113,12 +114,13 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
       final HttpHeaders headers,
       final HttpStatusCode status,
       final WebRequest request) {
+    LOG.warn("Request parameter has an unexpected type", ex);
+    final String message =
+        ex.getPropertyName() == null
+            ? "A request parameter has an invalid value."
+            : "The value of '" + ex.getPropertyName() + "' is invalid.";
     final ApiError apiError =
-        ApiError.of(
-            HttpStatus.BAD_REQUEST,
-            getInitialException(ex).getLocalizedMessage(),
-            getErrorMessage(ex),
-            request.getContextPath());
+        ApiError.of(HttpStatus.BAD_REQUEST, message, message, request.getContextPath());
     return jsonResponse(apiError);
   }
 
