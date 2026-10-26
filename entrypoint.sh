@@ -37,4 +37,4 @@ do
     wait_for_it ${i}
 done
 
-exec java -Dspring.config.location=/app/etc/$PROJECT_ARTIFACT_ID.properties -Dpath.to.initial.users=/app/etc/initial-users.yml -Dpath.to.initial.oidc.users=/app/etc/exported-local-oidc-users.yml -jar /app/$PROJECT_ARTIFACT_ID.jar
+exec java --enable-native-access=ALL-UNNAMED -Dspring.config.location=/app/etc/$PROJECT_ARTIFACT_ID.properties -Dlogging.config=/app/etc/logback-spring.xml -Dpath.to.initial.users=/app/etc/initial-users.yml -Dpath.to.initial.oidc.users=/app/etc/exported-local-oidc-users.yml -jar /app/$PROJECT_ARTIFACT_ID.jar

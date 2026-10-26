@@ -1,33 +1,52 @@
 package cz.cyberrange.platform.userandgroup.security.impl;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
- * Authentication entry point invoked when a request that requires authentication fails to
- * authenticate.
+ * Routes authentication failures through the MVC exception resolvers, so controller advice shapes
+ * the response. Sends 401 Unauthorized when no resolver handles the failure.
  */
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-  @Autowired private HandlerExceptionResolver handlerExceptionResolver;
+  private final HandlerExceptionResolver handlerExceptionResolver;
 
-  /**
-   * Routes an authentication failure through this application's centralized exception handling, the
-   * same handling used for exceptions raised in controllers.
-   *
-   * @param request the request that failed authentication
-   * @param response the response to write the resulting error to
-   * @param authException the authentication failure that occurred
-   */
+  public CustomAuthenticationEntryPoint(HandlerExceptionResolver handlerExceptionResolver) {
+    this.handlerExceptionResolver = handlerExceptionResolver;
+  }
+
   @Override
   public void commence(
       HttpServletRequest request,
       HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException {
+    if (isResolved(request, response, authException)) {
+      return;
+    }
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+  }
+
+  /**
+   * Offers the failure to the MVC exception resolvers.
+   *
+   * @return whether a resolver produced the response; false when none handled it or one rethrew an
+   *     access-denied cause
+   */
+  private boolean isResolved(
+      HttpServletRequest request,
+      HttpServletResponse response,
       AuthenticationException authException) {
-    handlerExceptionResolver.resolveException(request, response, null, authException);
+    try {
+      return handlerExceptionResolver.resolveException(request, response, null, authException)
+          != null;
+    } catch (AccessDeniedException rethrownCause) {
+      return false;
+    }
   }
 }

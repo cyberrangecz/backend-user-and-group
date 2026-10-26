@@ -1,8 +1,8 @@
 package cz.cyberrange.platform.userandgroup.api.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.Objects;
-import javax.validation.constraints.NotEmpty;
 
 /** Carries one user to import, as an entry of the users import endpoint's request body. */
 @Schema(name = "UserImportDTO", description = "One user to create through the import endpoint.")

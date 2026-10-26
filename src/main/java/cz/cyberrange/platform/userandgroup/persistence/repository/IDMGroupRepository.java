@@ -29,7 +29,8 @@ public interface IDMGroupRepository
         QuerydslBinderCustomizer<QIDMGroup> {
 
   /**
-   * Binds every string-typed property so QueryDSL predicates match its values case-insensitively.
+   * Binds every string-typed property so QueryDSL predicates match a value as a substring that
+   * ignores case and accents. The database folds both the property and the value.
    *
    * @param querydslBindings bindings being customized for this repository
    * @param qIDMGroup unused
@@ -41,7 +42,8 @@ public interface IDMGroupRepository
         .all(
             (StringPath path, Collection<? extends String> values) -> {
               BooleanBuilder predicate = new BooleanBuilder();
-              values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
+              values.forEach(
+                  value -> predicate.and(SearchPredicate.contains(path, value)));
               return Optional.ofNullable(predicate);
             });
   }
@@ -81,7 +83,7 @@ public interface IDMGroupRepository
    * @return the matching groups, loaded with users; empty list when none match
    */
   @EntityGraph(value = "IDMGroup.users", type = EntityGraph.EntityGraphType.FETCH)
-  List<IDMGroup> findByIdIn(List<Long> groupIds);
+  List<IDMGroup> findByIdInOrderById(List<Long> groupIds);
 
   /**
    * Finds every group that matches the given predicate.
@@ -134,4 +136,13 @@ public interface IDMGroupRepository
    * @return true when a group has that name, false otherwise
    */
   boolean existsByName(String groupName);
+
+  /**
+   * Checks whether a group other than the one with the given id has the given name.
+   *
+   * @param groupName name to match
+   * @param groupId id of the group to leave out
+   * @return true when another group has that name, false otherwise
+   */
+  boolean existsByNameAndIdNot(String groupName, Long groupId);
 }

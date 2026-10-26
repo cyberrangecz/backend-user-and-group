@@ -13,6 +13,8 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.rest.facade.IDMGroupFacade;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,12 +23,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -378,6 +380,7 @@ public class GroupsRestController {
             description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
             content = @Content(schema = @Schema(implementation = ApiError.class)))
       })
+  @SortableProperties(SortableEntity.GROUP)
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<GroupViewDTO>> getGroups(
       @QuerydslPredicate(root = IDMGroup.class) Predicate predicate,
@@ -464,6 +467,7 @@ public class GroupsRestController {
             description = "No group has that id.",
             content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
       })
+  @SortableProperties(SortableEntity.ROLE)
   @GetMapping(path = "/{id}/roles")
   public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfGroup(
       @QuerydslPredicate(root = Role.class) Predicate predicate,

@@ -9,12 +9,13 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.QIDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.QRole;
 import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 
 /** QueryDSL-based implementation of {@link RoleRepositoryCustom}. */
@@ -99,7 +100,7 @@ public class RoleRepositoryCustomImpl extends QuerydslRepositorySupport
    */
   private <T> Page getPage(JPQLQuery<T> query, Pageable pageable) {
     if (pageable == null) {
-      pageable = PageRequest.of(0, 20);
+      pageable = PageRequest.of(0, 20, Sort.by("id"));
     }
     query = getQuerydsl().applyPagination(pageable, query);
     long count = query.fetchCount();

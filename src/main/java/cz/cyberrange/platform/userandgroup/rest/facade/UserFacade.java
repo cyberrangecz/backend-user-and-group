@@ -29,7 +29,9 @@ import cz.cyberrange.platform.userandgroup.service.RoleService;
 import cz.cyberrange.platform.userandgroup.service.SecurityService;
 import cz.cyberrange.platform.userandgroup.service.UserService;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -121,7 +123,9 @@ public class UserFacade {
    *
    * @param ids ids to match
    * @param pageable page and sort request
-   * @param predicate further filter applied to the users
+   * @param predicate further filter applied to the users of a caller who sees real names
+   * @param maskedCallerPredicate further filter applied instead of predicate for a caller whose
+   *     output is masked
    * @return the matching page of basic user views; empty page when none match
    * @throws cz.cyberrange.platform.userandgroup.definition.exceptions.EntityNotFoundException when
    *     the caller lacks the administrator or power user authority and no user matches the current
@@ -130,13 +134,13 @@ public class UserFacade {
   @IsTrainee
   @TransactionalRO
   public PageResultResource<UserBasicViewDto> getUsersWithGivenIds(
-      List<Long> ids, Pageable pageable, Predicate predicate) {
+      List<Long> ids, Pageable pageable, Predicate predicate, Predicate maskedCallerPredicate) {
     if (securityService.canRetrieveAnyInformation()) {
       return userMapper.mapToPageUserBasicViewDto(
           userService.getUsersWithGivenIds(ids, pageable, predicate));
     }
     return userMapper.mapToPageUserBasicViewDTOAnonymize(
-        userService.getUsersWithGivenIds(ids, pageable, predicate),
+        userService.getUsersWithGivenIds(ids, pageable, maskedCallerPredicate),
         securityService.getLoggedInUser().getId());
   }
 
@@ -197,9 +201,7 @@ public class UserFacade {
    */
   // if creation of user fail because of DataIntegrityViolationException, method is repeated one
   // more time which cause that user is updated not created
-  @Retryable(
-      value = {DataIntegrityViolationException.class},
-      maxAttempts = 2)
+  @Retryable(includes = DataIntegrityViolationException.class, maxRetries = 1)
   public UserDTO createOrUpdateOrGetOIDCUser(UserCreateDTO oidcUserDTO) {
     Assert.notNull(
         oidcUserDTO,
@@ -261,7 +263,8 @@ public class UserFacade {
         roleMapper.mapToSetDTO(
             user.getGroups().stream()
                 .flatMap(group -> group.getRoles().stream())
-                .collect(Collectors.toCollection(HashSet::new))));
+                .sorted(Comparator.comparing(Role::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new))));
     return updatedUser;
   }
 
@@ -351,7 +354,7 @@ public class UserFacade {
     Set<Role> roles = userService.getRolesOfUser(id);
     return roles.stream()
         .map(roleMapper::mapToRoleDTOWithMicroservice)
-        .collect(Collectors.toCollection(HashSet::new));
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   /**

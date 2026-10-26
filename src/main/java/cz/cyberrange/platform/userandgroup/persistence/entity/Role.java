@@ -1,16 +1,16 @@
 package cz.cyberrange.platform.userandgroup.persistence.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
 
 /**
  * A role that grants rights to the users of the group it is assigned to. Its role type is unique,
@@ -30,7 +30,7 @@ import javax.persistence.Table;
   @NamedQuery(
       name = "Role.getAllRolesByMicroserviceName",
       query =
-          "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName"),
+          "SELECT r FROM Role r JOIN FETCH r.microservice ms WHERE ms.name = :microserviceName ORDER BY r.id"),
   @NamedQuery(
       name = "Role.findDefaultRoleOfMicroservice",
       query =

@@ -15,6 +15,7 @@ import cz.cyberrange.platform.userandgroup.persistence.repository.RoleRepository
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class IDMGroupService {
+
+  private static final String GROUP_NAME_ALREADY_EXISTS_MESSAGE =
+      "A group with this name already exists.";
 
   private final IDMGroupRepository groupRepository;
   private final RoleRepository roleRepository;
@@ -63,7 +67,7 @@ public class IDMGroupService {
    * @return the matching groups; empty list when none match
    */
   public List<IDMGroup> getGroupsByIds(List<Long> groupIds) {
-    return groupRepository.findByIdIn(groupIds);
+    return groupRepository.findByIdInOrderById(groupIds);
   }
 
   /**
@@ -92,18 +96,13 @@ public class IDMGroupService {
    * @param group group to create
    * @param groupIdsOfImportedMembers ids of the groups whose users are copied into the new group
    * @return the persisted group
-   * @throws EntityConflictException when a group with that name already exists
+   * @throws EntityConflictException when a group with that name already exists, including one
+   *     created concurrently
    */
   public IDMGroup createIDMGroup(IDMGroup group, List<Long> groupIdsOfImportedMembers) {
     group.setStatus(UserAndGroupStatus.VALID);
     if (groupRepository.existsByName(group.getName())) {
-      throw new EntityConflictException(
-          new EntityErrorDetail(
-              IDMGroup.class,
-              "name",
-              String.class,
-              group.getName(),
-              "Group with name '" + group.getName() + "' already exists."));
+      throw groupNameAlreadyExists(group.getName());
     }
 
     if (!groupIdsOfImportedMembers.isEmpty()) {
@@ -113,7 +112,7 @@ public class IDMGroupService {
         group.addUser(importedUserFromGroup);
       }
     }
-    return groupRepository.save(group);
+    return saveRejectingDuplicateName(group);
   }
 
   /**
@@ -124,7 +123,7 @@ public class IDMGroupService {
    * @return the updated group
    * @throws EntityNotFoundException when no group has that id
    * @throws EntityConflictException when the group is one of the groups created automatically by
-   *     the service and its name is being changed
+   *     the service and its name is being changed, or when another group already has the new name
    */
   public IDMGroup updateIDMGroup(IDMGroup group) {
     IDMGroup groupInDatabase = getGroupById(group.getId());
@@ -138,10 +137,27 @@ public class IDMGroupService {
               group.getId(),
               "Name of main group cannot be changed"));
     }
+    if (groupRepository.existsByNameAndIdNot(group.getName(), group.getId())) {
+      throw groupNameAlreadyExists(group.getName());
+    }
     groupInDatabase.setDescription(group.getDescription());
     groupInDatabase.setName(group.getName());
     groupInDatabase.setExpirationDate(group.getExpirationDate());
-    return groupRepository.save(groupInDatabase);
+    return saveRejectingDuplicateName(groupInDatabase);
+  }
+
+  private IDMGroup saveRejectingDuplicateName(IDMGroup group) {
+    try {
+      return groupRepository.saveAndFlush(group);
+    } catch (DataIntegrityViolationException exception) {
+      throw groupNameAlreadyExists(group.getName());
+    }
+  }
+
+  private static EntityConflictException groupNameAlreadyExists(String groupName) {
+    return new EntityConflictException(
+        new EntityErrorDetail(
+            IDMGroup.class, "name", String.class, groupName, GROUP_NAME_ALREADY_EXISTS_MESSAGE));
   }
 
   /**

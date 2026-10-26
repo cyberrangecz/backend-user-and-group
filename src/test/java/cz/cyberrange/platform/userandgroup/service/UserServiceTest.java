@@ -31,20 +31,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {TestDataFactory.class})
 class UserServiceTest {
 
   @Autowired private TestDataFactory testDataFactory;
   private UserService userService;
-  @MockBean private UserRepository userRepository;
-  @MockBean private RoleRepository roleRepository;
-  @MockBean private IDMGroupRepository groupRepository;
+  @MockitoBean private UserRepository userRepository;
+  @MockitoBean private RoleRepository roleRepository;
+  @MockitoBean private IDMGroupRepository groupRepository;
 
   private User user1, user2;
   private IDMGroup adminGroup, userGroup;
@@ -113,12 +113,12 @@ class UserServiceTest {
 
   @Test
   void getUsersByIds() {
-    given(userRepository.findByIdIn(List.of(1L, 2L))).willReturn(List.of(user1, user2));
+    given(userRepository.findByIdInOrderById(List.of(1L, 2L))).willReturn(List.of(user1, user2));
     List<User> users = userService.getUsersByIds(Arrays.asList(1L, 2L));
     assertEquals(2, users.size());
     assertTrue(users.contains(user1));
     assertTrue(users.contains(user2));
-    then(userRepository).should().findByIdIn(Arrays.asList(1L, 2L));
+    then(userRepository).should().findByIdInOrderById(Arrays.asList(1L, 2L));
   }
 
   @Test

@@ -2,6 +2,8 @@ package cz.cyberrange.platform.userandgroup.definition.exceptions.errors;
 
 import cz.cyberrange.platform.userandgroup.definition.exceptions.EntityErrorDetail;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
@@ -40,7 +42,7 @@ public class ApiEntityError extends ApiError {
       String path,
       EntityErrorDetail entityErrorDetail) {
     ApiEntityError apiEntityError = new ApiEntityError();
-    apiEntityError.setTimestamp(System.currentTimeMillis());
+    apiEntityError.setTimestamp(LocalDateTime.now(Clock.systemUTC()));
     apiEntityError.setStatus(httpStatus);
     apiEntityError.setMessage(getMessage(entityErrorDetail, message));
     apiEntityError.setErrors(errors);
@@ -68,7 +70,7 @@ public class ApiEntityError extends ApiError {
       String path,
       EntityErrorDetail entityErrorDetail) {
     ApiEntityError apiEntityError = new ApiEntityError();
-    apiEntityError.setTimestamp(System.currentTimeMillis());
+    apiEntityError.setTimestamp(LocalDateTime.now(Clock.systemUTC()));
     apiEntityError.setStatus(httpStatus);
     apiEntityError.setMessage(getMessage(entityErrorDetail, message));
     apiEntityError.setError(error);

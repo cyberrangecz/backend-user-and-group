@@ -14,8 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.role.RoleDTO;
@@ -46,7 +44,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -58,7 +56,6 @@ class RolesRestControllerTest {
   private RolesRestController roleRestController;
   @Mock private RoleFacade roleFacade;
   @Mock private UserFacade userFacade;
-  @Mock private ObjectMapper objectMapper;
 
   private MockMvc mockMvc;
   private AutoCloseable closeable;
@@ -79,7 +76,7 @@ class RolesRestControllerTest {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
 
@@ -104,10 +101,6 @@ class RolesRestControllerTest {
     userBasicViewDto2.setId(2L);
 
     rolePageResultResource = new PageResultResource<>(Arrays.asList(adminRoleDTO, userRoleDTO));
-
-    ObjectMapper obj = new ObjectMapper();
-    obj.setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy());
-    given(objectMapper.getSerializationConfig()).willReturn(obj.getSerializationConfig());
   }
 
   @AfterEach
@@ -127,7 +120,7 @@ class RolesRestControllerTest {
 
     MockHttpServletResponse result =
         mockMvc
-            .perform(get("/roles" + "/"))
+            .perform(get("/roles"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()

@@ -2,6 +2,8 @@ package cz.cyberrange.platform.userandgroup.controller;
 
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertObjectToJsonBytes;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,10 +19,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.group.AddUsersToGroupDTO;
@@ -50,7 +51,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.querydsl.binding.QuerydslBindingsFactory;
@@ -58,16 +58,16 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @SpringBootTest(classes = TestDataFactory.class)
 class GroupsRestControllerTest {
 
-  @MockBean private IDMGroupFacade groupFacade;
-  @MockBean private ObjectMapper objectMapper;
+  @MockitoBean private IDMGroupFacade groupFacade;
   private GroupsRestController groupsRestController;
 
   @Autowired private TestDataFactory testDataFactory;
@@ -105,10 +105,6 @@ class GroupsRestControllerTest {
 
     groupPageResultResource = new PageResultResource<>(Arrays.asList(groupViewDTO1, groupViewDTO2));
 
-    ObjectMapper obj = new ObjectMapper();
-    obj.setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy());
-    given(objectMapper.getSerializationConfig()).willReturn(obj.getSerializationConfig());
-
     this.mockMvc =
         MockMvcBuilders.standaloneSetup(groupsRestController)
             .setCustomArgumentResolvers(
@@ -116,7 +112,7 @@ class GroupsRestControllerTest {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
   }
@@ -136,7 +132,7 @@ class GroupsRestControllerTest {
     given(groupFacade.createGroup(any(NewGroupDTO.class))).willReturn(groupDTO1);
     mockMvc
         .perform(
-            post("/groups" + "/")
+            post("/groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(newGroupDTO)))
         .andExpect(status().isCreated())
@@ -149,7 +145,7 @@ class GroupsRestControllerTest {
   void testCreateGroupWithNullRequestBody() throws Exception {
     mockMvc
         .perform(
-            post("/groups" + "/")
+            post("/groups")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(convertObjectToJsonBytes(null)))
         .andExpect(status().isBadRequest());
@@ -160,7 +156,7 @@ class GroupsRestControllerTest {
   void testUpdateGroup() throws Exception {
     mockMvc
         .perform(
-            put("/groups" + "/")
+            put("/groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(updateGroupDTO)))
         .andExpect(status().isNoContent());
@@ -290,7 +286,7 @@ class GroupsRestControllerTest {
   public void testDeleteGroups() throws Exception {
     mockMvc
         .perform(
-            delete("/groups" + "/")
+            delete("/groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(Collections.singletonList(1L))))
         .andExpect(status().isOk());
@@ -300,7 +296,7 @@ class GroupsRestControllerTest {
   @Test
   public void testDeleteGroupsWithNoRequestBody() throws Exception {
     mockMvc
-        .perform(delete("/groups" + "/").contentType(MediaType.APPLICATION_JSON))
+        .perform(delete("/groups").contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest());
     then(groupFacade).should(never()).deleteGroups(anyList());
   }
@@ -312,7 +308,7 @@ class GroupsRestControllerTest {
 
     MockHttpServletResponse result =
         mockMvc
-            .perform(get("/groups" + "/"))
+            .perform(get("/groups"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
@@ -420,6 +416,16 @@ class GroupsRestControllerTest {
     assertEquals(
         "The request could not be completed due to a conflict with the current state of the target resource.",
         error.getMessage());
+  }
+
+  @Test
+  void testGetGroupWithNonNumericIdAnswersWithoutParserText() throws Exception {
+    mockMvc
+        .perform(get("/groups/NaN"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("The value of 'groupId' is invalid."))
+        .andExpect(content().string(not(containsString("For input string"))));
+    then(groupFacade).should(never()).getGroupById(anyLong());
   }
 
   private AddUsersToGroupDTO getAddUsersToGroupDTO() {

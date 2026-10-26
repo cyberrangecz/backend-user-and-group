@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.microservice.MicroserviceDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.microservice.NewMicroserviceDTO;
@@ -28,15 +27,14 @@ import cz.cyberrange.platform.userandgroup.rest.controller.MicroservicesRestCont
 import cz.cyberrange.platform.userandgroup.rest.handler.CustomRestExceptionHandler;
 import cz.cyberrange.platform.userandgroup.util.TestAuthorityGranter;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import javax.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -45,13 +43,13 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.core.type.TypeReference;
 
 @SpringBootTest(classes = {IntegrationTestApplication.class, MicroservicesRestController.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @Transactional
 class MicroservicesIntegrationTests {
 
@@ -79,7 +77,7 @@ class MicroservicesIntegrationTests {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
 
@@ -128,7 +126,7 @@ class MicroservicesIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isCreated());
     assertTrue(microserviceRepository.findByName("training").isPresent());
-    IDMGroup defaultGroup = groupRepository.findByName("DEFAULT-GROUP").orElseGet(null);
+    IDMGroup defaultGroup = groupRepository.findByName("DEFAULT-GROUP").orElse(null);
     assertNotNull(defaultGroup);
     assertTrue(
         defaultGroup.getRoles().stream()
@@ -336,7 +334,7 @@ class MicroservicesIntegrationTests {
             .getResponse();
     ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
     assertEquals(HttpStatus.FORBIDDEN, error.getStatus());
-    assertEquals("Access is denied", error.getMessage());
+    assertEquals("Access Denied", error.getMessage());
   }
 
   @Test
@@ -349,7 +347,7 @@ class MicroservicesIntegrationTests {
             .getResponse();
     ApiError error = convertJsonBytesToObject(response.getContentAsString(), ApiError.class);
     assertEquals(HttpStatus.FORBIDDEN, error.getStatus());
-    assertEquals("Access is denied", error.getMessage());
+    assertEquals("Access Denied", error.getMessage());
   }
 
   private void assertEntityDetailError(

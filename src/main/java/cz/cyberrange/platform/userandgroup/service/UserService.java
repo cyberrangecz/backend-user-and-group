@@ -104,7 +104,7 @@ public class UserService {
    * @return the matching users; empty list when none match
    */
   public List<User> getUsersByIds(List<Long> userIds) {
-    return userRepository.findByIdIn(userIds);
+    return userRepository.findByIdInOrderById(userIds);
   }
 
   /**

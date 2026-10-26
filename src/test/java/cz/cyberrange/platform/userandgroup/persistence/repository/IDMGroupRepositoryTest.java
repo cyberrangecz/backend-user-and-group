@@ -4,23 +4,33 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QIDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
+import org.springframework.util.LinkedMultiValueMap;
 
 @DataJpaTest
 class IDMGroupRepositoryTest {
@@ -165,5 +175,57 @@ class IDMGroupRepositoryTest {
     if (group.isPresent()) {
       throw new Exception("Group with name 'group' should not be found");
     }
+  }
+
+  @Test
+  public void findByIdInOrderByIdReturnsGroupsInIdOrder() {
+    Stream.of(group1, group2, group3, group4).forEach(entityManager::persistAndFlush);
+    List<Long> descendingIds =
+        Stream.of(group1, group2, group3, group4)
+            .map(IDMGroup::getId)
+            .sorted(Comparator.reverseOrder())
+            .toList();
+
+    List<Long> returnedIds =
+        groupRepository.findByIdInOrderById(descendingIds).stream().map(IDMGroup::getId).toList();
+
+    assertEquals(descendingIds.reversed(), returnedIds);
+  }
+
+  @Test
+  public void nameFilterMatchesAccentsMarkupAndSpacesIgnoringCase() {
+    String storedName = "Žluťoučký kůň <b>x</b>";
+    persistGroupNamed(storedName);
+
+    assertEquals(List.of(storedName), namesMatchingNameFilter(storedName));
+    assertEquals(List.of(storedName), namesMatchingNameFilter("žluťoučký KŮŇ <B>"));
+    assertEquals(List.of(), namesMatchingNameFilter("kůň <i>"));
+  }
+
+  @Test
+  public void nameFilterTreatsLikeWildcardsAsLiteralText() {
+    persistGroupNamed("100%_done!");
+    persistGroupNamed("100 percent done");
+
+    assertEquals(List.of("100%_done!"), namesMatchingNameFilter("0%_d"));
+    assertEquals(List.of("100%_done!"), namesMatchingNameFilter("done!"));
+  }
+
+  private void persistGroupNamed(String name) {
+    entityManager.persistAndFlush(new IDMGroup(name, "description of " + name));
+  }
+
+  private List<String> namesMatchingNameFilter(String nameText) {
+    LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+    parameters.add("name", nameText);
+    QuerydslBindings bindings = new QuerydslBindings();
+    groupRepository.customize(bindings, QIDMGroup.iDMGroup);
+    Predicate predicate =
+        new QuerydslPredicateBuilder(
+                DefaultConversionService.getSharedInstance(), SimpleEntityPathResolver.INSTANCE)
+            .getPredicate(TypeInformation.of(IDMGroup.class), parameters, bindings);
+    return groupRepository.findAll(predicate, Pageable.unpaged()).stream()
+        .map(IDMGroup::getName)
+        .toList();
   }
 }

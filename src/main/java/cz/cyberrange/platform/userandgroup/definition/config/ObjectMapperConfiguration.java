@@ -1,49 +1,34 @@
 package cz.cyberrange.platform.userandgroup.definition.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.EnumFeature;
 
-/** Provides the object mappers used to convert between Java objects and JSON or YAML. */
+/** Configures the JSON mapper that reads request bodies and writes response bodies. */
 @Configuration
 public class ObjectMapperConfiguration {
 
   /**
-   * Returns the primary object mapper for JSON: renames properties to snake case, registers the
-   * Java time module, and writes dates as text instead of timestamps, with indented output.
+   * Names JSON properties in snake_case, writes them in declaration order, reads and writes enums
+   * by their constant name, indents written JSON, and rejects request bodies carrying properties
+   * the target type does not declare.
    *
-   * @return the configured object mapper
+   * @return the customizer applied to the auto-configured JSON mapper
    */
   @Bean
-  @Primary
-  public ObjectMapper objectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy());
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-    return objectMapper;
-  }
-
-  /**
-   * Returns the object mapper for YAML: registers every auto-detected module, ignores unknown
-   * properties on read, and writes dates as text instead of timestamps, with indented output.
-   *
-   * @return the configured YAML object mapper
-   */
-  @Bean(name = "yamlObjectMapper")
-  public ObjectMapper yamlObjectMapper() {
-    ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
-    yamlObjectMapper.findAndRegisterModules();
-    yamlObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    yamlObjectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    yamlObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-    return yamlObjectMapper;
+  public JsonMapperBuilderCustomizer snakeCaseJsonMapperCustomizer() {
+    return builder ->
+        builder
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .disable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
+            .disable(EnumFeature.READ_ENUMS_USING_TO_STRING)
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 }

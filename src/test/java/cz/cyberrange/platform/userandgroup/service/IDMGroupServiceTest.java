@@ -35,22 +35,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {TestDataFactory.class})
 class IDMGroupServiceTest {
 
   @Autowired private TestDataFactory testDataFactory;
   private IDMGroupService groupService;
-  @MockBean private IDMGroupRepository groupRepository;
-  @MockBean private RoleRepository roleRepository;
-  @MockBean private MicroserviceRepository microserviceRepository;
-  @MockBean private SecurityService securityService;
-  @MockBean private UserRepository userRepository;
+  @MockitoBean private IDMGroupRepository groupRepository;
+  @MockitoBean private RoleRepository roleRepository;
+  @MockitoBean private MicroserviceRepository microserviceRepository;
+  @MockitoBean private SecurityService securityService;
+  @MockitoBean private UserRepository userRepository;
 
   private IDMGroup defaultGroup, designerGroup, adminGroup;
   private Role adminRole, userRole, guestRole;
@@ -104,13 +105,15 @@ class IDMGroupServiceTest {
 
   @Test
   void getGroupsByIds() {
-    given(groupRepository.findByIdIn(List.of(defaultGroup.getId(), designerGroup.getId())))
+    given(groupRepository.findByIdInOrderById(List.of(defaultGroup.getId(), designerGroup.getId())))
         .willReturn(List.of(defaultGroup, designerGroup));
     List<IDMGroup> idmGroups =
         groupService.getGroupsByIds(List.of(defaultGroup.getId(), designerGroup.getId()));
     assertEquals(2, idmGroups.size());
     assertTrue(idmGroups.containsAll(Set.of(defaultGroup, designerGroup)));
-    then(groupRepository).should().findByIdIn(List.of(defaultGroup.getId(), designerGroup.getId()));
+    then(groupRepository)
+        .should()
+        .findByIdInOrderById(List.of(defaultGroup.getId(), designerGroup.getId()));
   }
 
   @Test
@@ -133,32 +136,78 @@ class IDMGroupServiceTest {
   @Test
   public void createGroup() {
     designerGroup.setUsers(new HashSet<>(Set.of(user1)));
-    given(groupRepository.save(designerGroup)).willReturn(designerGroup);
+    given(groupRepository.saveAndFlush(designerGroup)).willReturn(designerGroup);
     given(groupRepository.findUsersOfGivenGroups(List.of(defaultGroup.getId())))
         .willReturn(Set.of(user2));
 
     IDMGroup g = groupService.createIDMGroup(designerGroup, List.of(defaultGroup.getId()));
     deepEquals(designerGroup, g);
     assertTrue(g.getUsers().containsAll(Set.of(user1, user2)));
-    then(groupRepository).should().save(designerGroup);
+    then(groupRepository).should().saveAndFlush(designerGroup);
   }
 
   @Test
   public void createGroupThatAlreadyExists() {
     given(groupRepository.existsByName(defaultGroup.getName())).willReturn(true);
-    assertThrows(
-        EntityConflictException.class,
-        () -> groupService.createIDMGroup(defaultGroup, new ArrayList<>()));
+    EntityConflictException conflict =
+        assertThrows(
+            EntityConflictException.class,
+            () -> groupService.createIDMGroup(defaultGroup, new ArrayList<>()));
+    assertEquals(
+        "A group with this name already exists.", conflict.getEntityErrorDetail().getReason());
+  }
+
+  @Test
+  public void createGroupRacingOnNameMapsConstraintViolationToConflict() {
+    given(groupRepository.saveAndFlush(designerGroup))
+        .willThrow(new DataIntegrityViolationException("duplicate"));
+
+    EntityConflictException conflict =
+        assertThrows(
+            EntityConflictException.class,
+            () -> groupService.createIDMGroup(designerGroup, new ArrayList<>()));
+
+    assertEquals(
+        "A group with this name already exists.", conflict.getEntityErrorDetail().getReason());
+  }
+
+  @Test
+  public void updateGroupRacingOnNameMapsConstraintViolationToConflict() {
+    given(groupRepository.findById(designerGroup.getId())).willReturn(Optional.of(designerGroup));
+    given(groupRepository.saveAndFlush(designerGroup))
+        .willThrow(new DataIntegrityViolationException("duplicate"));
+
+    EntityConflictException conflict =
+        assertThrows(
+            EntityConflictException.class, () -> groupService.updateIDMGroup(designerGroup));
+
+    assertEquals(
+        "A group with this name already exists.", conflict.getEntityErrorDetail().getReason());
+  }
+
+  @Test
+  public void updateGroupToNameOfAnotherGroup() {
+    given(groupRepository.findById(designerGroup.getId())).willReturn(Optional.of(designerGroup));
+    given(groupRepository.existsByNameAndIdNot(designerGroup.getName(), designerGroup.getId()))
+        .willReturn(true);
+
+    EntityConflictException conflict =
+        assertThrows(
+            EntityConflictException.class, () -> groupService.updateIDMGroup(designerGroup));
+
+    assertEquals(
+        "A group with this name already exists.", conflict.getEntityErrorDetail().getReason());
+    then(groupRepository).should(never()).saveAndFlush(designerGroup);
   }
 
   @Test
   public void updateGroup() {
     given(groupRepository.findById(defaultGroup.getId())).willReturn(Optional.of(defaultGroup));
-    given(groupRepository.save(defaultGroup)).willReturn(defaultGroup);
+    given(groupRepository.saveAndFlush(defaultGroup)).willReturn(defaultGroup);
     IDMGroup g = groupService.updateIDMGroup(defaultGroup);
     deepEquals(defaultGroup, g);
 
-    then(groupRepository).should().save(defaultGroup);
+    then(groupRepository).should().saveAndFlush(defaultGroup);
   }
 
   @Test

@@ -11,7 +11,6 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cyberrange.platform.userandgroup.api.dto.microservice.NewMicroserviceDTO;
 import cz.cyberrange.platform.userandgroup.api.dto.role.RoleForNewMicroserviceDTO;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.UnprocessableEntityException;
@@ -35,7 +34,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,7 +48,6 @@ class MicroserviceControllerTest {
 
   private MicroservicesRestController microservicesRestController;
   @Mock private MicroserviceFacade microserviceFacade;
-  @Mock private ObjectMapper objectMapper;
   @Autowired private TestDataFactory testDataFactory;
 
   private MockMvc mockMvc;
@@ -73,7 +71,7 @@ class MicroserviceControllerTest {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
   }

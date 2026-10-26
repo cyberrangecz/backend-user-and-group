@@ -7,6 +7,7 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
 import cz.cyberrange.platform.userandgroup.persistence.entity.QRole;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,8 @@ public interface RoleRepository
         QuerydslBinderCustomizer<QRole> {
 
   /**
-   * Binds every string-typed property so QueryDSL predicates match its values case-insensitively.
+   * Binds every string-typed property so QueryDSL predicates match a value as a substring that
+   * ignores case and accents.
    *
    * @param querydslBindings bindings being customized for this repository
    * @param qRole unused
@@ -40,7 +42,7 @@ public interface RoleRepository
         .all(
             (StringPath path, Collection<? extends String> values) -> {
               BooleanBuilder predicate = new BooleanBuilder();
-              values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
+              values.forEach(value -> predicate.and(SearchPredicate.contains(path, value)));
               return Optional.ofNullable(predicate);
             });
   }
@@ -85,7 +87,7 @@ public interface RoleRepository
    * microservice.
    *
    * @param microserviceName name of the {@link Microservice} to match
-   * @return the matching roles; empty set when none match
+   * @return the matching roles in ascending id order; empty list when none match
    */
   Set<Role> getAllRolesByMicroserviceName(@Param("microserviceName") String microserviceName);
 
@@ -101,7 +103,7 @@ public interface RoleRepository
    * Finds every role whose role type is in the given set.
    *
    * @param roleTypes role types to match
-   * @return the matching roles; empty set when none match
+   * @return the matching roles in ascending id order; empty list when none match
    */
-  Set<Role> getAllByRoleTypeIn(@Param("roleTypes") Set<String> roleTypes);
+  List<Role> getAllByRoleTypeInOrderById(Set<String> roleTypes);
 }

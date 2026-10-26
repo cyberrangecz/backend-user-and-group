@@ -1,25 +1,25 @@
 package cz.cyberrange.platform.userandgroup.persistence.entity;
 
 import cz.cyberrange.platform.userandgroup.persistence.enums.UserAndGroupStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.NamedSubgraph;
-import javax.persistence.Table;
 import org.springframework.util.Assert;
 
 /**
@@ -48,7 +48,8 @@ import org.springframework.util.Assert;
       query = "SELECT g FROM IDMGroup g JOIN FETCH g.roles WHERE g.name = :name"),
   @NamedQuery(
       name = "IDMGroup.findAllByRoleType",
-      query = "SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType"),
+      query =
+          "SELECT g FROM IDMGroup AS g JOIN FETCH g.roles AS r WHERE r.roleType = :roleType ORDER BY g.id"),
   @NamedQuery(
       name = "IDMGroup.findAdministratorGroup",
       query =
@@ -62,7 +63,7 @@ import org.springframework.util.Assert;
   @NamedQuery(
       name = "IDMGroup.findUsersOfGivenGroups",
       query =
-          "SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds")
+          "SELECT DISTINCT u FROM IDMGroup AS g INNER JOIN g.users AS u WHERE g.id IN :groupsIds ORDER BY u.id")
 })
 public class IDMGroup extends AbstractEntity<Long> {
 

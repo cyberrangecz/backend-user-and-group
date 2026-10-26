@@ -10,9 +10,13 @@ import cz.cyberrange.platform.userandgroup.api.dto.user.UserForGroupsDTO;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.BadRequestException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntityError;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
+import cz.cyberrange.platform.userandgroup.persistence.repository.UserNameFilter;
 import cz.cyberrange.platform.userandgroup.rest.facade.UserFacade;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableEntity;
+import cz.cyberrange.platform.userandgroup.rest.sorting.SortableProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,17 +25,20 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +73,21 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class UsersRestController {
 
+  /** Documents the {@code name} query parameter of every user listing that offers it. */
+  static final String NAME_FILTER_DESCRIPTION =
+      "Matches users whose given name or family name contains every whitespace-separated word of"
+          + " the text, ignoring case.";
+
+  /** Binds the user filters of a request without the name properties. */
+  static final class WithoutNameBindings implements QuerydslBinderCustomizer<QUser> {
+
+    @Override
+    public void customize(QuerydslBindings bindings, QUser user) {
+      // Filtering on masked names would reveal them.
+      bindings.excluding(user.givenName, user.familyName);
+    }
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(UsersRestController.class);
 
   private final UserFacade userFacade;
@@ -82,6 +104,7 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param name optional free text matched against the given name and family name
    * @param pageable page and sort request
    * @return HTTP 200 with the matching page of basic user views; empty page when none match
    * @throws org.springframework.security.access.AccessDeniedException (HTTP 403) when the caller
@@ -100,11 +123,16 @@ public class UsersRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsers(
       @QuerydslPredicate(root = User.class) Predicate predicate,
+      @Parameter(description = NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
       @ParameterObject Pageable pageable) {
-    PageResultResource<UserBasicViewDto> userDTOs = userFacade.getUsers(predicate, pageable);
+    PageResultResource<UserBasicViewDto> userDTOs =
+        userFacade.getUsers(UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -116,6 +144,7 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param name optional free text matched against the given name and family name
    * @param pageable page and sort request
    * @param groupsIds ids of the groups to match
    * @return HTTP 200 with the matching page of users; empty page when none match
@@ -141,14 +170,18 @@ public class UsersRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/groups", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserForGroupsDTO>> getUsersInGroups(
       @QuerydslPredicate(root = User.class) Predicate predicate,
+      @Parameter(description = NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
       @ParameterObject Pageable pageable,
       @Parameter(description = "Ids of the groups whose members are returned.") @RequestParam("ids")
           Set<Long> groupsIds) {
     PageResultResource<UserForGroupsDTO> userDTOs =
-        userFacade.getUsersInGroups(groupsIds, predicate, pageable);
+        userFacade.getUsersInGroups(groupsIds, UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -211,6 +244,7 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param name optional free text matched against the given name and family name
    * @param pageable page and sort request
    * @param groupId id of the group to exclude
    * @return HTTP 200 with the matching page of users; empty page when none match
@@ -234,13 +268,18 @@ public class UsersRestController {
         description = "Caller lacks the ROLE_USER_AND_GROUP_ADMINISTRATOR role.",
         content = @Content(schema = @Schema(implementation = ApiError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/not-in-group/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserDTO>> getAllUsersNotInGivenGroup(
       @QuerydslPredicate(root = User.class) Predicate predicate,
+      @Parameter(description = NAME_FILTER_DESCRIPTION)
+          @RequestParam(name = "name", required = false)
+          String name,
       @ParameterObject Pageable pageable,
       @PathVariable("groupId") final Long groupId) {
     PageResultResource<UserDTO> userDTOs =
-        userFacade.getAllUsersNotInGivenGroup(groupId, predicate, pageable);
+        userFacade.getAllUsersNotInGivenGroup(
+            groupId, UserNameFilter.narrow(predicate, name), pageable);
     return ResponseEntity.ok(userDTOs);
   }
 
@@ -349,6 +388,7 @@ public class UsersRestController {
         description = "No user has that id.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
+  @SortableProperties(SortableEntity.ROLE)
   @GetMapping(path = "/{id}/roles")
   public ResponseEntity<PageResultResource<RoleDTO>> getRolesOfUser(
       @QuerydslPredicate(root = Role.class) Predicate predicate,
@@ -401,6 +441,9 @@ public class UsersRestController {
    * @param predicate optional filter on user attributes: each string property matches
    *     case-insensitively as a substring of the given value, every other property must equal it
    *     exactly
+   * @param maskedCallerPredicate the same filter without the givenName and familyName properties,
+   *     applied instead of predicate for a caller who lacks the administrator or power user
+   *     authority
    * @param pageable page and sort request
    * @param ids ids to match
    * @return HTTP 200 with the matching page of basic user views; empty page when none match
@@ -435,9 +478,13 @@ public class UsersRestController {
         description = "No user matches the current request's sub and issuer.",
         content = @Content(schema = @Schema(implementation = ApiEntityError.class)))
   })
+  @SortableProperties(SortableEntity.USER)
   @GetMapping(path = "/ids", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PageResultResource<UserBasicViewDto>> getUsersWithGivenIds(
       @QuerydslPredicate(root = User.class) Predicate predicate,
+      @Parameter(hidden = true)
+          @QuerydslPredicate(root = User.class, bindings = WithoutNameBindings.class)
+          Predicate maskedCallerPredicate,
       @ParameterObject Pageable pageable,
       @RequestParam(value = "ids") List<Long> ids) {
     if (pageable.getPageSize() >= 1000) {
@@ -449,7 +496,7 @@ public class UsersRestController {
           new PageResultResource<>(
               Collections.emptyList(), new PageResultResource.Pagination(0, 0, 0, 0, 0));
     } else {
-      userDTOs = userFacade.getUsersWithGivenIds(ids, pageable, predicate);
+      userDTOs = userFacade.getUsersWithGivenIds(ids, pageable, predicate, maskedCallerPredicate);
     }
     return ResponseEntity.ok(userDTOs);
   }
@@ -492,7 +539,10 @@ public class UsersRestController {
   public ResponseEntity<byte[]> getInitialOIDCUsers() {
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType("application/octet-stream"))
-        .header("Content-Disposition", "attachment; filename=oidc-initial-users.yaml")
+        .headers(
+            headers ->
+                headers.setContentDisposition(
+                    ContentDisposition.attachment().filename("oidc-initial-users.yaml").build()))
         .body(userFacade.getInitialOIDCUsers());
   }
 

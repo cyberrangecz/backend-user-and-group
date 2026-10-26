@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
 import static org.mockito.BDDMockito.then;
 
 import com.querydsl.core.types.Predicate;
@@ -21,6 +22,7 @@ import cz.cyberrange.platform.userandgroup.api.mapping.UserMapperImpl;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbiddenException;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
+import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.dto.ImplicitGroupNames;
@@ -116,6 +118,12 @@ class UserFacadeTest {
     defaultGroup = testDataFactory.getUAGDefaultGroup();
     defaultGroup.setId(2L);
     defaultGroup.addUser(user1);
+    long nextGroupRoleId = 10L;
+    for (IDMGroup group : List.of(adminGroup, defaultGroup)) {
+      for (Role groupRole : group.getRoles()) {
+        groupRole.setId(nextGroupRoleId++);
+      }
+    }
 
     traineeRole = testDataFactory.getUAGTraineeRole();
     traineeRole.setId(1L);
@@ -349,10 +357,44 @@ class UserFacadeTest {
     given(userService.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null))
         .willReturn(new PageImpl<>(Arrays.asList(user1, user2)));
     PageResultResource<UserBasicViewDto> usersDTO =
-        userFacade.getUsersWithGivenIds(List.of(user1.getId(), user2.getId()), pageable, null);
+        userFacade.getUsersWithGivenIds(
+            List.of(user1.getId(), user2.getId()), pageable, null, null);
 
     assertEquals(2, usersDTO.getContent().size());
     assertTrue(usersDTO.getContent().containsAll(Set.of(userBasicViewDto1, userBasicViewDto2)));
+  }
+
+  @Test
+  public void getUsersWithGivenIdsAppliesFullPredicateForPrivilegedCaller() {
+    List<Long> userIds = List.of(user1.getId(), user2.getId());
+    Predicate fullPredicate = QUser.user.givenName.eq("full");
+    Predicate maskedCallerPredicate = QUser.user.id.isNotNull();
+    given(securityService.canRetrieveAnyInformation()).willReturn(true);
+    given(userService.getUsersWithGivenIds(userIds, pageable, fullPredicate))
+        .willReturn(new PageImpl<>(List.of(user1, user2)));
+
+    userFacade.getUsersWithGivenIds(userIds, pageable, fullPredicate, maskedCallerPredicate);
+
+    then(userService).should().getUsersWithGivenIds(userIds, pageable, fullPredicate);
+    then(userService)
+        .should(never())
+        .getUsersWithGivenIds(userIds, pageable, maskedCallerPredicate);
+  }
+
+  @Test
+  public void getUsersWithGivenIdsAppliesMaskedCallerPredicateForUnprivilegedCaller() {
+    List<Long> userIds = List.of(user1.getId(), user2.getId());
+    Predicate fullPredicate = QUser.user.givenName.eq("full");
+    Predicate maskedCallerPredicate = QUser.user.id.isNotNull();
+    given(securityService.canRetrieveAnyInformation()).willReturn(false);
+    given(securityService.getLoggedInUser()).willReturn(user1);
+    given(userService.getUsersWithGivenIds(userIds, pageable, maskedCallerPredicate))
+        .willReturn(new PageImpl<>(List.of(user1, user2)));
+
+    userFacade.getUsersWithGivenIds(userIds, pageable, fullPredicate, maskedCallerPredicate);
+
+    then(userService).should().getUsersWithGivenIds(userIds, pageable, maskedCallerPredicate);
+    then(userService).should(never()).getUsersWithGivenIds(userIds, pageable, fullPredicate);
   }
 
   @Test
@@ -363,11 +405,11 @@ class UserFacadeTest {
     given(userService.getUsersWithGivenIds(userIds, pageable, null))
         .willReturn(new PageImpl<>(List.of(user1, user2)));
     PageResultResource<UserBasicViewDto> usersDTO =
-        userFacade.getUsersWithGivenIds(userIds, pageable, null);
+        userFacade.getUsersWithGivenIds(userIds, pageable, null, null);
 
     assertEquals(2, usersDTO.getContent().size());
     for (UserBasicViewDto userBasicViewDto : usersDTO.getContent()) {
-      if (userBasicViewDto.getId() == user1.getId()) {
+      if (userBasicViewDto.getId().equals(user1.getId())) {
         assertEquals(userBasicViewDto, userBasicViewDto1);
       } else {
         assertEquals(userBasicViewDto.getId(), user2.getId());

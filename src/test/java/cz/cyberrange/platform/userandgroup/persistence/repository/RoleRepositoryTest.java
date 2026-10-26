@@ -10,13 +10,15 @@ import cz.cyberrange.platform.userandgroup.persistence.entity.Role;
 import cz.cyberrange.platform.userandgroup.persistence.entity.User;
 import cz.cyberrange.platform.userandgroup.persistence.enums.RoleType;
 import cz.cyberrange.platform.userandgroup.util.TestDataFactory;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 
 @DataJpaTest
@@ -148,5 +150,25 @@ class RoleRepositoryTest {
             .findDefaultRoleOfMicroservice(crczpTraining.getName())
             .orElseThrow(() -> new Exception("Role should be found"));
     assertEquals(defaultTrainingRole, traineeRole);
+  }
+
+  @Test
+  public void queryWithoutPageableReturnsRolesInIdOrder() {
+    List<Long> returnedIds =
+        roleRepository.findAllOfGroup(group2.getId(), null, null).map(Role::getId).getContent();
+
+    assertEquals(Stream.of(guestRole, traineeRole).map(Role::getId).sorted().toList(), returnedIds);
+  }
+
+  @Test
+  public void getAllByRoleTypeInOrderByIdReturnsRolesInIdOrder() {
+    List<Long> returnedIds =
+        roleRepository
+            .getAllByRoleTypeInOrderById(Set.of(traineeRole.getRoleType(), adminRole.getRoleType()))
+            .stream()
+            .map(Role::getId)
+            .toList();
+
+    assertEquals(Stream.of(adminRole, traineeRole).map(Role::getId).sorted().toList(), returnedIds);
   }
 }

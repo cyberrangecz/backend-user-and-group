@@ -9,11 +9,11 @@ import cz.cyberrange.platform.userandgroup.definition.exceptions.UagAccessForbid
 import cz.cyberrange.platform.userandgroup.definition.exceptions.UnprocessableEntityException;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiEntityError;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.errors.ApiError;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -23,6 +23,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -97,8 +98,9 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   /**
    * Catches TypeMismatchException, including MethodArgumentTypeMismatchException. Ignores the
    * headers and status supplied by the base handler and always answers with HTTP 400 and an
-   * ApiError whose message carries the localized message of the deepest cause, whose single error
-   * entry carries the exception's own message, and whose path carries the request's context path.
+   * ApiError whose message and single error entry both name the rejected parameter without
+   * repeating the submitted value or any parser text, and whose path carries the request's context
+   * path. The exception is logged with its stack trace.
    *
    * @param ex the caught exception
    * @param headers ignored
@@ -110,14 +112,15 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleTypeMismatch(
       final TypeMismatchException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
+    LOG.warn("Request parameter has an unexpected type", ex);
+    final String message =
+        ex.getPropertyName() == null
+            ? "A request parameter has an invalid value."
+            : "The value of '" + ex.getPropertyName() + "' is invalid.";
     final ApiError apiError =
-        ApiError.of(
-            HttpStatus.BAD_REQUEST,
-            getInitialException(ex).getLocalizedMessage(),
-            getErrorMessage(ex),
-            request.getContextPath());
+        ApiError.of(HttpStatus.BAD_REQUEST, message, message, request.getContextPath());
     return jsonResponse(apiError);
   }
 
@@ -137,7 +140,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleMissingServletRequestPart(
       final MissingServletRequestPartException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final ApiError apiError =
         ApiError.of(
@@ -164,7 +167,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleMissingServletRequestParameter(
       final MissingServletRequestParameterException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final ApiError apiError =
         ApiError.of(
@@ -191,7 +194,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleNoHandlerFoundException(
       final NoHandlerFoundException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final ApiError apiError =
         ApiError.of(
@@ -218,7 +221,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
       final HttpRequestMethodNotSupportedException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final StringBuilder supportedHttpMethods = new StringBuilder();
     supportedHttpMethods.append(ex.getMethod());
@@ -251,7 +254,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(
       final HttpMediaTypeNotSupportedException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final StringBuilder supportedMediaTypes = new StringBuilder();
     supportedMediaTypes.append(ex.getContentType());
@@ -284,7 +287,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
       final MethodArgumentNotValidException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final ApiError apiError =
         ApiError.of(
@@ -313,7 +316,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   protected ResponseEntity<Object> handleHttpMessageNotReadable(
       final HttpMessageNotReadableException ex,
       final HttpHeaders headers,
-      final HttpStatus status,
+      final HttpStatusCode status,
       final WebRequest request) {
     final ApiError apiError =
         ApiError.of(

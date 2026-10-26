@@ -42,17 +42,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {TestDataFactory.class, RoleMapperImpl.class, IDMGroupMapperImpl.class})
 class IDMGroupFacadeTest {
 
   private IDMGroupFacade groupFacade;
-  @MockBean private IDMGroupService groupService;
-  @MockBean private UserService userService;
+  @MockitoBean private IDMGroupService groupService;
+  @MockitoBean private UserService userService;
   @Autowired private TestDataFactory testDataFactory;
   @Autowired private RoleMapperImpl roleMapper;
   @Autowired private IDMGroupMapperImpl groupMapper;

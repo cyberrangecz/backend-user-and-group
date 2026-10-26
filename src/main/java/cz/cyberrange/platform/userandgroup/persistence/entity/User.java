@@ -1,24 +1,24 @@
 package cz.cyberrange.platform.userandgroup.persistence.entity;
 
 import cz.cyberrange.platform.userandgroup.persistence.enums.UserAndGroupStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.PreRemove;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.NamedSubgraph;
-import javax.persistence.PreRemove;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 /**
  * Represents an authenticated user of the system. The combination of sub and iss is unique across
@@ -46,14 +46,13 @@ import javax.persistence.UniqueConstraint;
   @NamedQuery(
       name = "User.getRolesOfUser",
       query =
-          "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId"),
+          "SELECT r FROM User u INNER JOIN u.groups g INNER JOIN g.roles r JOIN FETCH r.microservice WHERE u.id = :userId ORDER BY r.id"),
   @NamedQuery(
       name = "User.getUserBySubWithGroups",
       query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.sub = :sub AND u.iss = :iss"),
   @NamedQuery(
       name = "User.getUserByIdWithGroups",
-      query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId"),
-  @NamedQuery(name = "User.findAllWithGivenIds", query = "SELECT u FROM User u WHERE u.id IN :ids")
+      query = "SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId")
 })
 public class User extends AbstractEntity<Long> {
 

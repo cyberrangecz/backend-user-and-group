@@ -3,7 +3,9 @@ package cz.cyberrange.platform.userandgroup.controller;
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertJsonBytesToObject;
 import static cz.cyberrange.platform.userandgroup.util.ObjectConverter.convertObjectToJsonBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.anyList;
@@ -15,10 +17,9 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.api.dto.PageResultResource;
 import cz.cyberrange.platform.userandgroup.api.dto.enums.UserDeletionStatusDTO;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +54,8 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.querydsl.QuerydslPredicateArgumentResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -63,7 +66,6 @@ class UsersRestControllerTest {
   @Autowired private TestDataFactory testDataFactory;
   private UsersRestController usersRestController;
   @Mock private UserFacade userFacade;
-  @Mock private ObjectMapper objectMapper;
 
   private MockMvc mockMvc;
   private AutoCloseable closeable;
@@ -84,7 +86,8 @@ class UsersRestControllerTest {
                 new QuerydslPredicateArgumentResolver(
                     new QuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE),
                     Optional.empty()))
-            .setMessageConverters(new MappingJackson2HttpMessageConverter())
+            .setMessageConverters(
+                new ByteArrayHttpMessageConverter(), new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new CustomRestExceptionHandler())
             .build();
 
@@ -103,10 +106,6 @@ class UsersRestControllerTest {
     userPageResultResource = new PageResultResource<>(Arrays.asList(userDTO1, userDTO2));
     userBasicViewDtoPageResultResource =
         new PageResultResource<>(List.of(userBasicViewDto1, userBasicViewDto2));
-
-    ObjectMapper obj = new ObjectMapper();
-    obj.setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy());
-    given(objectMapper.getSerializationConfig()).willReturn(obj.getSerializationConfig());
   }
 
   @AfterEach
@@ -117,6 +116,18 @@ class UsersRestControllerTest {
   @Test
   void contextLoads() {
     assertNotNull(usersRestController);
+  }
+
+  @Test
+  void getInitialOIDCUsers_sendsFileAsNamedAttachment() throws Exception {
+    given(userFacade.getInitialOIDCUsers()).willReturn("users: []".getBytes());
+
+    mockMvc
+        .perform(get("/users/initial-oidc-users"))
+        .andExpect(status().isOk())
+        .andExpect(
+            header()
+                .string("Content-Disposition", "attachment; filename=\"oidc-initial-users.yaml\""));
   }
 
   @Test
@@ -147,7 +158,7 @@ class UsersRestControllerTest {
 
     MockHttpServletResponse result =
         mockMvc
-            .perform(get("/users" + "/"))
+            .perform(get("/users"))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
@@ -237,7 +248,7 @@ class UsersRestControllerTest {
     deletionResponseDTO.setStatus(UserDeletionStatusDTO.EXTERNAL_VALID);
     mockMvc
         .perform(
-            delete("/users" + "/")
+            delete("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     convertObjectToJsonBytes(Arrays.asList(userDTO1.getId(), userDTO2.getId()))))
@@ -249,7 +260,7 @@ class UsersRestControllerTest {
   public void testDeleteUsersWithNullRequestBody() throws Exception {
     mockMvc
         .perform(
-            delete("/users" + "/")
+            delete("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(convertObjectToJsonBytes(null)))
         .andExpect(status().isBadRequest());
@@ -285,6 +296,36 @@ class UsersRestControllerTest {
         convertJsonBytesToObject(response.getContentAsString(), ApiEntityError.class);
     assertEquals(HttpStatus.NOT_FOUND, error.getStatus());
     assertEquals("The requested entity could not be found", error.getMessage());
+  }
+
+  @Test
+  public void getUsersWithGivenIdsPassesNameFilterOnlyInFullPredicate() throws Exception {
+    ArgumentCaptor<Predicate> fullPredicate = ArgumentCaptor.forClass(Predicate.class);
+    ArgumentCaptor<Predicate> maskedCallerPredicate = ArgumentCaptor.forClass(Predicate.class);
+    given(userFacade.getUsersWithGivenIds(anyList(), any(Pageable.class), any(), any()))
+        .willReturn(userBasicViewDtoPageResultResource);
+
+    mockMvc
+        .perform(
+            get("/users/ids")
+                .param("ids", "1")
+                .param("givenName", "alice")
+                .param("familyName", "smith")
+                .param("mail", "alice@example.org"))
+        .andExpect(status().isOk());
+
+    then(userFacade)
+        .should()
+        .getUsersWithGivenIds(
+            anyList(),
+            any(Pageable.class),
+            fullPredicate.capture(),
+            maskedCallerPredicate.capture());
+    assertTrue(fullPredicate.getValue().toString().contains("givenName"));
+    assertTrue(fullPredicate.getValue().toString().contains("familyName"));
+    assertFalse(maskedCallerPredicate.getValue().toString().contains("givenName"));
+    assertFalse(maskedCallerPredicate.getValue().toString().contains("familyName"));
+    assertTrue(maskedCallerPredicate.getValue().toString().contains("mail"));
   }
 
   private RoleDTO getAdminRoleDTO() {

@@ -1,7 +1,5 @@
 package cz.cyberrange.platform.userandgroup.startup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import cz.cyberrange.platform.userandgroup.definition.exceptions.LoadingRolesAndUserException;
 import cz.cyberrange.platform.userandgroup.persistence.entity.IDMGroup;
 import cz.cyberrange.platform.userandgroup.persistence.entity.Microservice;
@@ -16,7 +14,6 @@ import cz.cyberrange.platform.userandgroup.persistence.repository.RoleRepository
 import cz.cyberrange.platform.userandgroup.persistence.repository.UserRepository;
 import cz.cyberrange.platform.userandgroup.service.IdenticonService;
 import java.io.File;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -27,6 +24,10 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /**
  * Runs once when the application starts, loading the main microservice, its administrator, power
@@ -83,7 +84,7 @@ public class StartUpRunner implements ApplicationRunner {
    * users.
    *
    * @param args unused
-   * @throws IOException when the file with the initial users cannot be read or parsed
+   * @throws JacksonException when the file with the initial users cannot be read or parsed
    * @throws LoadingRolesAndUserException when a loaded user's roles match none of the recognized
    *     role types
    */
@@ -225,10 +226,14 @@ public class StartUpRunner implements ApplicationRunner {
    * Loads the initial users from the file configured as their source and, for each one, updates the
    * matching existing user or creates a new one.
    *
-   * @throws IOException when the file cannot be read or parsed
+   * @throws JacksonException when the file cannot be read or parsed
    */
-  private void loadOrCreateUsers() throws IOException {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+  private void loadOrCreateUsers() {
+    YAMLMapper mapper =
+        YAMLMapper.builder()
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(EnumFeature.READ_ENUMS_USING_TO_STRING)
+            .build();
     UsersWrapper[] usersWrapper =
         mapper.readValue(new File(pathToFileWithInitialUsers), UsersWrapper[].class);
 

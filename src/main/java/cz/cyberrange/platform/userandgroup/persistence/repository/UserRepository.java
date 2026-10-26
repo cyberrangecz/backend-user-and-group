@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -18,7 +19,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 /** The JPA repository interface to manage {@link User} instances. */
@@ -30,7 +30,8 @@ public interface UserRepository
         QuerydslBinderCustomizer<QUser> {
 
   /**
-   * Binds every string-typed property so QueryDSL predicates match its values case-insensitively.
+   * Binds every string-typed property so QueryDSL predicates match a value as a substring that
+   * ignores case and accents. The database folds both the property and the value.
    *
    * @param querydslBindings bindings being customized for this repository
    * @param qUser unused
@@ -42,7 +43,8 @@ public interface UserRepository
         .all(
             (StringPath path, Collection<? extends String> values) -> {
               BooleanBuilder predicate = new BooleanBuilder();
-              values.forEach(value -> predicate.and(path.containsIgnoreCase(value)));
+              values.forEach(
+                  value -> predicate.and(SearchPredicate.contains(path, value)));
               return Optional.ofNullable(predicate);
             });
   }
@@ -75,7 +77,7 @@ public interface UserRepository
    * @return the matching users; empty list when none match
    */
   @EntityGraph(value = "User.groups", type = EntityGraph.EntityGraphType.FETCH)
-  List<User> findByIdIn(List<Long> userIds);
+  List<User> findByIdInOrderById(List<Long> userIds);
 
   /**
    * Finds every user that matches the given predicate.
@@ -119,13 +121,4 @@ public interface UserRepository
    * @return the matching user, or an empty Optional when no user has that ID
    */
   Optional<User> getUserByIdWithGroups(@Param("userId") Long userId);
-
-  /**
-   * Finds every user whose ID is in the given set.
-   *
-   * @param ids ids to match
-   * @param pageable page and sort request
-   * @return the matching page of users; empty page when none match
-   */
-  Page<User> findAllWithGivenIds(@Param("ids") Set<Long> ids, Pageable pageable);
 }

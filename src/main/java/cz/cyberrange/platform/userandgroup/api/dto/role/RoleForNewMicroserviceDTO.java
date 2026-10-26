@@ -1,9 +1,9 @@
 package cz.cyberrange.platform.userandgroup.api.dto.role;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 /** A role defined by a microservice being registered, nested inside its registration request. */
 @Schema(
