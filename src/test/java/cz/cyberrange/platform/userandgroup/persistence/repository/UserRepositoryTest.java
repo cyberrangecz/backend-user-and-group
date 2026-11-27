@@ -405,6 +405,19 @@ class UserRepositoryTest {
   }
 
   @Test
+  public void nameFilterMatchesWordOnFullNameOnly() {
+    persistUsersForNameFilter();
+    User titledUser = new User("zqxtitled", "https://oidc.provider.cz/oidc/");
+    titledUser.setFullName("Zqxprofessor Zqxtitled");
+    entityManager.persist(titledUser);
+    entityManager.flush();
+    entityManager.clear();
+
+    assertEquals(List.of("zqxtitled"), subsMatchingNameFilter("zqxprofessor"));
+    assertEquals(List.of("zqxjames"), subsMatchingNameFilter("zqxjames"));
+  }
+
+  @Test
   public void nameFilterIgnoresCase() {
     persistUsersForNameFilter();
 

@@ -26,7 +26,6 @@ ENV PROJECT_ARTIFACT_ID=${PROJECT_ARTIFACT_ID}
 
 COPY /etc/exported-local-oidc-users.yml /app/etc/exported-local-oidc-users.yml
 COPY /etc/initial-users.yml /app/etc/initial-users.yml
-COPY etc/logback-spring.xml /app/etc/logback-spring.xml
 
 COPY etc/$PROJECT_ARTIFACT_ID.properties /app/etc/$PROJECT_ARTIFACT_ID.properties
 COPY entrypoint.sh /app/entrypoint.sh

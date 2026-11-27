@@ -7,7 +7,7 @@ import com.querydsl.core.types.Predicate;
 import cz.cyberrange.platform.userandgroup.persistence.entity.QUser;
 import java.util.Arrays;
 
-/** Builds the user filter that matches free text against the given name and the family name. */
+/** Builds the user filter that matches free text against the given name, the family name and the full name. */
 public final class UserNameFilter {
 
   private UserNameFilter() {}
@@ -15,7 +15,7 @@ public final class UserNameFilter {
   /**
    * Narrows a user predicate to the users whose names match the given text. The text is split into
    * words on whitespace, and each word must be contained, ignoring case and accents, in the given
-   * name or in the family name. Blank or missing text leaves the predicate unrestricted.
+   * name, the family name or the full name. Blank or missing text leaves the predicate unrestricted.
    *
    * @param predicate filter to narrow; may be null or empty
    * @param nameText free text of whitespace-separated words; may be null
@@ -30,7 +30,8 @@ public final class UserNameFilter {
               word ->
                   narrowed.and(
                       contains(QUser.user.givenName, word)
-                          .or(contains(QUser.user.familyName, word))));
+                          .or(contains(QUser.user.familyName, word))
+                          .or(contains(QUser.user.fullName, word))));
     }
     return narrowed;
   }
